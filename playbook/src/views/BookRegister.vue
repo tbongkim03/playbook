@@ -29,20 +29,84 @@
             <input type="date" class="form-control" v-model="book.publishDate" />
         </div>
 
+        <!-- 대분류 드롭다운 -->
+        <div class="mb-3">
+            <label class="form-label">대분류</label>
+            <select class="form-select" v-model="book.categoryLarge">
+                <option disabled value="">대분류를 선택하세요</option>
+                <option v-for="category in largeCategories" :key="category.nameSortFirst"
+                    :value="category.nameSortFirst">
+                    {{ category.korSortFirst }}
+                </option>
+            </select>
+        </div>
+
+        <!-- 중분류 드롭다운 -->
+        <div class="mb-3">
+            <label class="form-label">중분류</label>
+            <select class="form-select" v-model="book.categoryMedium" :disabled="mediumCategories.length === 0">
+                <option disabled value="">중분류를 선택하세요</option>
+                <option v-for="(category, index) in mediumCategories" :key="index" :value="category">
+                    {{ category }}
+                </option>>
+            </select>
+        </div>
+
         <button class="btn btn-primary" @click="submitBook">등록</button>
     </div>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, watch } from 'vue'
 
 const book = reactive({
     isbn: '',
     title: '',
     author: '',
     publisher: '',
-    publishDate: ''
+    publishDate: '',
+    categoryLarge: '',
+    categoryMedium: ''
 })
+
+// JSON 파싱 없이 바로 배열 정의
+const largeCategories = [
+    { nameSortFirst: 'A', korSortFirst: '일반' },
+    { nameSortFirst: 'B', korSortFirst: '컴퓨터일반' },
+    { nameSortFirst: 'C', korSortFirst: '웹/앱' },
+    { nameSortFirst: 'D', korSortFirst: '데이터베이스/빅데이터/분석/엔지니어링' },
+    { nameSortFirst: 'E', korSortFirst: '클라우드/데브옵스' },
+    { nameSortFirst: 'F', korSortFirst: '인공지능' },
+    { nameSortFirst: 'G', korSortFirst: '기타' },
+    { nameSortFirst: 'H', korSortFirst: '엔코아' }
+]
+
+const mediumCategories = ref([])
+
+const mediumCategoriesMap = {
+    'A': ['일반'],
+    'B': ['일반', '파이썬', '자바', '자바스크립트', '리눅스', '네트워크', '자격증', '알고리즘', '기타'],
+    'C': ['일반', '프론트엔드', '백엔드', '풀스택', '앱개발'],
+    'D': ['일반', '파이썬', 'R', '데이터베이스', '빅데이터 플랫폼', '기타'],
+    'E': ['종합', 'AWS', '클라우드 플랫폼', '도커', '쿠버네티스', '기타'],
+    'F': ['일반', '머신러닝/딥러닝', 'LLM', '기타'],
+    'G': ['사물인터넷', '블록체인', '게임'],
+    'H': ['데이터베이스', '데이터아키텍쳐', '데이터분석', '데이터엔지니어링', '기타']
+}
+
+
+watch(
+    () => book.categoryLarge,
+    (newVal) => {
+        if (newVal && mediumCategoriesMap[newVal]) {
+            mediumCategories.value = mediumCategoriesMap[newVal]
+            book.categoryMedium = '' // 초기화
+        } else {
+            mediumCategories.value = []
+            book.categoryMedium = ''
+        }
+    }
+)
 
 const jsonData = ref(null)
 
@@ -113,17 +177,7 @@ function submitBook() {
 <style scoped>
 .book-form-wrapper {
     width: 100%;
-    max-width: 600px;
     padding: 1rem;
-    margin-left: 0;
-    margin-right: auto;
-}
-
-pre {
-    background: #f4f4f4;
-    padding: 1rem;
-    overflow-x: auto;
-    white-space: pre-wrap;
-    word-break: break-word;
+    margin: 0 auto;
 }
 </style>
