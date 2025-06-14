@@ -37,4 +37,4 @@
 .back/.vscode/
 
 #### ENV ###
-.back/.env
+back/.env
