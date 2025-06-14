@@ -38,3 +38,4 @@ back/.vscode/
 
 #### ENV ###
 back/.env
+db/.env

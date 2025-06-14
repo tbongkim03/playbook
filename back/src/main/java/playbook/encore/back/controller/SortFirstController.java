@@ -10,6 +10,8 @@ import playbook.encore.back.data.dto.sortFirst.SortFirstRequestDto;
 import playbook.encore.back.data.dto.sortFirst.SortFirstResponseDto;
 import playbook.encore.back.service.SortFirstService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/subjects")
 public class SortFirstController {
@@ -24,8 +26,8 @@ public class SortFirstController {
     }
 
     @GetMapping
-    public ResponseEntity<SortFirstResponseDto> getSortFirstAll() throws Exception{
-        SortFirstResponseDto sortFirstResponseDto = sortFirstService.getAllSortFirst().get(0);
+    public ResponseEntity<List<SortFirstResponseDto>> getSortFirstAll() throws Exception{
+        List<SortFirstResponseDto> sortFirstResponseDto = sortFirstService.getAllSortFirst();
         return ResponseEntity.status(HttpStatus.OK).body(sortFirstResponseDto);
     }
 
