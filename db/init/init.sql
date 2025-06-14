@@ -1,7 +1,7 @@
 USE playbookdb;
 
 CREATE TABLE tb_book (
-    seq_book        BIGINT(20)      NOT NULL AUTO_INCREMENT,
+    seq_book        INT             NOT NULL AUTO_INCREMENT,
     seq_sort_first  VARCHAR(2)      NOT NULL,
     seq_sort_second VARCHAR(2)      NOT NULL,
     isbn_book       VARCHAR(20)     NOT NULL UNIQUE,
@@ -9,13 +9,13 @@ CREATE TABLE tb_book (
     publisher_book  VARCHAR(20)     NOT NULL,
     publish_date_book DATE          NOT NULL,
     barcode_book    VARCHAR(30)     NOT NULL,
-    cnt_book        BIGINT(20)      NOT NULL,
+    cnt_book        INT             NOT NULL,
     PRIMARY KEY (seq_book, seq_sort_first, seq_sort_second)
 );
 
 CREATE TABLE tb_user (
-    seq_user        BIGINT(20)      NOT NULL AUTO_INCREMENT,
-    seq_course      BIGINT(20)      NOT NULL,
+    seq_user        INT             NOT NULL AUTO_INCREMENT,
+    seq_course      INT             NOT NULL,
     id_user         VARCHAR(30)     NOT NULL,
     pw_user         VARCHAR(255)    NOT NULL,
     name_user       VARCHAR(20)     NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE tb_user (
 );
 
 CREATE TABLE tb_admin (
-    seq_admin       BIGINT(20)      NOT NULL AUTO_INCREMENT,
+    seq_admin       INT             NOT NULL AUTO_INCREMENT,
     id_admin        VARCHAR(30)     NOT NULL,
     pw_admin        VARCHAR(255)    NOT NULL,
     name_admin      VARCHAR(20)     NOT NULL,
@@ -37,11 +37,11 @@ CREATE TABLE tb_admin (
 );
 
 CREATE TABLE tb_history (
-    seq_history     BIGINT(20)      NOT NULL AUTO_INCREMENT,
-    seq_admin       BIGINT(20)      NOT NULL,
-    seq_user        BIGINT(20)      NOT NULL,
-    seq_course      BIGINT(20)      NOT NULL,
-    seq_book        BIGINT(20)      NOT NULL,
+    seq_history     INT             NOT NULL AUTO_INCREMENT,
+    seq_admin       INT             NOT NULL,
+    seq_user        INT             NOT NULL,
+    seq_course      INT             NOT NULL,
+    seq_book        INT             NOT NULL,
     seq_sort_first  VARCHAR(2)      NOT NULL,
     seq_sort_second VARCHAR(2)      NOT NULL,
     book_dt         DATE            NOT NULL,
@@ -50,7 +50,7 @@ CREATE TABLE tb_history (
 );
 
 CREATE TABLE tb_course (
-    seq_course      BIGINT(20)      NOT NULL AUTO_INCREMENT,
+    seq_course      INT             NOT NULL AUTO_INCREMENT,
     name_course     VARCHAR(30)     NOT NULL UNIQUE,
     start_dt_course DATE            NOT NULL,
     finish_dt_course DATE           NOT NULL,
@@ -58,16 +58,18 @@ CREATE TABLE tb_course (
 );
 
 CREATE TABLE tb_sort_first (
-    seq_sort_first  VARCHAR(2)      NOT NULL,
-    name_sort_first VARCHAR(20)     NOT NULL,
+    seq_sort_first  INT             NOT NULL AUTO_INCREMENT,
+    kor_sort_first  VARCHAR(255)    NOT NULL,
+    name_sort_first VARCHAR(255)    NOT NULL,
     PRIMARY KEY (seq_sort_first)
 );
 
 CREATE TABLE tb_sort_second (
-    seq_sort_second VARCHAR(2)      NOT NULL,
-    seq_sort_first  VARCHAR(2)      NOT NULL,
-    name_sort_second VARCHAR(20)    NOT NULL,
-    PRIMARY KEY (seq_sort_second, seq_sort_first)
+    seq_sort_second  INT             NOT NULL AUTO_INCREMENT,
+    kor_sort_second  VARCHAR(255)    NOT NULL,
+    name_sort_first  VARCHAR(255)    NOT NULL,
+    name_sort_second VARCHAR(255)    NOT NULL,
+    PRIMARY KEY (seq_sort_second)
 );
 
 -- 외래키
