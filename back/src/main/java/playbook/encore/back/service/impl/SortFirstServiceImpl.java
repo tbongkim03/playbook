@@ -27,7 +27,7 @@ public class SortFirstServiceImpl implements SortFirstService {
     }
 
     private SortFirstResponseDto convertToDto(SortFirst entity) {
-        return new SortFirstResponseDto(entity.getKorSortFirst(), entity.getNameSortFirst());
+        return new SortFirstResponseDto(entity.getSeqSortFirst(), entity.getKorSortFirst(), entity.getNameSortFirst());
     }
 
     @Override
