@@ -4,6 +4,7 @@ import lombok.*;
 
 @Data
 public class SortFirstResponseDto {
+
     private Integer seqSortFirst;
     private String korSortFirst;
     private String nameSortFirst;
