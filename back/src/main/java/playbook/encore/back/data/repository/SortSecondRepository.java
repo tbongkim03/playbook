@@ -5,5 +5,4 @@ import playbook.encore.back.data.entity.SortFirst;
 import playbook.encore.back.data.entity.SortSecond;
 
 public interface SortSecondRepository extends JpaRepository<SortSecond, Integer> {
-//    SortSecond findBySeqSortFirst(SortFirst seqSortFirst);
 }
