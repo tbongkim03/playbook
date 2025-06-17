@@ -31,21 +31,25 @@ public class SortFirstController {
         return ResponseEntity.status(HttpStatus.OK).body(sortFirstResponseDto);
     }
 
-    @PostMapping()
+    @PostMapping
     public ResponseEntity<SortFirstResponseDto> postSortFirst(@RequestBody SortFirstRequestDto sortFirstRequestDto) throws Exception {
         SortFirstResponseDto sortFirstResponseDto = sortFirstService.insertSortFirst(sortFirstRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(sortFirstResponseDto);
     }
 
-    @PutMapping
-    public ResponseEntity<SortFirstResponseDto> putSortFirst(@RequestBody SortFirstRequestDto sortFirstRequestDto) throws Exception{
+    @PutMapping("/{id}")
+    public ResponseEntity<SortFirstResponseDto> putSortFirstById(
+            @PathVariable("id") Integer sortFirstId,
+            @RequestBody SortFirstRequestDto sortFirstRequestDto
+    ) throws Exception{
+        sortFirstRequestDto.setSeqSortFirst(sortFirstId);
         SortFirstResponseDto sortFirstResponseDto = sortFirstService.changeSortFirst(sortFirstRequestDto);
         return ResponseEntity.status(HttpStatus.OK).body(sortFirstResponseDto);
     }
 
-    @DeleteMapping
-    public ResponseEntity<String> deleteSortFirstById(@RequestBody SortFirstRequestDto sortFirstRequestDto) throws Exception {
-        sortFirstService.deleteSortFirst(sortFirstRequestDto);
-        return ResponseEntity.status(HttpStatus.OK).body("해당 대분류를 삭제에 성공하였습니다.");
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteSortFirst(@PathVariable("id") Integer sortFirstId) throws Exception {
+        sortFirstService.deleteSortFirstById(sortFirstId);
+        return ResponseEntity.status(HttpStatus.OK).body("삭제를 수행하였습니다.");
     }
 }

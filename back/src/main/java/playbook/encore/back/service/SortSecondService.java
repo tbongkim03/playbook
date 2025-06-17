@@ -9,5 +9,5 @@ public interface SortSecondService {
     SortSecondResponseDto insertSortSecond(SortSecondRequestDto sortSecondRequestDto);
     List<SortSecondResponseDto> getAllSortSecond() throws Exception;
     SortSecondResponseDto changeSortSecond(SortSecondRequestDto sortSecondRequestDto) throws Exception;
-    void deleteSortSecond(SortSecondRequestDto sortSecondRequestDto) throws Exception;
+    void deleteSortSecondById(Integer sortSecondId) throws Exception;
 }

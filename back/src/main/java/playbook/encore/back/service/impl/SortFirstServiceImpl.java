@@ -77,8 +77,8 @@ public class SortFirstServiceImpl implements SortFirstService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void deleteSortFirst(SortFirstRequestDto sortFirstRequestDto) throws Exception {
-        Optional<SortFirst> optionalSortFirst = sortFirstRepository.findById(sortFirstRequestDto.getSeqSortFirst());
+    public void deleteSortFirstById(Integer sortFirstId) throws Exception {
+        Optional<SortFirst> optionalSortFirst = sortFirstRepository.findById(sortFirstId);
         if (optionalSortFirst.isPresent()) {
             sortFirstRepository.deleteById(optionalSortFirst.get().getSeqSortFirst());
         } else {
