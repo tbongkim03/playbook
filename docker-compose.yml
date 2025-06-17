@@ -27,6 +27,18 @@ services:
     networks:
       - app-network
 
+  front:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    container_name: front
+    env_file:
+      - ./front/.env
+    ports:
+      - "8081:8080"
+    networks:
+      - app-network
+
 volumes:
   db-data:
 
