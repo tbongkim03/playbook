@@ -4,6 +4,7 @@ CREATE TABLE tb_book (
     seq_book        INT             NOT NULL AUTO_INCREMENT,
     seq_sort_second INT             NOT NULL,
     isbn_book       VARCHAR(20)     NOT NULL UNIQUE,
+    title_book      VARCHAR(255)    NOT NULL,
     author_book     VARCHAR(20)     NOT NULL,
     publisher_book  VARCHAR(20)     NOT NULL,
     publish_date_book DATE          NOT NULL,
