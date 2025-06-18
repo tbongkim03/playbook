@@ -57,7 +57,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, watch } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 
 const book = reactive({
     isbn: '',
@@ -69,37 +69,55 @@ const book = reactive({
     categoryMedium: ''
 })
 
-// JSON 파싱 없이 바로 배열 정의
-const largeCategories = [
-    { nameSortFirst: 'A', korSortFirst: '일반' },
-    { nameSortFirst: 'B', korSortFirst: '컴퓨터일반' },
-    { nameSortFirst: 'C', korSortFirst: '웹/앱' },
-    { nameSortFirst: 'D', korSortFirst: '데이터베이스/빅데이터/분석/엔지니어링' },
-    { nameSortFirst: 'E', korSortFirst: '클라우드/데브옵스' },
-    { nameSortFirst: 'F', korSortFirst: '인공지능' },
-    { nameSortFirst: 'G', korSortFirst: '기타' },
-    { nameSortFirst: 'H', korSortFirst: '엔코아' }
-]
+const largeCategories = ref([]);
+const mediumCategories = ref([]);
+const mediumCategoriesAll = ref([]);
+const mediumCategoriesMap = ref({});
 
-const mediumCategories = ref([])
-
-const mediumCategoriesMap = {
-    'A': ['일반'],
-    'B': ['일반', '파이썬', '자바', '자바스크립트', '리눅스', '네트워크', '자격증', '알고리즘', '기타'],
-    'C': ['일반', '프론트엔드', '백엔드', '풀스택', '앱개발'],
-    'D': ['일반', '파이썬', 'R', '데이터베이스', '빅데이터 플랫폼', '기타'],
-    'E': ['종합', 'AWS', '클라우드 플랫폼', '도커', '쿠버네티스', '기타'],
-    'F': ['일반', '머신러닝/딥러닝', 'LLM', '기타'],
-    'G': ['사물인터넷', '블록체인', '게임'],
-    'H': ['데이터베이스', '데이터아키텍쳐', '데이터분석', '데이터엔지니어링', '기타']
+const fetchLargeCategories = async () => {
+    const res = await fetch('http://localhost:8080/subjects');
+    const data = await res.json();
+    largeCategories.value = data;
 }
 
+const fetchMediumCategories = async () => {
+    const res = await fetch('http://localhost:8080/subtitles');
+    const data = await res.json();
+    mediumCategoriesAll.value = data;
+}
+
+onMounted(async () => {
+    await fetchLargeCategories();
+    await fetchMediumCategories();
+    mediumCategoriesMap.value = createMediumCategorisMap(largeCategories.value, mediumCategoriesAll.value);
+})
+
+const createMediumCategorisMap = (largeCategories, mediumCategories) => {
+    const map = {};
+
+    largeCategories.forEach(large => {
+        map[large.nameSortFirst] = [];
+    });
+
+    mediumCategories.forEach(medium => {
+        const large = largeCategories.find(l => l.seqSortFirst === medium.seqSortFirst);
+        if (large) {
+            const name = large.nameSortFirst;
+            const kor = medium.korSortSecond;
+            if (!map[name].includes(kor)) {
+                map[name].push(kor);
+            }
+        }
+    });
+
+    return map;
+}
 
 watch(
     () => book.categoryLarge,
     (newVal) => {
-        if (newVal && mediumCategoriesMap[newVal]) {
-            mediumCategories.value = mediumCategoriesMap[newVal]
+        if (newVal && mediumCategoriesMap.value[newVal]) {
+            mediumCategories.value = mediumCategoriesMap.value[newVal]
             book.categoryMedium = '' // 초기화
         } else {
             mediumCategories.value = []
@@ -127,15 +145,16 @@ async function searchISBN() {
         const res = await fetch(url)
         const data = await res.json()
 
-        jsonData.value = JSON.stringify(data, null, 2) // 화면에 출력용
-
-        // jsonData.value를 다시 파싱해서 객체로 변환
-        const parsedData = JSON.parse(jsonData.value)
-        // JSON 내부 경로는 API 문서 및 실제 데이터를 확인 후 적절히 수정 필요
-        const doc = parsedData?.docs?.[0] || null
+        const doc = data?.docs?.[0] || null
         console.log('조회된 도서 정보:', doc)
 
         if (!doc) {
+            // 이전 정보 초기화
+            book.isbn = ''
+            book.title = ''
+            book.author = ''
+            book.publisher = ''
+            book.publishDate = ''
             alert('도서 정보를 찾을 수 없습니다.')
             return
         }
