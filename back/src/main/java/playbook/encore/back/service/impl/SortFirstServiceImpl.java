@@ -60,13 +60,14 @@ public class SortFirstServiceImpl implements SortFirstService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public SortFirstResponseDto changeSortFirst(SortFirstRequestDto sortFirstRequestDto) throws Exception {
-        Optional<SortFirst> optionalSortFirst = sortFirstRepository.findById(sortFirstRequestDto.getSeqSortFirst());
+    public SortFirstResponseDto changeSortFirst(Integer sortFirstId, SortFirstRequestDto sortFirstRequestDto) throws Exception {
+        Optional<SortFirst> optionalSortFirst = sortFirstRepository.findById(sortFirstId);
         if (optionalSortFirst.isPresent()) {
-            SortFirst savedSortFirst = new SortFirst();
-            savedSortFirst.setKorSortFirst(sortFirstRequestDto.getKorSortFirst());
-            savedSortFirst.setNameSortFirst(sortFirstRequestDto.getNameSortFirst());
-            SortFirst changedSortFirst = sortFirstDAO.updateSortFirst(savedSortFirst);
+            SortFirst changedSortFirst = sortFirstDAO.updateSortFirst(
+                    sortFirstId,
+                    sortFirstRequestDto.getKorSortFirst(),
+                    sortFirstRequestDto.getNameSortFirst()
+            );
 
             SortFirstResponseDto sortFirstResponseDto = convertToDto(changedSortFirst);
             return sortFirstResponseDto;

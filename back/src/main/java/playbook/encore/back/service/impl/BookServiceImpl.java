@@ -91,23 +91,22 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public BookResponseDto changeBook(BookRequestDto bookRequestDto) throws Exception {
+    public BookResponseDto changeBook(Integer bookId, BookRequestDto bookRequestDto) throws Exception {
         SortSecond sortSecond = sortSecondRepository.findById(bookRequestDto.getSeqSortSecond())
                 .orElseThrow(() -> new IllegalArgumentException("해당 대분류가 존재하지 않습니다."));
         SortFirst sortFirst = sortSecond.getSeqSortFirst();
 
-        Book book = new Book();
-        book.setSeqSortSecond(sortSecond);
-        book.setIsbnBook(bookRequestDto.getIsbnBook());
-        book.setTitleBook(bookRequestDto.getTitleBook());
-        book.setAuthorBook(bookRequestDto.getAuthorBook());
-        book.setPublisherBook(bookRequestDto.getPublisherBook());
-        book.setPublishDateBook(bookRequestDto.getPublishDateBook());
-        book.setSeqBook(bookRequestDto.getSeqBook());
-        book.setBarcodeBook(bookRequestDto.getBarcodeBook());
-        book.setCntBook(bookRequestDto.getCntBook());
-
-        Book updatedBook = bookDAO.updateBook(book);
+        Book updatedBook = bookDAO.updateBook(
+                bookId,
+                sortSecond.getSeqSortSecond(),
+                bookRequestDto.getIsbnBook(),
+                bookRequestDto.getTitleBook(),
+                bookRequestDto.getAuthorBook(),
+                bookRequestDto.getPublisherBook(),
+                bookRequestDto.getPublishDateBook(),
+                bookRequestDto.getBarcodeBook(),
+                bookRequestDto.getCntBook()
+        );
         BookResponseDto bookResponseDto = convertToDto(updatedBook);
 
         return bookResponseDto;

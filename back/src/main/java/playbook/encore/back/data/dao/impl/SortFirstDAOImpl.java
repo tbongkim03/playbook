@@ -32,19 +32,19 @@ public class SortFirstDAOImpl implements SortFirstDAO {
     }
 
     @Override
-    public SortFirst updateSortFirst(SortFirst sortFirst) throws Exception {
-        Optional<SortFirst> optionalSortFirst = sortFirstRepository.findById(sortFirst.getSeqSortFirst());
+    public SortFirst updateSortFirst(Integer sortFirstId, String korSortFirst, String nameSortFirst) throws Exception {
+        Optional<SortFirst> optionalSortFirst = sortFirstRepository.findById(sortFirstId);
 
         SortFirst updatedSortFirst;
         if (optionalSortFirst.isPresent()) {
             SortFirst selectedSortFirst = optionalSortFirst.get();
 
-            selectedSortFirst.setKorSortFirst(sortFirst.getKorSortFirst());
-            selectedSortFirst.setNameSortFirst(sortFirst.getNameSortFirst());
+            selectedSortFirst.setKorSortFirst(korSortFirst);
+            selectedSortFirst.setNameSortFirst(nameSortFirst);
 
             updatedSortFirst = sortFirstRepository.save(selectedSortFirst);
         } else {
-            throw new IllegalArgumentException("업데이트에 실패하였습니다. 해당 대분류가 존재하지 않습니다: " + sortFirst.getSeqSortFirst());
+            throw new IllegalArgumentException("업데이트에 실패하였습니다. 해당 대분류가 존재하지 않습니다: " + nameSortFirst);
         }
         return updatedSortFirst;
     }

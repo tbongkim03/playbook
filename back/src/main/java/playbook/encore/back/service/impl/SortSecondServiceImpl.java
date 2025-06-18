@@ -70,16 +70,16 @@ public class SortSecondServiceImpl implements SortSecondService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public SortSecondResponseDto changeSortSecond(SortSecondRequestDto sortSecondRequestDto) throws Exception {
+    public SortSecondResponseDto changeSortSecond(Integer sortSecondId, SortSecondRequestDto sortSecondRequestDto) throws Exception {
         SortFirst sortFirst = sortFirstRepository.findById(sortSecondRequestDto.getSeqSortFirst())
                 .orElseThrow(() -> new IllegalArgumentException("해당 대분류가 존재하지 않습니다."));
 
-        SortSecond sortSecond = new SortSecond();
-        sortSecond.setSeqSortFirst(sortFirst);
-        sortSecond.setKorSortSecond(sortSecondRequestDto.getKorSortSecond());
-        sortSecond.setNameSortSecond(sortSecondRequestDto.getNameSortSecond());
-
-        SortSecond changedSortSecond = sortSecondDAO.updateSortSecond(sortSecond);
+        SortSecond changedSortSecond = sortSecondDAO.updateSortSecond(
+                sortSecondId,
+                sortFirst.getSeqSortFirst(),
+                sortSecondRequestDto.getKorSortSecond(),
+                sortSecondRequestDto.getNameSortSecond()
+        );
 
         SortSecondResponseDto sortSecondResponseDto = convertToDto(changedSortSecond);
         return sortSecondResponseDto;
@@ -90,8 +90,8 @@ public class SortSecondServiceImpl implements SortSecondService {
     @Transactional(rollbackFor = Exception.class)
     public void deleteSortSecondById(Integer sortSecondId) throws Exception {
         SortSecond selectedSortSecond = sortSecondRepository.findById(sortSecondId)
-                .orElseThrow(() -> new IllegalArgumentException("삭제에 실패했습니다. 해당 소분류가 존재하지 않습니다: "));
+                .orElseThrow(() -> new IllegalArgumentException("해당 소분류가 존재하지 않습니다."));
 
-        sortSecondRepository.delete(selectedSortSecond);
+        sortSecondDAO.deleteSortSecond(selectedSortSecond.getSeqSortSecond());
     }
 }

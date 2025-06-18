@@ -47,8 +47,7 @@ public class BookController {
             @PathVariable("id") Integer bookId,
             @RequestBody BookRequestDto bookRequestDto
     ) throws Exception {
-        bookRequestDto.setSeqBook(bookId);
-        BookResponseDto bookResponseDto = bookService.changeBook(bookRequestDto);
+        BookResponseDto bookResponseDto = bookService.changeBook(bookId, bookRequestDto);
         return ResponseEntity.status(HttpStatus.OK).body(bookResponseDto);
     }
 

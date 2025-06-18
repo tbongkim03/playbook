@@ -41,8 +41,7 @@ public class SortSecondController {
             @PathVariable("id") Integer sortSecondId,
             @RequestBody SortSecondRequestDto sortSecondRequestDto
     ) throws Exception{
-        sortSecondRequestDto.setSeqSortSecond(sortSecondId);
-        SortSecondResponseDto sortSecondResponseDto = sortSecondService.changeSortSecond(sortSecondRequestDto);
+        SortSecondResponseDto sortSecondResponseDto = sortSecondService.changeSortSecond(sortSecondId, sortSecondRequestDto);
         return ResponseEntity.status(HttpStatus.OK).body(sortSecondResponseDto);
     }
 

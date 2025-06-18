@@ -9,7 +9,7 @@ public interface SortFirstDAO {
 
     List<SortFirst> selectAllSortFirst() throws Exception;
 
-    SortFirst updateSortFirst(SortFirst sortFirst) throws Exception;
+    SortFirst updateSortFirst(Integer sortFirstId, String korSortFirst, String nameSortFitst) throws Exception;
 
     void deleteSortFirst(SortFirst sortFirst) throws Exception;
 }

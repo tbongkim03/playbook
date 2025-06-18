@@ -7,7 +7,6 @@ import java.time.LocalDate;
 @Data
 public class BookRequestDto {
 
-    private Integer seqBook;
     private Integer seqSortSecond;
     private String isbnBook;
     private String titleBook;
@@ -17,8 +16,7 @@ public class BookRequestDto {
     private String barcodeBook;
     private Integer cntBook;
 
-    public BookRequestDto(Integer seqBook, Integer seqSortSecond, String isbnBook, String titleBook, String authorBook, String publisherBook, LocalDate publishDateBook, String barcodeBook, Integer cntBook) {
-        this.seqBook = seqBook;
+    public BookRequestDto(Integer seqSortSecond, String isbnBook, String titleBook, String authorBook, String publisherBook, LocalDate publishDateBook, String barcodeBook, Integer cntBook) {
         this.seqSortSecond = seqSortSecond;
         this.isbnBook = isbnBook;
         this.titleBook = titleBook;
@@ -29,7 +27,4 @@ public class BookRequestDto {
         this.cntBook = cntBook;
     }
 
-    public BookRequestDto() {
-
-    }
 }

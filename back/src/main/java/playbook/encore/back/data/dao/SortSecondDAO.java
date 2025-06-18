@@ -9,7 +9,7 @@ public interface SortSecondDAO {
 
     List<SortSecond> selectAllSortSecond() throws Exception;
 
-    SortSecond updateSortSecond(SortSecond sortSecond) throws Exception;
+    SortSecond updateSortSecond(Integer sortSecondId, Integer sortFirstId, String korSortSecond, String nameSortSecond) throws Exception;
 
-    void deleteSortSecond(SortSecond sortSecond) throws Exception;
+    void deleteSortSecond(Integer sortSecondId) throws Exception;
 }

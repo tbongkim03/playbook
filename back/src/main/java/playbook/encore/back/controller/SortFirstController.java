@@ -42,8 +42,7 @@ public class SortFirstController {
             @PathVariable("id") Integer sortFirstId,
             @RequestBody SortFirstRequestDto sortFirstRequestDto
     ) throws Exception{
-        sortFirstRequestDto.setSeqSortFirst(sortFirstId);
-        SortFirstResponseDto sortFirstResponseDto = sortFirstService.changeSortFirst(sortFirstRequestDto);
+        SortFirstResponseDto sortFirstResponseDto = sortFirstService.changeSortFirst(sortFirstId, sortFirstRequestDto);
         return ResponseEntity.status(HttpStatus.OK).body(sortFirstResponseDto);
     }
 

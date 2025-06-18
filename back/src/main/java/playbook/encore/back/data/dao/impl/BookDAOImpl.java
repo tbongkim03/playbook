@@ -6,6 +6,7 @@ import playbook.encore.back.data.dao.BookDAO;
 import playbook.encore.back.data.entity.Book;
 import playbook.encore.back.data.repository.BookRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,22 +45,24 @@ public class BookDAOImpl implements BookDAO {
     }
 
     @Override
-    public Book updateBook(Book book) throws Exception {
-        Optional<Book> optionalBook = bookRepository.findById(book.getSeqBook());
+    public Book updateBook(Integer bookId, Integer seqSortSecond, String isbnBook, String titleBook,
+                           String authorBook, String publisherBook, LocalDate publishDateBook, String barcodeBook,
+                           Integer cntBook) throws Exception {
+        Optional<Book> optionalBook = bookRepository.findById(bookId);
 
         Book updatedBook;
         if (optionalBook.isPresent()) {
             Book selectedBook = optionalBook.get();
 
-            selectedBook.setIsbnBook(book.getIsbnBook());
-            selectedBook.setTitleBook(book.getTitleBook());
-            selectedBook.setAuthorBook(book.getAuthorBook());
-            selectedBook.setPublisherBook(book.getPublisherBook());
-            selectedBook.setPublishDateBook(book.getPublishDateBook());
+            selectedBook.setIsbnBook(isbnBook);
+            selectedBook.setTitleBook(titleBook);
+            selectedBook.setAuthorBook(authorBook);
+            selectedBook.setPublisherBook(publisherBook);
+            selectedBook.setPublishDateBook(publishDateBook);
 
             // 바코드 문자열 생성 로직 구현, 책 갯수 파악 로직 구현
-            selectedBook.setBarcodeBook(book.getBarcodeBook());
-            selectedBook.setCntBook(book.getCntBook());
+            selectedBook.setBarcodeBook(barcodeBook);
+            selectedBook.setCntBook(cntBook);
 
             updatedBook = bookRepository.save(selectedBook);
         } else {
