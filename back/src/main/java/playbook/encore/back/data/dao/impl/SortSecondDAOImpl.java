@@ -32,33 +32,33 @@ public class SortSecondDAOImpl implements SortSecondDAO {
     }
 
     @Override
-    public SortSecond updateSortSecond(SortSecond sortSecond) throws Exception {
-        Optional<SortSecond> optionalSortSecond = sortSecondRepository.findById(sortSecond.getSeqSortSecond());
+    public SortSecond updateSortSecond(Integer sortSecondId, Integer sortFirstId, String korSortSecond, String nameSortSecond) throws Exception {
+        Optional<SortSecond> optionalSortSecond = sortSecondRepository.findById(sortSecondId);
 
         SortSecond updatedSortSecond;
         if (optionalSortSecond.isPresent()) {
             SortSecond selectedSortSecond = optionalSortSecond.get();
 
-            selectedSortSecond.setKorSortSecond(sortSecond.getKorSortSecond());
-            selectedSortSecond.setNameSortSecond(sortSecond.getNameSortSecond());
+            selectedSortSecond.setKorSortSecond(korSortSecond);
+            selectedSortSecond.setNameSortSecond(nameSortSecond);
 
             updatedSortSecond = sortSecondRepository.save(selectedSortSecond);
         } else {
-            throw new IllegalArgumentException("업데이트에 실패하였습니다. 해당 대분류가 존재하지 않습니다: " + sortSecond.getSeqSortSecond());
+            throw new IllegalArgumentException("업데이트에 실패하였습니다. 해당 중분류가 존재하지 않습니다: " + korSortSecond);
         }
         return updatedSortSecond;
     }
 
     @Override
-    public void deleteSortSecond(SortSecond sortSecond) throws Exception {
-        Optional<SortSecond> optionalSortSecond = sortSecondRepository.findById(sortSecond.getSeqSortSecond());
+    public void deleteSortSecond(Integer sortSecondId) throws Exception {
+        Optional<SortSecond> optionalSortSecond = sortSecondRepository.findById(sortSecondId);
 
         if (optionalSortSecond.isPresent()) {
             SortSecond selectedSortSecond = optionalSortSecond.get();
 
             sortSecondRepository.delete(selectedSortSecond);
         } else {
-            throw new IllegalArgumentException("해당 대분류를 삭제에 실패했습니다: " + sortSecond.getSeqSortSecond());
+            throw new IllegalArgumentException("해당 중분류를 삭제에 실패했습니다: " + sortSecondId);
 
         }
     }

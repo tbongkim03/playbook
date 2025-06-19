@@ -31,21 +31,24 @@ public class SortSecondController {
     }
 
     @PostMapping
-    public ResponseEntity<SortSecondResponseDto> postSortSecond() throws Exception {
-        SortSecondResponseDto sortSecondResponseDto = sortSecondService.insertSortSecond(null);
+    public ResponseEntity<SortSecondResponseDto> postSortSecond(@RequestBody SortSecondRequestDto sortSecondRequestDto) throws Exception {
+        SortSecondResponseDto sortSecondResponseDto = sortSecondService.insertSortSecond(sortSecondRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(sortSecondResponseDto);
     }
 
-    @PutMapping
-    public ResponseEntity<SortSecondResponseDto> putSortSecond(@RequestBody SortSecondRequestDto sortSecondRequestDto) throws Exception{
-        SortSecondResponseDto sortSecondResponseDto = sortSecondService.changeSortSecond(sortSecondRequestDto);
+    @PutMapping("/{id}")
+    public ResponseEntity<SortSecondResponseDto> putSortSecondById(
+            @PathVariable("id") Integer sortSecondId,
+            @RequestBody SortSecondRequestDto sortSecondRequestDto
+    ) throws Exception{
+        SortSecondResponseDto sortSecondResponseDto = sortSecondService.changeSortSecond(sortSecondId, sortSecondRequestDto);
         return ResponseEntity.status(HttpStatus.OK).body(sortSecondResponseDto);
     }
 
-    @DeleteMapping
-    public ResponseEntity<String> deleteSortSecondById(@RequestBody SortSecondRequestDto sortSecondRequestDto) throws Exception {
-        sortSecondService.deleteSortSecond(sortSecondRequestDto);
-        return ResponseEntity.status(HttpStatus.OK).body("해당 소분류를 삭제하였습니다.");
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteSortSecond(@PathVariable("id") Integer sortSecondId) throws Exception {
+        sortSecondService.deleteSortSecondById(sortSecondId);
+        return ResponseEntity.status(HttpStatus.OK).body("삭제를 수행하였습니다.");
     }
 
 }

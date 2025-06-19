@@ -8,7 +8,7 @@ import java.util.List;
 public interface SortFirstService {
     SortFirstResponseDto insertSortFirst(SortFirstRequestDto sortFirstRequestDto);
     List<SortFirstResponseDto> getAllSortFirst() throws Exception;
-    SortFirstResponseDto changeSortFirst(SortFirstRequestDto sortFirstRequestDto) throws Exception;
-    void deleteSortFirst(SortFirstRequestDto sortFirstRequestDto) throws Exception;
+    SortFirstResponseDto changeSortFirst(Integer sortFirstId, SortFirstRequestDto sortFirstRequestDto) throws Exception;
+    void deleteSortFirstById(Integer sortFirstId) throws Exception;
 
 }
