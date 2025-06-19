@@ -14,6 +14,7 @@ import playbook.encore.back.data.repository.SortSecondRepository;
 import playbook.encore.back.service.BookService;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class BookServiceImpl implements BookService {
@@ -50,6 +51,9 @@ public class BookServiceImpl implements BookService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 분류가 존재하지 않습니다"));
         SortFirst sortFirst = sortSecond.getSeqSortFirst();
 
+        Integer count = bookRepository.countByIsbnBook(bookRequestDto.getIsbnBook());
+        int cntBook = count + 1;
+
         Book book = new Book();
         book.setSeqSortSecond(sortSecond);
         book.setIsbnBook(bookRequestDto.getIsbnBook());
@@ -60,7 +64,7 @@ public class BookServiceImpl implements BookService {
 
         // 바코드 문자열 생성 로직 구현, 책 갯수 파악 로직 구현
         book.setBarcodeBook(bookRequestDto.getBarcodeBook());
-        book.setCntBook(bookRequestDto.getCntBook());
+        book.setCntBook(cntBook);
 
         Book savedBook = bookDAO.insertBook(book);
         BookResponseDto bookResponseDto = convertToDto(savedBook);
@@ -96,6 +100,8 @@ public class BookServiceImpl implements BookService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 대분류가 존재하지 않습니다."));
         SortFirst sortFirst = sortSecond.getSeqSortFirst();
 
+        Integer count = bookRepository.countByIsbnBook(bookRequestDto.getIsbnBook());
+
         Book updatedBook = bookDAO.updateBook(
                 bookId,
                 sortSecond.getSeqSortSecond(),
@@ -105,7 +111,7 @@ public class BookServiceImpl implements BookService {
                 bookRequestDto.getPublisherBook(),
                 bookRequestDto.getPublishDateBook(),
                 bookRequestDto.getBarcodeBook(),
-                bookRequestDto.getCntBook()
+                count
         );
         BookResponseDto bookResponseDto = convertToDto(updatedBook);
 

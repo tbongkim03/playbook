@@ -14,9 +14,8 @@ public class BookRequestDto {
     private String publisherBook;
     private LocalDate publishDateBook;
     private String barcodeBook;
-    private Integer cntBook;
 
-    public BookRequestDto(Integer seqSortSecond, String isbnBook, String titleBook, String authorBook, String publisherBook, LocalDate publishDateBook, String barcodeBook, Integer cntBook) {
+    public BookRequestDto(Integer seqSortSecond, String isbnBook, String titleBook, String authorBook, String publisherBook, LocalDate publishDateBook, String barcodeBook) {
         this.seqSortSecond = seqSortSecond;
         this.isbnBook = isbnBook;
         this.titleBook = titleBook;
@@ -24,7 +23,6 @@ public class BookRequestDto {
         this.publisherBook = publisherBook;
         this.publishDateBook = publishDateBook;
         this.barcodeBook = barcodeBook;
-        this.cntBook = cntBook;
     }
 
 }
