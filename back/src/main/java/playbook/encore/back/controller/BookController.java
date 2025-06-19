@@ -1,10 +1,12 @@
 package playbook.encore.back.controller;
 
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import playbook.encore.back.data.dao.BookDAO;
+import playbook.encore.back.data.dto.book.BookCountResponseDto;
 import playbook.encore.back.data.dto.book.BookRequestDto;
 import playbook.encore.back.data.dto.book.BookResponseDto;
 import playbook.encore.back.service.BookService;
@@ -55,5 +57,11 @@ public class BookController {
     public ResponseEntity<String> deleteBookById(@PathVariable("id") Integer bookId) throws Exception {
         bookService.deleteBookById(bookId);
         return ResponseEntity.status(HttpStatus.OK).body("삭제를 수행하였습니다.");
+    }
+
+    @GetMapping("/count")
+    public ResponseEntity<BookCountResponseDto> getBookCountByIsbn(@RequestParam("isbn") String isbn) throws Exception {
+        BookCountResponseDto bookCountResponseDto = bookService.getBookCount(isbn);
+        return ResponseEntity.status(HttpStatus.OK).body(bookCountResponseDto);
     }
 }
