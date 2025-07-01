@@ -58,14 +58,14 @@ CREATE TABLE tb_course (
 );
 
 CREATE TABLE tb_sort_first (
-    seq_sort_first  INT             NOT NULL AUTO_INCREMENT,
+    seq_sort_first  INT             NOT NULL,
     kor_sort_first  VARCHAR(255)    NOT NULL,
     name_sort_first VARCHAR(255)    NOT NULL,
     PRIMARY KEY (seq_sort_first)
 );
 
 CREATE TABLE tb_sort_second (
-    seq_sort_second  INT             NOT NULL AUTO_INCREMENT,
+    seq_sort_second  INT             NOT NULL,
     seq_sort_first   INT             NOT NULL,
     kor_sort_second  VARCHAR(255)    NOT NULL,
     name_sort_second VARCHAR(255)    NOT NULL,

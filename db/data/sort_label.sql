@@ -1,5 +1,6 @@
 INSERT INTO tb_sort_first (seq_sort_first, name_sort_first, kor_sort_first)
-VALUES (1, 'A', '일반'),
+VALUES (0, 'Z', '미지정'),
+       (1, 'A', '일반'),
        (2, 'B', '컴퓨터일반'),
        (3, 'C', '웹/앱'),
        (4, 'D', '데이터베이스/빅데이터/분석/엔지니어링'),
@@ -9,7 +10,8 @@ VALUES (1, 'A', '일반'),
        (8, 'H', '엔코아');
 
 INSERT INTO tb_sort_second (seq_sort_second, seq_sort_first, name_sort_second, kor_sort_second)
-VALUES (1, 1, '00', '일반'),
+VALUES (0, 0, '00', '미지정'),
+       (1, 1, '00', '일반'),
        (2, 2, '00', '일반'),
        (3, 2, '01', '파이썬'),
        (4, 2, '02', '자바'),
