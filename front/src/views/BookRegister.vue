@@ -30,7 +30,7 @@
         </div>
 
         <!-- 대분류 드롭다운 -->
-        <div class="mb-3">
+        <!-- <div class="mb-3">
             <label class="form-label">대분류</label>
             <select class="form-select" v-model="book.categoryLarge">
                 <option disabled value="">대분류를 선택하세요</option>
@@ -39,10 +39,10 @@
                     {{ category.korSortFirst }}
                 </option>
             </select>
-        </div>
+        </div> -->
 
         <!-- 중분류 드롭다운 -->
-        <div class="mb-3">
+        <!-- <div class="mb-3">
             <label class="form-label">중분류</label>
             <select class="form-select" v-model="book.categoryMedium" :disabled="mediumCategories.length === 0">
                 <option disabled value="">중분류를 선택하세요</option>
@@ -50,7 +50,7 @@
                     {{ category.korSortSecond }}
                 </option>>
             </select>
-        </div>
+        </div> -->
 
         <button class="btn btn-primary" @click="submitBook">등록</button>
     </div>
@@ -167,13 +167,14 @@ function formatDate(dateStr) {
 
 function submitBook() {
     const payload = {
-        seqSortSecond: book.categoryMedium.seqSortSecond,
+        // seqSortSecond: book.categoryMedium.seqSortSecond,
+        seqSortSecond: 0, // 미지정
         isbnBook: book.isbn,
         titleBook: book.title,
         authorBook: book.author,
         publisherBook: book.publisher,
-        publishDateBook: book.publishDate,
-        barcodeBook: book.isbn  // ISBN을 바코드로 사용한다면
+        publishDateBook: book.publishDate
+        //barcodeBook: book.isbn  // ISBN을 바코드로 사용한다면
     };
 
     fetch('http://localhost:8080/books', {
