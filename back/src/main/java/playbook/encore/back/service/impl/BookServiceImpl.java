@@ -99,13 +99,22 @@ public class BookServiceImpl implements BookService {
         SortSecond sortSecond = sortSecondRepository.findById(bookRequestDto.getSeqSortSecond())
                 .orElseThrow(() -> new IllegalArgumentException("해당 중분류가 존재하지 않습니다."));
 
+        sortSecond.setSeqSortSecond(bookRequestDto.getSeqSortSecond());
         Book updatedBook = Book.builder()
+                .seqBook(bookId)
                 .seqSortSecond(sortSecond)
+                .isbnBook(existingBook.getIsbnBook())
+                .titleBook(existingBook.getTitleBook())
+                .authorBook(existingBook.getAuthorBook())
+                .publisherBook(existingBook.getPublisherBook())
+                .publishDateBook(existingBook.getPublishDateBook())
+                .barcodeBook(existingBook.getBarcodeBook())
+                .cntBook(existingBook.getCntBook())
                 .build();
 
+        Book changedBook = bookDAO.updateBook(updatedBook);
 
-
-        BookResponseDto bookResponseDto = convertToDto(updatedBook);
+        BookResponseDto bookResponseDto = convertToDto(changedBook);
 
         return bookResponseDto;
     }
@@ -116,7 +125,7 @@ public class BookServiceImpl implements BookService {
         Book selectedBook = bookRepository.findById(bookId)
                 .orElseThrow(() -> new IllegalArgumentException("삭제에 실패했습니다. 해당 도서는 존재하지 않습니다."));
 
-        bookRepository.delete(selectedBook);
+        bookDAO.deleteBook(selectedBook);
     }
 
     @Override
