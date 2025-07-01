@@ -3,13 +3,13 @@ USE playbookdb;
 CREATE TABLE tb_book (
     seq_book        INT             NOT NULL AUTO_INCREMENT,
     seq_sort_second INT             NOT NULL,
-    isbn_book       VARCHAR(20)     NOT NULL UNIQUE,
+    isbn_book       VARCHAR(20)     NOT NULL,
     title_book      VARCHAR(255)    NOT NULL,
     author_book     VARCHAR(20)     NOT NULL,
     publisher_book  VARCHAR(20)     NOT NULL,
     publish_date_book DATE          NOT NULL,
-    barcode_book    VARCHAR(30)     NOT NULL UNIQUE,
-    cnt_book        INT             NOT NULL,
+    barcode_book    VARCHAR(30)     NULL,
+    cnt_book        INT             NULL,
     PRIMARY KEY (seq_book)
 );
 

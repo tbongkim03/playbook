@@ -7,6 +7,9 @@ import java.time.LocalDate;
 
 @Entity
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "tb_book")
 public class Book {
     @Id
@@ -33,10 +36,10 @@ public class Book {
     @Column(name = "publish_date_book", nullable = false)
     private LocalDate publishDateBook;
 
-    @Column(name = "barcode_book", nullable = false)
+    @Column(name = "barcode_book")
     private String barcodeBook;
 
-    @Column(name = "cnt_book", nullable = false)
+    @Column(name = "cnt_book")
     private Integer cntBook;
 
 }

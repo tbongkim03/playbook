@@ -12,9 +12,7 @@ public interface BookDAO {
 
     Book selectBookById(Integer bookId) throws Exception;
 
-    Book updateBook(Integer bookId, Integer seqSortSecond, String isbnBook, String titleBook,
-                    String authorBook, String publisherBook, LocalDate publishDateBook, String barcodeBook,
-                    Integer cntBook) throws Exception;
+    Book updateBook(Book book) throws Exception;
 
     void deleteBook(Book book) throws Exception;
 }

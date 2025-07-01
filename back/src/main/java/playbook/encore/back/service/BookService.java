@@ -1,5 +1,6 @@
 package playbook.encore.back.service;
 
+import playbook.encore.back.data.dto.book.BookCountResponseDto;
 import playbook.encore.back.data.dto.book.BookRequestDto;
 import playbook.encore.back.data.dto.book.BookResponseDto;
 
@@ -11,5 +12,6 @@ public interface BookService {
     BookResponseDto getBookById(Integer bookId) throws Exception;
     BookResponseDto changeBook(Integer bookId, BookRequestDto bookRequestDto) throws Exception;
     void deleteBookById(Integer bookId) throws Exception;
+    BookCountResponseDto getBookCount(String isbn) throws Exception;
 
 }

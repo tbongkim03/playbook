@@ -45,29 +45,13 @@ public class BookDAOImpl implements BookDAO {
     }
 
     @Override
-    public Book updateBook(Integer bookId, Integer seqSortSecond, String isbnBook, String titleBook,
-                           String authorBook, String publisherBook, LocalDate publishDateBook, String barcodeBook,
-                           Integer cntBook) throws Exception {
-        Optional<Book> optionalBook = bookRepository.findById(bookId);
+    public Book updateBook(Book book) throws Exception {
+        Book selectedBook = bookRepository.findById(book.getSeqBook())
+        .orElseThrow(() -> new IllegalArgumentException("해당 도서는 존재하지 않습니다."));
 
         Book updatedBook;
-        if (optionalBook.isPresent()) {
-            Book selectedBook = optionalBook.get();
-
-            selectedBook.setIsbnBook(isbnBook);
-            selectedBook.setTitleBook(titleBook);
-            selectedBook.setAuthorBook(authorBook);
-            selectedBook.setPublisherBook(publisherBook);
-            selectedBook.setPublishDateBook(publishDateBook);
-
-            // 바코드 문자열 생성 로직 구현, 책 갯수 파악 로직 구현
-            selectedBook.setBarcodeBook(barcodeBook);
-            selectedBook.setCntBook(cntBook);
-
-            updatedBook = bookRepository.save(selectedBook);
-        } else {
-            throw new IllegalArgumentException("업데이트에 실패하였습니다. 해당 도서가 존재하지 않습니다.");
-        }
+        selectedBook.setSeqSortSecond(book.getSeqSortSecond());
+        updatedBook = bookRepository.save(selectedBook);
         return updatedBook;
     }
 
