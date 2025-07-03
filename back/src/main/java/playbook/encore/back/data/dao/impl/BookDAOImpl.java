@@ -67,4 +67,10 @@ public class BookDAOImpl implements BookDAO {
             throw new IllegalArgumentException("해당 도서를 삭제하지 못했습니다." + book.getSeqBook());
         }
     }
+
+    @Override
+    public List<Book> searchBooks(String titleBook) throws Exception {
+        List<Book> bookList = bookRepository.findByTitleBookContaining(titleBook);
+        return bookList;
+    }
 }

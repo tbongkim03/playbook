@@ -9,6 +9,7 @@ import playbook.encore.back.data.dao.BookDAO;
 import playbook.encore.back.data.dto.book.BookCountResponseDto;
 import playbook.encore.back.data.dto.book.BookRequestDto;
 import playbook.encore.back.data.dto.book.BookResponseDto;
+import playbook.encore.back.data.dto.book.BookSearchResponseDto;
 import playbook.encore.back.service.BookService;
 
 import java.util.List;
@@ -63,5 +64,11 @@ public class BookController {
     public ResponseEntity<BookCountResponseDto> getBookCountByIsbn(@RequestParam("isbn") String isbn) throws Exception {
         BookCountResponseDto bookCountResponseDto = bookService.getBookCount(isbn);
         return ResponseEntity.status(HttpStatus.OK).body(bookCountResponseDto);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<BookSearchResponseDto>> getBookTitleSimiler(@RequestParam("q") String query) throws Exception {
+        List<BookSearchResponseDto> bookSearchList = bookService.searchBookTitles(query);
+        return ResponseEntity.status(HttpStatus.OK).body(bookSearchList);
     }
 }

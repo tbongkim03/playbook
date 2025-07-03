@@ -7,6 +7,7 @@ import playbook.encore.back.data.dao.BookDAO;
 import playbook.encore.back.data.dto.book.BookCountResponseDto;
 import playbook.encore.back.data.dto.book.BookRequestDto;
 import playbook.encore.back.data.dto.book.BookResponseDto;
+import playbook.encore.back.data.dto.book.BookSearchResponseDto;
 import playbook.encore.back.data.entity.Book;
 import playbook.encore.back.data.entity.SortSecond;
 import playbook.encore.back.data.repository.BookRepository;
@@ -133,5 +134,18 @@ public class BookServiceImpl implements BookService {
     public BookCountResponseDto getBookCount(String isbn) throws Exception {
         Integer counts = bookRepository.countByIsbnBook(isbn);
         return new BookCountResponseDto(isbn, counts);
+    }
+
+    @Override
+    public List<BookSearchResponseDto> searchBookTitles(String titleBook) throws Exception {
+        List<Book> bookList = bookDAO.searchBooks(titleBook);
+
+        List<BookSearchResponseDto> responseList = new java.util.ArrayList<>();
+        for (Book book : bookList) {
+            BookSearchResponseDto bookSearchResponseDto = new BookSearchResponseDto(book.getTitleBook());
+            responseList.add(bookSearchResponseDto);
+        }
+
+        return responseList;
     }
 }

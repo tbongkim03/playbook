@@ -15,4 +15,6 @@ public interface BookDAO {
     Book updateBook(Book book) throws Exception;
 
     void deleteBook(Book book) throws Exception;
+
+    List<Book> searchBooks(String titleBook) throws Exception;
 }
