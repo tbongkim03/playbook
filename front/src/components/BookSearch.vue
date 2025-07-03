@@ -1,23 +1,90 @@
 <template>
-    <form action="" class="search-form">
-        <div class="input-group mb-3 inpg" id="inputArea">
-            <input type="text" class="form-control" placeholder="도서명" aria-label="bookTitle" aria-describedby="basic-addon1">
-            <span class="icon">&#x1F50D;</span>
-    
-            <ul class="autocomplete-list">
-                <li>도서명 추천 1</li>
-                <li>도서명 추천 2</li>
-                <li>도서명 추천 3</li>
-            </ul>
-        </div>
-        <button type="submit" class="btn btn-primary">검색</button>
-    </form>
+    <form action="" class="search-form" @submit.prevent="onSubmit" ref="searchForm">
+    <div class="input-group mb-3 inpg" id="inputArea">
+      <input
+        type="text"
+        class="form-control"
+        placeholder="도서명"
+        aria-label="bookTitle"
+        aria-describedby="basic-addon1"
+        v-model="query"
+        @input="onInput"
+        @focus="onFocus"
+        @blur="onBlur"
+        autocomplete="off"
+      />
+      <span class="icon" @click="submitForm">&#x1F50D;</span>
+
+      <ul class="autocomplete-list" v-if="isFocused && suggestions.length">
+        <li
+          v-for="(item, index) in suggestions"
+          :key="index"
+          @mousedown.prevent="selectSuggestion(item)"
+        >
+          {{ item }}
+        </li>
+      </ul>
+    </div>
+  </form>
 </template>
 
 <script>
 export default {
-    name: 'BookSearch'
-}
+  name: 'BookSearch',
+  data() {
+    return {
+      query: '',
+      suggestions: [],
+      isFocused: false,
+    };
+  },
+  methods: {
+    submitForm() {
+      // form 요소에 직접 submit() 호출
+      this.$refs.searchForm.submit();
+    },
+    async fetchSuggestions() {
+      if (!this.query.trim()) {
+        this.suggestions = [];
+        return;
+      }
+      try {
+        const response = await fetch(
+          `http://localhost:8080/books/search?q=${encodeURIComponent(this.query)}`
+        );
+        if (!response.ok) throw new Error('네트워크 오류');
+        const data = await response.json();
+
+        this.suggestions = data.map((item) => item.titleBook);
+      } catch (error) {
+        console.error('자동완성 요청 실패:', error);
+        this.suggestions = [];
+      }
+    },
+    selectSuggestion(suggestion) {
+      this.query = suggestion;
+      this.suggestions = [];
+    },
+    onInput() {
+      this.fetchSuggestions();
+    },
+    onFocus() {
+      this.isFocused = true;
+      this.fetchSuggestions();
+    },
+    onBlur() {
+      setTimeout(() => {
+        this.isFocused = false;
+        this.suggestions = [];
+      }, 200);
+    },
+    onSubmit() {
+      // 실제 검색 동작 처리, 예: API 호출, 라우팅 등
+      console.log('검색 제출:', this.query);
+      // 여기서 실제 검색 처리 코드를 작성
+    },
+  },
+};
 </script>
 
 <style>
@@ -37,14 +104,14 @@ export default {
 
 #inputArea input {
     width: 100%;
-    padding: 10px 40px 10px 10px;
+    padding: 10px 40px 10px 20px;
     border: 1px solid #ccc;
     border-radius: 10px;
-    border-bottom: none;
     box-sizing: border-box;
     z-index: 0;
     position: relative;
     background-color: white;
+    font-size: 18px;
 }
 
 #inputArea input:focus {
@@ -52,13 +119,14 @@ export default {
 }
 
 #inputArea .icon {
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    font-size: 18px;
-    color: #555;
-    pointer-events: none;
+  cursor: pointer; /* 아이콘에 마우스 올리면 클릭 가능 느낌 */
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #555;
+  pointer-events: auto; /* 클릭 이벤트 활성화 */
 }
 
 .autocomplete-list {
