@@ -1,6 +1,16 @@
 <template>
   <div class="container">
-    <h1 class="text-2xl font-bold mb-4">도서 목록</h1>
+    <div class="tops">
+        <h1 class="text-2xl font-bold mb-4">도서 목록</h1>
+        <BookSearch />
+        <router-link to="/books/register" custom v-slot="{ navigate }">
+            <button type="button" class="btn btn-primary register-btn" @click="navigate">
+                도서 등록 페이지
+            </button>
+        </router-link>
+    </div>
+    
+
     <table class="table table-hover">
       <thead>
         <tr>
@@ -92,6 +102,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watchEffect } from 'vue'
+import BookSearch from './BookSearch.vue'
 
 const books = ref([])
 const largeCategories = ref([])
@@ -253,5 +264,9 @@ function barcodeCreate(book) {
 }
 .input-group {
   width: 25ch;
+}
+.tops {
+    display: grid;
+    grid-template-columns: 1fr 3fr 0.5fr;
 }
 </style>

@@ -2,7 +2,7 @@
     <div class="book-form-wrapper">
         <h2>도서 등록</h2>
 
-        <div class="input-group mb-3 mt-4">
+        <div class="input-group mb-3 mt-4" id="isbnInput">
             <input type="text" class="form-control" placeholder="ISBN을 입력하세요" v-model="book.isbn" />
             <button class="btn btn-outline-secondary" type="button" @click="searchISBN">
                 조회
@@ -51,8 +51,9 @@
                 </option>>
             </select>
         </div> -->
-
-        <button class="btn btn-primary" @click="submitBook">등록</button>
+        <div class="regi-btn">
+            <button class="btn btn-primary" @click="submitBook">등록</button>
+        </div>
     </div>
 </template>
 
@@ -202,8 +203,16 @@ function submitBook() {
 
 <style scoped>
 .book-form-wrapper {
+    min-width: 720px;
     width: 100%;
     padding: 1rem;
     margin: 0 auto;
+}
+#isbnInput input {
+    margin-bottom: 5px;
+}
+.regi-btn {
+    display:flex;
+    justify-content: end;
 }
 </style>
