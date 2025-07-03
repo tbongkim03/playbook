@@ -2,7 +2,7 @@
     <div class="book-form-wrapper">
         <h2>도서 등록</h2>
 
-        <div class="input-group mb-3 mt-4">
+        <div class="input-group mb-3 mt-4" id="isbnInput">
             <input type="text" class="form-control" placeholder="ISBN을 입력하세요" v-model="book.isbn" />
             <button class="btn btn-outline-secondary" type="button" @click="searchISBN">
                 조회
@@ -30,7 +30,7 @@
         </div>
 
         <!-- 대분류 드롭다운 -->
-        <div class="mb-3">
+        <!-- <div class="mb-3">
             <label class="form-label">대분류</label>
             <select class="form-select" v-model="book.categoryLarge">
                 <option disabled value="">대분류를 선택하세요</option>
@@ -39,20 +39,21 @@
                     {{ category.korSortFirst }}
                 </option>
             </select>
-        </div>
+        </div> -->
 
         <!-- 중분류 드롭다운 -->
-        <div class="mb-3">
+        <!-- <div class="mb-3">
             <label class="form-label">중분류</label>
             <select class="form-select" v-model="book.categoryMedium" :disabled="mediumCategories.length === 0">
                 <option disabled value="">중분류를 선택하세요</option>
                 <option v-for="(category, index) in mediumCategories" :key="index" :value="category">
-                    {{ category }}
+                    {{ category.korSortSecond }}
                 </option>>
             </select>
+        </div> -->
+        <div class="regi-btn">
+            <button class="btn btn-primary" @click="submitBook">등록</button>
         </div>
-
-        <button class="btn btn-primary" @click="submitBook">등록</button>
     </div>
 </template>
 
@@ -72,7 +73,6 @@ const book = reactive({
 const largeCategories = ref([]);
 const mediumCategories = ref([]);
 const mediumCategoriesAll = ref([]);
-const mediumCategoriesMap = ref({});
 
 const fetchLargeCategories = async () => {
     const res = await fetch('http://localhost:8080/subjects');
@@ -89,44 +89,23 @@ const fetchMediumCategories = async () => {
 onMounted(async () => {
     await fetchLargeCategories();
     await fetchMediumCategories();
-    mediumCategoriesMap.value = createMediumCategorisMap(largeCategories.value, mediumCategoriesAll.value);
 })
-
-const createMediumCategorisMap = (largeCategories, mediumCategories) => {
-    const map = {};
-
-    largeCategories.forEach(large => {
-        map[large.nameSortFirst] = [];
-    });
-
-    mediumCategories.forEach(medium => {
-        const large = largeCategories.find(l => l.seqSortFirst === medium.seqSortFirst);
-        if (large) {
-            const name = large.nameSortFirst;
-            const kor = medium.korSortSecond;
-            if (!map[name].includes(kor)) {
-                map[name].push(kor);
-            }
-        }
-    });
-
-    return map;
-}
 
 watch(
     () => book.categoryLarge,
     (newVal) => {
-        if (newVal && mediumCategoriesMap.value[newVal]) {
-            mediumCategories.value = mediumCategoriesMap.value[newVal]
-            book.categoryMedium = '' // 초기화
+        book.categoryMedium = ''
+        const selected = largeCategories.value.find(l => l.nameSortFirst === newVal)
+        if (selected) {
+            // seqSortFirst와 일치하는 중분류 필터링
+            mediumCategories.value = mediumCategoriesAll.value.filter(
+                m => m.seqSortFirst === selected.seqSortFirst
+            )
         } else {
             mediumCategories.value = []
-            book.categoryMedium = ''
         }
     }
 )
-
-const jsonData = ref(null)
 
 async function searchISBN() {
     const apiKey = import.meta.env.VITE_NL_API_KEY
@@ -188,15 +167,52 @@ function formatDate(dateStr) {
 }
 
 function submitBook() {
-    console.log('등록 도서 정보:', book)
-    alert('도서가 성공적으로 등록되었습니다.')
+    const payload = {
+        // seqSortSecond: book.categoryMedium.seqSortSecond,
+        seqSortSecond: 0, // 미지정
+        isbnBook: book.isbn,
+        titleBook: book.title,
+        authorBook: book.author,
+        publisherBook: book.publisher,
+        publishDateBook: book.publishDate
+        //barcodeBook: book.isbn  // ISBN을 바코드로 사용한다면
+    };
+
+    fetch('http://localhost:8080/books', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+        .then(res => {
+            if (!res.ok) {
+                throw new Error('등록 실패');
+            } return res.json();
+        })
+        .then(data => {
+            alert('도서가 성공적으로 등록되었습니다!');
+            console.log('응답:', data);
+        })
+        .catch(err => {
+            console.error('등록 중 오류 발생 : ', err);
+            alert('도서 등록 중 오류가 발생했습니다.');
+        })
 }
 </script>
 
 <style scoped>
 .book-form-wrapper {
+    min-width: 720px;
     width: 100%;
     padding: 1rem;
     margin: 0 auto;
+}
+#isbnInput input {
+    margin-bottom: 5px;
+}
+.regi-btn {
+    display:flex;
+    justify-content: end;
 }
 </style>
