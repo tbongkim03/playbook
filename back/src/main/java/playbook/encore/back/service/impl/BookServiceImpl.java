@@ -1,10 +1,12 @@
 package playbook.encore.back.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import playbook.encore.back.data.dao.BookDAO;
 import playbook.encore.back.data.dto.book.BookCountResponseDto;
+import playbook.encore.back.data.dto.book.BookListResponseDto;
 import playbook.encore.back.data.dto.book.BookRequestDto;
 import playbook.encore.back.data.dto.book.BookResponseDto;
 import playbook.encore.back.data.dto.book.BookSearchResponseDto;
@@ -15,6 +17,7 @@ import playbook.encore.back.data.repository.SortSecondRepository;
 import playbook.encore.back.service.BookService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class BookServiceImpl implements BookService {
@@ -71,17 +74,18 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<BookResponseDto> getAllBook() throws Exception {
-        List<Book> bookList = bookDAO.selectAllBook();
+    public BookListResponseDto getBookList(int page) throws Exception {
+        Page<Book> bookPage = bookDAO.selectBookListByPage(page);
 
-        List<BookResponseDto> responseList = new java.util.ArrayList<>();
-        for (Book book : bookList) {
-            BookResponseDto bookResponseDto = convertToDto(book);
-            responseList.add(bookResponseDto);
-        }
+        List<BookResponseDto> content = bookPage.getContent().stream()
+            .map(this::convertToDto)
+            .collect(Collectors.toList());
 
-        return responseList;
+        int totalCount = (int) bookPage.getTotalElements();
+        BookListResponseDto bookListResponseDto = new BookListResponseDto(content, totalCount);
+        return bookListResponseDto;
     }
+
 
     @Override
     public BookResponseDto getBookById(Integer bookId) throws Exception {

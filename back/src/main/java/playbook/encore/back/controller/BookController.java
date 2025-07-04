@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import playbook.encore.back.data.dao.BookDAO;
 import playbook.encore.back.data.dto.book.BookCountResponseDto;
+import playbook.encore.back.data.dto.book.BookListResponseDto;
 import playbook.encore.back.data.dto.book.BookRequestDto;
 import playbook.encore.back.data.dto.book.BookResponseDto;
 import playbook.encore.back.data.dto.book.BookSearchResponseDto;
@@ -28,9 +29,9 @@ public class BookController {
     }
 
     @GetMapping
-    public ResponseEntity<List<BookResponseDto>> getBookAll() throws Exception {
-        List<BookResponseDto> bookResponseDtoList = bookService.getAllBook();
-        return ResponseEntity.status(HttpStatus.OK).body(bookResponseDtoList);
+    public ResponseEntity<BookListResponseDto> getBooks(@RequestParam int page) throws Exception {
+        BookListResponseDto bookListResponseDto = bookService.getBookList(page);
+        return ResponseEntity.status(HttpStatus.OK).body(bookListResponseDto);
     }
 
     @GetMapping("/{id}")

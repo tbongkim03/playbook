@@ -5,10 +5,12 @@ import playbook.encore.back.data.entity.Book;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+
 public interface BookDAO {
     Book insertBook(Book book);
 
-    List<Book> selectAllBook() throws Exception;
+    Page<Book> selectBookListByPage(int page) throws Exception;
 
     Book selectBookById(Integer bookId) throws Exception;
 

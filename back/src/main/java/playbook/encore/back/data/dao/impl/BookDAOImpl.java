@@ -1,6 +1,9 @@
 package playbook.encore.back.data.dao.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import playbook.encore.back.data.dao.BookDAO;
 import playbook.encore.back.data.entity.Book;
@@ -28,10 +31,12 @@ public class BookDAOImpl implements BookDAO {
     }
 
     @Override
-    public List<Book> selectAllBook() throws Exception {
-        List<Book> bookList = bookRepository.findAll();
-        return bookList;
+    public Page<Book> selectBookListByPage(int page) {
+        int pageSize = 10;
+        PageRequest pageRequest = PageRequest.of(page - 1, pageSize, Sort.by("seqBook").ascending());
+        return bookRepository.findAll(pageRequest);
     }
+
 
     @Override
     public Book selectBookById(Integer bookId) throws Exception {
