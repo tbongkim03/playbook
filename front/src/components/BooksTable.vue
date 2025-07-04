@@ -2,7 +2,7 @@
   <div class="container">
     <div class="tops">
         <h1 class="text-2xl font-bold mb-4">도서 목록</h1>
-        <BookSearch />
+        <BookSearch @search="onSearch" />
         <router-link to="/books/register" custom v-slot="{ navigate }">
             <button type="button" class="btn btn-primary register-btn" @click="navigate">
                 도서 등록 페이지
@@ -101,12 +101,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watchEffect } from 'vue'
+import { ref, computed, onMounted, watch, watchEffect } from 'vue'
 import BookSearch from './BookSearch.vue'
+
+const API_BASE = 'http://localhost:8080';
 
 const books = ref([])
 const largeCategories = ref([])
 const mediumCategoriesAll = ref([])
+const totalCount = ref(0)
 
 const fetchLargeCategories = async () => {
   const res = await fetch('http://localhost:8080/subjects')
@@ -144,44 +147,61 @@ const getMediumOptions = (largeCode) => {
   return mediumCategoriesAll.value.filter(m => m.seqSortFirst === large.seqSortFirst)
 }
 
-const fetchBooks = async () => {
-  const res = await fetch('http://localhost:8080/books')
-  const data = await res.json()
+function onSearch({ query, exact }) {
+  console.log('검색 요청:', query, exact);
+  fetchBooks(1, query, exact);
+}
 
-  console.log('[fetchBooks] raw books from API:', data)
 
-  // books 초기화 - 모든 카테고리 데이터가 로드된 후에 실행
-  books.value = data.map(book => {
-    // 책의 seqSortSecond를 통해 올바른 대분류 코드 찾기
-    const largeCode = findLargeCodeFromSeqSecond(book.seqSortSecond)
-    const mediumOptions = getMediumOptions(largeCode)
+const fetchBooks = async (page = 1, query = '', exact = false) => {
+  let url;
+  if (query && query.trim()) {
+    url = new URL(`${API_BASE}/books/search`);
+    url.searchParams.set('q', query.trim());
+    url.searchParams.set('exact', exact);
+  } else {
+    url = new URL(`${API_BASE}/books`);
+    url.searchParams.set('page', page);
+  }
 
-    // 초기 중분류는 책의 seqSortSecond 값 사용
-    const initialMedium = book.seqSortSecond ?? ''
+  console.log('👉 호출 URL:', url.toString());
 
-    console.log(`[fetchBooks] Book seqBook=${book.seqBook}`)
-    console.log(`  - seqSortSecond: ${book.seqSortSecond}`)
-    console.log(`  - largeCode: ${largeCode}`)
-    console.log(`  - initialMedium: ${initialMedium}`)
-    console.log(`  - mediumOptions:`, mediumOptions)
+  const res = await fetch(url.toString());
+  if (!res.ok) {
+    console.error('❌ 서버 응답 오류:', res.status);
+    return;
+  }
 
+  const data = await res.json();
+
+  if (!data.content) {
+    console.error('❌ 서버 응답 데이터 문제:', data);
+    books.value = [];
+    totalCount.value = 0;
+    return;
+  }
+
+  totalCount.value = data.totalCount;
+  books.value = data.content.map(book => {
+    const largeCode = findLargeCodeFromSeqSecond(book.seqSortSecond);
+    const mediumOptions = getMediumOptions(largeCode);
     return {
       ...book,
       categoryLarge: largeCode,
-      categoryMedium: initialMedium,
+      categoryMedium: book.seqSortSecond ?? '',
       mediumOptions
-    }
-  })
+    };
+  });
 
-  console.log('[fetchBooks] processed books:', books.value)
-}
+  console.log('✅ books.value 업데이트 완료:', books.value);
+};
 
 onMounted(async () => {
   console.log('[onMounted] 시작')
   // 순서가 중요: 대분류와 중분류 데이터를 먼저 로드한 후 책 데이터 처리
   await fetchLargeCategories()
   await fetchMediumCategories()
-  await fetchBooks() // 이 시점에서 모든 카테고리 데이터가 준비되어 있음
+  await fetchBooks(currentPage.value)
 })
 
 /**
@@ -221,11 +241,12 @@ watchEffect(() => {
 const currentPage = ref(1)
 const pageSize = 10
 
-const totalPages = computed(() => Math.ceil(books.value.length / pageSize))
+const totalPages = computed(() => Math.ceil(totalCount.value / pageSize))
 
-const paginatedBooks = computed(() => {
-  const start = (currentPage.value - 1) * pageSize
-  return books.value.slice(start, start + pageSize)
+const paginatedBooks = computed(() => books.value)
+
+watch(currentPage, (newPage) => {
+  fetchBooks(newPage)
 })
 
 function saveBook(book) {
@@ -242,6 +263,7 @@ function deleteBook(book) {
 function barcodeCreate(book) {
   console.log('✅ [barcodeCreate]', book)
 }
+
 </script>
 
 <style>
