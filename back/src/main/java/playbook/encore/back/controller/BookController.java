@@ -67,9 +67,15 @@ public class BookController {
         return ResponseEntity.status(HttpStatus.OK).body(bookCountResponseDto);
     }
 
-    @GetMapping("/search")
+    @GetMapping("/related")
     public ResponseEntity<List<BookSearchResponseDto>> getBookTitleSimiler(@RequestParam("q") String query) throws Exception {
         List<BookSearchResponseDto> bookSearchList = bookService.searchBookTitles(query);
         return ResponseEntity.status(HttpStatus.OK).body(bookSearchList);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<BookListResponseDto> getSearchResults(@RequestParam("q") String query) throws Exception {
+        BookListResponseDto result = bookService.searchBooksByTitle(query);
+        return ResponseEntity.ok(result);
     }
 }

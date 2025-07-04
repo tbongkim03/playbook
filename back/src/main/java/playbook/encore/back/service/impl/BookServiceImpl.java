@@ -17,6 +17,7 @@ import playbook.encore.back.data.repository.SortSecondRepository;
 import playbook.encore.back.service.BookService;
 
 import java.util.List;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Service
@@ -142,7 +143,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public List<BookSearchResponseDto> searchBookTitles(String titleBook) throws Exception {
-        List<Book> bookList = bookDAO.searchBooks(titleBook);
+        List<Book> bookList = bookDAO.searchBooksRelated(titleBook);
 
         List<BookSearchResponseDto> responseList = new java.util.ArrayList<>();
         for (Book book : bookList) {
@@ -151,5 +152,17 @@ public class BookServiceImpl implements BookService {
         }
 
         return responseList;
+    }
+
+    @Override
+    public BookListResponseDto searchBooksByTitle(String titleBook) throws Exception {
+        List<Book> books = bookDAO.searchBooksResult(titleBook);
+
+        List<BookResponseDto> content = books.stream()
+            .map(this::convertToDto)
+            .collect(Collectors.toList());
+
+        int totalCount = content.size();
+        return new BookListResponseDto(content, totalCount);
     }
 }
