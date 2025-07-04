@@ -223,20 +223,42 @@ watchEffect(() => {
       // 대분류에 맞는 중분류 옵션
       const newOptions = getMediumOptions(largeCode)
       const newOptionsIds = newOptions.map(m => m.seqSortSecond)
-      
+
       // 옵션이 변경되었을 때만 업데이트
       if (JSON.stringify(oldOptions) !== JSON.stringify(newOptionsIds)) {
         console.log(`[watch] Update mediumOptions for seqBook=${book.seqBook}`)
         book.mediumOptions = newOptions
-        
+
         // 현재 선택된 중분류가 새 옵션에 없으면 초기화
         if (!newOptionsIds.includes(book.categoryMedium)) {
           book.categoryMedium = newOptions.length > 0 ? newOptions[0].seqSortSecond : ''
         }
       }
     }
+
+    // --------- 여기에 바코드 자동 생성 기능 추가 ---------
+
+    // 대분류 객체 찾기
+    const large = largeCategories.value.find(l => l.nameSortFirst === book.categoryLarge)
+    // 중분류 객체 찾기
+    const medium = mediumCategoriesAll.value.find(m => m.seqSortSecond === book.categoryMedium)
+
+    if (large && medium) {
+      const isbn = book.isbnBook
+      const cnt = book.cntBook
+
+      if (isbn && cnt && book.categoryLarge && book.categoryMedium !== '') {
+        const barcode = `${large.nameSortFirst}${medium.nameSortSecond}-${isbn}-${cnt}`
+        if (book.barcodeBook !== barcode) {
+          book.barcodeBook = barcode
+          console.log(`✅ 자동 생성 바코드(seqBook=${book.seqBook}):`, barcode)
+        }
+      }
+    }
+
   })
 })
+
 
 const currentPage = ref(1)
 const pageSize = 10
