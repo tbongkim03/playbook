@@ -81,7 +81,12 @@ public class BookDAOImpl implements BookDAO {
     }
 
     @Override
-    public List<Book> searchBooksResult(String titleBook) throws Exception {
+    public List<Book> searchBooksResultExact(String titleBook) throws Exception {
+        return bookRepository.findByTitleBook(titleBook);
+    }
+
+    @Override
+    public List<Book> searchBooksResultContaining(String titleBook) throws Exception {
         return bookRepository.findByTitleBookContaining(titleBook);
     }
 }

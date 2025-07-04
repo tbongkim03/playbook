@@ -155,8 +155,20 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookListResponseDto searchBooksByTitle(String titleBook) throws Exception {
-        List<Book> books = bookDAO.searchBooksResult(titleBook);
+    public BookListResponseDto searchBooksByExactTitle(String titleBook) throws Exception {
+        List<Book> books = bookDAO.searchBooksResultExact(titleBook);
+
+        List<BookResponseDto> content = books.stream()
+            .map(this::convertToDto)
+            .collect(Collectors.toList());
+
+        int totalCount = content.size();
+        return new BookListResponseDto(content, totalCount);
+    }
+
+    @Override
+    public BookListResponseDto searchBooksByTitleContaining(String titleBook) throws Exception {
+        List<Book> books = bookDAO.searchBooksResultContaining(titleBook);
 
         List<BookResponseDto> content = books.stream()
             .map(this::convertToDto)

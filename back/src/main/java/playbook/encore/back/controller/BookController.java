@@ -74,8 +74,13 @@ public class BookController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<BookListResponseDto> getSearchResults(@RequestParam("q") String query) throws Exception {
-        BookListResponseDto result = bookService.searchBooksByTitle(query);
-        return ResponseEntity.ok(result);
-    }
+    public ResponseEntity<BookListResponseDto> getSearchResults(
+        @RequestParam("q") String query, 
+        @RequestParam(value = "exact", defaultValue = "false") boolean exact) throws Exception 
+        {
+            BookListResponseDto result = exact
+            ? bookService.searchBooksByExactTitle(query)
+            : bookService.searchBooksByTitleContaining(query);
+            return ResponseEntity.ok(result);
+        }
 }

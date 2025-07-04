@@ -16,5 +16,6 @@ public interface BookService {
     void deleteBookById(Integer bookId) throws Exception;
     BookCountResponseDto getBookCount(String isbn) throws Exception;
     List<BookSearchResponseDto> searchBookTitles(String titleBook) throws Exception;
-    BookListResponseDto searchBooksByTitle(String titleBook) throws Exception;
+    BookListResponseDto searchBooksByExactTitle(String titleBook) throws Exception;
+    BookListResponseDto searchBooksByTitleContaining(String titleBook) throws Exception;
 }

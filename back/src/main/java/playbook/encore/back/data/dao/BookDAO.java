@@ -20,5 +20,7 @@ public interface BookDAO {
 
     List<Book> searchBooksRelated(String titleBook) throws Exception;
 
-    List<Book> searchBooksResult(String titleBook) throws Exception;
+    List<Book> searchBooksResultExact(String titleBook) throws Exception;
+    
+    List<Book> searchBooksResultContaining(String titleBook) throws Exception;
 }

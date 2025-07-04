@@ -1,7 +1,5 @@
 package playbook.encore.back.data.repository;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import playbook.encore.back.data.entity.Book;
 
@@ -9,5 +7,6 @@ import java.util.List;
 
 public interface BookRepository extends JpaRepository<Book, Integer> {
     Integer countByIsbnBook(String isbnBook);
+    List<Book> findByTitleBook(String titleBook);
     List<Book> findByTitleBookContaining(String titleBook);
 }
