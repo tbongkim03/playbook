@@ -1,4 +1,8 @@
 <template>
+
+  <Barcode :barcodeBook="selectedBarcode" :titleBook="selectedBookTitle" :isOpen="isOpen" @close="isOpen = false"/>
+
+
   <div class="container">
     <div class="tops">
         <h1 class="text-2xl font-bold mb-4">도서 목록</h1>
@@ -103,6 +107,7 @@
 <script setup>
 import { ref, computed, onMounted, watch, watchEffect } from 'vue'
 import BookSearch from './BookSearch.vue'
+import Barcode from './Barcode.vue'
 
 const API_BASE = 'http://localhost:8080';
 
@@ -110,6 +115,9 @@ const books = ref([])
 const largeCategories = ref([])
 const mediumCategoriesAll = ref([])
 const totalCount = ref(0)
+const isOpen = ref(false)
+const selectedBarcode = ref('')
+const selectedBookTitle = ref('')
 
 const fetchLargeCategories = async () => {
   const res = await fetch('http://localhost:8080/subjects')
@@ -277,13 +285,29 @@ function saveBook(book) {
   console.log('  - categoryMedium:', book.categoryMedium)
 }
 
-function deleteBook(book) {
+async function deleteBook(book) {
   console.log('✅ [deleteBook]', book)
-  books.value = books.value.filter(b => b.seqBook !== book.seqBook)
+  try {
+    const response = await fetch(`${API_BASE}/books/${book.seqBook}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error(`서버 오류: ${response.status}`);
+    }
+
+    books.value = books.value.filter(b => b.seqBook !== book.seqBook);
+    alert('✅ 삭제에 성공하였습니다.');
+  } catch (error) {
+    alert('삭제 중 오류가 발생했습니다.', error);
+  }
 }
 
 function barcodeCreate(book) {
   console.log('✅ [barcodeCreate]', book)
+  selectedBarcode.value = book.barcodeBook
+  selectedBookTitle.value = book.titleBook
+  isOpen.value = true
 }
 
 </script>
