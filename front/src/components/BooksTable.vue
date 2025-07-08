@@ -12,9 +12,13 @@
                 도서 등록 페이지
             </button>
         </router-link>
+        
     </div>
     
-
+    <div class="check-area">
+        <label for="printCheck"><h5>프린트 여부</h5></label>
+        <input type="checkbox" name="printCheck" id="printCheck" style="zoom: 1.4;">
+    </div>
     <table class="table table-hover">
       <thead>
         <tr>
@@ -118,6 +122,7 @@ const totalCount = ref(0)
 const isOpen = ref(false)
 const selectedBarcode = ref('')
 const selectedBookTitle = ref('')
+const isPrint = ref(false)
 
 const fetchLargeCategories = async () => {
   const res = await fetch('http://localhost:8080/subjects')
@@ -336,5 +341,8 @@ function barcodeCreate(book) {
 .tops {
     display: grid;
     grid-template-columns: 1fr 3fr 0.5fr;
+}
+.check-area input{
+    margin:-4px 0 0 15px; vertical-align:middle;
 }
 </style>
