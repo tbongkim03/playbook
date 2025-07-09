@@ -10,6 +10,7 @@ import playbook.encore.back.data.dto.book.BookListResponseDto;
 import playbook.encore.back.data.dto.book.BookRequestDto;
 import playbook.encore.back.data.dto.book.BookResponseDto;
 import playbook.encore.back.data.dto.book.BookSearchResponseDto;
+import playbook.encore.back.data.dto.book.BookSortAndBarcodeRequestDto;
 import playbook.encore.back.data.entity.Book;
 import playbook.encore.back.data.entity.SortSecond;
 import playbook.encore.back.data.repository.BookRepository;
@@ -44,7 +45,8 @@ public class BookServiceImpl implements BookService {
                 entity.getPublisherBook(),
                 entity.getPublishDateBook(),
                 entity.getBarcodeBook(),
-                entity.getCntBook()
+                entity.getCntBook(),
+                entity.isPrintCheckBook()
         );
     }
 
@@ -64,6 +66,7 @@ public class BookServiceImpl implements BookService {
                 .publishDateBook(bookRequestDto.getPublishDateBook())
                 .barcodeBook(null)
                 .cntBook(null)
+                .printCheckBook(false)
                 .build();
 
         // 바코드 문자열 생성 로직 구현, 책 갯수 파악 로직 구현 deprecated
@@ -96,16 +99,17 @@ public class BookServiceImpl implements BookService {
         return bookResponseDto;
     }
 
+
+    // 프린트 함, 분류, 책 권수, 바코드 값 넣기.
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public BookResponseDto changeBook(Integer bookId, BookRequestDto bookRequestDto) throws Exception {
+    public BookResponseDto changeBook(Integer bookId, BookSortAndBarcodeRequestDto bookSortAndBarcodeRequestDto) throws Exception {
         Book existingBook = bookRepository.findById(bookId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 책이 존재하지 않습니다."));
 
-        SortSecond sortSecond = sortSecondRepository.findById(bookRequestDto.getSeqSortSecond())
+        SortSecond sortSecond = sortSecondRepository.findById(bookSortAndBarcodeRequestDto.getSeqSortSecond())
                 .orElseThrow(() -> new IllegalArgumentException("해당 중분류가 존재하지 않습니다."));
 
-        sortSecond.setSeqSortSecond(bookRequestDto.getSeqSortSecond());
         Book updatedBook = Book.builder()
                 .seqBook(bookId)
                 .seqSortSecond(sortSecond)
@@ -114,8 +118,9 @@ public class BookServiceImpl implements BookService {
                 .authorBook(existingBook.getAuthorBook())
                 .publisherBook(existingBook.getPublisherBook())
                 .publishDateBook(existingBook.getPublishDateBook())
-                .barcodeBook(existingBook.getBarcodeBook())
-                .cntBook(existingBook.getCntBook())
+                .barcodeBook(bookSortAndBarcodeRequestDto.getBarcodeBook())
+                .cntBook(bookSortAndBarcodeRequestDto.getCntBook())
+                .printCheckBook(bookSortAndBarcodeRequestDto.isPrintCheckBook())
                 .build();
 
         Book changedBook = bookDAO.updateBook(updatedBook);
@@ -147,7 +152,10 @@ public class BookServiceImpl implements BookService {
 
         List<BookSearchResponseDto> responseList = new java.util.ArrayList<>();
         for (Book book : bookList) {
-            BookSearchResponseDto bookSearchResponseDto = new BookSearchResponseDto(book.getTitleBook());
+            BookSearchResponseDto bookSearchResponseDto = new BookSearchResponseDto(
+                book.getTitleBook(),
+                book.isPrintCheckBook()
+                );
             responseList.add(bookSearchResponseDto);
         }
 
@@ -176,5 +184,11 @@ public class BookServiceImpl implements BookService {
 
         int totalCount = content.size();
         return new BookListResponseDto(content, totalCount);
+    }
+
+    @Override
+    @Transactional
+    public void markBooksAsPrinted(List<Integer> bookIds) throws Exception {
+        bookDAO.printPost(bookIds);
     }
 }

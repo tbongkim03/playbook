@@ -42,4 +42,7 @@ public class Book {
     @Column(name = "cnt_book")
     private Integer cntBook;
 
+    @Column(name = "print_check_book", nullable = false)
+    private boolean printCheckBook;
 }
+

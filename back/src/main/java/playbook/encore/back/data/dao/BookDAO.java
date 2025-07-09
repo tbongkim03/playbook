@@ -23,4 +23,6 @@ public interface BookDAO {
     List<Book> searchBooksResultExact(String titleBook) throws Exception;
     
     List<Book> searchBooksResultContaining(String titleBook) throws Exception;
+
+    void printPost(List<Integer> bookIds) throws Exception;
 }

@@ -11,6 +11,7 @@ import playbook.encore.back.data.dto.book.BookListResponseDto;
 import playbook.encore.back.data.dto.book.BookRequestDto;
 import playbook.encore.back.data.dto.book.BookResponseDto;
 import playbook.encore.back.data.dto.book.BookSearchResponseDto;
+import playbook.encore.back.data.dto.book.BookSortAndBarcodeRequestDto;
 import playbook.encore.back.service.BookService;
 
 import java.util.List;
@@ -49,9 +50,9 @@ public class BookController {
     @PutMapping("/{id}")
     public ResponseEntity<BookResponseDto> updateBookById(
             @PathVariable("id") Integer bookId,
-            @RequestBody BookRequestDto bookRequestDto
+            @RequestBody BookSortAndBarcodeRequestDto bookSortAndBarcodeRequestDto
     ) throws Exception {
-        BookResponseDto bookResponseDto = bookService.changeBook(bookId, bookRequestDto);
+        BookResponseDto bookResponseDto = bookService.changeBook(bookId, bookSortAndBarcodeRequestDto);
         return ResponseEntity.status(HttpStatus.OK).body(bookResponseDto);
     }
 
@@ -82,5 +83,12 @@ public class BookController {
             ? bookService.searchBooksByExactTitle(query)
             : bookService.searchBooksByTitleContaining(query);
             return ResponseEntity.ok(result);
-        }
+    }
+
+    @PutMapping("/batch/print")
+    public ResponseEntity<Void> batchPrint(@RequestBody List<Integer> bookIds) throws Exception {
+        bookService.markBooksAsPrinted(bookIds);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
 }

@@ -57,6 +57,9 @@ public class BookDAOImpl implements BookDAO {
 
         Book updatedBook;
         selectedBook.setSeqSortSecond(book.getSeqSortSecond());
+        selectedBook.setBarcodeBook(book.getBarcodeBook());
+        selectedBook.setCntBook(book.getCntBook());
+        selectedBook.setPrintCheckBook(book.isPrintCheckBook());
         updatedBook = bookRepository.save(selectedBook);
         return updatedBook;
     }
@@ -70,7 +73,7 @@ public class BookDAOImpl implements BookDAO {
 
             bookRepository.delete(selectedBook);
         } else {
-            throw new IllegalArgumentException("해당 도서를 삭제하지 못했습니다." + book.getSeqBook());
+            throw new IllegalArgumentException("해당 도서를 삭제하지 못했습니다. : " + book.getTitleBook());
         }
     }
 
@@ -88,5 +91,10 @@ public class BookDAOImpl implements BookDAO {
     @Override
     public List<Book> searchBooksResultContaining(String titleBook) throws Exception {
         return bookRepository.findByTitleBookContaining(titleBook);
+    }
+
+    @Override
+    public void printPost(List<Integer> bookIds) throws Exception {
+        bookRepository.markAsPrintedByIds(bookIds);
     }
 }
