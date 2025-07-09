@@ -1,7 +1,15 @@
 <template>
 
-  <Barcode :barcodeBook="selectedBarcode" :titleBook="selectedBookTitle" :isOpen="isOpen" @close="isOpen = false"/>
+  <Barcode 
+    :seqBook="selectedSeqBook"
+    :seqSortSecond="selectedSeqSortSecond"
+    :cntBook="selectedCntBook"
+    :barcodeBook="selectedBarcode" 
+    :titleBook="selectedBookTitle" 
+    :isOpen="isOpen" 
+    @close="isOpen = false"/>
 
+  <PrintBatch v-if="isPrintBatchOpen" :books="booksToPrint" @close="isPrintBatchOpen = false"/>
 
   <div class="container">
     <div class="tops">
@@ -17,8 +25,10 @@
     
     <div class="check-area">
         <label for="printCheck"><h5>프린트 여부</h5></label>
-        <input type="checkbox" name="printCheck" id="printCheck" style="zoom: 1.4;">
+        <input type="checkbox" name="printCheck" id="printCheck" style="zoom: 1.4;" v-model="isPrint">
+        <button class="btn btn-secondary" v-if="isPrint == true" @click="printBarcodes">모아서 출력 🖨️</button>
     </div>
+
     <table class="table table-hover">
       <thead>
         <tr>
@@ -81,9 +91,8 @@
               <input type="text" class="inp form-control" v-model="book.barcodeBook" aria-label="barcodeBook" />
             </div>
           </td>
-          <td class="flex justify-center">
-            <button @click="barcodeCreate(book)" class="btn btn-outline-primary">바코드 생성</button>
-            <button @click="saveBook(book)" class="btn btn-outline-success">저장</button>
+          <td class="flex row center actions">
+            <button @click="barcodeCreate(book)" class="btn btn-outline-success">바코드</button>
             <button @click="deleteBook(book)" class="btn btn-outline-danger">삭제</button>
           </td>
         </tr>
@@ -112,6 +121,7 @@
 import { ref, computed, onMounted, watch, watchEffect } from 'vue'
 import BookSearch from './BookSearch.vue'
 import Barcode from './Barcode.vue'
+import PrintBatch from './BookPrintBatch.vue'
 
 const API_BASE = 'http://localhost:8080';
 
@@ -122,7 +132,12 @@ const totalCount = ref(0)
 const isOpen = ref(false)
 const selectedBarcode = ref('')
 const selectedBookTitle = ref('')
+const selectedSeqBook = ref('')
+const selectedSeqSortSecond = ref('')
+const selectedCntBook = ref('')
 const isPrint = ref(false)
+const isPrintBatchOpen = ref(false)
+const booksToPrint = ref([])
 
 const fetchLargeCategories = async () => {
   const res = await fetch('http://localhost:8080/subjects')
@@ -272,23 +287,22 @@ watchEffect(() => {
   })
 })
 
-
 const currentPage = ref(1)
 const pageSize = 10
 
 const totalPages = computed(() => Math.ceil(totalCount.value / pageSize))
 
-const paginatedBooks = computed(() => books.value)
+const paginatedBooks = computed(() => {
+  if (isPrint.value) {
+    return books.value.filter(book => book.printCheckBook === false)
+  } else {
+    return books.value
+  }
+})
 
 watch(currentPage, (newPage) => {
   fetchBooks(newPage)
 })
-
-function saveBook(book) {
-  console.log('✅ [saveBook]', book)
-  console.log('  - categoryLarge:', book.categoryLarge)
-  console.log('  - categoryMedium:', book.categoryMedium)
-}
 
 async function deleteBook(book) {
   console.log('✅ [deleteBook]', book)
@@ -310,9 +324,24 @@ async function deleteBook(book) {
 
 function barcodeCreate(book) {
   console.log('✅ [barcodeCreate]', book)
+  selectedSeqBook.value = book.seqBook
+  selectedSeqSortSecond.value = book.categoryMedium
+  selectedCntBook.value = book.cntBook
   selectedBarcode.value = book.barcodeBook
   selectedBookTitle.value = book.titleBook
   isOpen.value = true
+
+}
+
+function printBarcodes() {
+  booksToPrint.value = books.value.filter(book =>
+    book.printCheckBook === false &&
+    book.categoryLarge !== 0 &&
+    book.categoryMedium !== 0 &&
+    book.barcodeBook &&
+    book.barcodeBook.trim() !== ''
+  )
+  isPrintBatchOpen.value = true
 }
 
 </script>
@@ -342,7 +371,8 @@ function barcodeCreate(book) {
     display: grid;
     grid-template-columns: 1fr 3fr 0.5fr;
 }
-.check-area input{
-    margin:-4px 0 0 15px; vertical-align:middle;
+.check-area input {
+    margin:-4px 15px 0 15px; 
+    vertical-align:middle;
 }
 </style>
