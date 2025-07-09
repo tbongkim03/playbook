@@ -97,4 +97,9 @@ public class BookDAOImpl implements BookDAO {
     public void printPost(List<Integer> bookIds) throws Exception {
         bookRepository.markAsPrintedByIds(bookIds);
     }
+
+    @Override
+    public List<Book> findUnprintedBooks() {
+        return bookRepository.findByPrintCheckBookFalseAndSeqSortSecond_SeqSortSecondNotAndCntBookIsNotNullAndBarcodeBookIsNotNull(0);
+    }
 }

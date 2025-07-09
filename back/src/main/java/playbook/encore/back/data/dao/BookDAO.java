@@ -25,4 +25,6 @@ public interface BookDAO {
     List<Book> searchBooksResultContaining(String titleBook) throws Exception;
 
     void printPost(List<Integer> bookIds) throws Exception;
+
+    List<Book> findUnprintedBooks();
 }

@@ -11,6 +11,7 @@ import playbook.encore.back.data.dto.book.BookRequestDto;
 import playbook.encore.back.data.dto.book.BookResponseDto;
 import playbook.encore.back.data.dto.book.BookSearchResponseDto;
 import playbook.encore.back.data.dto.book.BookSortAndBarcodeRequestDto;
+import playbook.encore.back.data.dto.book.BookUnprintedResponseDto;
 import playbook.encore.back.data.entity.Book;
 import playbook.encore.back.data.entity.SortSecond;
 import playbook.encore.back.data.repository.BookRepository;
@@ -190,5 +191,19 @@ public class BookServiceImpl implements BookService {
     @Transactional
     public void markBooksAsPrinted(List<Integer> bookIds) throws Exception {
         bookDAO.printPost(bookIds);
+    }
+
+    @Override
+    public List<BookUnprintedResponseDto> findUnprintedBooks() {
+        
+                
+        return bookDAO.findUnprintedBooks().stream()
+            .map(book -> new BookUnprintedResponseDto(
+                book.getSeqBook(),
+                book.getSeqSortSecond().getSeqSortSecond(),
+                book.getCntBook(),
+                book.getBarcodeBook(),
+                book.getTitleBook()))
+            .collect(Collectors.toList());
     }
 }

@@ -12,6 +12,7 @@ import playbook.encore.back.data.dto.book.BookRequestDto;
 import playbook.encore.back.data.dto.book.BookResponseDto;
 import playbook.encore.back.data.dto.book.BookSearchResponseDto;
 import playbook.encore.back.data.dto.book.BookSortAndBarcodeRequestDto;
+import playbook.encore.back.data.dto.book.BookUnprintedResponseDto;
 import playbook.encore.back.service.BookService;
 
 import java.util.List;
@@ -91,4 +92,9 @@ public class BookController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    @GetMapping("/unprinted")
+    public ResponseEntity<List<BookUnprintedResponseDto>> getUnprintedBooks() {
+        List<BookUnprintedResponseDto> books = bookService.findUnprintedBooks();
+        return ResponseEntity.ok(books);
+    } 
 }

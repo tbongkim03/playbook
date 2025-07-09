@@ -17,4 +17,7 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
     @Modifying
     @Query("UPDATE Book b SET b.printCheckBook = true WHERE b.seqBook IN :ids")
     int markAsPrintedByIds(@Param("ids") List<Integer> ids);
+
+    List<Book> findByPrintCheckBookFalseAndSeqSortSecond_SeqSortSecondNotAndCntBookIsNotNullAndBarcodeBookIsNotNull(Integer seqSortSecond);
+
 }
