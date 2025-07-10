@@ -1,6 +1,12 @@
 <template>
     <div class="book-form-wrapper">
-        <h2>도서 등록</h2>
+        <div class="header">
+            <h2>도서 등록</h2>
+            <router-link to="/books" custom v-slot="{ navigate }">
+                <button class="btn btn-outline-primary" type="button" @click="navigate">뒤로가기</button>
+            </router-link>
+        </div>
+        
 
         <div class="input-group mb-3 mt-4" id="isbnInput">
             <input type="text" class="form-control" placeholder="ISBN을 입력하세요" v-model="book.isbn" />
@@ -29,28 +35,6 @@
             <input type="date" class="form-control" v-model="book.publishDate" />
         </div>
 
-        <!-- 대분류 드롭다운 -->
-        <!-- <div class="mb-3">
-            <label class="form-label">대분류</label>
-            <select class="form-select" v-model="book.categoryLarge">
-                <option disabled value="">대분류를 선택하세요</option>
-                <option v-for="category in largeCategories" :key="category.nameSortFirst"
-                    :value="category.nameSortFirst">
-                    {{ category.korSortFirst }}
-                </option>
-            </select>
-        </div> -->
-
-        <!-- 중분류 드롭다운 -->
-        <!-- <div class="mb-3">
-            <label class="form-label">중분류</label>
-            <select class="form-select" v-model="book.categoryMedium" :disabled="mediumCategories.length === 0">
-                <option disabled value="">중분류를 선택하세요</option>
-                <option v-for="(category, index) in mediumCategories" :key="index" :value="category">
-                    {{ category.korSortSecond }}
-                </option>>
-            </select>
-        </div> -->
         <div class="regi-btn">
             <button class="btn btn-primary" @click="submitBook">등록</button>
         </div>
@@ -69,43 +53,6 @@ const book = reactive({
     categoryLarge: '',
     categoryMedium: ''
 })
-
-const largeCategories = ref([]);
-const mediumCategories = ref([]);
-const mediumCategoriesAll = ref([]);
-
-const fetchLargeCategories = async () => {
-    const res = await fetch('http://localhost:8080/subjects');
-    const data = await res.json();
-    largeCategories.value = data;
-}
-
-const fetchMediumCategories = async () => {
-    const res = await fetch('http://localhost:8080/subtitles');
-    const data = await res.json();
-    mediumCategoriesAll.value = data;
-}
-
-onMounted(async () => {
-    await fetchLargeCategories();
-    await fetchMediumCategories();
-})
-
-watch(
-    () => book.categoryLarge,
-    (newVal) => {
-        book.categoryMedium = ''
-        const selected = largeCategories.value.find(l => l.nameSortFirst === newVal)
-        if (selected) {
-            // seqSortFirst와 일치하는 중분류 필터링
-            mediumCategories.value = mediumCategoriesAll.value.filter(
-                m => m.seqSortFirst === selected.seqSortFirst
-            )
-        } else {
-            mediumCategories.value = []
-        }
-    }
-)
 
 async function searchISBN() {
     const apiKey = import.meta.env.VITE_NL_API_KEY
@@ -168,14 +115,12 @@ function formatDate(dateStr) {
 
 function submitBook() {
     const payload = {
-        // seqSortSecond: book.categoryMedium.seqSortSecond,
         seqSortSecond: 0, // 미지정
         isbnBook: book.isbn,
         titleBook: book.title,
         authorBook: book.author,
         publisherBook: book.publisher,
         publishDateBook: book.publishDate
-        //barcodeBook: book.isbn  // ISBN을 바코드로 사용한다면
     };
 
     fetch('http://localhost:8080/books', {
@@ -207,6 +152,10 @@ function submitBook() {
     width: 100%;
     padding: 1rem;
     margin: 0 auto;
+}
+.header {
+    display: flex;
+    justify-content: space-between;
 }
 #isbnInput input {
     margin-bottom: 5px;

@@ -22,7 +22,7 @@
         </router-link>
         
     </div>
-    
+
     <div class="check-area">
         <label for="printCheck"><h5>프린트 여부</h5></label>
         <input type="checkbox" name="printCheck" id="printCheck" style="zoom: 1.4;" v-model="isPrint">
