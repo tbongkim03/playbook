@@ -102,6 +102,97 @@ onMounted(async () => {
   await fetchUnprintedBarcodes()
   generateBarcodes()
 })
+
+// 9. 출력 함수
+const printAll = async () => {
+  if (!displayedBooks.value.length) {
+    alert('출력할 바코드가 없습니다.')
+    return
+  }
+
+  const printWindow = window.open('', '', 'width=1000,height=600') 
+
+  const content = displayedBooks.value.map(book => {
+    const tempSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+    JsBarcode(tempSvg, book.barcodeBook, {
+      format: "CODE128",
+      lineColor: "#000",
+      width: 2,
+      height: 40,
+      displayValue: true,
+      fontSize: 12,
+      text: `${book.barcodeBook} ${book.titleBook}`
+    })
+
+    return `
+      <div class="barcode-cell">
+        ${tempSvg.outerHTML}
+      </div>
+    `
+  }).join('')
+  
+  if (!printWindow) {
+    alert("팝업 차단을 해제해 주세요")
+        return
+  }
+
+  const doc = printWindow.document;
+  doc.open()
+  doc.write(`
+  <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>바코드 출력</title>
+        <style>
+            @page { size: A4; margin: 20mm; }
+            body { font-family: sans-serif; margin: 0; padding: 0; }
+            .barcode-cell {
+                text-align: center;
+                padding: 10px;
+                border: 1px solid #ccc;
+                margin-bottom: 10px;
+            }
+            svg {
+                width: auto;
+                height: 35px;
+            }
+        </style>
+      </head>
+      <body>
+        ${content}
+        <script>
+          window.onload = function() {
+            window.print();
+          };
+        </` + `script>
+      </body>
+    </html>
+  `)
+  doc.close()
+
+  try {
+    const ids = displayedBooks.value.map(book => book.seqBook)
+
+    const res = await fetch('http://localhost:8080/books/batch/print', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(ids)
+    })
+
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
+
+    alert('인쇄 완료 상태로 저장되었습니다.')
+
+    // 다시 목록 갱신
+    await fetchUnprintedBarcodes()
+    generateBarcodes()
+  } catch (error) {
+    alert('저장에 실패했습니다.', error)
+  }
+}
 </script>
 
 <style>

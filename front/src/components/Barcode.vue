@@ -101,10 +101,6 @@ const printBarcode = () => {
           window.onload = function() {
             window.print();
           }
-          window.onafterprint = function() {
-            window.opener.postMessage('print-done', '*');
-            window.close();
-          }
         </` + `script>
       </body>
     </html>
