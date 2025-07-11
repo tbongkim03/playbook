@@ -1,0 +1,48 @@
+services:
+  back:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+    container_name: back
+    env_file:
+      - ./back/.env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    container_name: db
+    env_file:
+      - ./db/.env
+    ports:
+      - "6603:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - app-network
+
+  front:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    container_name: front
+    env_file:
+      - ./front/.env
+    ports:
+      - "8081:8080"
+    networks:
+      - app-network
+
+volumes:
+  db-data:
+
+networks:
+  app-network:
+    driver: bridge
+
