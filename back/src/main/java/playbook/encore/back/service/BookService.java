@@ -1,5 +1,7 @@
 package playbook.encore.back.service;
 
+import playbook.encore.back.data.dto.book.BookBarcodeUniqueRequestDto;
+import playbook.encore.back.data.dto.book.BookBarcodeUniqueResponseDto;
 import playbook.encore.back.data.dto.book.BookCountResponseDto;
 import playbook.encore.back.data.dto.book.BookListResponseDto;
 import playbook.encore.back.data.dto.book.BookRequestDto;
@@ -21,5 +23,6 @@ public interface BookService {
     BookListResponseDto searchBooksByExactTitle(String titleBook) throws Exception;
     BookListResponseDto searchBooksByTitleContaining(String titleBook) throws Exception;
     void markBooksAsPrinted(List<Integer> bookIds) throws Exception;
-    List<BookUnprintedResponseDto> findUnprintedBooks();
+    List<BookUnprintedResponseDto> findUnprintedBooks() throws Exception;
+    BookBarcodeUniqueResponseDto checkDuplicated(BookBarcodeUniqueRequestDto bookBarcodeUniqueRequestDto) throws Exception;
 }

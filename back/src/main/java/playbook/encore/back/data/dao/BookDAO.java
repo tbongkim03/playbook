@@ -1,5 +1,7 @@
 package playbook.encore.back.data.dao;
 
+import playbook.encore.back.data.dto.book.BookBarcodeUniqueRequestDto;
+import playbook.encore.back.data.dto.book.BookBarcodeUniqueResponseDto;
 import playbook.encore.back.data.entity.Book;
 
 import java.time.LocalDate;
@@ -26,5 +28,7 @@ public interface BookDAO {
 
     void printPost(List<Integer> bookIds) throws Exception;
 
-    List<Book> findUnprintedBooks();
+    List<Book> findUnprintedBooks() throws Exception;
+
+    boolean checkDuplicates(Integer seqBook, String barcodeBook) throws Exception;
 }

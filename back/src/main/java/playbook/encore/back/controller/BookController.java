@@ -1,11 +1,12 @@
 package playbook.encore.back.controller;
 
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import playbook.encore.back.data.dao.BookDAO;
+import playbook.encore.back.data.dto.book.BookBarcodeUniqueRequestDto;
+import playbook.encore.back.data.dto.book.BookBarcodeUniqueResponseDto;
 import playbook.encore.back.data.dto.book.BookCountResponseDto;
 import playbook.encore.back.data.dto.book.BookListResponseDto;
 import playbook.encore.back.data.dto.book.BookRequestDto;
@@ -93,8 +94,15 @@ public class BookController {
     }
 
     @GetMapping("/unprinted")
-    public ResponseEntity<List<BookUnprintedResponseDto>> getUnprintedBooks() {
+    public ResponseEntity<List<BookUnprintedResponseDto>> getUnprintedBooks() throws Exception {
         List<BookUnprintedResponseDto> books = bookService.findUnprintedBooks();
         return ResponseEntity.ok(books);
-    } 
+    }
+
+    @PostMapping("/check/barcode")
+    public ResponseEntity<BookBarcodeUniqueResponseDto> isBarcodeDuplicated(
+        @RequestBody BookBarcodeUniqueRequestDto bookBarcodeUniqueRequestDto) throws Exception {
+            BookBarcodeUniqueResponseDto bookBarcodeUniqueResponseDto = bookService.checkDuplicated(bookBarcodeUniqueRequestDto);
+            return ResponseEntity.status(HttpStatus.OK).body(bookBarcodeUniqueResponseDto);
+    }
 }

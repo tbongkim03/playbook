@@ -7,6 +7,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import playbook.encore.back.data.dao.BookDAO;
+import playbook.encore.back.data.dto.book.BookBarcodeUniqueRequestDto;
+import playbook.encore.back.data.dto.book.BookBarcodeUniqueResponseDto;
 import playbook.encore.back.data.entity.Book;
 import playbook.encore.back.data.repository.BookRepository;
 
@@ -99,7 +101,13 @@ public class BookDAOImpl implements BookDAO {
     }
 
     @Override
-    public List<Book> findUnprintedBooks() {
+    public List<Book> findUnprintedBooks() throws Exception {
         return bookRepository.findByPrintCheckBookFalseAndSeqSortSecond_SeqSortSecondNotAndCntBookIsNotNullAndBarcodeBookIsNotNull(0);
     }
+
+    @Override
+    public boolean checkDuplicates(Integer seqBook, String barcodeBook) throws Exception {
+        return bookRepository.existsByBarcodeBookAndSeqBookNot(barcodeBook, seqBook);
+    }
+
 }

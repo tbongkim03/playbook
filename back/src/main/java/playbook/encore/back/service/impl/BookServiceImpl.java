@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import playbook.encore.back.data.dao.BookDAO;
+import playbook.encore.back.data.dto.book.BookBarcodeUniqueRequestDto;
+import playbook.encore.back.data.dto.book.BookBarcodeUniqueResponseDto;
 import playbook.encore.back.data.dto.book.BookCountResponseDto;
 import playbook.encore.back.data.dto.book.BookListResponseDto;
 import playbook.encore.back.data.dto.book.BookRequestDto;
@@ -194,8 +196,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<BookUnprintedResponseDto> findUnprintedBooks() {
-        
+    public List<BookUnprintedResponseDto> findUnprintedBooks() throws Exception {
                 
         return bookDAO.findUnprintedBooks().stream()
             .map(book -> new BookUnprintedResponseDto(
@@ -206,4 +207,22 @@ public class BookServiceImpl implements BookService {
                 book.getTitleBook()))
             .collect(Collectors.toList());
     }
+
+    @Override
+    public BookBarcodeUniqueResponseDto checkDuplicated(BookBarcodeUniqueRequestDto bookBarcodeUniqueRequestDto) throws Exception {
+        Integer seqBook = bookBarcodeUniqueRequestDto.getSeqBook();
+        String barcodeBook = bookBarcodeUniqueRequestDto.getBarcodeBook();
+        
+        boolean isDuplicated = bookDAO.checkDuplicates(seqBook, barcodeBook);
+
+        String message;
+        if (isDuplicated) {
+            message = "이미 등록된 바코드입니다.";
+        } else {
+            message = "사용 가능한 바코드입니다.";
+        }
+
+        return new BookBarcodeUniqueResponseDto(isDuplicated, message);
+    }
+
 }

@@ -20,4 +20,6 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
 
     List<Book> findByPrintCheckBookFalseAndSeqSortSecond_SeqSortSecondNotAndCntBookIsNotNullAndBarcodeBookIsNotNull(Integer seqSortSecond);
 
+    boolean existsByBarcodeBookAndSeqBookNot(String barcodeBook, Integer seqBook);
+
 }
