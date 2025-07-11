@@ -2,8 +2,9 @@
   <div class="black-bg" v-if="isOpen === true" @click="close">
     <div class="white-bg" @click.stop>
       <h4>바코드 출력</h4>
+      {{ msg }}
       <hr>
-      <svg ref="barcodeSvg"></svg>
+      <svg ref="barcodeSvg" v-if="showBarcode"></svg>
       <div class="prints">
         <button class="btn btn-secondary" @click="saveBook">나중에 출력</button>
         <button class="btn btn-secondary" @click="printBarcode">출력 및 저장 🖨️</button>
@@ -27,6 +28,10 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
+const msg = ref('')
+const isD = ref('')
+const buttonsDisabled = ref(false)
+const showBarcode = ref(false)
 
 function close() {
   emit('close')
@@ -49,30 +54,91 @@ const generateBarcode = () => {
   }
 }
 
+const checkBarcodeData = {
+  seqBook: props.seqBook,
+  barcodeBook: props.barcodeBook
+}
+
+const uniqueTest = async () => {
+  try {
+    const response = await fetch(`http://localhost:8080/books/check/barcode`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        seqBook: props.seqBook,
+        barcodeBook: props.barcodeBook
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const result = await response.json()
+    
+    isD.value = result.duplicated
+    msg.value = result.message
+
+    if (isD.value === false) {
+      // 사용 가능: 바코드 생성하고 버튼 활성화
+      showBarcode.value = true
+      buttonsDisabled.value = false
+
+      await nextTick()
+      generateBarcode()
+
+    } else if (isD.value === true) {
+      // 중복: 바코드 숨기고 버튼 비활성화
+      showBarcode.value = false
+      buttonsDisabled.value = true
+    }
+
+  } catch (error) {
+    console.error('POST 오류:', error)
+  }
+}
+
 // 모달이 열릴 때 렌더 후 생성
 watch(() => props.isOpen, async (newVal) => {
   if (newVal) {
+    msg.value = ''
+    buttonsDisabled.value = false
+    showBarcode.value = false
+
     await nextTick()
-    generateBarcode()
-    console.log('props.seqSortSecond:', props.seqSortSecond)
+    await uniqueTest()
   }
 })
+
 
 // 마운트 시 생성
 onMounted(async () => {
   if (props.isOpen) {
     await nextTick()
+    await uniqueTest()
     generateBarcode()
   }
 })
 
 // 나중에 출력(저장만)
 const saveBook = () => {
+  if (isD.value === true) {
+    alert("🚫 중복된 바코드입니다. 저장할 수 없습니다.")
+    return
+  }
+  
   postPrintedBook(false)
 }
 
 // 개별 출력 및 저장
 const printBarcode = () => {
+  if (isD.value === true) {
+    alert("🚫 중복된 바코드입니다. 출력할 수 없습니다.")
+    return
+  }
+
   if (!barcodeSvg.value) {
     alert("바코드가 아직 생성되지 않았습니다")
     return
