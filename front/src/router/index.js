@@ -3,13 +3,32 @@ import HomePage from '@/views/HomePage.vue';
 import BooksLayout from '@/views/BooksLayout.vue';
 import BookRegister from '@/views/BookRegister.vue';
 import BooksTable from '@/components/BooksTable.vue';
+import PageLogin from '@/views/PageLogin.vue';
+import PageLogout from '@/components/PageLogout.vue';
+import PageRegister from '@/views/PageRegister.vue';
 
 const routes = [
   {
     path: '/',
     name: 'Home',
     component: HomePage
-  }, {
+  },
+  {
+    path: '/login',
+    name: 'PageLogin',
+    component: PageLogin
+  },
+  {
+    path: '/logout',
+    name: 'PageLogout',
+    component: PageLogout
+  },
+  {
+    path: '/register',
+    name: 'PageRegister',
+    component: PageRegister
+  },
+  {
     path: '/books',
     component: BooksLayout,
     children: [

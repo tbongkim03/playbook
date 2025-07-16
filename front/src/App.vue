@@ -1,12 +1,23 @@
 <template>
   <div class="app-container">
-    <Header />
+    <Header v-if="isLoginoutPage" />
     <router-view />
   </div>
 </template>
 
 <script setup>
 import Header from '@/components/Header.vue';
+import { useRoute } from 'vue-router';
+import { computed } from 'vue';
+
+const route = useRoute()
+
+const isLoginoutPage = computed(() => {
+  return route.path !== '/logout' && route.path != '/login' && route.path != '/register'
+})
+
+
+
 </script>
 
 <style scoped>
