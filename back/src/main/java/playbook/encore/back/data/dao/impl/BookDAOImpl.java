@@ -2,17 +2,13 @@ package playbook.encore.back.data.dao.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import playbook.encore.back.data.dao.BookDAO;
-import playbook.encore.back.data.dto.book.BookBarcodeUniqueRequestDto;
-import playbook.encore.back.data.dto.book.BookBarcodeUniqueResponseDto;
 import playbook.encore.back.data.entity.Book;
 import playbook.encore.back.data.repository.BookRepository;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 

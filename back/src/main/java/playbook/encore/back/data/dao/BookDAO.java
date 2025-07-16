@@ -1,10 +1,7 @@
 package playbook.encore.back.data.dao;
 
-import playbook.encore.back.data.dto.book.BookBarcodeUniqueRequestDto;
-import playbook.encore.back.data.dto.book.BookBarcodeUniqueResponseDto;
 import playbook.encore.back.data.entity.Book;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
