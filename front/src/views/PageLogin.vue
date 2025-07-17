@@ -22,7 +22,7 @@
                         <a href="">아이디 찾기</a>
                     </li>
                     <li class="li-b">
-                        <router-link to="/register" custom v-slot="{ navigate }">
+                        <router-link to="/terms" custom v-slot="{ navigate }">
                             <a @click="navigate">회원가입</a>
                         </router-link>
                     </li>
@@ -41,7 +41,7 @@
 
 <style scoped>
 .login-wrapper {
-    min-width: 1440px;
+    min-width: 1457px;
     min-height: 98%;
     margin: 0;
     padding: 0;
@@ -53,7 +53,6 @@
 .login-format {
     min-width: 458px;
     flex: 1;
-    
 }
 .login-format header {
     display: flex;

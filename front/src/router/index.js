@@ -5,7 +5,8 @@ import BookRegister from '@/views/BookRegister.vue';
 import BooksTable from '@/components/BooksTable.vue';
 import PageLogin from '@/views/PageLogin.vue';
 import PageLogout from '@/components/PageLogout.vue';
-import PageRegister from '@/views/PageRegister.vue';
+import PageTerm from '@/views/PageTerm.vue';
+import PageRegister from '@/views/PageRegister.vue'
 
 const routes = [
   {
@@ -22,6 +23,11 @@ const routes = [
     path: '/logout',
     name: 'PageLogout',
     component: PageLogout
+  },
+  {
+    path: '/terms',
+    name: 'PageTerm',
+    component: PageTerm
   },
   {
     path: '/register',

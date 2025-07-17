@@ -13,10 +13,8 @@ import { computed } from 'vue';
 const route = useRoute()
 
 const isLoginoutPage = computed(() => {
-  return route.path !== '/logout' && route.path != '/login' && route.path != '/register'
+  return route.path !== '/logout' && route.path != '/login' && route.path!='/terms' && route.path != '/register'
 })
-
-
 
 </script>
 
