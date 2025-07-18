@@ -175,13 +175,13 @@ input[type="checkbox"] {
     width: 10px;
   }
   .terms-format .terms-box::-webkit-scrollbar-thumb {
-    background-color: #2f3542;
+    background-color: #c5ccd2;
     border-radius: 10px;
     background-clip: padding-box;
     border: 2px solid transparent;
   }
   .terms-format .terms-box::-webkit-scrollbar-track {
-    background-color: grey;
+    background-color: #fff;
     border-radius: 10px;
     box-shadow: inset 0px 0px 5px white;
   }
