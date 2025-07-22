@@ -11,6 +11,14 @@
         </select>
       </div>
 
+      <div class="controls">
+        <label for="startPosition">시작 위치:</label>
+        <select id="startPosition" v-model="startPosition">
+          <option v-for="n in 21" :key="n" :value="n - 1">{{ n }}</option>
+           <!-- <option v-for="n in 40" :key="n" :value="n - 1">{{ n }}</option> -->
+        </select>
+      </div>
+
       <div class="preview">
         <div class="barcode-grid" :style="gridStyle">
           <div class="barcode-cell" v-for="book in displayedBooks" :key="book.seqBook">
@@ -33,6 +41,8 @@
 <script setup>
 import { ref, watch, computed, onMounted, nextTick } from 'vue'
 import JsBarcode from 'jsbarcode'
+
+const startPosition = ref(0)
 
 const emit = defineEmits(['close'])
 function close() {
@@ -112,24 +122,29 @@ const printAll = async () => {
 
   const printWindow = window.open('', '', 'width=1000,height=600') 
 
-  const content = displayedBooks.value.map(book => {
-    const tempSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
-    JsBarcode(tempSvg, book.barcodeBook, {
-      format: "CODE128",
-      lineColor: "#000",
-      width: 2,
-      height: 40,
-      displayValue: true,
-      fontSize: 12,
-      text: `${book.barcodeBook} ${book.titleBook}`
-    })
+  const emptyCells = Array(startPosition.value).fill('<div class="barcode-cell"></div>')
 
-    return `
-      <div class="barcode-cell">
-        ${tempSvg.outerHTML}
-      </div>
-    `
-  }).join('')
+  const content = [
+    ...emptyCells,
+    ...displayedBooks.value.map(book => {
+      const tempSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+      JsBarcode(tempSvg, book.barcodeBook, {
+        format: "CODE128",
+        lineColor: "#000",
+        width: 1,
+        height: 40,
+        displayValue: false,
+      })
+
+      return `
+        <div class="barcode-cell">
+          ${tempSvg.outerHTML}
+          <div class="barcode-label">${book.barcodeBook} - ${book.titleBook}</div>
+        </div>
+      `
+    })
+  ].join('')
+
   
   if (!printWindow) {
     alert("팝업 차단을 해제해 주세요")
@@ -145,22 +160,52 @@ const printAll = async () => {
         <meta charset="UTF-8">
         <title>바코드 출력</title>
         <style>
-            @page { size: A4; margin: 20mm; }
-            body { font-family: sans-serif; margin: 0; padding: 0; }
-            .barcode-cell {
-                text-align: center;
-                padding: 10px;
-                border: 1px solid #ccc;
-                margin-bottom: 10px;
-            }
-            svg {
-                width: auto;
-                height: 35px;
-            }
-        </style>
+          @page { size: A4; margin: 0; }
+          body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+
+          .print-area {
+            display: grid;
+            grid-template-columns: repeat(5, 38.1mm);
+            grid-auto-rows: 21.2mm;
+            gap: 0mm 2.5mm;
+            padding: 15mm 6.5mm; /* 상단, 좌우 여백 */
+          }
+
+          .barcode-cell {
+            width: 38.1mm;
+            height: 21.2mm;
+            border: 1px solid #ccc; /* 가이드용으로 보이게 하려면 #ccc */
+            border-radius: 5px;
+            box-sizing: border-box;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 10pt;
+          }
+
+          svg {
+            width: 35mm;
+            /* min-width: 100%; */
+          }
+
+          .barcode-label {
+            font-size: 5px;
+            margin-top: 1mm;
+            text-align: center;
+            word-break: break-word;
+          }
+      </style>
       </head>
       <body>
-        ${content}
+        <div class="print-area">
+          ${content}
+        </div>
         <script>
           window.onload = function() {
             window.print();
@@ -171,27 +216,27 @@ const printAll = async () => {
   `)
   doc.close()
 
-  try {
-    const ids = displayedBooks.value.map(book => book.seqBook)
+  // try {
+  //   const ids = displayedBooks.value.map(book => book.seqBook)
 
-    const res = await fetch('http://localhost:8080/books/batch/print', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(ids)
-    })
+  //   const res = await fetch('http://localhost:8080/books/batch/print', {
+  //     method: 'PUT',
+  //     headers: {
+  //       'Content-Type': 'application/json'
+  //     },
+  //     body: JSON.stringify(ids)
+  //   })
 
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
+  //   if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
 
-    alert('인쇄 완료 상태로 저장되었습니다.')
+  //   alert('인쇄 완료 상태로 저장되었습니다.')
 
-    // 다시 목록 갱신
-    await fetchUnprintedBarcodes()
-    generateBarcodes()
-  } catch (error) {
-    alert('저장에 실패했습니다.', error)
-  }
+  //   // 다시 목록 갱신
+  //   await fetchUnprintedBarcodes()
+  //   generateBarcodes()
+  // } catch (error) {
+  //   alert('저장에 실패했습니다.', error)
+  // }
 }
 </script>
 
@@ -209,7 +254,9 @@ const printAll = async () => {
 .barcode-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  /* grid-template-columns: repeat(4, 1fr); */
   gap: 10px;
+  /* gap: 0px; */
 }
 .barcode-cell {
   border: 1px solid #ccc;
