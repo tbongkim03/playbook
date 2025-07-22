@@ -7,6 +7,7 @@ import PageLogin from '@/views/PageLogin.vue';
 import PageLogout from '@/components/PageLogout.vue';
 import PageTerm from '@/views/PageTerm.vue';
 import PageRegister from '@/views/PageRegister.vue'
+import NotFound from '@/components/NotFound.vue';
 
 const routes = [
   {
@@ -49,6 +50,11 @@ const routes = [
         component: BookRegister
       }
     ]
+  },
+  { 
+    path: '/:catchAll(.*)',
+    name: 'NotFound', 
+    component:  NotFound
   }
 ];
 

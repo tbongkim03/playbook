@@ -25,7 +25,7 @@
 
 <script setup>
 import { ref, watch, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import AgreeTermsUser from '@/components/AgreeTermsUser.vue';
 import AgreeInfoUser from '@/components/AgreeInfoUser.vue';
 import AgreeDiscordUser from '@/components/AgreeDiscordUser.vue';
@@ -40,7 +40,15 @@ const allChecked = computed(() => termsAgree.value && infoAgree.value && discord
 
 const isManualTrigger = ref(false)
 
+const route = useRoute()
 const router = useRouter()
+
+const fromLogin = window.history.state?.fromLogin
+
+if (!fromLogin) {
+  alert('잘못된 접근입니다.')
+  router.replace('/')
+}
 
 watch(allAgree, (agree) => {
   if (!isManualTrigger.value) return
@@ -70,7 +78,7 @@ function goToRegister() {
 
   router.push({
     path: '/register',
-    query: {
+    state: {
       terms: termsAgree.value,
       info: infoAgree.value,
       discord: discordAgree.value

@@ -22,9 +22,7 @@
                         <a href="">아이디 찾기</a>
                     </li>
                     <li class="li-b">
-                        <router-link to="/terms" custom v-slot="{ navigate }">
-                            <a @click="navigate">회원가입</a>
-                        </router-link>
+                        <a @click.prevent="goToTerms">회원가입</a>
                     </li>
                 </ul>
             </div>
@@ -36,7 +34,16 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
+
+function goToTerms() {
+  router.push({
+    name: 'PageTerm',
+    state: { fromLogin: true }
+  })
+}
 </script>
 
 <style scoped>
