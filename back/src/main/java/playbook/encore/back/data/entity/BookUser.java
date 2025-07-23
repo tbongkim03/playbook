@@ -37,6 +37,9 @@ public class BookUser {
     @Column(name = "agree_info_user", nullable = false)
     private boolean agreeInfoUser;
 
+    @Column(name = "agree_discord_alarm_user", nullable = false)
+    private boolean agreeDiscordAlarmUser;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status_user", nullable = false)
     private StatusType statusUser;
