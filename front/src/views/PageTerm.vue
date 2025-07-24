@@ -78,10 +78,9 @@ function goToRegister() {
 
   router.push({
     path: '/register',
+    name: 'PageRegister',
     state: {
-      terms: termsAgree.value,
-      info: infoAgree.value,
-      discord: discordAgree.value
+      fromTerm: true
     }
   })
 }

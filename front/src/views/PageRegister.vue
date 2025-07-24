@@ -25,7 +25,7 @@
           id="inputFormId"
           :class="{ 
             'input-error-id': errors.username,
-            'input-success': errors.username && errors.username.includes('사용 가능한')
+            'input-success': username && !errors.username
           }"
           placeholder="아이디"
         />
@@ -65,7 +65,7 @@
 
         <div class="custom-select-wrapper" @click="toggleCourseBox" ref="dropdownWrapper">
             <button type="button" class="toggle-btn" :class="{ 'input-error-course': errors.course }">
-                {{ selectedCourse || '수강중인 훈련과정을 선택해주세요' }}
+                {{ selectedCourse ? selectedCourse.title + ' ' + selectedCourse.trprDegr + '기' : '수강중인 훈련과정을 선택해주세요' }}
                 <!-- <img src="@/assets/icon-Triangle-down.svg" alt=""  /> -->
                 <svg class="ico-down" xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 96.154 96.154"><path fill="currentColor" d="M.561 20.971l45.951 57.605c.76.951 2.367.951 3.127 0l45.956-57.609c.547-.689.709-1.716.414-2.61a2.686 2.686 0 00-.186-.437 2.004 2.004 0 00-1.765-1.056H2.093c-.736 0-1.414.405-1.762 1.056a2.62 2.62 0 00-.184.426c-.297.905-.136 1.934.414 2.625z"/></svg>
             </button>
@@ -106,12 +106,12 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+const route = useRoute()
+const router = useRouter()
+
 const dropdownWrapper = ref(null)
 const dropdownPositionUp = ref(false)
 const courseBoxOpen = ref(false)
-
-const route = useRoute()
-const router = useRouter()
 
 const name = ref('')
 const username = ref('')
@@ -127,7 +127,14 @@ const errors = ref({
 })
 
 const courseList = ref([])
-const selectedCourse = ref('')
+const selectedCourse = ref(null)
+
+const fromTerm = window.history.state?.fromTerm
+
+if (!fromTerm) {
+  alert('잘못된 접근입니다.')
+  router.replace('/')
+}
 
 // 날짜 계산
 const today = new Date()
@@ -144,17 +151,9 @@ function formatDateToYYYYMMDD(date) {
 const srchTraStDt = formatDateToYYYYMMDD(sixMonthsAgo)
 const srchTraEndDt = formatDateToYYYYMMDD(today)
 
+
+
 onMounted(() => {
-  const state = window.history.state
-  const hasValidState = state && state.terms === true && state.info === true && state.discord === true
-
-  if (!hasValidState) {
-    alert('잘못된 접근입니다.')
-    setTimeout(() => {
-      router.replace('/')
-    }, 0)
-  }
-
   getCourseList()
   document.addEventListener('click', handleClickOutside)
 })
@@ -173,6 +172,7 @@ async function getCourseList() {
     `&sort=ASC&sortCol=2`
 
   try {
+    // 1. 외부 API에서 데이터 가져오기
     const res = await fetch(url)
     const data = await res.json()
     const apiCoursesRaw = data?.srchList || []
@@ -182,7 +182,7 @@ async function getCourseList() {
       return
     }
 
-    // 1. 외부 API 데이터 가공
+    // 2. 외부 API 데이터 가공
     const apiCourses = apiCoursesRaw.map(item => {
       const title = item.title.includes(' - ') ? item.title.split(' - ')[0] : item.title
       const fullName = `${title} ${item.trprDegr}기`
@@ -190,27 +190,32 @@ async function getCourseList() {
         nameCourse: fullName,
         startDtCourse: item.traStartDate,
         finishDtCourse: item.traEndDate,
-        trprDegr: item.trprDegr
+        trprDegr: item.trprDegr,
+        seqCourse: item.trprId
       }
     })
 
-    // 2. DB 데이터 가져오기
+    // 3. DB 데이터 가져오기
     const dbRes = await fetch('http://localhost:8080/courses')
     const dbCourses = await dbRes.json()
 
-    // 3. 추가: API에는 있는데 DB에는 없는 과정 → INSERT
+    // 4. 추가: API에는 있는데 DB에는 없는 과정 → INSERT
     for (const apiItem of apiCourses) {
       const exists = dbCourses.find(dbItem => dbItem.nameCourse === apiItem.nameCourse)
       if (!exists) {
         await fetch('http://localhost:8080/courses', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(apiItem)
+          body: JSON.stringify({
+            nameCourse: apiItem.nameCourse,
+            startDtCourse: apiItem.startDtCourse,
+            finishDtCourse: apiItem.finishDtCourse
+          })
         })
       }
     }
 
-    // 4. 삭제: DB에는 있는데 API에는 없는 과정 → DELETE
+    // 5. 삭제: DB에는 있는데 API에는 없는 과정 → DELETE
     for (const dbItem of dbCourses) {
       const exists = apiCourses.find(apiItem => apiItem.nameCourse === dbItem.nameCourse)
       if (!exists) {
@@ -220,7 +225,7 @@ async function getCourseList() {
       }
     }
 
-    // 5. 수정: 둘 다 있지만 데이터 변경되었으면 → UPDATE
+    // 6. 수정: 둘 다 있지만 데이터 변경되었으면 → UPDATE
     for (const apiItem of apiCourses) {
       const dbItem = dbCourses.find(db => db.nameCourse === apiItem.nameCourse)
       if (dbItem) {
@@ -233,29 +238,41 @@ async function getCourseList() {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              ...apiItem,
-              seqCourse: dbItem.seqCourse
+              nameCourse: apiItem.nameCourse,
+              startDtCourse: apiItem.startDtCourse,
+              finishDtCourse: apiItem.finishDtCourse
             })
           })
         }
       }
     }
 
-    // 6. 드롭다운 표시용 courseList 값 세팅
-    courseList.value = apiCourses
-    .map(item => {
-      const parts = item.nameCourse.split(' ')
-      const isLastPartGeneration = parts[parts.length - 1].endsWith('기')
-      const title = isLastPartGeneration
-        ? parts.slice(0, -1).join(' ')
-        : item.nameCourse
-      return {
-        title,
-        trprDegr: item.trprDegr
-      }
-    })
-    .sort((a, b) => a.title.localeCompare(b.title, 'ko'))
+    // 7. 모든 동기화 작업 완료 후 최신 DB 데이터를 다시 가져오기
+    const finalDbRes = await fetch('http://localhost:8080/courses')
+    const finalDbCourses = await finalDbRes.json()
 
+    // 8. 드롭다운 표시용 courseList 값 세팅
+    courseList.value = finalDbCourses
+      .map(item => {
+        const parts = item.nameCourse.split(' ')
+        const isLastPartGeneration = parts[parts.length - 1].endsWith('기')
+        const title = isLastPartGeneration
+          ? parts.slice(0, -1).join(' ')
+          : item.nameCourse
+        const generation = isLastPartGeneration 
+          ? parts[parts.length - 1].replace('기', '') 
+          : '1'
+        
+        return {
+          title,
+          trprDegr: generation,
+          seqCourse: item.seqCourse,
+          nameCourse: item.nameCourse,
+          startDtCourse: item.startDtCourse,
+          finishDtCourse: item.finishDtCourse
+        }
+      })
+      .sort((a, b) => a.title.localeCompare(b.title, 'ko'))
 
   } catch (err) {
     console.error('API 조회 실패:', err)
@@ -277,7 +294,7 @@ function toggleCourseBox() {
 }
 
 function selectCourse(item) {
-  selectedCourse.value = item.title + ' ' + item.trprDegr + '기'
+  selectedCourse.value = item
   courseBoxOpen.value = false
 }
 
@@ -292,14 +309,13 @@ function handleClickOutside(event) {
   }
 }
 
-
-
 // 유효성 검사
 function validateName() {
   errors.value.name = name.value.trim() ? '' : '이름: 필수 정보입니다.'
 }
 
 async function validateUsername() {
+  console.log("아이디 체크")
   const trimmedId = username.value.trim()
 
   if (!trimmedId) {
@@ -321,10 +337,10 @@ async function validateUsername() {
 
     const data = await response.json()
 
-    if (data.flag === 0) {
+    if (data.flag === true) {
       errors.value.username = '아이디: 사용할 수 없는 아이디입니다. 다른 아이디를 입력해 주세요.'
-    } else if (data.flag === 1) {
-      
+    } else if (data.flag === false) {
+      errors.value.username = ''
     }
   } catch (error) {
     console.error('아이디 검사 실패:', error)
@@ -333,9 +349,12 @@ async function validateUsername() {
 }
 
 function validatePassword() {
+  const trimmedPw = password.value.trim()
+  var passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9]).{4,8}$/;
+
   errors.value.password =
-    password.value.length < 6
-      ? '비밀번호: 6자 이상 입력해 주세요.'
+    !passwordRegex.test(trimmedPw)
+      ? '비밀번호: 최소 4자에서 8자까지, 영문자, 숫자를 포함해야 합니다.'
       : ''
 }
 
@@ -347,9 +366,9 @@ function validateCourse() {
   errors.value.course = selectedCourse.value ? '' : '훈련과정: 필수 선택 항목입니다.'
 }
 
-function handleSubmit() {
+async function handleSubmit() {
   validateName()
-  validateUsername()
+  await validateUsername() 
   validatePassword()
   validateDiscord()
   validateCourse()
@@ -359,8 +378,36 @@ function handleSubmit() {
     return
   }
 
-  // 여기서 회원가입 처리 진행
-  console.log('회원가입 데이터 전송')
+  const payload = {
+    seqCorse: selectedCourse.value.seqCourse,
+    idUser: username.value,
+    pwUser: password.value,
+    nameUser: name.value,
+    dcUser: discord.value,
+    agreeTermsUser: true,
+    agreeInfoUser: true,
+    agreeDiscordAlarmUser: true
+  }
+
+  try {
+    const response = await fetch('http://localhost:8080/users/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+
+    const result = await response.json()
+
+    if (result.code === 200) {
+      alert('회원가입이 완료되었습니다!')
+      router.push('/login')
+    } else {
+      alert(`회원가입 실패: ${result.message || '알 수 없는 오류'}`)
+    }
+  } catch (error) {
+    console.error('회원가입 중 오류 발생:', error)
+    alert('회원가입 요청 중 오류가 발생했습니다.')
+  }
 }
 </script>
 
