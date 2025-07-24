@@ -1,6 +1,7 @@
 package playbook.encore.back.data.dao.impl;
 
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import java.util.Optional;
+
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
@@ -20,9 +21,8 @@ public class BookUserDAOImpl implements BookUserDAO {
     }
 
     @Override
-    public BookUser searchBookUserResultExact(String idUser) {
-        return bookUserRepository.findByIdUser(idUser)
-                .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 사용자입니다 : " + idUser));
+    public Optional<BookUser> searchBookUserResultExact(String idUser) {
+        return bookUserRepository.findByIdUser(idUser);
     }
     
 }
