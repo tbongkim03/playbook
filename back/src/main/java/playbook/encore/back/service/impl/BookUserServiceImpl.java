@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import playbook.encore.back.data.dao.BookUserDAO;
+import playbook.encore.back.data.dto.bookUser.LoginUserRequestDto;
+import playbook.encore.back.data.dto.bookUser.LoginUserResponseDto;
 import playbook.encore.back.data.dto.bookUser.RegisterIdValidateResponseDto;
 import playbook.encore.back.data.dto.bookUser.RegisterUserRequestDto;
 import playbook.encore.back.data.dto.bookUser.RegisterUserResponseDto;
@@ -13,6 +15,7 @@ import playbook.encore.back.data.entity.BookUser;
 import playbook.encore.back.data.entity.Course;
 import playbook.encore.back.data.repository.BookUserRepository;
 import playbook.encore.back.data.repository.CourseRepository;
+import playbook.encore.back.jwt.jwtUtil;
 import playbook.encore.back.service.BookUserService;
 
 @Service
@@ -21,12 +24,14 @@ public class BookUserServiceImpl implements BookUserService{
     private final BookUserDAO bookUserDAO;
     private final BookUserRepository bookUserRepository;
     private final CourseRepository courseRepository;
+    private final jwtUtil jwtUtil;
 
     @Autowired
-    public BookUserServiceImpl(BookUserDAO bookUserDAO, BookUserRepository bookUserRepository, CourseRepository courseRepository) {
+    public BookUserServiceImpl(BookUserDAO bookUserDAO, BookUserRepository bookUserRepository, CourseRepository courseRepository, jwtUtil jwtUtil) {
         this.bookUserDAO = bookUserDAO;
         this.bookUserRepository = bookUserRepository;
         this.courseRepository = courseRepository;
+        this.jwtUtil = jwtUtil;
     }
 
     @Override
@@ -58,6 +63,17 @@ public class BookUserServiceImpl implements BookUserService{
     public RegisterIdValidateResponseDto checkUserId(String idUser) {
         boolean flag = bookUserDAO.searchBookUserResultExact(idUser).isPresent();
         return new RegisterIdValidateResponseDto(flag);
+    }
+
+    @Override
+    public LoginUserResponseDto loginServiceUser(LoginUserRequestDto loginUserRequestDto) {
+        String id = loginUserRequestDto.getIdUser();
+        String pw = loginUserRequestDto.getPwUser();
+        boolean isLoginSuccess = bookUserDAO.loginIdPwCheck(id, pw);
+        if (!isLoginSuccess) {
+            new IllegalArgumentException("로그인에 실패하였습니다. 아이디와 비밀번호를 확인해 주세요."); 
+        } 
+        return new LoginUserResponseDto(jwtUtil.generateToken(id));
     }
     
 }
