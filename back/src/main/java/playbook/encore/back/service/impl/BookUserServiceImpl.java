@@ -69,7 +69,7 @@ public class BookUserServiceImpl implements BookUserService{
     public LoginUserResponseDto loginServiceUser(LoginUserRequestDto loginUserRequestDto) {
         String id = loginUserRequestDto.getIdUser();
         String pw = loginUserRequestDto.getPwUser();
-        boolean isLoginSuccess = bookUserDAO.loginIdPwCheck(id, pw);
+        boolean isLoginSuccess = bookUserDAO.loginIdPwCheck(id, pw).isPresent();
         if (!isLoginSuccess) {
             new IllegalArgumentException("로그인에 실패하였습니다. 아이디와 비밀번호를 확인해 주세요."); 
         } 

@@ -55,18 +55,17 @@ async function handleLogin() {
       idUser: userId.value,
       password: password.value
     }
-    const res = await axios.post('localhost:8080/users/login', loginData)
-    // 로그인 성공 시 사용자 이름 (예: res.data.userName) 저장 처리
-    // 예를 들어 글로벌 상태관리나 상위 컴포넌트에 이벤트 emit 등으로 전달
+    const res = await axios.post('http://localhost:8080/users/login', loginData)
+    // 로그인 성공 시 jwt 토큰 로컬 스토리지에 저장
+    localStorage.setItem('jwtToken', res.data.token)
 
-    alert(`${res.data.userName}님 환영합니다!`) // 임시 메시지
-
-    // 로그인 성공 후 메인 페이지로 이동
     router.push('/')
   } catch (error) {
     alert('로그인 실패: 아이디 또는 비밀번호를 확인하세요.')
+    console.log(error)
   }
 }
+
 
 </script>
 
