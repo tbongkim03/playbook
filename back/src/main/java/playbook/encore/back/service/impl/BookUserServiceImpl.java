@@ -75,5 +75,44 @@ public class BookUserServiceImpl implements BookUserService{
         } 
         return new LoginUserResponseDto(jwtUtil.generateToken(id));
     }
-    
+
+    @Override
+    public boolean validatePassword(BookUser bookUser, String password) {
+        boolean isPasswordExist = bookUserDAO.pwValidate(bookUser, password).isPresent();
+        if (!isPasswordExist) {
+            new IllegalArgumentException("잘못된 비밀번호입니다. 다시 입력해 주세요");
+        }
+        return true;
+    }
+
+    @Override
+    public boolean updatePassword(BookUser bookUser, String newPassword) {
+        String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+        boolean isPasswordChanged = bookUserDAO.changePw(bookUser, hashedPassword).isPresent();
+        if (!isPasswordChanged) {
+            new IllegalArgumentException("비밀번호 변경에 실패하였습니다. 다시 시도해 주세요");
+        }
+        return true;
+    }
+
+    @Override
+    public boolean updateDiscord(BookUser bookUser, String newDiscord) {
+        boolean isDiscordChanged = bookUserDAO.changeDiscord(bookUser, newDiscord).isPresent();
+        if (!isDiscordChanged) {
+            new IllegalArgumentException("과정 변경에 실패하였습니다. 다시 시도해 주세요");
+        }
+        return true;
+    }
+
+    @Override
+    public boolean updateCourse(BookUser bookUser, Integer newSeqCourse) {
+        boolean isCourseChanged = bookUserDAO.changeCourse(bookUser, newSeqCourse).isPresent();
+        if (!isCourseChanged) {
+            new IllegalArgumentException("과정 변경에 실패하였습니다. 다시 시도해 주세요");
+        }
+        return true;
+    }
+
+
+
 }

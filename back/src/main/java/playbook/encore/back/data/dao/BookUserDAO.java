@@ -12,5 +12,12 @@ public interface BookUserDAO {
     Optional<BookUser> searchBookUserResultExact(String idUser);
 
     boolean loginIdPwCheck(String id, String pw);
-    
+
+    Optional<BookUser> pwValidate(BookUser bookUser, String password);
+
+    Optional<BookUser> changePw(BookUser bookUser, String hashedPassword);
+
+    Optional<BookUser> changeCourse(BookUser bookUser, Integer newSeqCourse);
+
+    Optional<BookUser> changeDiscord(BookUser bookUser, String newDiscord);
 }
