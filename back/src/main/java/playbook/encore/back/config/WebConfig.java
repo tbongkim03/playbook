@@ -27,7 +27,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginCheckInterceptor)
-                .addPathPatterns("/**") // 검증해야하는 경우
+                .addPathPatterns("/users/me") // 검증해야하는 경우
                 .excludePathPatterns("/users/login", "/users/register"); // 검증이 필요 없는 경우
     }
 }

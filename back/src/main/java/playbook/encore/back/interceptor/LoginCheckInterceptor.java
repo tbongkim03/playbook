@@ -54,10 +54,11 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("해당 사용자가 존재하지 않습니다.");
                 return false;
+            } else {
+                request.setAttribute("user", userOpt.get());
+                return true;
             }
-            
-            request.setAttribute("user", userOpt.get());
-            return true;
+
         }
     }
 }
