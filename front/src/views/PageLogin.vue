@@ -6,9 +6,9 @@
                     <img src="@/assets/playbook_logo.png" alt="Logo" class="logo-img" @click="navigate" />
                 </router-link>
             </header>
-            <form action="">
-                <input type="text" class="input-id" placeholder="아이디">
-                <input type="password" class="input-pw" placeholder="비밀번호">
+            <form @submit.prevent="handleLogin">
+                <input type="text" class="input-id" placeholder="아이디" v-model="userId">
+                <input type="password" class="input-pw" placeholder="비밀번호" v-model="password">
                 <button type="submit">
                     <span>로그인</span>
                 </button>
@@ -34,9 +34,13 @@
 </template>
 
 <script setup>
+import axios from 'axios'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const userId = ref('')
+const password = ref('')
 
 function goToTerms() {
   router.push({
@@ -44,6 +48,26 @@ function goToTerms() {
     state: { fromLogin: true }
   })
 }
+
+async function handleLogin() {
+  try {
+    const loginData = {
+      idUser: userId.value,
+      password: password.value
+    }
+    const res = await axios.post('localhost:8080/users/login', loginData)
+    // 로그인 성공 시 사용자 이름 (예: res.data.userName) 저장 처리
+    // 예를 들어 글로벌 상태관리나 상위 컴포넌트에 이벤트 emit 등으로 전달
+
+    alert(`${res.data.userName}님 환영합니다!`) // 임시 메시지
+
+    // 로그인 성공 후 메인 페이지로 이동
+    router.push('/')
+  } catch (error) {
+    alert('로그인 실패: 아이디 또는 비밀번호를 확인하세요.')
+  }
+}
+
 </script>
 
 <style scoped>

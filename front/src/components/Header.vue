@@ -32,10 +32,13 @@
 
 
 <script setup>
+import axios from 'axios'
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 const isLogin = ref(false) // 로그인 여부 (세션체크 등으로 갱신하면 됨)
+const username = ref('')    // 로그인 사용자 이름
+
 const route = useRoute()
 
 // 로그인 버튼 조건: 로그인 안 했고, 현재 페이지가 /login이 아닐 때
