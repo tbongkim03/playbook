@@ -5,27 +5,22 @@
     </router-link>
 
     <div class="login-button">
-      <router-link to="/login" custom v-slot="{ navigate }">
-        <button
-          type="button"
-          class="btn btn-primary"
-          v-if="showLoginButton"
-          @click="navigate"
-        >
-          로그인
-        </button>
-      </router-link>
+      <template v-if="isLogin">
+        <span>{{ username }}님 환영합니다!</span>
+        <router-link to="/logout" custom v-slot="{ navigate }">
+          <button type="button" class="btn btn-primary" @click="navigate">
+            로그아웃
+          </button>
+        </router-link>
+      </template>
 
-      <router-link to="/logout" custom v-slot="{ navigate }">
-        <button
-          type="button"
-          class="btn btn-primary"
-          v-if="showLogoutButton"
-          @click="navigate"
-        >
-          로그아웃
-        </button>
-      </router-link>
+      <template v-else>
+        <router-link to="/login" custom v-slot="{ navigate }">
+          <button type="button" class="btn btn-primary" v-if="showLoginButton" @click="navigate">
+            로그인
+          </button>
+        </router-link>
+      </template>
     </div>
   </header>
 </template>
@@ -33,23 +28,51 @@
 
 <script setup>
 import axios from 'axios'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 
-const isLogin = ref(false) // 로그인 여부 (세션체크 등으로 갱신하면 됨)
+const isLogin = ref(false) // 로그인 여부
 const username = ref('')    // 로그인 사용자 이름
 
 const route = useRoute()
 
-// 로그인 버튼 조건: 로그인 안 했고, 현재 페이지가 /login이 아닐 때
 const showLoginButton = computed(() => {
   return !isLogin.value && route.path !== '/login'
 })
 
-// 로그아웃 버튼 조건: 로그인했을 때만
 const showLogoutButton = computed(() => {
   return isLogin.value
 })
+
+// 사용자 정보 가져오기 함수
+async function fetchUserInfo() {
+  const token = localStorage.getItem('jwtToken')
+  if (!token) {
+    isLogin.value = false
+    username.value = ''
+    return
+  }
+  try {
+    const res = await axios.get('http://localhost:8080/users/me', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    console.log("me 테스트")
+    console.log(res)
+    // username.value = res.data.idUser || res.data.username || '사용자'
+    // isLogin.value = true
+  } catch (error) {
+    console.log('사용자 정보 불러오기 실패:', error)
+    isLogin.value = false
+    username.value = ''
+  }
+}
+
+onMounted(() => {
+  fetchUserInfo()
+})
+
 </script>
 
 
