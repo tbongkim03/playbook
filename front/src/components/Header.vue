@@ -5,10 +5,10 @@
     </router-link>
 
     <div class="login-button">
-      <template v-if="isLogin">
-        <span>{{ username }}님 환영합니다!</span>
+      <template v-if="isLogin" class="info-area">
+        <span>{{ username }} 님</span>
         <router-link to="/logout" custom v-slot="{ navigate }">
-          <button type="button" class="btn btn-primary" @click="navigate">
+          <button type="button" class="btn btn-outline-primary" @click="navigate">
             로그아웃
           </button>
         </router-link>
@@ -16,7 +16,7 @@
 
       <template v-else>
         <router-link to="/login" custom v-slot="{ navigate }">
-          <button type="button" class="btn btn-primary" v-if="showLoginButton" @click="navigate">
+          <button type="button" class="btn btn-outline-primary" v-if="showLoginButton" @click="navigate">
             로그인
           </button>
         </router-link>
@@ -57,15 +57,13 @@ async function fetchUserInfo() {
         Authorization: `Bearer ${localStorage.getItem('jwtToken')}`
       }
     })
-    console.log("me 테스트")
-    console.log(res)
+    username.value = res.data.nameUser || res.data.idUser || '사용자'
+    isLogin.value = true
   } catch (error) {
     console.log('사용자 정보 불러오기 실패:', error)
     isLogin.value = false
     username.value = ''
   }
-    // username.value = res.data.idUser || res.data.username || '사용자'
-    // isLogin.value = true
 
 }
 
@@ -101,5 +99,24 @@ onMounted(() => {
 
 .logo-img:hover {
     opacity: .5;
+}
+
+.login-button {
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  justify-content: center;
+  /* background-color: ; */
+  color: black;
+  border-radius: 5px;
+}
+.login-button > span {
+  display: table-cell;
+  vertical-align: middle;
+  padding-top: 11px;
+  padding-left: 4px;
+}
+.login-button > button {
+  margin: 4px 4px 4px 6px;
 }
 </style>

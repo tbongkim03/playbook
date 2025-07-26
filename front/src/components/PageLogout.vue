@@ -9,9 +9,10 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 onMounted(() => {
+  localStorage.removeItem("jwtToken")
   setTimeout(() => {
     router.push('/')
-  }, 1000)
+  }, 500)
 })
 </script>
 
