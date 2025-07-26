@@ -46,8 +46,7 @@ const showLogoutButton = computed(() => {
 
 // 사용자 정보 가져오기 함수
 async function fetchUserInfo() {
-  const token = localStorage.getItem('jwtToken')
-  if (!token) {
+  if (!localStorage.getItem('jwtToken')) {
     isLogin.value = false
     username.value = ''
     return
@@ -55,18 +54,19 @@ async function fetchUserInfo() {
   try {
     const res = await axios.get('http://localhost:8080/users/me', {
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${localStorage.getItem('jwtToken')}`
       }
     })
     console.log("me 테스트")
     console.log(res)
-    // username.value = res.data.idUser || res.data.username || '사용자'
-    // isLogin.value = true
   } catch (error) {
     console.log('사용자 정보 불러오기 실패:', error)
     isLogin.value = false
     username.value = ''
   }
+    // username.value = res.data.idUser || res.data.username || '사용자'
+    // isLogin.value = true
+
 }
 
 onMounted(() => {
