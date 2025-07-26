@@ -7,13 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import playbook.encore.back.data.dao.BookUserDAO;
+import playbook.encore.back.data.dto.bookUser.*;
 import playbook.encore.back.service.BookService;
 import playbook.encore.back.service.BookUserService;
-import playbook.encore.back.data.dto.bookUser.LoginUserRequestDto;
-import playbook.encore.back.data.dto.bookUser.LoginUserResponseDto;
-import playbook.encore.back.data.dto.bookUser.RegisterIdValidateResponseDto;
-import playbook.encore.back.data.dto.bookUser.RegisterUserRequestDto;
-import playbook.encore.back.data.dto.bookUser.RegisterUserResponseDto;
 import playbook.encore.back.data.entity.BookUser;
 import playbook.encore.back.data.repository.BookUserRepository;
 import playbook.encore.back.jwt.jwtUtil;
@@ -55,8 +51,10 @@ public class BookUserController {
     // 회원정보 관련 부분
     @GetMapping("/me")
     public ResponseEntity<?> getUserInfo(HttpServletRequest request) {
-        BookUser user = (BookUser) request.getAttribute("user"); // 인터셉터에서 넣어준 사용자 정보
-        return ResponseEntity.ok().body(user);
+        BookUser user = (BookUser) request.getAttribute("user");
+        LoginUserDataResponseDto loginUserDataResponseDto = new LoginUserDataResponseDto(user.getSeqCourse().getSeqCourse(), user.getIdUser(), user.getNameUser(), user.getDcUser());
+        return ResponseEntity.ok(loginUserDataResponseDto);
+
     }
     @GetMapping("/validate")
     public ResponseEntity<?> getCurrentPassword(
