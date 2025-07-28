@@ -29,14 +29,13 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
         String method = request.getMethod();
         String uri = request.getRequestURI();
 
-        // 예: POST 또는 PUT 또는 DELETE일 때만 검증
         if (
                 ((uri.equals("/subtitles") && method.equals("POST")) || (uri.startsWith("/subtitles/") && (method.equals("PUT") || method.equals("DELETE"))))
                 || ((uri.equals("/subjects") && method.equals("POST")) || (uri.startsWith("/subjects/") && (method.equals("PUT") || method.equals("DELETE"))))
                 || ((uri.equals("/courses") && method.equals("POST")) || (uri.startsWith("/courses/") && (method.equals("PUT") || method.equals("DELETE"))))
                 || ((uri.equals("/users") && method.equals("POST")) || (uri.startsWith("/users/") && (method.equals("PUT") || method.equals("DELETE"))))
                 || ((uri.equals("/books") && method.equals("POST")) || (uri.startsWith("/books/") && (method.equals("PUT") || method.equals("DELETE"))))
-
+                || ((uri.equals("/users/me") && method.equals("GET")))
         ) {
             // 로그인 검증 로직
             if (!isLoggedIn(request, response, handler)) {
