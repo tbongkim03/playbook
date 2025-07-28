@@ -31,11 +31,12 @@ public class BookUserDAOImpl implements BookUserDAO {
     }
 
     @Override
-    public Optional<Boolean> loginIdPwCheck(String idUser, String pwUser) {
+    public Optional<BookUser> loginIdPwCheck(String idUser, String pwUser) {
         Optional<BookUser> optionalUser = bookUserRepository.findByIdUser(idUser);
         if (optionalUser.isEmpty()) return Optional.empty();
         BookUser user = optionalUser.get();
-        return Optional.of(BCrypt.checkpw(pwUser, user.getPwUser()));
+        if (!BCrypt.checkpw(pwUser, user.getPwUser())) return Optional.empty();
+        return Optional.of(user);
     }
 
     @Override

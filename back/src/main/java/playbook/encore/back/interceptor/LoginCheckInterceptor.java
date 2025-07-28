@@ -9,6 +9,7 @@ import playbook.encore.back.data.entity.BookUser;
 import playbook.encore.back.data.repository.BookUserRepository;
 import playbook.encore.back.jwt.jwtUtil;
 
+import java.io.IOException;
 import java.util.Optional;
 
 @Component
@@ -25,40 +26,53 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        String method = request.getMethod();
+        String uri = request.getRequestURI();
+
+        // 예: POST 또는 PUT 또는 DELETE일 때만 검증
+        if (
+                ((uri.equals("/subtitles") && method.equals("POST")) || (uri.startsWith("/subtitles/") && (method.equals("PUT") || method.equals("DELETE"))))
+                || ((uri.equals("/subjects") && method.equals("POST")) || (uri.startsWith("/subjects/") && (method.equals("PUT") || method.equals("DELETE"))))
+                || ((uri.equals("/courses") && method.equals("POST")) || (uri.startsWith("/courses/") && (method.equals("PUT") || method.equals("DELETE"))))
+                || ((uri.equals("/users") && method.equals("POST")) || (uri.startsWith("/users/") && (method.equals("PUT") || method.equals("DELETE"))))
+                || ((uri.equals("/books") && method.equals("POST")) || (uri.startsWith("/books/") && (method.equals("PUT") || method.equals("DELETE"))))
+
+        ) {
+            // 로그인 검증 로직
+            if (!isLoggedIn(request, response, handler)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isLoggedIn(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
         String authHeader = request.getHeader("Authorization");
 
-        // 1. 비로그인 상태인 경우
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            if (request.getRequestURI().startsWith("/???") || request.getRequestURI().startsWith("/????")) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("로그인이 필요합니다.");
-                return false;
-            }
-            // 로그인 필요없는 api 통과
-            return true;
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("로그인이 필요합니다.");
+            return false;
         }
-        // 2. 로그인 상태인 경우
-        else {
-            String token = authHeader.substring(7);
-            String reason = jwtUtil.validateAndGetReason(token);
 
-            if (!reason.equals("VALID")) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("토큰이 유효하지 않습니다: " + reason);
-                return false;
-            }
+        String token = authHeader.substring(7);
+        String reason = jwtUtil.validateAndGetReason(token);
 
-            String userId = jwtUtil.getIdUserFromToken(token);
-            Optional<BookUser> userOpt = bookUserRepository.findByIdUser(userId);
-            if (userOpt.isEmpty()) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("해당 사용자가 존재하지 않습니다.");
-                return false;
-            } else {
-                request.setAttribute("user", userOpt.get());
-                return true;
-            }
-
+        if (!reason.equals("VALID")) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("토큰이 유효하지 않습니다: " + reason);
+            return false;
         }
-    }
+
+        String userId = jwtUtil.getIdUserFromToken(token);
+        Optional<BookUser> userOpt = bookUserRepository.findByIdUser(userId);
+        if (userOpt.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("해당 사용자가 존재하지 않습니다.");
+            return false;
+        }
+
+        request.setAttribute("user", userOpt.get());
+        return true;    }
 }

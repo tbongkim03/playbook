@@ -11,7 +11,7 @@ public interface BookDAO {
 
     Page<Book> selectBookListByPage(int page) throws Exception;
 
-    Book selectBookById(Integer bookId) throws Exception;
+    Book selectBookById(int bookId) throws Exception;
 
     Book updateBook(Book book) throws Exception;
 
@@ -27,5 +27,7 @@ public interface BookDAO {
 
     List<Book> findUnprintedBooks() throws Exception;
 
-    boolean checkDuplicates(Integer seqBook, String barcodeBook) throws Exception;
+    boolean checkDuplicates(int seqBook, String barcodeBook) throws Exception;
+
+    Page<Book> selectBookListByPageBySortFirst(int sortFirstId, int page);
 }

@@ -1,7 +1,10 @@
 package playbook.encore.back.data.dao.impl;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
@@ -16,6 +19,9 @@ import java.util.Optional;
 public class BookDAOImpl implements BookDAO {
 
     private final BookRepository bookRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     public BookDAOImpl(BookRepository bookRepository) {
@@ -36,9 +42,36 @@ public class BookDAOImpl implements BookDAO {
         return bookRepository.findAll(pageRequest);
     }
 
+    @Override
+    public Page<Book> selectBookListByPageBySortFirst(int sortFirstId, int page) {
+        int pageSize = 20;
+        PageRequest pageRequest = PageRequest.of(page - 1, pageSize, Sort.by("seqBook").ascending());
+
+        String jpql = "SELECT b FROM Book b " +
+                "JOIN b.seqSortSecond ss " +
+                "JOIN ss.seqSortFirst sf " +
+                "WHERE sf.seqSortFirst = :sortFirstId";
+
+        String countJpql = "SELECT COUNT(b) FROM Book b " +
+                "JOIN b.seqSortSecond ss " +
+                "JOIN ss.seqSortFirst sf " +
+                "WHERE sf.seqSortFirst = :sortFirstId";
+
+        List<Book> books = entityManager.createQuery(jpql, Book.class)
+                .setParameter("sortFirstId", sortFirstId)
+                .setFirstResult((int) pageRequest.getOffset())
+                .setMaxResults(pageRequest.getPageSize())
+                .getResultList();
+
+        Long total = entityManager.createQuery(countJpql, Long.class)
+                .setParameter("sortFirstId", sortFirstId)
+                .getSingleResult();
+
+        return new PageImpl<>(books, pageRequest, total);
+    }
 
     @Override
-    public Book selectBookById(Integer bookId) throws Exception {
+    public Book selectBookById(int bookId) throws Exception {
         Optional<Book> optionalBook = bookRepository.findById(bookId);
         if (optionalBook.isPresent()) {
             Book selectedBook = optionalBook.get();
@@ -102,7 +135,7 @@ public class BookDAOImpl implements BookDAO {
     }
 
     @Override
-    public boolean checkDuplicates(Integer seqBook, String barcodeBook) throws Exception {
+    public boolean checkDuplicates(int seqBook, String barcodeBook) throws Exception {
         return bookRepository.existsByBarcodeBookAndSeqBookNot(barcodeBook, seqBook);
     }
 

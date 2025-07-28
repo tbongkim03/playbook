@@ -11,7 +11,7 @@ public interface BookUserDAO {
 
     Optional<BookUser> searchBookUserResultExact(String idUser);
 
-    Optional<Boolean> loginIdPwCheck(String id, String pw);
+    Optional<BookUser> loginIdPwCheck(String id, String pw);
 
     Optional<BookUser> pwValidate(BookUser bookUser, String password);
 

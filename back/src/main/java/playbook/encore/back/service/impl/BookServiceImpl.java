@@ -92,9 +92,21 @@ public class BookServiceImpl implements BookService {
         return bookListResponseDto;
     }
 
+    @Override
+    public BookListResponseDto getBookListBySortFirst(int sortFirstId, int page) {
+        Page<Book> bookPage = bookDAO.selectBookListByPageBySortFirst(sortFirstId, page);
+
+        List<BookResponseDto> content = bookPage.getContent().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+
+        int totalCount = (int) bookPage.getTotalElements();
+        BookListResponseDto bookListResponseDto = new BookListResponseDto(content, totalCount);
+        return bookListResponseDto;
+    }
 
     @Override
-    public BookResponseDto getBookById(Integer bookId) throws Exception {
+    public BookResponseDto getBookById(int bookId) throws Exception {
         Book selectedBook = bookDAO.selectBookById(bookId);
         BookResponseDto bookResponseDto = convertToDto(selectedBook);
 
@@ -105,7 +117,7 @@ public class BookServiceImpl implements BookService {
     // 프린트 함, 분류, 책 권수, 바코드 값 넣기.
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public BookResponseDto changeBook(Integer bookId, BookSortAndBarcodeRequestDto bookSortAndBarcodeRequestDto) throws Exception {
+    public BookResponseDto changeBook(int bookId, BookSortAndBarcodeRequestDto bookSortAndBarcodeRequestDto) throws Exception {
         Book existingBook = bookRepository.findById(bookId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 책이 존재하지 않습니다."));
 
@@ -134,7 +146,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void deleteBookById(Integer bookId) throws Exception {
+    public void deleteBookById(int bookId) throws Exception {
         Book selectedBook = bookRepository.findById(bookId)
                 .orElseThrow(() -> new IllegalArgumentException("삭제에 실패했습니다. 해당 도서는 존재하지 않습니다."));
 

@@ -28,6 +28,11 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginCheckInterceptor)
                 .addPathPatterns("/users/me") // 검증해야하는 경우
+                .addPathPatterns("/users/password")
+                .addPathPatterns("/users/discord")
+                .addPathPatterns("/users/course")
+                .addPathPatterns("/users/validate")
+                .addPathPatterns("/books/batch/print")
                 .excludePathPatterns("/users/login", "/users/register"); // 검증이 필요 없는 경우
     }
 }

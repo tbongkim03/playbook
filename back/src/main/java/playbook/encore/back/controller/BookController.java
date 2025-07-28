@@ -38,9 +38,18 @@ public class BookController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BookResponseDto> getBookById(@PathVariable("id") Integer bookId) throws Exception {
+    public ResponseEntity<BookResponseDto> getBookById(@PathVariable("id") int bookId) throws Exception {
         BookResponseDto bookResponseDto = bookService.getBookById(bookId);
         return ResponseEntity.status(HttpStatus.OK).body(bookResponseDto);
+    }
+
+    @GetMapping("/sortFirst")
+    public ResponseEntity<BookListResponseDto> getBooksBySortFirstId(
+            @RequestParam("id") int sortFirstId,
+            @RequestParam("page") int page
+    ) throws Exception {
+        BookListResponseDto bookListResponseDto = bookService.getBookListBySortFirst(sortFirstId, page);
+        return ResponseEntity.status(HttpStatus.OK).body(bookListResponseDto);
     }
 
     @PostMapping
@@ -51,7 +60,7 @@ public class BookController {
 
     @PutMapping("/{id}")
     public ResponseEntity<BookResponseDto> updateBookById(
-            @PathVariable("id") Integer bookId,
+            @PathVariable("id") int bookId,
             @RequestBody BookSortAndBarcodeRequestDto bookSortAndBarcodeRequestDto
     ) throws Exception {
         BookResponseDto bookResponseDto = bookService.changeBook(bookId, bookSortAndBarcodeRequestDto);
@@ -59,7 +68,7 @@ public class BookController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteBookById(@PathVariable("id") Integer bookId) throws Exception {
+    public ResponseEntity<String> deleteBookById(@PathVariable("id") int bookId) throws Exception {
         bookService.deleteBookById(bookId);
         return ResponseEntity.status(HttpStatus.OK).body("삭제를 수행하였습니다.");
     }

@@ -71,7 +71,7 @@ public class BookUserServiceImpl implements BookUserService{
         String pw = loginUserRequestDto.getPwUser();
         boolean isLoginSuccess = bookUserDAO.loginIdPwCheck(id, pw).isPresent();
         if (!isLoginSuccess) {
-            new IllegalArgumentException("로그인에 실패하였습니다. 아이디와 비밀번호를 확인해 주세요."); 
+            throw new IllegalArgumentException("로그인에 실패하였습니다. 아이디와 비밀번호를 확인해 주세요.");
         } 
         return new LoginUserResponseDto(jwtUtil.generateToken(id));
     }
@@ -80,7 +80,7 @@ public class BookUserServiceImpl implements BookUserService{
     public boolean validatePassword(BookUser bookUser, String password) {
         boolean isPasswordExist = bookUserDAO.pwValidate(bookUser, password).isPresent();
         if (!isPasswordExist) {
-            new IllegalArgumentException("잘못된 비밀번호입니다. 다시 입력해 주세요");
+            throw new IllegalArgumentException("잘못된 비밀번호입니다. 다시 입력해 주세요");
         }
         return true;
     }
@@ -90,7 +90,7 @@ public class BookUserServiceImpl implements BookUserService{
         String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
         boolean isPasswordChanged = bookUserDAO.changePw(bookUser, hashedPassword).isPresent();
         if (!isPasswordChanged) {
-            new IllegalArgumentException("비밀번호 변경에 실패하였습니다. 다시 시도해 주세요");
+            throw new IllegalArgumentException("비밀번호 변경에 실패하였습니다. 다시 시도해 주세요");
         }
         return true;
     }
@@ -99,7 +99,7 @@ public class BookUserServiceImpl implements BookUserService{
     public boolean updateDiscord(BookUser bookUser, String newDiscord) {
         boolean isDiscordChanged = bookUserDAO.changeDiscord(bookUser, newDiscord).isPresent();
         if (!isDiscordChanged) {
-            new IllegalArgumentException("과정 변경에 실패하였습니다. 다시 시도해 주세요");
+            throw new IllegalArgumentException("과정 변경에 실패하였습니다. 다시 시도해 주세요");
         }
         return true;
     }
@@ -108,7 +108,7 @@ public class BookUserServiceImpl implements BookUserService{
     public boolean updateCourse(BookUser bookUser, Integer newSeqCourse) {
         boolean isCourseChanged = bookUserDAO.changeCourse(bookUser, newSeqCourse).isPresent();
         if (!isCourseChanged) {
-            new IllegalArgumentException("과정 변경에 실패하였습니다. 다시 시도해 주세요");
+            throw new IllegalArgumentException("과정 변경에 실패하였습니다. 다시 시도해 주세요");
         }
         return true;
     }
