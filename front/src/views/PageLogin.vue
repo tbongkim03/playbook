@@ -53,7 +53,7 @@ async function handleLogin() {
   try {
     const loginData = {
       idUser: userId.value,
-      password: password.value
+      pwUser: password.value
     }
     const res = await axios.post('http://localhost:8080/users/login', loginData)
     // 로그인 성공 시 jwt 토큰 로컬 스토리지에 저장
@@ -61,8 +61,11 @@ async function handleLogin() {
 
     router.push('/')
   } catch (error) {
-    alert('로그인 실패: 아이디 또는 비밀번호를 확인하세요.')
-    console.log(error)
+    if (error.response && error.response.data) {
+      alert(error.response.data) // 백엔드에서 문자열 리턴하면 여기서 alert 가능
+    } else {
+      alert('알 수 없는 오류가 발생했습니다.')
+    }
   }
 }
 
