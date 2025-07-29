@@ -8,6 +8,7 @@ CREATE TABLE tb_book (
     author_book     VARCHAR(20)     NOT NULL,
     publisher_book  VARCHAR(20)     NOT NULL,
     publish_date_book DATE          NOT NULL,
+    img_url_book    VARCHAR(255)    NOT NULL,
     barcode_book    VARCHAR(30)     NULL,
     cnt_book        INT             NULL,
     print_check_book TINYINT(1)     NOT NULL DEFAULT 0,
