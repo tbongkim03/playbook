@@ -46,6 +46,7 @@ public class BookServiceImpl implements BookService {
                 entity.getAuthorBook(),
                 entity.getPublisherBook(),
                 entity.getPublishDateBook(),
+                entity.getImgUrlBook(),
                 entity.getBarcodeBook(),
                 entity.getCntBook(),
                 entity.isPrintCheckBook()
@@ -66,6 +67,7 @@ public class BookServiceImpl implements BookService {
                 .authorBook(bookRequestDto.getAuthorBook())
                 .publisherBook(bookRequestDto.getPublisherBook())
                 .publishDateBook(bookRequestDto.getPublishDateBook())
+                .imgUrlBook(bookRequestDto.getImageBook())
                 .barcodeBook(null)
                 .cntBook(null)
                 .printCheckBook(false)

@@ -36,6 +36,9 @@ public class Book {
     @Column(name = "publish_date_book", nullable = false)
     private LocalDate publishDateBook;
 
+    @Column(name = "img_url_book", nullable = false)
+    private String imgUrlBook;
+
     @Column(name = "barcode_book")
     private String barcodeBook;
 

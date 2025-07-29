@@ -13,5 +13,6 @@ public class BookRequestDto {
     private String authorBook;
     private String publisherBook;
     private LocalDate publishDateBook;
+    private String imageBook;
 
 }
