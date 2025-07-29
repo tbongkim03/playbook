@@ -133,7 +133,8 @@ function submitBook() {
         titleBook: book.title,
         authorBook: book.author,
         publisherBook: book.publisher,
-        publishDateBook: book.publishDate
+        publishDateBook: book.publishDate,
+        imageBook: book.title_url
     };
 
     fetch('http://localhost:8080/books', {
