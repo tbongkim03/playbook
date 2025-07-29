@@ -1,48 +1,58 @@
 <template>
     <div class="book-form-wrapper">
-        <div class="header">
-            <h2>도서 등록</h2>
-            <router-link to="/books" custom v-slot="{ navigate }">
-                <button class="btn btn-outline-primary" type="button" @click="navigate">뒤로가기</button>
-            </router-link>
-        </div>
-        
+        <div class="left">
+            <div class="header">
+                <h2>도서 등록</h2>
+                <router-link to="/books" custom v-slot="{ navigate }">
+                    <button class="btn btn-outline-primary" type="button" @click="navigate">뒤로가기</button>
+                </router-link>
+            </div>
+            <div class="input-group mb-3 mt-4" id="isbnInput">
+                <input type="text" class="form-control" placeholder="ISBN을 입력하세요" v-model="book.isbn" />
+                <button class="btn btn-outline-secondary" type="button" @click="searchISBN">
+                    조회
+                </button>
+            </div>
 
-        <div class="input-group mb-3 mt-4" id="isbnInput">
-            <input type="text" class="form-control" placeholder="ISBN을 입력하세요" v-model="book.isbn" />
-            <button class="btn btn-outline-secondary" type="button" @click="searchISBN">
-                조회
-            </button>
-        </div>
+            <div class="mb-3">
+                <label class="form-label">도서 제목</label>
+                <input type="text" class="form-control" v-model="book.title" />
+            </div>
 
-        <div class="mb-3">
-            <label class="form-label">도서 제목</label>
-            <input type="text" class="form-control" v-model="book.title" />
-        </div>
+            <div class="mb-3">
+                <label class="form-label">저자</label>
+                <input type="text" class="form-control" v-model="book.author" />
+            </div>
 
-        <div class="mb-3">
-            <label class="form-label">저자</label>
-            <input type="text" class="form-control" v-model="book.author" />
-        </div>
+            <div class="mb-3">
+                <label class="form-label">출판사</label>
+                <input type="text" class="form-control" v-model="book.publisher" />
+            </div>
 
-        <div class="mb-3">
-            <label class="form-label">출판사</label>
-            <input type="text" class="form-control" v-model="book.publisher" />
-        </div>
+            <div class="mb-3">
+                <label class="form-label">출판일</label>
+                <input type="date" class="form-control" v-model="book.publishDate" />
+            </div>
 
-        <div class="mb-3">
-            <label class="form-label">출판일</label>
-            <input type="date" class="form-control" v-model="book.publishDate" />
+            <div class="regi-btn">
+                <button class="btn btn-primary" @click="submitBook">등록</button>
+            </div>
         </div>
-
-        <div class="regi-btn">
-            <button class="btn btn-primary" @click="submitBook">등록</button>
+        <div class="right">
+            <h2>책 표지</h2>
+            <div :class="{'img-container':book.title_url}" ref="bookImg" @mousemove="useMouse" @mouseleave="resetTransform">
+                <div :class="{'overlay':book.title_url}" ref="overLay"></div>
+                <img class="book-img" :src="book.title_url">
+            </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, watch } from 'vue'
+import { onMounted, reactive, ref, watch, nextTick } from 'vue'
+
+const bookImg = ref(null)
+const overLay = ref(null)
 
 const book = reactive({
     isbn: '',
@@ -51,7 +61,8 @@ const book = reactive({
     publisher: '',
     publishDate: '',
     categoryLarge: '',
-    categoryMedium: ''
+    categoryMedium: '',
+    title_url: ''
 })
 
 async function searchISBN() {
@@ -81,6 +92,7 @@ async function searchISBN() {
             book.author = ''
             book.publisher = ''
             book.publishDate = ''
+            book.title_url = ''
             alert('도서 정보를 찾을 수 없습니다.')
             return
         }
@@ -89,6 +101,7 @@ async function searchISBN() {
         book.author = doc['AUTHOR'] || ''
         book.publisher = doc['PUBLISHER'] || ''
         book.publishDate = formatDate(doc['PUBLISH_PREDATE'] || '')
+        book.title_url = doc['TITLE_URL'] || ''
 
     } catch (err) {
         console.error('API 조회 실패:', err)
@@ -144,10 +157,37 @@ function submitBook() {
             alert('도서 등록 중 오류가 발생했습니다.');
         })
 }
+
+function useMouse(e) {
+    const x = e.pageX;
+    const y = e.pageY;
+    console.log(x, y)
+    const rotateY = (-20/173) * x + 114
+    const rotateX = (-20 / 231) * y + (7780 / 231)
+
+     if (bookImg.value) {
+        overLay.value.style = `background-position : ${x/4 + y/4}%`
+        bookImg.value.style = `transform : perspective(370px) rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
+    }
+};
+
+function resetTransform() {
+  if (bookImg.value) {
+    overLay.value.style = 'filter : opacity(0)'
+    bookImg.value.style.transform = 'perspective(600px) rotateY(0deg) rotateX(0deg)';
+    bookImg.value.style.transition = 'transform 0.3s ease';
+  }
+}
+
+
 </script>
 
 <style scoped>
 .book-form-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+.left, .right {
     min-width: 720px;
     width: 100%;
     padding: 1rem;
@@ -163,5 +203,29 @@ function submitBook() {
 .regi-btn {
     display:flex;
     justify-content: end;
+}
+.img-container {
+    position: relative;
+}
+.overlay {
+    position: absolute;
+    width: 360px;
+    height: 462.07px;
+    background: linear-gradient(105deg,
+    transparent 40%,
+    rgba(255, 219, 112, 0.8) 45%,
+    rgba(132, 50, 255, 0.6) 50%,
+    transparent 54%);
+    filter: brightness(1.1) opacity(0.8);
+    mix-blend-mode: color-dodge;
+    background-size: 150% 150%;
+    background-position: 100%;
+    transition: all 0.1s;
+}
+.img-container, .book-img {
+    width: 360px;
+    height: auto;
+    border: 1px solid #e1e3e5;
+    object-fit: contain;
 }
 </style>

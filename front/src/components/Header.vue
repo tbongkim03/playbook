@@ -60,9 +60,16 @@ async function fetchUserInfo() {
     username.value = res.data.nameUser || res.data.idUser || '사용자'
     isLogin.value = true
   } catch (error) {
-    console.log('사용자 정보 불러오기 실패:', error)
-    isLogin.value = false
-    username.value = ''
+    if (error.response && error.response.status === 401) {
+      alert(error.response.data);
+      localStorage.removeItem('jwtToken');
+      router.push('/login');
+    } else {
+      alert('사용자 정보 불러오기 실패:', error)
+      isLogin.value = false
+      username.value = ''
+    }
+    
   }
 
 }

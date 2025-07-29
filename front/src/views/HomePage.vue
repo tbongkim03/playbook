@@ -42,16 +42,22 @@
   <!-- 본문 영역 -->
   <main style="padding-top: 200px;">
     <h3>{{ selectedLargeCategory }} 카테고리 콘텐츠</h3>
+    <div class="article-area">
+        <BookArea v-for="i in bookList" />
+    </div>
   </main>
 </template>
 
 <script setup>
+import BookArea from '@/components/BookArea.vue'
 import { ref, onMounted } from 'vue'
 
 const largeCategories = ref([])
 const mediumCategoriesAll = ref([])
 
 const selectedLargeCategory = ref('')
+
+const bookList = ref([])
 
 const fetchLargeCategories = async () => {
   const res = await fetch('http://localhost:8080/subjects')
@@ -61,6 +67,10 @@ const fetchLargeCategories = async () => {
 const fetchMediumCategories = async () => {
   const res = await fetch('http://localhost:8080/subtitles')
   mediumCategoriesAll.value = await res.json()
+}
+
+const fetchBookList = async () => {
+    const res = await fetch('http://localhost:8080/books/')
 }
 
 const getMediumOptions = (largeCode) => {

@@ -84,7 +84,7 @@
             </div>
           </td>
           <td>
-            <input type="number" class="inp form-control" v-model="book.cntBook" aria-label="cntBook" />
+            <input type="number" class="inp form-control" v-model="book.cntBook" aria-label="cntBook" min="1" @input="() => { if (book.cntBook < 1) book.cntBook = 1 }" />
           </td>
           <td>
             <div class="input-group flex-nowrap">

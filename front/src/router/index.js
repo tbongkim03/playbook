@@ -8,6 +8,7 @@ import PageLogout from '@/components/PageLogout.vue';
 import PageTerm from '@/views/PageTerm.vue';
 import PageRegister from '@/views/PageRegister.vue'
 import NotFound from '@/components/NotFound.vue';
+import BookArea from '@/components/BookArea.vue';
 
 const routes = [
   {
@@ -48,6 +49,11 @@ const routes = [
         path: 'register',
         name: 'BookRegister',
         component: BookRegister
+      },
+      {
+        path: 'article',
+        name: 'BookArticle',
+        component: BookArea
       }
     ]
   },
