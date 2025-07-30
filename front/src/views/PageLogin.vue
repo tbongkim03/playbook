@@ -7,8 +7,8 @@
                 </router-link>
             </header>
             <form @submit.prevent="handleLogin">
-                <input type="text" class="input-id" placeholder="아이디" v-model="userId">
-                <input type="password" class="input-pw" placeholder="비밀번호" v-model="password">
+                <input type="text" class="input-id" placeholder="아이디" v-model="userId" @keydown.space.prevent @keydown="blockJavascriptInput">
+                <input type="password" class="input-pw" placeholder="비밀번호" v-model="password" @keydown.space.prevent @keydown="blockJavascriptInput">
                 <button type="submit">
                     <span>로그인</span>
                 </button>
@@ -27,9 +27,6 @@
                 </ul>
             </div>
         </div>
-        <footer>
-            <span>Copyright © 2025 플레이데이터 All Rights Reserved.</span>
-        </footer>
     </div>
 </template>
 
@@ -163,9 +160,5 @@ async function handleLogin() {
 .login-format .lis a {
     text-decoration: none;
     color: gray;
-}
-footer {
-    flex: 0 0 auto;
-    bottom: 0;
 }
 </style>

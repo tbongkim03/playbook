@@ -9,6 +9,7 @@ import PageTerm from '@/views/PageTerm.vue';
 import PageRegister from '@/views/PageRegister.vue'
 import NotFound from '@/components/NotFound.vue';
 import BookArea from '@/components/BookArea.vue';
+import BookInfo from '@/components/BookInfo.vue';
 
 const routes = [
   {
@@ -54,6 +55,11 @@ const routes = [
         path: 'article',
         name: 'BookArticle',
         component: BookArea
+      },
+      {
+        path: '/books/info/:id',
+        name: 'BookInfo',
+        component: BookInfo
       }
     ]
   },

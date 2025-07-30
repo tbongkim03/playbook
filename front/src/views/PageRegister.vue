@@ -17,6 +17,7 @@
             'input-success': name && !errors.name
           }"
           placeholder="이름"
+          @keydown="blockJavascriptInput"
         />
         <input
           type="text"
@@ -27,6 +28,8 @@
             'input-error-id': errors.username,
             'input-success': username && !errors.username
           }"
+          @keydown.space.prevent
+          @keydown="blockJavascriptInput"
           placeholder="아이디"
         />
         <input
@@ -38,6 +41,8 @@
             'input-error-pw': errors.password,
             'input-success': password.length >= 6 && !errors.password
           }"
+          @keydown.space.prevent
+          @keydown="blockJavascriptInput"
           placeholder="비밀번호"
         />
 
@@ -95,10 +100,6 @@
         </button>
       </form>
     </div>
-
-    <footer>
-      <span>Copyright © 2025 플레이데이터 All Rights Reserved.</span>
-    </footer>
   </div>
 </template>
 

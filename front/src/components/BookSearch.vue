@@ -1,7 +1,7 @@
 <template>
     <form action="" class="search-form" @submit.prevent="onSubmit" ref="searchForm">
         <div class="input-group mb-3 inpg" id="inputArea">
-            <input type="text" class="form-control" placeholder="도서명" aria-label="bookTitle" aria-describedby="basic-addon1" v-model="query" @input="onInput" @focus="onFocus" @blur="onBlur" autocomplete="off" />
+            <input type="text" class="form-control" placeholder="도서명" aria-label="bookTitle" aria-describedby="basic-addon1" v-model="query" @input="onInput" @focus="onFocus" @blur="onBlur" autocomplete="off" @keydown="blockJavascriptInput" />
             <span class="icon" @click="onSubmit">&#x1F50D;</span>
     
             <ul class="autocomplete-list" v-if="isFocused && suggestions.length">

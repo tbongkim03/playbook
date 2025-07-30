@@ -100,7 +100,7 @@
     </table>
   </div>
 
-  <div class="mt-4 flex justify-center space-x-2">
+  <div class="buttons mt-4 flex justify-center space-x-2">
     <button
       v-for="page in totalPages"
       :key="page"
@@ -348,12 +348,22 @@ function printBarcodes() {
 
 <style>
 .container {
-  width: 100%;
+  width: 98%;
+  padding: 0.7rem;
+  margin: 0 auto;
   max-width: none;
 }
+.buttons {
+  display: flex;
+  width: 98%;
+  padding: 0.7rem;
+  justify-content: center;
+  column-gap: 0.7rem;
+  
+}
 .table {
-  min-width: 1440px;
-  width: 100%;
+  /* min-width: 1440px; */
+  /* width: 100%; */
   table-layout: auto;
 }
 .btn {

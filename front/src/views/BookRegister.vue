@@ -8,7 +8,7 @@
                 </router-link>
             </div>
             <div class="input-group mb-3 mt-4" id="isbnInput">
-                <input type="text" class="form-control" placeholder="ISBN을 입력하세요" v-model="book.isbn" />
+                <input type="number" class="form-control" placeholder="ISBN을 입력하세요" v-model="book.isbn" @keydown="blockJavascriptInput" @keydown.space.prevent />
                 <button class="btn btn-outline-secondary" type="button" @click="searchISBN">
                     조회
                 </button>
@@ -16,22 +16,22 @@
 
             <div class="mb-3">
                 <label class="form-label">도서 제목</label>
-                <input type="text" class="form-control" v-model="book.title" />
+                <input type="text" class="form-control" v-model="book.title" @keydown="blockJavascriptInput" @keydown.space.prevent />
             </div>
 
             <div class="mb-3">
                 <label class="form-label">저자</label>
-                <input type="text" class="form-control" v-model="book.author" />
+                <input type="text" class="form-control" v-model="book.author" @keydown="blockJavascriptInput" @keydown.space.prevent />
             </div>
 
             <div class="mb-3">
                 <label class="form-label">출판사</label>
-                <input type="text" class="form-control" v-model="book.publisher" />
+                <input type="text" class="form-control" v-model="book.publisher" @keydown="blockJavascriptInput" @keydown.space.prevent />
             </div>
 
             <div class="mb-3">
                 <label class="form-label">출판일</label>
-                <input type="date" class="form-control" v-model="book.publishDate" />
+                <input type="date" class="form-control" v-model="book.publishDate" @keydown="blockJavascriptInput" @keydown.space.prevent />
             </div>
 
             <div class="regi-btn">
@@ -68,7 +68,7 @@ const book = reactive({
 async function searchISBN() {
     const apiKey = import.meta.env.VITE_NL_API_KEY
 
-    const isbn = book.isbn.trim()
+    const isbn = book.isbn
 
     if (!isbn) {
         alert('ISBN을 입력해주세요.')
@@ -166,7 +166,7 @@ function useMouse(e) {
     const rotateY = (-20/173) * x + 114
     const rotateX = (-20 / 231) * y + (7780 / 231)
 
-     if (bookImg.value) {
+    if (bookImg.value) {
         overLay.value.style = `background-position : ${x/4 + y/4}%`
         bookImg.value.style = `transform : perspective(370px) rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
     }
@@ -185,6 +185,10 @@ function resetTransform() {
 
 <style scoped>
 .book-form-wrapper {
+    width: 98%;
+    padding: 0.7rem;
+    margin: 0 auto;
+    max-width: none;
     display: grid;
     grid-template-columns: 1fr 1fr;
 }

@@ -16,10 +16,6 @@
                 <button id="agreeBtn" class="agree_btn" :disabled="!allChecked" :class="{ active: allChecked }" @click="goToRegister">다음</button>
             </div>
         </div>
-        
-        <footer>
-            <span>Copyright © 2025 플레이데이터 All Rights Reserved.</span>
-        </footer>
     </div>
 </template>
 
@@ -192,8 +188,4 @@ input[type="checkbox"] {
     border-radius: 10px;
     box-shadow: inset 0px 0px 5px white;
   }
-footer {
-    flex: 0 0 auto;
-    bottom: 0;
-}
 </style>

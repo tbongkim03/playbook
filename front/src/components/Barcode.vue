@@ -216,7 +216,7 @@ const postPrintedBook = async (printCheckBook) => {
 }
 </script>
 
-<style>
+<style scoped>
 body {
   margin: 0px;
 }

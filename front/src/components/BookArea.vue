@@ -1,5 +1,8 @@
 <template>
-    <div class="book-area">
+    <router-link
+      :to="{ name: 'BookInfo', params: { id: book.seqBook } }"
+      class="book-area"
+    >
         <div class="isBooked">
             <div class="img-area">
                 <img 
@@ -12,11 +15,10 @@
                 <div class="title">{{ book.titleBook }}</div>
                 <div class="book-info-footer">
                     <div class="author">{{ book.authorBook }}</div>
-                    <div class="publisher">{{ book.publisherBook }}</div>
                 </div>
             </div>
         </div>
-    </div>
+    </router-link>
 </template>
 
 <script setup>
@@ -39,74 +41,64 @@ const handleImageError = (event) => {
 
 <style scoped>
 .book-area {
-    background: white;
+    background: #EDEFEF;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    height: 100%;
+    height: auto;
+    text-decoration: none;
 }
-
-.book-area:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+.book-area:hover .title {
+  text-decoration: underline;
 }
-
 .isBooked {
-    display: flex;
+    display: flex; 
     flex-direction: column;
-    height: 100%;
+    height: auto;
 }
 
 .img-area {
     width: 100%;
-    height: 200px;
-    overflow: hidden;
+    height: auto;
     background-color: #f8f9fa;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0px 3px 8px rgba(50, 50, 50, 0.1);
 }
 
 .img-area img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.book-area:hover .img-area img {
-    transform: scale(1.05);
+    height: auto;
+    object-fit: contain;
 }
 
 .book-info {
-    padding: 0 0.8rem 0.8rem 0.8rem;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: end;
-    gap: 0.5rem;
+  padding: 0.8rem 0 0.8rem 0;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  gap: 0.5rem;
 }
 .book-info-footer {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: flex-start;
 }
 .title {
     font-size: 1.1rem;
     font-weight: bold;
-    color: #333;
+    color: #323232;
     line-height: 1.4;
-    margin-bottom: 0.5rem;
+    letter-spacing: -0.025rem;
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
 }
-
 .author {
     font-size: 0.9rem;
-    color: #666;
+    color: #323232;
     font-weight: 500;
+    letter-spacing: -0.025rem;
 }
 </style>
