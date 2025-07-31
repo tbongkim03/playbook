@@ -28,10 +28,10 @@ public class Admin {
     private String dcAdmin;
 
     @Column(name = "agree_terms_admin", nullable = false)
-    private String agreeTermsAdmin;
+    private boolean agreeTermsAdmin;
 
     @Column(name = "agree_info_admin", nullable = false)
-    private String agreeInfoAdmin;
+    private boolean agreeInfoAdmin;
 
     @Column(name = "agree_discord_alarm_admin", nullable = false)
     private boolean agreeDiscordAlarmAdmin;

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import playbook.encore.back.data.dao.AdminDAO;
 import playbook.encore.back.data.dao.BookUserDAO;
 import playbook.encore.back.data.dto.bookUser.LoginUserRequestDto;
 import playbook.encore.back.data.dto.bookUser.LoginUserResponseDto;
@@ -21,15 +22,15 @@ import playbook.encore.back.service.BookUserService;
 @Service
 public class BookUserServiceImpl implements BookUserService{
 
+    private final AdminDAO adminDAO;
     private final BookUserDAO bookUserDAO;
-    private final BookUserRepository bookUserRepository;
     private final CourseRepository courseRepository;
     private final jwtUtil jwtUtil;
 
     @Autowired
-    public BookUserServiceImpl(BookUserDAO bookUserDAO, BookUserRepository bookUserRepository, CourseRepository courseRepository, jwtUtil jwtUtil) {
+    public BookUserServiceImpl(AdminDAO adminDAO, BookUserDAO bookUserDAO, CourseRepository courseRepository, jwtUtil jwtUtil) {
+        this.adminDAO = adminDAO;
         this.bookUserDAO = bookUserDAO;
-        this.bookUserRepository = bookUserRepository;
         this.courseRepository = courseRepository;
         this.jwtUtil = jwtUtil;
     }
@@ -61,7 +62,7 @@ public class BookUserServiceImpl implements BookUserService{
 
     @Override
     public RegisterIdValidateResponseDto checkUserId(String idUser) {
-        boolean flag = bookUserDAO.searchBookUserResultExact(idUser).isPresent();
+        boolean flag = bookUserDAO.searchBookUserResultExact(idUser).isPresent() || adminDAO.searchBookUserResultExact(idUser).isPresent();
         return new RegisterIdValidateResponseDto(flag);
     }
 

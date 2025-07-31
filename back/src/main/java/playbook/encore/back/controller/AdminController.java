@@ -1,10 +1,95 @@
 package playbook.encore.back.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import playbook.encore.back.data.dto.admin.*;
+import playbook.encore.back.data.dto.bookUser.*;
+import playbook.encore.back.data.entity.Admin;
+import playbook.encore.back.service.AdminService;
+
 
 @RestController
 @RequestMapping("/admin")
 public class AdminController {
 
+    private final AdminService adminService;
+
+    @Autowired
+    public AdminController(AdminService adminService) {
+        this.adminService = adminService;
+    }
+
+    // 회원가입 관련 부분
+    @PostMapping("/register")
+    public ResponseEntity<RegisterAdminResponseDto> registerAdmin(@RequestBody RegisterAdminRequestDto registerAdminRequestDto) throws Exception {
+        RegisterAdminResponseDto registerAdminResponseDto = adminService.createAdmin(registerAdminRequestDto);
+        return ResponseEntity.status(HttpStatus.OK).body(registerAdminResponseDto);
+    }
+    @GetMapping("/register/validate")
+    public ResponseEntity<RegisterIdValidateResponseDto> validationId(@RequestParam("id") String idAdmin) throws Exception {
+        RegisterIdValidateResponseDto registerIdValidateResponseDto = adminService.checkUserId(idAdmin);
+        return ResponseEntity.status(HttpStatus.OK).body(registerIdValidateResponseDto);
+    }
+
+    // 로그인 관련 부분
+    @PostMapping("/login")
+    public ResponseEntity<?> loginUser(@RequestBody LoginAdminRequestDto loginAdminRequestDto) throws Exception {
+        try {
+            LoginAdminResponseDto loginAdminResponseDto = adminService.loginServiceAdmin(loginAdminRequestDto);
+            return ResponseEntity.status(HttpStatus.OK).body(loginAdminResponseDto);
+        } catch (Exception IllegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        }
+    }
+
+    // 회원정보 관련 부분
+    @GetMapping("/me")
+    public ResponseEntity<?> getAdminInfo(HttpServletRequest request) {
+        Admin user = (Admin) request.getAttribute("user");
+        LoginAdminDataResponseDto loginAdminDataResponseDto = new LoginAdminDataResponseDto(user.getIdAdmin(), user.getNameAdmin(), user.getDcAdmin());
+        return ResponseEntity.ok(loginAdminDataResponseDto);
+
+    }
+    @GetMapping("/validate")
+    public ResponseEntity<?> getCurrentPassword(
+            HttpServletRequest request,
+            @RequestBody String password
+    ) throws Exception {
+        try {
+            Admin user = (Admin) request.getAttribute("user");
+            boolean result = adminService.validatePassword(user, password);
+            return ResponseEntity.status(HttpStatus.OK).body(result);
+        } catch (Exception IllegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        }
+    }
+    @PutMapping("/password")
+    public ResponseEntity<?> updatePassword(
+            HttpServletRequest request,
+            @RequestBody String newPassword
+    ) throws Exception {
+        try {
+            Admin user = (Admin) request.getAttribute("user");
+            boolean result = adminService.updatePassword(user, newPassword);
+            return ResponseEntity.status(HttpStatus.OK).body(result);
+        } catch (Exception IllegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        }
+    }
+    @PutMapping("/discord")
+    public ResponseEntity<?> updateDiscord(
+            HttpServletRequest request,
+            @RequestBody String newDiscord
+    ) throws Exception {
+        try {
+            Admin user = (Admin) request.getAttribute("user");
+            boolean result = adminService.updateDiscord(user, newDiscord);
+            return ResponseEntity.status(HttpStatus.OK).body(result);
+        } catch (Exception IllegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        }
+    }
 }

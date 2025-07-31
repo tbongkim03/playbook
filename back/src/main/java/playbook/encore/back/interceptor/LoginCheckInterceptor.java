@@ -5,7 +5,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
+import playbook.encore.back.data.entity.Admin;
 import playbook.encore.back.data.entity.BookUser;
+import playbook.encore.back.data.repository.AdminRepository;
 import playbook.encore.back.data.repository.BookUserRepository;
 import playbook.encore.back.jwt.jwtUtil;
 
@@ -17,11 +19,13 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
 
     private final jwtUtil jwtUtil;
     private final BookUserRepository bookUserRepository;
+    private final AdminRepository adminRepository;
 
     @Autowired
-    public LoginCheckInterceptor(jwtUtil jwtUtil, BookUserRepository bookUserRepository) {
+    public LoginCheckInterceptor(jwtUtil jwtUtil, BookUserRepository bookUserRepository, AdminRepository adminRepository) {
         this.jwtUtil = jwtUtil;
         this.bookUserRepository = bookUserRepository;
+        this.adminRepository = adminRepository;
     }
 
     @Override
@@ -68,14 +72,20 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
 
         String userId = jwtUtil.getIdUserFromToken(token);
         Optional<BookUser> userOpt = bookUserRepository.findByIdUser(userId);
-        if (userOpt.isEmpty()) {
+        Optional<Admin> adminOpt = adminRepository.findByIdAdmin(userId);
+        if (userOpt.isEmpty() && adminOpt.isEmpty() ) {
             setUtf8Response(response);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("해당 사용자가 존재하지 않습니다.");
             return false;
         }
 
-        request.setAttribute("user", userOpt.get());
+        if (userOpt.isPresent()) {
+            request.setAttribute("user", userOpt.get());
+        } else {
+            request.setAttribute("user", adminOpt.get());
+        }
+
         return true;
     }
 
