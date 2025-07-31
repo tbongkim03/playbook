@@ -33,6 +33,9 @@ public class Admin {
     @Column(name = "agree_info_admin", nullable = false)
     private String agreeInfoAdmin;
 
+    @Column(name = "agree_discord_alarm_admin", nullable = false)
+    private boolean agreeDiscordAlarmAdmin;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status_admin", nullable = false)
     private StatusTypeAdmin statusAdmin;
