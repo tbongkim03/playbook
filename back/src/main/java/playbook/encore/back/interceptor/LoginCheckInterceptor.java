@@ -50,6 +50,7 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            setUtf8Response(response);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("로그인이 필요합니다.");
             return false;
@@ -59,6 +60,7 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
         String reason = jwtUtil.validateAndGetReason(token);
 
         if (!reason.equals("VALID")) {
+            setUtf8Response(response);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("토큰이 유효하지 않습니다: " + reason);
             return false;
@@ -67,11 +69,20 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
         String userId = jwtUtil.getIdUserFromToken(token);
         Optional<BookUser> userOpt = bookUserRepository.findByIdUser(userId);
         if (userOpt.isEmpty()) {
+            setUtf8Response(response);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("해당 사용자가 존재하지 않습니다.");
             return false;
         }
 
         request.setAttribute("user", userOpt.get());
-        return true;    }
+        return true;
+    }
+
+    private void setUtf8Response(HttpServletResponse response) {
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("text/plain; charset=UTF-8");
+    }
 }
+
+
