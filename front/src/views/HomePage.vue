@@ -42,7 +42,7 @@
 
             <!-- 오른쪽: 검색창 -->
             <div class="nav-right">
-                <BookSearch style="width: 200px;" />
+                <BookSearch style="width: 200px;" @search="onSearch" />
             </div>
         </nav>
 
@@ -246,6 +246,50 @@ function selectMediumCategory(mediumSeq, largeSeq) {
     selectedLargeCategorySeq.value = large.seqSortFirst
   }
 }
+
+function onSearch({ query, exact }) {
+  console.log('검색 요청:', query, exact);
+  fetchBooks(1, query, exact);
+}
+
+
+const fetchBooks = async (page = 1, query = '', exact = false) => {
+  let url;
+  if (query && query.trim()) {
+    url = new URL(`http://localhost:8080/books/search`);
+    url.searchParams.set('q', query.trim());
+    url.searchParams.set('exact', exact);
+  } else {
+    url = new URL(`http://localhost:8080/books`);
+    url.searchParams.set('page', page);
+  }
+
+  console.log('👉 호출 URL:', url.toString());
+
+  const res = await fetch(url.toString());
+  if (!res.ok) {
+    console.error('❌ 서버 응답 오류:', res.status);
+    return;
+  }
+
+  const data = await res.json();
+
+  if (!data.content) {
+    console.error('❌ 서버 응답 데이터 문제:', data);
+    bookList.value = [];
+    totalCount.value = 0;
+    return;
+  }
+
+  totalCount.value = data.totalCount;
+  bookList.value = data.content.map(book => {
+    return {
+      ...book
+    };
+  });
+
+  console.log('✅ books.value 업데이트 완료:', books.value);
+};
 
 onMounted(async () => {
   await fetchLargeCategories()

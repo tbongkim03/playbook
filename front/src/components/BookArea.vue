@@ -6,10 +6,10 @@
         <div class="isBooked">
             <div class="img-area">
                 <img 
-                    :src="book.imageBook || '/default-book-image.jpg'" 
+                    :src="book.imageBook && book.imageBook.trim() !== '' ? book.imageBook : noImage" 
                     :alt="book.titleBook"
                     @error="handleImageError"
-                >
+                />
             </div>
             <div class="book-info">
                 <div class="title">{{ book.titleBook }}</div>
@@ -23,6 +23,7 @@
 
 <script setup>
 import { defineProps } from 'vue'
+import noImage from '@/assets/free-icon-no-image-11542598.png'
 
 const props = defineProps({
     book: {
@@ -31,11 +32,6 @@ const props = defineProps({
         default: () => ({})
     }
 })
-
-// 이미지 로드 실패시 기본 이미지로 대체
-const handleImageError = (event) => {
-    event.target.src = '/default-book-image.jpg'
-}
 
 </script>
 

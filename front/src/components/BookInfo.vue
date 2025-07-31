@@ -10,19 +10,22 @@
             <div :class="{'img-container':book.title_url}" ref="bookImg" @mousemove="useMouse" @mouseleave="resetTransform">
                 <div :class="{'overlay':book.title_url}" ref="overLay"></div>
                 <img 
-                    class="book-img" 
-                    :src="book.imageBook" 
-                    :alt="book.titleBook" 
+                    class="book-img"
+                    :src="book.imageBook && book.imageBook.trim() !== '' ? book.imageBook : noImage" 
+                    :alt="book.titleBook"
                     @error="handleImageError"
                     @load="handleImageLoad"
-                >
+                />
+            </div>
+            <div class="description">
+                <div class="title">{{ book.titleBook }}</div>
+                <div class="author">{{ book.authorBook }}</div>
+                <div class="publisher">{{ book.publisherBook }}</div>
+                <div class="publish-date">{{ book.publishDateBook }}</div>
             </div>
         </div>
         <div class="right-area">
-            <div class="title">{{ book.titleBook }}</div>
-            <div class="author">{{ book.authorBook }}</div>
-            <div class="publisher">{{ book.publisherBook }}</div>
-            <div class="publish-date">{{ book.publishDateBook }}</div>
+            
         </div>
     </div>
     <div v-else>
@@ -34,6 +37,7 @@
 import { useRoute } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import noImage from '@/assets/free-icon-no-image-11542598.png'
 
 const route = useRoute()
 const bookId = route.params.id
@@ -95,6 +99,14 @@ onMounted(async () => {
 <style scoped>
 .main {
     height: 50vw;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 98%;
+    padding: 0.7rem;
+    margin: 0 auto;
+    /* max-width: none; */
+}
+.left-area {
     display: grid;
     grid-template-columns: 1fr 1fr;
 }
