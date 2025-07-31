@@ -37,6 +37,7 @@ CREATE TABLE tb_admin (
     dc_admin          VARCHAR(30)     NOT NULL,
     agree_terms_admin TINYINT(1)      NOT NULL DEFAULT 0,
     agree_info_admin  TINYINT(1)      NOT NULL DEFAULT 0,
+    agree_discord_alarm_admin TINYINT(1) NOT NULL DEFAULT 0,
     status_admin      ENUM('stop', 'available', 'overdue') COMMENT 'stop:정지, available:대여, overdue:연체' NOT NULL,
     PRIMARY KEY (seq_admin)
 );
