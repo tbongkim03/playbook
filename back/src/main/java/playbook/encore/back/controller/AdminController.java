@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import playbook.encore.back.data.dto.admin.*;
 import playbook.encore.back.data.dto.bookUser.*;
 import playbook.encore.back.data.entity.Admin;
+import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.service.AdminService;
 
 
@@ -23,11 +24,11 @@ public class AdminController {
     }
 
     // 회원가입 관련 부분
-    @PostMapping("/register")
-    public ResponseEntity<RegisterAdminResponseDto> registerAdmin(@RequestBody RegisterAdminRequestDto registerAdminRequestDto) throws Exception {
-        RegisterAdminResponseDto registerAdminResponseDto = adminService.createAdmin(registerAdminRequestDto);
-        return ResponseEntity.status(HttpStatus.OK).body(registerAdminResponseDto);
-    }
+//    @PostMapping("/register")
+//    public ResponseEntity<RegisterAdminResponseDto> registerAdmin(@RequestBody RegisterAdminRequestDto registerAdminRequestDto) throws Exception {
+//        RegisterAdminResponseDto registerAdminResponseDto = adminService.createAdmin(registerAdminRequestDto);
+//        return ResponseEntity.status(HttpStatus.OK).body(registerAdminResponseDto);
+//    }
     @GetMapping("/register/validate")
     public ResponseEntity<RegisterIdValidateResponseDto> validationId(@RequestParam("id") String idAdmin) throws Exception {
         RegisterIdValidateResponseDto registerIdValidateResponseDto = adminService.checkUserId(idAdmin);
@@ -47,11 +48,13 @@ public class AdminController {
 
     // 회원정보 관련 부분
     @GetMapping("/me")
-    public ResponseEntity<?> getAdminInfo(HttpServletRequest request) {
-        Admin user = (Admin) request.getAttribute("user");
-        LoginAdminDataResponseDto loginAdminDataResponseDto = new LoginAdminDataResponseDto(user.getIdAdmin(), user.getNameAdmin(), user.getDcAdmin());
-        return ResponseEntity.ok(loginAdminDataResponseDto);
-
+    public ResponseEntity<?> getAdminInfo(HttpServletRequest request) throws Exception {
+        if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+            Admin user = (Admin) request.getAttribute("admin");
+            LoginAdminDataResponseDto loginAdminDataResponseDto = new LoginAdminDataResponseDto(user.getIdAdmin(), user.getNameAdmin(), user.getDcAdmin());
+            return ResponseEntity.status(HttpStatus.OK).body(loginAdminDataResponseDto);
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
     }
     @GetMapping("/validate")
     public ResponseEntity<?> getCurrentPassword(
@@ -59,9 +62,12 @@ public class AdminController {
             @RequestBody String password
     ) throws Exception {
         try {
-            Admin user = (Admin) request.getAttribute("user");
-            boolean result = adminService.validatePassword(user, password);
-            return ResponseEntity.status(HttpStatus.OK).body(result);
+            if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+                Admin user = (Admin) request.getAttribute("admin");
+                boolean result = adminService.validatePassword(user, password);
+                return ResponseEntity.status(HttpStatus.OK).body(result);
+            }
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
         } catch (Exception IllegalArgumentException) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
         }
@@ -72,9 +78,12 @@ public class AdminController {
             @RequestBody String newPassword
     ) throws Exception {
         try {
-            Admin user = (Admin) request.getAttribute("user");
-            boolean result = adminService.updatePassword(user, newPassword);
-            return ResponseEntity.status(HttpStatus.OK).body(result);
+            if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+                Admin user = (Admin) request.getAttribute("admin");
+                boolean result = adminService.updatePassword(user, newPassword);
+                return ResponseEntity.status(HttpStatus.OK).body(result);
+            }
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
         } catch (Exception IllegalArgumentException) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
         }
@@ -85,9 +94,12 @@ public class AdminController {
             @RequestBody String newDiscord
     ) throws Exception {
         try {
-            Admin user = (Admin) request.getAttribute("user");
-            boolean result = adminService.updateDiscord(user, newDiscord);
-            return ResponseEntity.status(HttpStatus.OK).body(result);
+            if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+                Admin user = (Admin) request.getAttribute("admin");
+                boolean result = adminService.updateDiscord(user, newDiscord);
+                return ResponseEntity.status(HttpStatus.OK).body(result);
+            }
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
         } catch (Exception IllegalArgumentException) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
         }

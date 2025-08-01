@@ -82,8 +82,10 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
 
         if (userOpt.isPresent()) {
             request.setAttribute("user", userOpt.get());
+            request.setAttribute("ROLE", RoleType.USER);
         } else {
-            request.setAttribute("user", adminOpt.get());
+            request.setAttribute("admin", adminOpt.get());
+            request.setAttribute("ROLE", RoleType.ADMIN);
         }
 
         return true;
@@ -93,6 +95,11 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
         response.setCharacterEncoding("UTF-8");
         response.setContentType("text/plain; charset=UTF-8");
     }
+
+    public enum RoleType {
+        USER, ADMIN
+    }
+
 }
 
 

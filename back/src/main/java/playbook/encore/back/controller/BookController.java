@@ -1,10 +1,10 @@
 package playbook.encore.back.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import playbook.encore.back.data.dao.BookDAO;
 import playbook.encore.back.data.dto.book.BookBarcodeUniqueRequestDto;
 import playbook.encore.back.data.dto.book.BookBarcodeUniqueResponseDto;
 import playbook.encore.back.data.dto.book.BookCountResponseDto;
@@ -14,6 +14,7 @@ import playbook.encore.back.data.dto.book.BookResponseDto;
 import playbook.encore.back.data.dto.book.BookSearchResponseDto;
 import playbook.encore.back.data.dto.book.BookSortAndBarcodeRequestDto;
 import playbook.encore.back.data.dto.book.BookUnprintedResponseDto;
+import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.service.BookService;
 
 import java.util.List;
@@ -23,12 +24,11 @@ import java.util.List;
 public class BookController {
 
     private final BookService bookService;
-    private final BookDAO bookDAO;
+
 
     @Autowired
-    public BookController(BookService bookService, BookDAO bookDAO) {
+    public BookController(BookService bookService) {
         this.bookService = bookService;
-        this.bookDAO = bookDAO;
     }
 
     @GetMapping
@@ -53,18 +53,28 @@ public class BookController {
     }
 
     @PostMapping
-    public ResponseEntity<BookResponseDto> insertBook(@RequestBody  BookRequestDto bookRequestDto) throws Exception {
-        BookResponseDto bookResponseDto = bookService.insertBook(bookRequestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(bookResponseDto);
+    public ResponseEntity<?> insertBook(
+            HttpServletRequest request,
+            @RequestBody  BookRequestDto bookRequestDto
+    ) throws Exception {
+        if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+            BookResponseDto bookResponseDto = bookService.insertBook(bookRequestDto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(bookResponseDto);
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<BookResponseDto> updateBookById(
+    public ResponseEntity<?> updateBookById(
+            HttpServletRequest request,
             @PathVariable("id") int bookId,
             @RequestBody BookSortAndBarcodeRequestDto bookSortAndBarcodeRequestDto
     ) throws Exception {
-        BookResponseDto bookResponseDto = bookService.changeBook(bookId, bookSortAndBarcodeRequestDto);
-        return ResponseEntity.status(HttpStatus.OK).body(bookResponseDto);
+        if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+            BookResponseDto bookResponseDto = bookService.changeBook(bookId, bookSortAndBarcodeRequestDto);
+            return ResponseEntity.status(HttpStatus.OK).body(bookResponseDto);
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
     }
 
     @DeleteMapping("/{id}")
@@ -74,9 +84,15 @@ public class BookController {
     }
 
     @GetMapping("/count")
-    public ResponseEntity<BookCountResponseDto> getBookCountByIsbn(@RequestParam("isbn") String isbn) throws Exception {
-        BookCountResponseDto bookCountResponseDto = bookService.getBookCount(isbn);
-        return ResponseEntity.status(HttpStatus.OK).body(bookCountResponseDto);
+    public ResponseEntity<?> getBookCountByIsbn(
+            HttpServletRequest request,
+            @RequestParam("isbn") String isbn
+    ) throws Exception {
+        if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+            BookCountResponseDto bookCountResponseDto = bookService.getBookCount(isbn);
+            return ResponseEntity.status(HttpStatus.OK).body(bookCountResponseDto);
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
     }
 
     @GetMapping("/related")
@@ -97,21 +113,37 @@ public class BookController {
     }
 
     @PutMapping("/batch/print")
-    public ResponseEntity<Void> batchPrint(@RequestBody List<Integer> bookIds) throws Exception {
-        bookService.markBooksAsPrinted(bookIds);
-        return ResponseEntity.status(HttpStatus.OK).build();
+    public ResponseEntity<?> batchPrint(
+            HttpServletRequest request,
+            @RequestBody List<Integer> bookIds
+    ) throws Exception {
+        if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+            bookService.markBooksAsPrinted(bookIds);
+            return ResponseEntity.status(HttpStatus.OK).build();
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
     }
 
     @GetMapping("/unprinted")
-    public ResponseEntity<List<BookUnprintedResponseDto>> getUnprintedBooks() throws Exception {
-        List<BookUnprintedResponseDto> books = bookService.findUnprintedBooks();
-        return ResponseEntity.ok(books);
+    public ResponseEntity<?> getUnprintedBooks(
+            HttpServletRequest request
+    ) throws Exception {
+        if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+            List<BookUnprintedResponseDto> books = bookService.findUnprintedBooks();
+            return ResponseEntity.ok(books);
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
     }
 
     @PostMapping("/check/barcode")
-    public ResponseEntity<BookBarcodeUniqueResponseDto> isBarcodeDuplicated(
-        @RequestBody BookBarcodeUniqueRequestDto bookBarcodeUniqueRequestDto) throws Exception {
+    public ResponseEntity<?> isBarcodeDuplicated(
+            HttpServletRequest request,
+            @RequestBody BookBarcodeUniqueRequestDto bookBarcodeUniqueRequestDto
+    ) throws Exception {
+        if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
             BookBarcodeUniqueResponseDto bookBarcodeUniqueResponseDto = bookService.checkDuplicated(bookBarcodeUniqueRequestDto);
             return ResponseEntity.status(HttpStatus.OK).body(bookBarcodeUniqueResponseDto);
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
     }
 }

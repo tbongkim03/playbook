@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import playbook.encore.back.data.entity.Book;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface BookRepository extends JpaRepository<Book, Integer> {
     Integer countByIsbnBook(String isbnBook);
@@ -22,4 +23,5 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
 
     boolean existsByBarcodeBookAndSeqBookNot(String barcodeBook, Integer seqBook);
 
+    Optional<Book> findByBarcodeBook(String barcodeBook);
 }

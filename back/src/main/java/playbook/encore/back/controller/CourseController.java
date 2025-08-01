@@ -14,12 +14,10 @@ import playbook.encore.back.service.CourseService;
 @RequestMapping("/courses")
 public class CourseController {
     private final CourseService courseService;
-    private final CourseDAO courseDAO;
 
     @Autowired
-    public CourseController(CourseService courseService, CourseDAO courseDAO) {
+    public CourseController(CourseService courseService) {
         this.courseService = courseService;
-        this.courseDAO = courseDAO;
     }
 
     @GetMapping
