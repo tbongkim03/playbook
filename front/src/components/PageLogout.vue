@@ -10,6 +10,7 @@ const router = useRouter()
 
 onMounted(() => {
   localStorage.removeItem("jwtToken")
+  localStorage.removeItem("userType")
   setTimeout(() => {
     router.push('/')
   }, 500)

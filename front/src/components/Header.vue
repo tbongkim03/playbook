@@ -97,8 +97,9 @@ async function fetchUserInfo() {
       // 둘 다 실패한 경우
       const userError = userRes.reason?.response?.data || userRes.reason?.message;
       const adminError = adminRes.reason?.response?.data || adminRes.reason?.message;
-      alert(`사용자 정보 불러오기 실패:\n- 유저: ${userError}\n- 관리자: ${adminError}`);
+      alert("사용자 정보 불러오기 실패");
       localStorage.removeItem('jwtToken');
+      localStorage.removeItem('userType');
       isLogin.value = false;
       username.value = '';
       router.push('/login');
