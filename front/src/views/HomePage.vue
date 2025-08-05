@@ -68,7 +68,7 @@
       <div class="main" :style="{ marginTop: mainMarginTop }">
         <div class="content-header" v-if="filteredBookList.length > 0">
           <h2 class="section-title">
-            {{ selectedLargeCategory === '전체' ? '전체 도서' : selectedLargeCategory }}
+            {{ getSectionTitle() }}
             <span class="book-count">({{ totalCount }}권)</span>
           </h2>
         </div>
@@ -160,6 +160,9 @@ const bookList = ref([])
 const totalCount = ref(0)
 const currentPage = ref(1)
 
+// 검색 상태 추가
+const isSearchMode = ref(false)
+
 const fetchLargeCategories = async () => {
   try {
     const res = await fetch('http://localhost:8080/subjects')
@@ -193,6 +196,9 @@ const loadBooks = async (page = 1) => {
     bookList.value = data.content || []
     totalCount.value = data.totalCount || 0
     currentPage.value = page
+    
+    // 검색 모드 해제
+    isSearchMode.value = false
   } catch (error) {
     console.error('책 목록 조회 실패:', error)
     bookList.value = []
@@ -258,6 +264,32 @@ const mainMarginTop = computed(() => {
   return baseMargin
 })
 
+// 섹션 제목을 동적으로 생성하는 함수
+const getSectionTitle = () => {
+  // 검색 모드인 경우
+  if (isSearchMode.value) {
+    return '검색 결과'
+  }
+  
+  // 중분류가 선택된 경우
+  if (selectedMediumCategory.value && selectedMediumCategoryLargeSeq.value) {
+    const large = largeCategories.value.find(l => l.seqSortFirst === selectedMediumCategoryLargeSeq.value)
+    const medium = mediumCategoriesAll.value.find(m => m.seqSortSecond === selectedMediumCategory.value)
+    
+    if (large && medium) {
+      return `${large.korSortFirst} / ${medium.korSortSecond}`
+    }
+  }
+  
+  // 대분류가 선택된 경우
+  if (selectedLargeCategory.value === '전체') {
+    return '전체 도서'
+  } else {
+    const large = largeCategories.value.find(l => l.nameSortFirst === selectedLargeCategory.value)
+    return large ? large.korSortFirst : selectedLargeCategory.value
+  }
+}
+
 function selectLargeCategory(categoryName, categorySeq = null) {
   selectedLargeCategory.value = categoryName
   selectedLargeCategorySeq.value = categorySeq
@@ -290,9 +322,15 @@ const fetchBooks = async (page = 1, query = '', exact = false) => {
     url = new URL(`http://localhost:8080/books/search`);
     url.searchParams.set('q', query.trim());
     url.searchParams.set('exact', exact);
+    
+    // 검색 모드 활성화
+    isSearchMode.value = true
   } else {
     url = new URL(`http://localhost:8080/books`);
     url.searchParams.set('page', page);
+    
+    // 검색 모드 비활성화
+    isSearchMode.value = false
   }
 
   // console.log('👉 호출 URL:', url.toString());

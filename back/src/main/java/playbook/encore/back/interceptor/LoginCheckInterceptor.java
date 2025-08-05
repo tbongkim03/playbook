@@ -39,6 +39,7 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
                 || ((uri.equals("/courses") && method.equals("POST")) || (uri.startsWith("/courses/") && (method.equals("PUT") || method.equals("DELETE"))))
                 || ((uri.equals("/users") && method.equals("POST")) || (uri.startsWith("/users/") && (method.equals("PUT") || method.equals("DELETE"))))
                 || ((uri.equals("/books") && method.equals("POST")) || (uri.startsWith("/books/") && (method.equals("PUT") || method.equals("DELETE"))))
+                || ((uri.equals("/books/check/barcode") && method.equals("POST")))
                 || ((uri.equals("/users/me") && method.equals("GET")))
                 || ((uri.equals("/admin/me") && method.equals("GET")))
                 || ((uri.equals("/api/borrow") && method.equals("POST")))
@@ -101,7 +102,15 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
             request.setAttribute("ROLE", RoleType.ADMIN);
 //            System.out.println("설정된 ROLE: " + request.getAttribute("ROLE"));
         } else if ("user".equalsIgnoreCase(role)) {
-            // user 로직...
+            Optional<BookUser> userOpt = bookUserRepository.findByIdUser(userId);
+            if (userOpt.isEmpty()) {
+                setUtf8Response(response);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("해당 사용자가 존재하지 않습니다.");
+                return false;
+            }
+            request.setAttribute("user", userOpt.get());
+            request.setAttribute("ROLE", RoleType.USER);
         } else {
 //            System.out.println("올바르지 않은 역할: " + role);
             setUtf8Response(response);
