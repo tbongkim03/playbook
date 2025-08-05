@@ -1,4 +1,6 @@
 <template>
+  <BorrowReturn v-if="isModalOpen" @close="isModalOpen = false" />
+  
   <div class="mainpage-bg-wrapper">
     <div class="mainpage-area">
       <div
@@ -7,7 +9,7 @@
         @mouseleave="hoveringWrapper = false"
         >
         <!-- 대분류 네비게이션 포함 -->
-        <nav class="nav-bar bg-light px-4 py-2 fixed-top w-100" style="top: 72px; z-index: 1030;">
+        <nav class="nav-bar" style="top: 72px; z-index: 1030;">
             <!-- 왼쪽: 카테고리 목록 -->
             <div class="nav-left">
                 <ul class="nav">
@@ -42,10 +44,9 @@
 
             <!-- 오른쪽: 검색창 -->
             <div class="nav-right">
-                <BookSearch style="width: 200px;" @search="onSearch" />
+                <BookSearch class="search-component" @search="onSearch" />
             </div>
         </nav>
-
 
         <ul
             v-if="shouldShowMediumDropdown"
@@ -63,44 +64,72 @@
         </ul>
       </div>
 
-
       <!-- 본문 -->
       <div class="main" :style="{ marginTop: mainMarginTop }">
+        <div class="content-header" v-if="filteredBookList.length > 0">
+          <h2 class="section-title">
+            {{ selectedLargeCategory === '전체' ? '전체 도서' : selectedLargeCategory }}
+            <span class="book-count">({{ totalCount }}권)</span>
+          </h2>
+        </div>
+
         <div class="article-area" v-if="filteredBookList.length > 0">
           <BookArea 
             v-for="book in filteredBookList" 
             :key="book.seqBook"
             :book="book"
+            class="book-item"
           />
         </div>
 
         <!-- 책이 없을 때 표시할 메시지 -->
         <div class="no-books-message" v-else>
           <div class="no-books-content">
+            <div class="no-books-icon">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="12" cy="12" r="1" fill="currentColor"/>
+                <circle cx="12" cy="8" r="1" fill="currentColor"/>
+                <circle cx="12" cy="16" r="1" fill="currentColor"/>
+              </svg>
+            </div>
             <h3>해당 카테고리에 등록된 책이 없습니다</h3>
             <p>다른 카테고리를 선택해 주세요.</p>
           </div>
         </div>
 
         <!-- 페이지네이션 -->
-        <div class="pagination-area mt-4 d-flex justify-content-center" v-if="totalCount > 0">
-          <button 
-            class="btn btn-outline-primary me-2" 
-            :disabled="currentPage === 1"
-            @click="loadBooks(currentPage - 1)"
-          >
-            이전
-          </button>
-          <span class="align-self-center mx-3">
-            {{ currentPage }} / {{ Math.ceil(totalCount / 10) }}
-          </span>
-          <button 
-            class="btn btn-outline-primary ms-2"
-            :disabled="currentPage >= Math.ceil(totalCount / 10)"
-            @click="loadBooks(currentPage + 1)"
-          >
-            다음
-          </button>
+        <div class="pagination-area" v-if="totalCount > 0">
+          <div class="pagination-wrapper">
+            <button 
+              class="pagination-btn prev-btn" 
+              :disabled="currentPage === 1"
+              @click="loadBooks(currentPage - 1)"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              이전
+            </button>
+            
+            <div class="page-info">
+              <span class="current-page">{{ currentPage }}</span>
+              <span class="page-divider">/</span>
+              <span class="total-pages">{{ Math.ceil(totalCount / 10) }}</span>
+            </div>
+            
+            <button 
+              class="pagination-btn next-btn"
+              :disabled="currentPage >= Math.ceil(totalCount / 10)"
+              @click="loadBooks(currentPage + 1)"
+            >
+              다음
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -110,7 +139,10 @@
 <script setup>
 import BookArea from '@/components/BookArea.vue'
 import BookSearch from '@/components/BookSearch.vue'
+import BorrowReturn from '@/components/BorrowReturn.vue'
 import { ref, onMounted, computed } from 'vue'
+
+const isModalOpen = ref(true)
 
 const largeCategories = ref([])
 const mediumCategoriesAll = ref([])
@@ -222,7 +254,7 @@ const filteredBookList = computed(() => {
 })
 
 const mainMarginTop = computed(() => {
-  const baseMargin = shouldShowMediumDropdown.value ? '130px' : '60px'
+  const baseMargin = shouldShowMediumDropdown.value ? '180px' : '120px'
   return baseMargin
 })
 
@@ -252,7 +284,6 @@ function onSearch({ query, exact }) {
   fetchBooks(1, query, exact);
 }
 
-
 const fetchBooks = async (page = 1, query = '', exact = false) => {
   let url;
   if (query && query.trim()) {
@@ -264,18 +295,18 @@ const fetchBooks = async (page = 1, query = '', exact = false) => {
     url.searchParams.set('page', page);
   }
 
-  console.log('👉 호출 URL:', url.toString());
+  // console.log('👉 호출 URL:', url.toString());
 
   const res = await fetch(url.toString());
   if (!res.ok) {
-    console.error('❌ 서버 응답 오류:', res.status);
-    return;
+    const errorMessage = await response.text();
+    throw new Error(errorMessage || `서버 오류: ${response.status}`)
   }
 
   const data = await res.json();
 
   if (!data.content) {
-    console.error('❌ 서버 응답 데이터 문제:', data);
+    alert('서버 응답 데이터 오류: ', data);
     bookList.value = [];
     totalCount.value = 0;
     return;
@@ -288,7 +319,7 @@ const fetchBooks = async (page = 1, query = '', exact = false) => {
     };
   });
 
-  console.log('✅ books.value 업데이트 완료:', books.value);
+  // console.log('✅ books.value 업데이트 완료:', books.value);
 };
 
 onMounted(async () => {
@@ -303,9 +334,10 @@ onMounted(async () => {
 .mainpage-bg-wrapper {
   position: relative;
   width: 100%;
-  height: 100vw;
-  background-color: #EDEFEF;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
+
 .mainpage-area {
   min-width: 1450px;
   min-height: 98%;
@@ -317,10 +349,21 @@ onMounted(async () => {
   justify-content: flex-start;
   align-items: center;
 }
+
 .nav-bar {
+  position: fixed;
+  top: 72px;
+  left: 0;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 16px 32px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  z-index: 1030;
 }
 
 .nav-left {
@@ -328,98 +371,329 @@ onMounted(async () => {
   flex: 1;
 }
 
+.nav {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav-item {
+  margin: 0;
+}
+
 .nav-right {
   display: flex;
   justify-content: flex-end;
-  align-items: flex-start;
-  min-width: 200px;
+  align-items: center;
+  min-width: 280px;
 }
+
+.search-component {
+  width: 280px;
+}
+
 .nav-link {
-  font-weight: bold;
-  color: #555;
+  display: inline-block;
+  padding: 12px 20px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #64748b;
+  text-decoration: none;
   cursor: pointer;
-  margin: 0 1vw;
-  z-index: 1029;
+  margin: 0 4px;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
+
+.nav-link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.nav-link:hover::before {
+  left: 100%;
+}
+
+.nav-link:hover {
+  color: #475569;
+  background: rgba(100, 116, 139, 0.1);
+  transform: translateY(-2px);
+}
+
 .nav-link.active {
-  color: #42bbb2;
-  border-bottom: 2px solid #42bbb2;
+  color: #ffffff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transform: translateY(-2px);
 }
+
 .dropdown-menu-custom {
   list-style: none;
-  padding: 0.5rem 1rem;
-  background-color: #f9f9f9;
-  border-top: 1px solid #ddd;
+  padding: 20px 32px;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
   margin: 0;
   position: fixed;
-  top: 150px;
+  top: 168px;
   left: 0;
   width: 100%;
   z-index: 1029;
   display: flex;
-  gap: 1rem;
+  gap: 12px;
   flex-wrap: wrap;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
+
 .dropdown-item-custom {
-  padding: 0.5rem 1rem;
-  background-color: white;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 10px 16px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 500;
+  color: #475569;
+  font-size: 0.9rem;
 }
+
 .dropdown-item-custom:hover {
-  background-color: #e8f6f5;
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
+
 .dropdown-item-custom.active {
-  background-color: #42bbb2;
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
   color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
 }
+
+.main {
+  width: 100%;
+  padding: 32px;
+  transition: margin-top 0.3s ease;
+}
+
+.content-header {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.section-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.book-count {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #64748b;
+  background: rgba(100, 116, 139, 0.1);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
 .article-area {
   display: grid;
   place-items: center;
   width: 100%;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 50px;
-  padding: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 32px;
+  padding: 0;
   min-height: 400px;
 }
-.book-area {
-  width: 220px;
-  height: auto;
+
+.book-item {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+.book-item:hover {
+  transform: translateY(-8px);
+}
+
 .no-books-message {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 400px;
+  min-height: 500px;
   width: 100%;
   padding: 2rem;
 }
+
 .no-books-content {
   text-align: center;
-  background-color: white;
-  padding: 3rem 2rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  padding: 4rem 3rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
   max-width: 500px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
+
+.no-books-icon {
+  color: #94a3b8;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: center;
+}
+
 .no-books-content h3 {
-  color: #666;
-  margin-bottom: 1rem;
+  color: #475569;
+  margin-bottom: 16px;
   font-size: 1.5rem;
+  font-weight: 600;
 }
+
 .no-books-content p {
-  color: #888;
+  color: #64748b;
   font-size: 1.1rem;
   margin: 0;
+  font-weight: 400;
 }
-.main {
-  width: 100%;
-  padding: 1rem;
-  transition: margin-top 0.3s ease;
-}
+
 .pagination-area {
-  padding: 2rem 0;
+  display: flex;
+  justify-content: center;
+  padding: 3rem 0;
+  margin-top: 2rem;
+}
+
+.pagination-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  padding: 16px 32px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.pagination-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 80px;
+  justify-content: center;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.page-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.current-page {
+  font-size: 1.1rem;
+  color: #667eea;
+}
+
+.page-divider {
+  color: #cbd5e1;
+}
+
+.total-pages {
+  font-size: 1rem;
+  color: #64748b;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1200px) {
+  .article-area {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-bar {
+    padding: 12px 16px;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .nav-left {
+    width: 100%;
+    overflow-x: auto;
+  }
+  
+  .nav {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+  }
+  
+  .nav-right {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .search-component {
+    width: 100%;
+  }
+  
+  .article-area {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+  
+  .main {
+    padding: 16px;
+  }
+  
+  .pagination-wrapper {
+    padding: 12px 20px;
+    gap: 16px;
+  }
+  
+  .pagination-btn {
+    padding: 10px 16px;
+    min-width: 70px;
+  }
 }
 </style>

@@ -80,7 +80,7 @@ onMounted(async () => {
     try {
         console.log('요청할 bookId:', bookId)
         const res = await axios.get(`http://localhost:8080/books/${bookId}`)
-        console.log('응답 데이터:', res.data)
+        // console.log('응답 데이터:', res.data)
         
         if (res.data) {
             book.value = res.data

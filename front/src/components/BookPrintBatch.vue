@@ -60,7 +60,10 @@ const selectedCountPerPage = ref(1)
 const fetchUnprintedBarcodes = async () => {
   try {
     const res = await fetch('http://localhost:8080/books/unprinted')
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
+    if (!res.ok) {
+      const errorMessage = await res.text();
+      throw new Error(errorMessage || `서버 오류: ${res.status}`)
+    }  
     const data = await res.json()
     books.value = data
 
@@ -71,7 +74,7 @@ const fetchUnprintedBarcodes = async () => {
     }
     selectedCountPerPage.value = books.value.length > 0 ? books.value.length : 1
   } catch (error) {
-    console.error('바코드 리스트 가져오기 실패:', error)
+    alert(error)
   }
 }
 
@@ -216,31 +219,58 @@ const printAll = async () => {
   `)
   doc.close()
 
-  // try {
-  //   const ids = displayedBooks.value.map(book => book.seqBook)
+  try {
+    const ids = displayedBooks.value.map(book => book.seqBook)
 
-  //   const res = await fetch('http://localhost:8080/books/batch/print', {
-  //     method: 'PUT',
-  //     headers: {
-  //       'Content-Type': 'application/json'
-  //     },
-  //     body: JSON.stringify(ids)
-  //   })
+    const res = await fetch('http://localhost:8080/books/batch/print', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(ids)
+    })
 
-  //   if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
+    if (!res.ok) {
+      const errorMessage = await res.text();
+      throw new Error(errorMessage || `서버 오류: ${res.status}`);
+    }
 
-  //   alert('인쇄 완료 상태로 저장되었습니다.')
+    alert('인쇄 완료 상태로 저장되었습니다.')
 
-  //   // 다시 목록 갱신
-  //   await fetchUnprintedBarcodes()
-  //   generateBarcodes()
-  // } catch (error) {
-  //   alert('저장에 실패했습니다.', error)
-  // }
+    // 다시 목록 갱신
+    await fetchUnprintedBarcodes()
+    generateBarcodes()
+  } catch (error) {
+    alert('저장에 실패했습니다.', error)
+  }
 }
 </script>
 
-<style>
+<style scoped>
+.black-bg {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.white-bg {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  min-width: 400px;
+  min-height: 300px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  position: relative;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+}
 .controls {
   margin-bottom: 20px;
   display: flex;

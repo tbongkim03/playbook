@@ -192,18 +192,16 @@ const fetchBooks = async (page = 1, query = '', exact = false) => {
     url.searchParams.set('page', page);
   }
 
-  console.log('👉 호출 URL:', url.toString());
-
   const res = await fetch(url.toString());
   if (!res.ok) {
-    console.error('❌ 서버 응답 오류:', res.status);
+    alert('검색 오류: ', res.status);
     return;
   }
 
   const data = await res.json();
 
   if (!data.content) {
-    console.error('❌ 서버 응답 데이터 문제:', data);
+    console.error('서버 응답 데이터 오류: ', data);
     books.value = [];
     totalCount.value = 0;
     return;
@@ -221,20 +219,17 @@ const fetchBooks = async (page = 1, query = '', exact = false) => {
     };
   });
 
-  console.log('✅ books.value 업데이트 완료:', books.value);
+  // console.log('✅ books.value 업데이트 완료:', books.value);
 };
 
 onMounted(async () => {
-  console.log('[onMounted] 시작')
-  // 순서가 중요: 대분류와 중분류 데이터를 먼저 로드한 후 책 데이터 처리
+  // 대분류와 중분류 데이터를 먼저 로드한 후 책 데이터 처리
   await fetchLargeCategories()
   await fetchMediumCategories()
   await fetchBooks(currentPage.value)
 })
 
-/**
- * 각 book의 categoryLarge가 바뀔 때 개별 감시
- */
+// 각 book의 categoryLarge가 바뀔 때 개별 감시
 watchEffect(() => {
   books.value.forEach(book => {
     const largeCode = book.categoryLarge
@@ -243,7 +238,7 @@ watchEffect(() => {
     // 대분류가 없으면 중분류 비움
     if (!largeCode) {
       if (book.categoryMedium !== '') {
-        console.log(`[watch] Reset categoryMedium for seqBook=${book.seqBook}`)
+        // console.log(`[watch] Reset categoryMedium for seqBook=${book.seqBook}`)
         book.categoryMedium = ''
       }
       book.mediumOptions = []
@@ -254,7 +249,6 @@ watchEffect(() => {
 
       // 옵션이 변경되었을 때만 업데이트
       if (JSON.stringify(oldOptions) !== JSON.stringify(newOptionsIds)) {
-        console.log(`[watch] Update mediumOptions for seqBook=${book.seqBook}`)
         book.mediumOptions = newOptions
 
         // 현재 선택된 중분류가 새 옵션에 없으면 초기화
@@ -279,7 +273,7 @@ watchEffect(() => {
         const barcode = `${large.nameSortFirst}${medium.nameSortSecond}-${isbn}-${cnt}`
         if (book.barcodeBook !== barcode) {
           book.barcodeBook = barcode
-          console.log(`✅ 자동 생성 바코드(seqBook=${book.seqBook}):`, barcode)
+          // console.log(`자동 생성 바코드(seqBook=${book.seqBook}):`, barcode)
         }
       }
     }
@@ -305,25 +299,26 @@ watch(currentPage, (newPage) => {
 })
 
 async function deleteBook(book) {
-  console.log('✅ [deleteBook]', book)
+  // console.log('✅ [deleteBook]', book)
   try {
     const response = await fetch(`${API_BASE}/books/${book.seqBook}`, {
       method: 'DELETE',
     });
 
     if (!response.ok) {
-      throw new Error(`서버 오류: ${response.status}`);
+      const errorMessage = await response.text();
+      throw new Error(errorMessage || `서버 오류: ${response.status}`);
     }
 
     books.value = books.value.filter(b => b.seqBook !== book.seqBook);
-    alert('✅ 삭제에 성공하였습니다.');
+    alert('삭제에 성공하였습니다.');
   } catch (error) {
-    alert('삭제 중 오류가 발생했습니다.', error);
+    alert(`${error.message}`);
   }
 }
 
 function barcodeCreate(book) {
-  console.log('✅ [barcodeCreate]', book)
+  // console.log('✅ [barcodeCreate]', book)
   selectedSeqBook.value = book.seqBook
   selectedSeqSortSecond.value = book.categoryMedium
   selectedCntBook.value = book.cntBook
@@ -346,7 +341,7 @@ function printBarcodes() {
 
 </script>
 
-<style>
+<style scoped>
 .container {
   width: 98%;
   padding: 0.7rem;

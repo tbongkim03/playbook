@@ -42,7 +42,7 @@ export default {
 
                 this.suggestions = uniqueTitles;
             } catch (error) {
-                console.error('자동완성 요청 실패:', error);
+                alert('자동완성 요청 실패:', error);
                 this.suggestions = [];
             }
         },

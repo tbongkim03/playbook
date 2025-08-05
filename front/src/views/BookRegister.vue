@@ -144,19 +144,27 @@ function submitBook() {
         },
         body: JSON.stringify(payload)
     })
-        .then(res => {
-            if (!res.ok) {
-                throw new Error('등록 실패');
-            } return res.json();
-        })
-        .then(data => {
-            alert('도서가 성공적으로 등록되었습니다!');
-            console.log('응답:', data);
-        })
-        .catch(err => {
-            console.error('등록 중 오류 발생 : ', err);
-            alert('도서 등록 중 오류가 발생했습니다.');
-        })
+    .then(async res => {
+        const contentType = res.headers.get('content-type');
+        
+        if (!res.ok) {
+            const errorText = await res.text();  // text()는 비동기!
+            throw new Error(errorText || `서버 오류: ${res.status}`);
+        }
+
+        if (contentType && contentType.includes('application/json')) {
+            return res.json();
+        } else {
+            const text = await res.text();
+            throw new Error(text || '알 수 없는 응답입니다.');
+        }
+    })
+    .then(data => {
+        alert(`도서 "${data.titleBook}"가 성공적으로 등록되었습니다!`);
+    })
+    .catch(err => {
+        alert(`${err.message}`);
+    });
 }
 
 function useMouse(e) {
@@ -186,6 +194,7 @@ function resetTransform() {
 <style scoped>
 .book-form-wrapper {
     width: 98%;
+    height: 53vw;
     padding: 0.7rem;
     margin: 0 auto;
     max-width: none;

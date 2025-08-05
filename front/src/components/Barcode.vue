@@ -73,7 +73,8 @@ const uniqueTest = async () => {
     })
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
+      const errorMessage = await response.text();
+      throw new Error(errorMessage || `서버 오류: ${response.status}`)
     }
 
     const result = await response.json()
@@ -96,7 +97,7 @@ const uniqueTest = async () => {
     }
 
   } catch (error) {
-    console.error('POST 오류:', error)
+    alert(error)
   }
 }
 
@@ -203,15 +204,15 @@ const postPrintedBook = async (printCheckBook) => {
     })
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
+      throw new Error(`${response.status}`)
     }
 
     const result = await response.json()
-    console.log('PUT 성공:', result)
+    // console.log('PUT 성공:', result)
     alert("✅ 저장하였습니다.");
 
   } catch (error) {
-    console.error('PUT 오류:', error)
+    alert(error)
   }
 }
 </script>
