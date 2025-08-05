@@ -23,17 +23,28 @@ public class jwtUtil {
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
-    
-    public String generateToken(String idUser) {
+
+    public String generateToken(String idUser, String role) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expirationMs);
-        
+
         return Jwts.builder()
                 .setSubject(idUser)
+                .claim("role", role)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    public String getRoleFromToken(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        return claims.get("role", String.class);
     }
 
     public String getIdUserFromToken(String token) {

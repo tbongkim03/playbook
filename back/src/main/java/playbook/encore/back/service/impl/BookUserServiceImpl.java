@@ -74,7 +74,7 @@ public class BookUserServiceImpl implements BookUserService{
         if (!isLoginSuccess) {
             throw new IllegalArgumentException("로그인에 실패하였습니다. 아이디와 비밀번호를 확인해 주세요.");
         } 
-        return new LoginUserResponseDto(jwtUtil.generateToken(id));
+        return new LoginUserResponseDto(jwtUtil.generateToken(id, "user"));
     }
 
     @Override

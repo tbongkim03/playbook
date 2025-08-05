@@ -40,6 +40,9 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
                 || ((uri.equals("/users") && method.equals("POST")) || (uri.startsWith("/users/") && (method.equals("PUT") || method.equals("DELETE"))))
                 || ((uri.equals("/books") && method.equals("POST")) || (uri.startsWith("/books/") && (method.equals("PUT") || method.equals("DELETE"))))
                 || ((uri.equals("/users/me") && method.equals("GET")))
+                || ((uri.equals("/admin/me") && method.equals("GET")))
+                || ((uri.equals("/api/borrow") && method.equals("POST")))
+                || ((uri.equals("/api/return") && method.equals("POST")))
         ) {
             // 로그인 검증 로직
             if (!isLoggedIn(request, response, handler)) {
@@ -71,6 +74,7 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
         }
 
         String userId = jwtUtil.getIdUserFromToken(token);
+        String role = jwtUtil.getRoleFromToken(token);
         Optional<BookUser> userOpt = bookUserRepository.findByIdUser(userId);
         Optional<Admin> adminOpt = adminRepository.findByIdAdmin(userId);
         if (userOpt.isEmpty() && adminOpt.isEmpty() ) {

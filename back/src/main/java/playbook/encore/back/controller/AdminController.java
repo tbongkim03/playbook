@@ -48,7 +48,7 @@ public class AdminController {
 
     // 회원정보 관련 부분
     @GetMapping("/me")
-    public ResponseEntity<?> getAdminInfo(HttpServletRequest request) throws Exception {
+    public ResponseEntity<?> getAdminInfo(HttpServletRequest request) {
         if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
             Admin user = (Admin) request.getAttribute("admin");
             LoginAdminDataResponseDto loginAdminDataResponseDto = new LoginAdminDataResponseDto(user.getIdAdmin(), user.getNameAdmin(), user.getDcAdmin());
