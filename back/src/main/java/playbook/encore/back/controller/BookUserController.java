@@ -48,7 +48,8 @@ public class BookUserController {
     // 회원정보 관련 부분
     @GetMapping("/me")
     public ResponseEntity<?> getUserInfo(HttpServletRequest request) {
-        if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.USER) {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
             BookUser user = (BookUser) request.getAttribute("user");
             LoginUserDataResponseDto loginUserDataResponseDto = new LoginUserDataResponseDto(user.getSeqCourse().getSeqCourse(), user.getIdUser(), user.getNameUser(), user.getDcUser());
             return ResponseEntity.status(HttpStatus.OK).body(loginUserDataResponseDto);
@@ -62,7 +63,8 @@ public class BookUserController {
             @RequestBody String password
     ) throws Exception {
         try {
-            if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.USER) {
+            Object roleAttr = request.getAttribute("ROLE");
+            if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
                 BookUser user = (BookUser) request.getAttribute("user");
                 boolean result = bookUserService.validatePassword(user, password);
                 return ResponseEntity.status(HttpStatus.OK).body(result);
@@ -78,7 +80,8 @@ public class BookUserController {
             @RequestBody String newPassword
     ) throws Exception {
         try {
-            if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.USER) {
+            Object roleAttr = request.getAttribute("ROLE");
+            if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
                 BookUser user = (BookUser) request.getAttribute("user");
                 boolean result = bookUserService.updatePassword(user, newPassword);
                 return ResponseEntity.status(HttpStatus.OK).body(result);
@@ -94,7 +97,8 @@ public class BookUserController {
             @RequestBody String newDiscord
     ) throws Exception {
         try {
-            if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.USER) {
+            Object roleAttr = request.getAttribute("ROLE");
+            if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
                 BookUser user = (BookUser) request.getAttribute("user");
                 boolean result = bookUserService.updateDiscord(user, newDiscord);
                 return ResponseEntity.status(HttpStatus.OK).body(result);
@@ -110,7 +114,8 @@ public class BookUserController {
             @RequestBody Integer newSeqCourse
     ) throws Exception {
         try {
-            if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.USER) {
+            Object roleAttr = request.getAttribute("ROLE");
+            if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
                 BookUser user = (BookUser) request.getAttribute("user");
                 boolean result = bookUserService.updateCourse(user, newSeqCourse);
                 return ResponseEntity.status(HttpStatus.OK).body(result);

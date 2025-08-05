@@ -36,7 +36,8 @@ public class SortFirstController {
             HttpServletRequest request,
             @RequestBody SortFirstRequestDto sortFirstRequestDto
     ) throws Exception {
-        if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             SortFirstResponseDto sortFirstResponseDto = sortFirstService.insertSortFirst(sortFirstRequestDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(sortFirstResponseDto);
         }
@@ -49,7 +50,8 @@ public class SortFirstController {
             @PathVariable("id") Integer sortFirstId,
             @RequestBody SortFirstRequestDto sortFirstRequestDto
     ) throws Exception{
-        if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             SortFirstResponseDto sortFirstResponseDto = sortFirstService.changeSortFirst(sortFirstId, sortFirstRequestDto);
             return ResponseEntity.status(HttpStatus.OK).body(sortFirstResponseDto);
         }
@@ -61,7 +63,8 @@ public class SortFirstController {
             HttpServletRequest request,
             @PathVariable("id") Integer sortFirstId
     ) throws Exception {
-        if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             sortFirstService.deleteSortFirstById(sortFirstId);
             return ResponseEntity.status(HttpStatus.OK).body("삭제를 수행하였습니다.");
         }

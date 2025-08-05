@@ -49,7 +49,8 @@ public class AdminController {
     // 회원정보 관련 부분
     @GetMapping("/me")
     public ResponseEntity<?> getAdminInfo(HttpServletRequest request) {
-        if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             Admin user = (Admin) request.getAttribute("admin");
             LoginAdminDataResponseDto loginAdminDataResponseDto = new LoginAdminDataResponseDto(user.getIdAdmin(), user.getNameAdmin(), user.getDcAdmin());
             return ResponseEntity.status(HttpStatus.OK).body(loginAdminDataResponseDto);
@@ -62,7 +63,8 @@ public class AdminController {
             @RequestBody String password
     ) throws Exception {
         try {
-            if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+            Object roleAttr = request.getAttribute("ROLE");
+            if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
                 Admin user = (Admin) request.getAttribute("admin");
                 boolean result = adminService.validatePassword(user, password);
                 return ResponseEntity.status(HttpStatus.OK).body(result);
@@ -78,7 +80,8 @@ public class AdminController {
             @RequestBody String newPassword
     ) throws Exception {
         try {
-            if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+            Object roleAttr = request.getAttribute("ROLE");
+            if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
                 Admin user = (Admin) request.getAttribute("admin");
                 boolean result = adminService.updatePassword(user, newPassword);
                 return ResponseEntity.status(HttpStatus.OK).body(result);
@@ -94,7 +97,8 @@ public class AdminController {
             @RequestBody String newDiscord
     ) throws Exception {
         try {
-            if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+            Object roleAttr = request.getAttribute("ROLE");
+            if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
                 Admin user = (Admin) request.getAttribute("admin");
                 boolean result = adminService.updateDiscord(user, newDiscord);
                 return ResponseEntity.status(HttpStatus.OK).body(result);

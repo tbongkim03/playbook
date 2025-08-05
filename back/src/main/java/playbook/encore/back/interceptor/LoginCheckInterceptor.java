@@ -75,21 +75,31 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
 
         String userId = jwtUtil.getIdUserFromToken(token);
         String role = jwtUtil.getRoleFromToken(token);
-        Optional<BookUser> userOpt = bookUserRepository.findByIdUser(userId);
-        Optional<Admin> adminOpt = adminRepository.findByIdAdmin(userId);
-        if (userOpt.isEmpty() && adminOpt.isEmpty() ) {
-            setUtf8Response(response);
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("해당 사용자가 존재하지 않습니다.");
-            return false;
-        }
-
-        if (userOpt.isPresent()) {
+        if ("admin".equalsIgnoreCase(role)) {
+            Optional<Admin> adminOpt = adminRepository.findByIdAdmin(userId);
+            if (adminOpt.isEmpty()) {
+                setUtf8Response(response);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("해당 관리자가 존재하지 않습니다.");
+                return false;
+            }
+            request.setAttribute("admin", adminOpt.get());
+            request.setAttribute("ROLE", RoleType.ADMIN);
+        } else if ("user".equalsIgnoreCase(role)) {
+            Optional<BookUser> userOpt = bookUserRepository.findByIdUser(userId);
+            if (userOpt.isEmpty()) {
+                setUtf8Response(response);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("해당 사용자가 존재하지 않습니다.");
+                return false;
+            }
             request.setAttribute("user", userOpt.get());
             request.setAttribute("ROLE", RoleType.USER);
         } else {
-            request.setAttribute("admin", adminOpt.get());
-            request.setAttribute("ROLE", RoleType.ADMIN);
+            setUtf8Response(response);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("올바르지 않은 사용자 입니다.");
+            return false;
         }
 
         return true;

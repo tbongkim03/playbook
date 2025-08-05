@@ -35,7 +35,8 @@ public class SortSecondController {
             HttpServletRequest request,
             @RequestBody SortSecondRequestDto sortSecondRequestDto
     ) throws Exception {
-        if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             SortSecondResponseDto sortSecondResponseDto = sortSecondService.insertSortSecond(sortSecondRequestDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(sortSecondResponseDto);
         }
@@ -49,7 +50,8 @@ public class SortSecondController {
             @PathVariable("id") Integer sortSecondId,
             @RequestBody SortSecondRequestDto sortSecondRequestDto
     ) throws Exception{
-        if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             SortSecondResponseDto sortSecondResponseDto = sortSecondService.changeSortSecond(sortSecondId, sortSecondRequestDto);
             return ResponseEntity.status(HttpStatus.OK).body(sortSecondResponseDto);
         }
@@ -62,7 +64,8 @@ public class SortSecondController {
             HttpServletRequest request,
             @PathVariable("id") Integer sortSecondId
     ) throws Exception {
-        if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             sortSecondService.deleteSortSecondById(sortSecondId);
             return ResponseEntity.status(HttpStatus.OK).body("삭제를 수행하였습니다.");
         }

@@ -55,9 +55,17 @@ public class BookController {
     @PostMapping
     public ResponseEntity<?> insertBook(
             HttpServletRequest request,
-            @RequestBody  BookRequestDto bookRequestDto
+            @RequestBody BookRequestDto bookRequestDto
     ) throws Exception {
-        if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+        Object roleAttr = request.getAttribute("ROLE");
+
+        // 디버깅용 로그 추가
+        System.out.println("roleAttr: " + roleAttr);
+        System.out.println("roleAttr type: " + (roleAttr != null ? roleAttr.getClass() : "null"));
+        System.out.println("ADMIN enum: " + LoginCheckInterceptor.RoleType.ADMIN);
+        System.out.println("equals result: " + LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr));
+
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             BookResponseDto bookResponseDto = bookService.insertBook(bookRequestDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(bookResponseDto);
         }
@@ -70,7 +78,8 @@ public class BookController {
             @PathVariable("id") int bookId,
             @RequestBody BookSortAndBarcodeRequestDto bookSortAndBarcodeRequestDto
     ) throws Exception {
-        if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             BookResponseDto bookResponseDto = bookService.changeBook(bookId, bookSortAndBarcodeRequestDto);
             return ResponseEntity.status(HttpStatus.OK).body(bookResponseDto);
         }
@@ -78,9 +87,16 @@ public class BookController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteBookById(@PathVariable("id") int bookId) throws Exception {
-        bookService.deleteBookById(bookId);
-        return ResponseEntity.status(HttpStatus.OK).body("삭제를 수행하였습니다.");
+    public ResponseEntity<String> deleteBookById(
+            HttpServletRequest request,
+            @PathVariable("id") int bookId
+    ) throws Exception {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+            bookService.deleteBookById(bookId);
+            return ResponseEntity.status(HttpStatus.OK).body("삭제를 수행하였습니다.");
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
     }
 
     @GetMapping("/count")
@@ -88,7 +104,8 @@ public class BookController {
             HttpServletRequest request,
             @RequestParam("isbn") String isbn
     ) throws Exception {
-        if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             BookCountResponseDto bookCountResponseDto = bookService.getBookCount(isbn);
             return ResponseEntity.status(HttpStatus.OK).body(bookCountResponseDto);
         }
@@ -117,7 +134,8 @@ public class BookController {
             HttpServletRequest request,
             @RequestBody List<Integer> bookIds
     ) throws Exception {
-        if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             bookService.markBooksAsPrinted(bookIds);
             return ResponseEntity.status(HttpStatus.OK).build();
         }
@@ -128,7 +146,8 @@ public class BookController {
     public ResponseEntity<?> getUnprintedBooks(
             HttpServletRequest request
     ) throws Exception {
-        if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             List<BookUnprintedResponseDto> books = bookService.findUnprintedBooks();
             return ResponseEntity.ok(books);
         }
@@ -140,7 +159,8 @@ public class BookController {
             HttpServletRequest request,
             @RequestBody BookBarcodeUniqueRequestDto bookBarcodeUniqueRequestDto
     ) throws Exception {
-        if (request.getAttribute("ROLE") == LoginCheckInterceptor.RoleType.ADMIN) {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             BookBarcodeUniqueResponseDto bookBarcodeUniqueResponseDto = bookService.checkDuplicated(bookBarcodeUniqueRequestDto);
             return ResponseEntity.status(HttpStatus.OK).body(bookBarcodeUniqueResponseDto);
         }
