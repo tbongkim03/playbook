@@ -555,7 +555,7 @@ onMounted(async () => {
   display: grid;
   place-items: center;
   width: 100%;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(5, 1fr);
   gap: 32px;
   padding: 0;
   min-height: 400px;

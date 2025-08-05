@@ -10,6 +10,7 @@ import PageRegister from '@/views/PageRegister.vue'
 import NotFound from '@/components/NotFound.vue';
 import BookArea from '@/components/BookArea.vue';
 import BookInfo from '@/components/BookInfo.vue';
+import AdminPage from '@/views/AdminPage.vue';
 
 const routes = [
   {
@@ -36,6 +37,11 @@ const routes = [
     path: '/register',
     name: 'PageRegister',
     component: PageRegister
+  },
+  {
+    path: '/admin',
+    name: 'AdminPage',
+    component: AdminPage
   },
   {
     path: '/books',

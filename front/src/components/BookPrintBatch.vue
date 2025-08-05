@@ -1,38 +1,140 @@
 <template>
-  <div class="black-bg" @click="close">
-    <div class="white-bg" @click.stop>
-      <h2>바코드 출력</h2>
-      <div class="controls">
-        <label for="countSelect">바코드 수:</label>
-        <select id="countSelect" v-model="selectedCountPerPage">
-          <option v-for="option in options" :key="option" :value="option">
-            {{ option }}
-          </option>
-        </select>
+  <div class="modal-overlay" @click="close">
+    <div class="modal-container" @click.stop>
+      <!-- 모달 헤더 -->
+      <div class="modal-header">
+        <div class="header-content">
+          <div class="header-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3" y="4" width="4" height="16" stroke="currentColor" stroke-width="2"/>
+              <rect x="9" y="4" width="2" height="16" stroke="currentColor" stroke-width="2"/>
+              <rect x="13" y="4" width="2" height="16" stroke="currentColor" stroke-width="2"/>
+              <rect x="17" y="4" width="4" height="16" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="header-text">
+            <h2 class="modal-title">바코드 출력</h2>
+            <p class="modal-subtitle">선택한 도서의 바코드를 출력합니다</p>
+          </div>
+        </div>
+        <button class="close-btn" @click="close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
+            <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </button>
       </div>
 
-      <div class="controls">
-        <label for="startPosition">시작 위치:</label>
-        <select id="startPosition" v-model="startPosition">
-          <option v-for="n in 21" :key="n" :value="n - 1">{{ n }}</option>
-           <!-- <option v-for="n in 40" :key="n" :value="n - 1">{{ n }}</option> -->
-        </select>
-      </div>
+      <!-- 설정 영역 -->
+      <div class="settings-section">
+        <div class="settings-grid">
+          <div class="setting-group">
+            <label for="countSelect" class="setting-label">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M16 4H18C18.5304 4 19.0391 4.21071 19.4142 4.58579C19.7893 4.96086 20 5.46957 20 6V18C20 18.5304 19.7893 19.0391 19.4142 19.4142C19.0391 19.7893 18.5304 20 18 20H6C5.46957 20 4.96086 19.7893 3.58579 19.4142C3.21071 19.0391 3 18.5304 3 18V6C3 5.46957 3.21071 4.96086 3.58579 4.58579C3.96086 4.21071 4.46957 4 6 4H8" stroke="currentColor" stroke-width="2"/>
+                <rect x="8" y="2" width="8" height="4" rx="1" ry="1" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              출력 수량
+            </label>
+            <select id="countSelect" v-model="selectedCountPerPage" class="setting-select">
+              <option v-for="option in options" :key="option" :value="option">
+                {{ option }}개
+              </option>
+            </select>
+          </div>
 
-      <div class="preview">
-        <div class="barcode-grid" :style="gridStyle">
-          <div class="barcode-cell" v-for="book in displayedBooks" :key="book.seqBook">
-            <svg ref="barcodeSvgs" :data-code="book.barcodeBook"></svg>
-            <div class="barcode-text">
-              {{ book.barcodeBook }} - {{ book.titleBook }}
-            </div>
+          <div class="setting-group">
+            <label for="startPosition" class="setting-label">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 10C21 16.0751 16.0751 21 10 21C4.44772 21 0 16.5523 0 11C0 5.44772 4.44772 1 10 1C15.5228 1 20 5.44772 20 11" stroke="currentColor" stroke-width="2"/>
+                <circle cx="10" cy="11" r="3" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              시작 위치
+            </label>
+            <select id="startPosition" v-model="startPosition" class="setting-select">
+              <option v-for="n in 21" :key="n" :value="n - 1">{{ n }}번째</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 통계 정보 -->
+        <div class="stats-info">
+          <div class="stat-item">
+            <span class="stat-label">총 도서</span>
+            <span class="stat-value">{{ books.length }}개</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">출력 예정</span>
+            <span class="stat-value">{{ displayedBooks.length }}개</span>
           </div>
         </div>
       </div>
 
-      <div class="buttons">
-        <button class="btn btn-secondary" @click="printAll">🖨️ 출력하기</button>
-        <button class="btn btn-primary" @click="close">닫기</button>
+      <!-- 미리보기 영역 -->
+      <div class="preview-section">
+        <div class="preview-header">
+          <h3 class="preview-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" stroke-width="2"/>
+              <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            미리보기
+          </h3>
+          <span class="preview-count">{{ displayedBooks.length }}개 항목</span>
+        </div>
+
+        <div class="preview-content">
+          <div class="barcode-grid" v-if="displayedBooks.length > 0">
+            <div 
+              class="barcode-card" 
+              v-for="book in displayedBooks" 
+              :key="book.seqBook"
+            >
+              <div class="barcode-container">
+                <svg ref="barcodeSvgs" :data-code="book.barcodeBook" class="barcode-svg"></svg>
+              </div>
+              <div class="barcode-info">
+                <div class="barcode-code">{{ book.barcodeBook }}</div>
+                <div class="barcode-title">{{ book.titleBook }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 빈 상태 -->
+          <div v-else class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3" y="4" width="4" height="16" stroke="currentColor" stroke-width="2"/>
+              <rect x="9" y="4" width="2" height="16" stroke="currentColor" stroke-width="2"/>
+              <rect x="13" y="4" width="2" height="16" stroke="currentColor" stroke-width="2"/>
+              <rect x="17" y="4" width="4" height="16" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <h4>출력할 바코드가 없습니다</h4>
+            <p>미출력 도서가 없거나 조건에 맞는 도서를 찾을 수 없습니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 액션 버튼 -->
+      <div class="modal-actions">
+        <button class="action-btn cancel-btn" @click="close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
+            <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          취소
+        </button>
+        <button 
+          class="action-btn print-btn" 
+          @click="printAll"
+          :disabled="displayedBooks.length === 0"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polyline points="6,9 6,2 18,2 18,9" stroke="currentColor" stroke-width="2"/>
+            <path d="M6,18H4C3.46957,18 2.96086,17.7893 2.58579,17.4142C2.21071,17.0391 2,16.5304 2,16V11C2,10.4696 2.21071,9.96086 2.58579,9.58579C2.96086,9.21071 3.46957,9 4,9H20C20.5304,9 21.0391,9.21071 21.4142,9.58579C21.7893,9.96086 22,10.4696 22,11V16C22,16.5304 21.7893,17.0391 21.4142,17.4142C21.0391,17.7893 20.5304,18 20,18H18" stroke="currentColor" stroke-width="2"/>
+            <rect x="6" y="14" width="12" height="8" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          출력하기
+        </button>
       </div>
     </div>
   </div>
@@ -43,7 +145,7 @@ import { ref, watch, computed, onMounted, nextTick } from 'vue'
 import JsBarcode from 'jsbarcode'
 
 const startPosition = ref(0)
-const token = localStorage.getItem('jwtToken');
+const token = localStorage.getItem('jwtToken')
 
 const emit = defineEmits(['close'])
 function close() {
@@ -60,9 +162,11 @@ const selectedCountPerPage = ref(1)
 // 3. fetch 사용해서 조건에 맞는 바코드 책 리스트 가져오기
 const fetchUnprintedBarcodes = async () => {
   try {
-    const res = await fetch('http://localhost:8080/books/unprinted', { headers : { Authorization: `Bearer ${token}` }})
+    const res = await fetch('http://localhost:8080/books/unprinted', { 
+      headers: { Authorization: `Bearer ${token}` }
+    })
     if (!res.ok) {
-      const errorMessage = await res.text();
+      const errorMessage = await res.text()
       throw new Error(errorMessage || `서버 오류: ${res.status}`)
     }  
     const data = await res.json()
@@ -84,9 +188,6 @@ const displayedBooks = computed(() => {
   return books.value.slice(0, selectedCountPerPage.value)
 })
 
-// 5. grid 스타일
-const gridStyle = 'grid-template-columns: repeat(3, 1fr); gap: 10px;'
-
 // 6. 바코드 생성
 const barcodeSvgs = ref([])
 
@@ -99,7 +200,7 @@ const generateBarcodes = () => {
         lineColor: "#000",
         width: 2,
         height: 40,
-        displayValue: true,
+        displayValue: false,
         fontSize: 12
       })
     })
@@ -152,10 +253,10 @@ const printAll = async () => {
   
   if (!printWindow) {
     alert("팝업 차단을 해제해 주세요")
-        return
+    return
   }
 
-  const doc = printWindow.document;
+  const doc = printWindow.document
   doc.open()
   doc.write(`
   <!DOCTYPE html>
@@ -233,8 +334,8 @@ const printAll = async () => {
     })
 
     if (!res.ok) {
-      const errorMessage = await res.text();
-      throw new Error(errorMessage || `서버 오류: ${res.status}`);
+      const errorMessage = await res.text()
+      throw new Error(errorMessage || `서버 오류: ${res.status}`)
     }
 
     alert('인쇄 완료 상태로 저장되었습니다.')
@@ -249,59 +350,415 @@ const printAll = async () => {
 </script>
 
 <style scoped>
-.black-bg {
+.modal-overlay {
   position: fixed;
-  top: 0; left: 0;
+  top: 0;
+  left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
   z-index: 9999;
   display: flex;
   justify-content: center;
   align-items: center;
+  animation: fadeIn 0.3s ease-out;
 }
 
-.white-bg {
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-container {
   background: white;
-  border-radius: 8px;
-  padding: 20px;
-  min-width: 400px;
-  min-height: 300px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.3);
-  position: relative;
-  z-index: 10000;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
+  animation: slideUp 0.3s ease-out;
 }
-.controls {
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
-.preview {
-  max-height: 60vh;
-  overflow-y: auto;
-}
-.barcode-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  /* grid-template-columns: repeat(4, 1fr); */
-  gap: 10px;
-  /* gap: 0px; */
-}
-.barcode-cell {
-  border: 1px solid #ccc;
-  padding: 10px;
-  text-align: center;
-}
-.barcode-text {
-  margin-top: 5px;
-  font-size: 12px;
-}
-.buttons {
-  margin-top: 20px;
+
+/* 모달 헤더 */
+.modal-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: #007bff;
+  color: white;
+  border-radius: 8px;
+}
+
+.header-text {
+  flex: 1;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #212529;
+  margin: 0 0 0.25rem 0;
+}
+
+.modal-subtitle {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin: 0;
+}
+
+.close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: rgba(108, 117, 125, 0.1);
+  color: #6c757d;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background: rgba(108, 117, 125, 0.2);
+  color: #495057;
+}
+
+/* 설정 섹션 */
+.settings-section {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+  background: white;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.setting-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.setting-select {
+  padding: 0.75rem 1rem;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.setting-select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.stats-info {
+  display: flex;
+  gap: 2rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #007bff;
+}
+
+/* 미리보기 섹션 */
+.preview-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+  background: white;
+}
+
+.preview-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #495057;
+  margin: 0;
+}
+
+.preview-count {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.preview-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  background: #f8f9fa;
+}
+
+.barcode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.barcode-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.barcode-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.barcode-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.barcode-svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.barcode-info {
+  text-align: center;
+}
+
+.barcode-code {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #495057;
+  font-family: 'Courier New', monospace;
+  margin-bottom: 0.25rem;
+}
+
+.barcode-title {
+  font-size: 0.8rem;
+  color: #6c757d;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 빈 상태 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+  color: #6c757d;
+}
+
+.empty-state svg {
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-state h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #495057;
+}
+
+.empty-state p {
+  margin: 0;
+  opacity: 0.8;
+}
+
+/* 액션 버튼 */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-top: 1px solid #e9ecef;
+  background: white;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.cancel-btn {
+  background: #6c757d;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+.print-btn {
+  background: #007bff;
+  color: white;
+}
+
+.print-btn:hover:not(:disabled) {
+  background: #0056b3;
+  transform: translateY(-1px);
+}
+
+.print-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .modal-container {
+    width: 95%;
+    max-height: 95vh;
+  }
+  
+  .modal-header {
+    padding: 1rem;
+  }
+  
+  .header-icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .modal-title {
+    font-size: 1.25rem;
+  }
+  
+  .settings-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .stats-info {
+    gap: 1rem;
+  }
+  
+  .barcode-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-container {
+    width: 100%;
+    height: 100vh;
+    max-height: none;
+    border-radius: 0;
+  }
+  
+  .header-content {
+    gap: 0.75rem;
+  }
+  
+  .settings-section,
+  .preview-header,
+  .preview-content,
+  .modal-actions {
+    padding: 1rem;
+  }
 }
 </style>

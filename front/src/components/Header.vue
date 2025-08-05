@@ -3,12 +3,24 @@
     <div class="header-content">
       <router-link to="/" custom v-slot="{ navigate }">
         <div class="logo-container" @click="navigate">
-          <img src="@/assets/playbook_logo.png" alt="Logo" class="logo-img" />
+          <img src="@/assets/playbook_logo-removebg-preview.png" alt="Logo" class="logo-img" />
         </div>
       </router-link>
 
       <div class="user-section">
         <template v-if="isLogin">
+          <!-- 관리자인 경우 관리자 페이지 버튼 추가 -->
+          <router-link to="/admin" custom v-slot="{ navigate }" v-if="isAdmin">
+            <button type="button" class="admin-btn" @click="navigate">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              관리자 페이지
+            </button>
+          </router-link>
+
           <div class="user-info">
             <div class="user-avatar">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -16,7 +28,7 @@
                 <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </div>
-            <span class="username">{{ username }} 님</span>
+            <span class="username">{{ username }} {{ isAdmin ? '(관리자)' : '님' }}</span>
           </div>
           <router-link to="/logout" custom v-slot="{ navigate }">
             <button type="button" class="logout-btn" @click="navigate">
@@ -54,6 +66,7 @@ import { useRoute, useRouter } from 'vue-router'
 
 const isLogin = ref(false) // 로그인 여부
 const username = ref('')    // 로그인 사용자 이름
+const isAdmin = ref(false)  // 관리자 여부
 
 const route = useRoute()
 const router = useRouter()
@@ -72,6 +85,7 @@ async function fetchUserInfo() {
   if (!token) {
     isLogin.value = false;
     username.value = '';
+    isAdmin.value = false;
     return;
   }
 
@@ -89,10 +103,12 @@ async function fetchUserInfo() {
       const data = userRes.value.data;
       username.value = data.nameUser || data.idUser || '사용자';
       isLogin.value = true;
+      isAdmin.value = false;
     } else if (adminRes.status === 'fulfilled') {
       const data = adminRes.value.data;
       username.value = data.nameAdmin || data.idAdmin || '관리자';
       isLogin.value = true;
+      isAdmin.value = true;
     } else {
       // 둘 다 실패한 경우
       const userError = userRes.reason?.response?.data || userRes.reason?.message;
@@ -102,15 +118,16 @@ async function fetchUserInfo() {
       localStorage.removeItem('userType');
       isLogin.value = false;
       username.value = '';
+      isAdmin.value = false;
       router.push('/login');
     }
   } catch (error) {
     alert('예기치 못한 오류 발생: ' + (error?.message || error));
     isLogin.value = false;
     username.value = '';
+    isAdmin.value = false;
   }
 }
-
 
 onMounted(() => {
   fetchUserInfo()
@@ -227,7 +244,8 @@ onMounted(() => {
 }
 
 .login-btn,
-.logout-btn {
+.logout-btn,
+.admin-btn {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -245,7 +263,8 @@ onMounted(() => {
 }
 
 .login-btn::before,
-.logout-btn::before {
+.logout-btn::before,
+.admin-btn::before {
   content: '';
   position: absolute;
   top: 0;
@@ -257,7 +276,8 @@ onMounted(() => {
 }
 
 .login-btn:hover::before,
-.logout-btn:hover::before {
+.logout-btn:hover::before,
+.admin-btn:hover::before {
   left: 100%;
 }
 
@@ -273,6 +293,21 @@ onMounted(() => {
 }
 
 .login-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.admin-btn {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+}
+
+.admin-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+}
+
+.admin-btn:active {
   transform: translateY(0) scale(0.98);
 }
 
@@ -319,7 +354,8 @@ onMounted(() => {
   }
   
   .login-btn,
-  .logout-btn {
+  .logout-btn,
+  .admin-btn {
     padding: 8px 16px;
     font-size: 0.85rem;
   }
@@ -338,8 +374,7 @@ onMounted(() => {
     padding: 8px;
   }
   
-  .login-btn span,
-  .logout-btn span {
+  .admin-btn span {
     display: none;
   }
 }
