@@ -56,7 +56,11 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
     private boolean isLoggedIn(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
         String authHeader = request.getHeader("Authorization");
 
+//        System.out.println("=== 토큰 처리 디버깅 ===");
+//        System.out.println("Authorization 헤더: " + authHeader);
+
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+//            System.out.println("Authorization 헤더가 없거나 Bearer 형식이 아님");
             setUtf8Response(response);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("로그인이 필요합니다.");
@@ -64,9 +68,13 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
         }
 
         String token = authHeader.substring(7);
+//        System.out.println("추출된 토큰: " + token);
+
         String reason = jwtUtil.validateAndGetReason(token);
+//        System.out.println("토큰 검증 결과: " + reason);
 
         if (!reason.equals("VALID")) {
+//            System.out.println("토큰이 유효하지 않음: " + reason);
             setUtf8Response(response);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("토큰이 유효하지 않습니다: " + reason);
@@ -75,33 +83,34 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
 
         String userId = jwtUtil.getIdUserFromToken(token);
         String role = jwtUtil.getRoleFromToken(token);
+        System.out.println("사용자 ID: " + userId);
+        System.out.println("역할: " + role);
+
         if ("admin".equalsIgnoreCase(role)) {
+            System.out.println("관리자 역할 확인됨");
             Optional<Admin> adminOpt = adminRepository.findByIdAdmin(userId);
             if (adminOpt.isEmpty()) {
+//                System.out.println("관리자가 DB에서 찾아지지 않음");
                 setUtf8Response(response);
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("해당 관리자가 존재하지 않습니다.");
                 return false;
             }
+//            System.out.println("관리자 정보 확인됨, ROLE 속성 설정");
             request.setAttribute("admin", adminOpt.get());
             request.setAttribute("ROLE", RoleType.ADMIN);
+//            System.out.println("설정된 ROLE: " + request.getAttribute("ROLE"));
         } else if ("user".equalsIgnoreCase(role)) {
-            Optional<BookUser> userOpt = bookUserRepository.findByIdUser(userId);
-            if (userOpt.isEmpty()) {
-                setUtf8Response(response);
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("해당 사용자가 존재하지 않습니다.");
-                return false;
-            }
-            request.setAttribute("user", userOpt.get());
-            request.setAttribute("ROLE", RoleType.USER);
+            // user 로직...
         } else {
+//            System.out.println("올바르지 않은 역할: " + role);
             setUtf8Response(response);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("올바르지 않은 사용자 입니다.");
             return false;
         }
 
+//        System.out.println("인증 성공");
         return true;
     }
 

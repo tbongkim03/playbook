@@ -32,6 +32,7 @@ const msg = ref('')
 const isD = ref('')
 const buttonsDisabled = ref(false)
 const showBarcode = ref(false)
+const token = localStorage.getItem('jwtToken');
 
 function close() {
   emit('close')
@@ -64,7 +65,8 @@ const uniqueTest = async () => {
     const response = await fetch(`http://localhost:8080/books/check/barcode`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify({
         seqBook: props.seqBook,
@@ -198,7 +200,8 @@ const postPrintedBook = async (printCheckBook) => {
     const response = await fetch(`http://localhost:8080/books/${id}`, {
       method: 'PUT',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify(bodyData)
     })

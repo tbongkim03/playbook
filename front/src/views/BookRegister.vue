@@ -127,8 +127,10 @@ function formatDate(dateStr) {
 }
 
 function submitBook() {
+    const token = localStorage.getItem('jwtToken');
+    
     const payload = {
-        seqSortSecond: 0, // 미지정
+        seqSortSecond: 0,
         isbnBook: book.isbn,
         titleBook: book.title,
         authorBook: book.author,
@@ -140,7 +142,8 @@ function submitBook() {
     fetch('http://localhost:8080/books', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(payload)
     })
@@ -148,7 +151,7 @@ function submitBook() {
         const contentType = res.headers.get('content-type');
         
         if (!res.ok) {
-            const errorText = await res.text();  // text()는 비동기!
+            const errorText = await res.text();
             throw new Error(errorText || `서버 오류: ${res.status}`);
         }
 

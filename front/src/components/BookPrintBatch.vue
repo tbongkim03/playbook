@@ -43,6 +43,7 @@ import { ref, watch, computed, onMounted, nextTick } from 'vue'
 import JsBarcode from 'jsbarcode'
 
 const startPosition = ref(0)
+const token = localStorage.getItem('jwtToken');
 
 const emit = defineEmits(['close'])
 function close() {
@@ -59,7 +60,7 @@ const selectedCountPerPage = ref(1)
 // 3. fetch 사용해서 조건에 맞는 바코드 책 리스트 가져오기
 const fetchUnprintedBarcodes = async () => {
   try {
-    const res = await fetch('http://localhost:8080/books/unprinted')
+    const res = await fetch('http://localhost:8080/books/unprinted', { headers : { Authorization: `Bearer ${token}` }})
     if (!res.ok) {
       const errorMessage = await res.text();
       throw new Error(errorMessage || `서버 오류: ${res.status}`)
@@ -225,7 +226,8 @@ const printAll = async () => {
     const res = await fetch('http://localhost:8080/books/batch/print', {
       method: 'PUT',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify(ids)
     })

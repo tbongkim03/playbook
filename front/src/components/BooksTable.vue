@@ -303,6 +303,9 @@ async function deleteBook(book) {
   try {
     const response = await fetch(`${API_BASE}/books/${book.seqBook}`, {
       method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     });
 
     if (!response.ok) {
