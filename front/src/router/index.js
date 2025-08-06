@@ -44,30 +44,9 @@ const routes = [
     component: AdminPage
   },
   {
-    path: '/books',
-    component: BooksLayout,
-    children: [
-      {
-        path: '',
-        name: 'BooksTable',
-        component: BooksTable
-      },
-      {
-        path: 'register',
-        name: 'BookRegister',
-        component: BookRegister
-      },
-      {
-        path: 'article',
-        name: 'BookArticle',
-        component: BookArea
-      },
-      {
-        path: '/books/info/:id',
-        name: 'BookInfo',
-        component: BookInfo
-      }
-    ]
+    path: '/books/info/:id',
+    name: 'BookInfo',
+    component: BookInfo,
   },
   { 
     path: '/:catchAll(.*)',
