@@ -11,6 +11,8 @@ import NotFound from '@/components/NotFound.vue';
 import BookArea from '@/components/BookArea.vue';
 import BookInfo from '@/components/BookInfo.vue';
 import AdminPage from '@/views/AdminPage.vue';
+import BookBorrow from '@/components/BookBorrow.vue';
+import BookReturn from '@/components/BookReturn.vue';
 
 const routes = [
   {
@@ -47,6 +49,16 @@ const routes = [
     path: '/books/info/:id',
     name: 'BookInfo',
     component: BookInfo,
+  },
+  {
+    path: '/borrow',
+    name: 'BookBorrow',
+    component: BookBorrow,
+  },
+  {
+    path: '/return',
+    name: 'BookReturn',
+    component: BookReturn,
   },
   { 
     path: '/:catchAll(.*)',

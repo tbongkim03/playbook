@@ -13,7 +13,7 @@
                     </button>
                 </div>
                 <div class="function-area">
-                    <div class="function-card borrow-card">
+                    <div class="function-card borrow-card" @click="navigateTo('/borrow')">
                         <div class="card-icon">
                             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -24,7 +24,7 @@
                         <h2 class="card-title">도서 대여</h2>
                         <p class="card-description">새로운 책을 대여해보세요</p>
                     </div>
-                    <div class="function-card return-card">
+                    <div class="function-card return-card" @click="navigateTo('/return')">
                         <div class="card-icon">
                             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -42,9 +42,15 @@
 </template>
 
 <script setup>
+import router from '@/router'
+
 const emit = defineEmits(['close'])
 function close() {
   emit('close')
+}
+const navigateTo = (r) => {
+  close()
+  router.push(r)
 }
 </script>
 
