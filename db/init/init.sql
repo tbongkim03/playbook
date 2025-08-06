@@ -44,9 +44,9 @@ CREATE TABLE tb_admin (
 
 CREATE TABLE tb_history (
     seq_history     INT             NOT NULL AUTO_INCREMENT,
-    seq_admin       INT             NOT NULL,
-    seq_user        INT             NOT NULL,
-    seq_course      INT             NOT NULL,
+    seq_admin       INT             NULL,
+    seq_user        INT             NULL,
+    seq_course      INT             NULL,
     seq_book        INT             NOT NULL,
     book_dt         DATE            NOT NULL,
     return_dt       DATE            NULL,
