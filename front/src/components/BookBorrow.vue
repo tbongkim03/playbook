@@ -214,22 +214,51 @@ const processBarcodeInputFromKeyboard = async (keyboardInput) => {
 const borrowBook = async (barcode) => {
   console.log('borrowBook 호출됨:', barcode)
   isLoading.value = true
+  
+  const token = localStorage.getItem('jwtToken')
+  console.log('사용할 토큰:', token ? `${token.substring(0, 20)}...` : 'null')
+  
+  if (!token) {
+    showMessage('로그인이 필요합니다.', 'error')
+    isLoading.value = false
+    return
+  }
+  
   try {
     console.log('API 요청 시작')
-    const token = localStorage.getItem('jwtToken')
-    const response = await axios.put('http://localhost:8080/api/borrow', barcode, {
+    
+    const response = await axios({
+      method: 'post',  // 백엔드가 POST로 변경됨
+      url: 'http://localhost:8080/api/borrow',
+      data: barcode,
       headers: {
         'Content-Type': 'text/plain',
-        Authorization: `Bearer ${token}`
-      }
+        'Authorization': `Bearer ${token}`
+      },
+      withCredentials: false  // JWT 토큰 사용 시 false
     })
-    console.log('API 응답 성공:', response)
     
+    console.log('API 응답 성공:', response)
     showMessage(response.data, 'success')
+    
   } catch (error) {
     console.error('API 요청 실패:', error)
-    const errorMessage = error.response?.data || '대여 처리 중 오류가 발생했습니다.'
-    showMessage(errorMessage, 'error')
+    
+    if (error.response) {
+      // 서버 응답이 있는 경우
+      console.error('응답 상태:', error.response.status)
+      console.error('응답 데이터:', error.response.data)
+      const errorMessage = error.response.data || `서버 오류: ${error.response.status}`
+      showMessage(errorMessage, 'error')
+    } else if (error.request) {
+      // 요청은 보냈지만 응답이 없는 경우
+      console.error('네트워크 오류:', error.message)
+      showMessage('네트워크 오류가 발생했습니다.', 'error')
+    } else {
+      // 요청 설정 중 오류
+      console.error('요청 오류:', error.message)
+      showMessage('요청 중 오류가 발생했습니다.', 'error')
+    }
   } finally {
     isLoading.value = false
   }
@@ -264,6 +293,10 @@ const goBack = () => {
 
 onMounted(() => {
   console.log('컴포넌트 마운트됨')
+  
+  // axios 기본 설정으로 withCredentials 비활성화
+  axios.defaults.withCredentials = false
+  
   // 컴포넌트 마운트 시 입력 필드에 포커스
   if (barcodeInput.value) {
     barcodeInput.value.focus()
@@ -284,8 +317,11 @@ onMounted(() => {
   document.addEventListener('keydown', (e) => {
     console.log('키 입력 감지:', e.key, e.code)
     
-    // 바코드 처리 중이면 input 이벤트 무시
-    if (isProcessingBarcode) return
+    // 바코드 처리 중이면 무시
+    if (isProcessingBarcode) {
+      e.preventDefault()
+      return
+    }
     
     // 특수키 무시 (Shift, Ctrl, Alt 등) - 단, Process는 제외
     if (e.key.length > 1 && !['Backspace', 'Delete', 'Tab', 'Enter', 'Process'].includes(e.key)) {
@@ -311,13 +347,13 @@ onMounted(() => {
     // Tab이나 Enter는 바코드 끝으로 간주
     if (e.key === 'Tab' || e.key === 'Enter') {
       e.preventDefault()
-      if (keyBuffer.trim()) {
+      if (keyBuffer.trim() && !isProcessingBarcode) {
         console.log('바코드 입력 완료:', keyBuffer)
         isProcessingBarcode = true
         barcodeBuffer.value = keyBuffer
         processBarcodeInputFromKeyboard(keyBuffer)
         keyBuffer = ''
-        setTimeout(() => { isProcessingBarcode = false }, 100)
+        setTimeout(() => { isProcessingBarcode = false }, 1000)
       }
       return
     }
@@ -325,6 +361,7 @@ onMounted(() => {
     // 백스페이스 처리
     if (e.key === 'Backspace') {
       keyBuffer = keyBuffer.slice(0, -1)
+      e.preventDefault()
       return
     }
     
@@ -340,13 +377,13 @@ onMounted(() => {
     // 타이머 리셋 (500ms 후 버퍼 클리어)
     clearTimeout(keyTimeout)
     keyTimeout = setTimeout(() => {
-      if (keyBuffer) {
+      if (keyBuffer && !isProcessingBarcode) {
         console.log('타임아웃으로 바코드 처리:', keyBuffer)
         isProcessingBarcode = true
         barcodeBuffer.value = keyBuffer
         processBarcodeInputFromKeyboard(keyBuffer)
         keyBuffer = ''
-        setTimeout(() => { isProcessingBarcode = false }, 100)
+        setTimeout(() => { isProcessingBarcode = false }, 1000)
       }
     }, 500)
   })
