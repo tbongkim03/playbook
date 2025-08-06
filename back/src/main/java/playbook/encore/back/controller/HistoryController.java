@@ -4,10 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.service.HistoryService;
 
@@ -23,7 +20,7 @@ public class HistoryController {
     }
 
     // 대여 부분
-    @PutMapping("/borrow")
+    @PostMapping("/borrow")
     public ResponseEntity<?> borrowBook(
             HttpServletRequest request,
             @RequestBody String barcodeBook

@@ -44,7 +44,7 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
                 || ((uri.equals("/users/me") && method.equals("GET")))
                 || ((uri.equals("/admin/me") && method.equals("GET")))
                 || ((uri.equals("/api/borrow") && method.equals("POST")))
-                || ((uri.equals("/api/return") && method.equals("POST")))
+                || ((uri.equals("/api/return") && method.equals("PUT")))
         ) {
             // 로그인 검증 로직
             if (!isLoggedIn(request, response, handler)) {

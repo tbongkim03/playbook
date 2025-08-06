@@ -27,6 +27,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginCheckInterceptor)
+                .addPathPatterns("/api/borrow", "/api/return")
                 .addPathPatterns("/users/me", "/admin/me")
                 .addPathPatterns("/users/password", "/admin/password")
                 .addPathPatterns("/users/discord", "/admin/discord")
