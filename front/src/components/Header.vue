@@ -9,27 +9,23 @@
 
       <div class="user-section">
         <template v-if="isLogin">
-          <!-- 관리자인 경우 관리자 페이지 버튼 추가 -->
-          <router-link to="/admin" custom v-slot="{ navigate }" v-if="isAdmin">
-            <button type="button" class="admin-btn" @click="navigate">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              관리자 페이지
-            </button>
+          <!-- 사용자 정보 클릭시 페이지 이동 -->
+          <router-link 
+            :to="isAdmin ? '/admin' : '/users'" 
+            custom 
+            v-slot="{ navigate }"
+          >
+            <div class="user-info" @click="navigate">
+              <div class="user-avatar">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <span class="username">{{ username }} {{ isAdmin ? '(관리자)' : '님' }}</span>
+            </div>
           </router-link>
 
-          <div class="user-info">
-            <div class="user-avatar">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <span class="username">{{ username }} {{ isAdmin ? '(관리자)' : '님' }}</span>
-          </div>
           <router-link to="/logout" custom v-slot="{ navigate }">
             <button type="button" class="logout-btn" @click="navigate">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -73,10 +69,6 @@ const router = useRouter()
 
 const showLoginButton = computed(() => {
   return !isLogin.value && route.path !== '/login'
-})
-
-const showLogoutButton = computed(() => {
-  return isLogin.value
 })
 
 // 사용자 정보 가져오기 함수
@@ -210,6 +202,9 @@ onMounted(() => {
   border-radius: 12px;
   border: 1px solid rgba(102, 126, 234, 0.1);
   transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
 }
 
 .user-info:hover {
@@ -217,6 +212,8 @@ onMounted(() => {
   border-color: rgba(102, 126, 234, 0.2);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  text-decoration: none;
+  color: inherit;
 }
 
 .user-avatar {
@@ -244,8 +241,7 @@ onMounted(() => {
 }
 
 .login-btn,
-.logout-btn,
-.admin-btn {
+.logout-btn {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -263,8 +259,7 @@ onMounted(() => {
 }
 
 .login-btn::before,
-.logout-btn::before,
-.admin-btn::before {
+.logout-btn::before {
   content: '';
   position: absolute;
   top: 0;
@@ -276,8 +271,7 @@ onMounted(() => {
 }
 
 .login-btn:hover::before,
-.logout-btn:hover::before,
-.admin-btn:hover::before {
+.logout-btn:hover::before {
   left: 100%;
 }
 
@@ -293,21 +287,6 @@ onMounted(() => {
 }
 
 .login-btn:active {
-  transform: translateY(0) scale(0.98);
-}
-
-.admin-btn {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: white;
-  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
-}
-
-.admin-btn:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
-}
-
-.admin-btn:active {
   transform: translateY(0) scale(0.98);
 }
 
@@ -354,8 +333,7 @@ onMounted(() => {
   }
   
   .login-btn,
-  .logout-btn,
-  .admin-btn {
+  .logout-btn {
     padding: 8px 16px;
     font-size: 0.85rem;
   }
@@ -372,10 +350,6 @@ onMounted(() => {
   
   .user-info {
     padding: 8px;
-  }
-  
-  .admin-btn span {
-    display: none;
   }
 }
 

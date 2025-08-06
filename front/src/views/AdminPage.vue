@@ -74,27 +74,7 @@
 
         <!-- 도서 관리 -->
         <div v-if="activeTab === 'books'" class="content-section">
-          <div class="section-header">
-            <h2 class="section-title">도서 관리</h2>
-            <p class="section-description">도서 관리 페이지로 이동합니다.</p>
-          </div>
-          <div class="redirect-card">
-            <div class="redirect-content">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <h3>도서 관리 시스템</h3>
-              <p>도서 등록, 수정, 삭제 및 재고 관리</p>
-              <router-link to="/books" class="redirect-btn">
-                도서 관리 페이지로 이동
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M12 5L19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </router-link>
-            </div>
-          </div>
+          <BooksTable ref="booksTableRef" @open-register-modal="openRegisterModal" />
         </div>
 
         <!-- 대여/반납 히스토리 -->
@@ -102,6 +82,31 @@
           <RentalHistoryDashboard />
         </div>
       </main>
+    </div>
+
+    <!-- 도서 등록 모달 -->
+    <div v-if="showRegisterModal" class="modal-overlay" @click="closeRegisterModal">
+      <div class="modal-container" @click.stop>
+        <div class="modal-header">
+          <h2 class="modal-title">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20" stroke="currentColor" stroke-width="2"/>
+              <path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            도서 등록
+          </h2>
+          <button class="close-btn" @click="closeRegisterModal">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
+              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="modal-content">
+          <BookRegister />
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -111,12 +116,24 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AdminAccountManagement from '@/components/AdminAccountManagement.vue'
 import RentalHistoryDashboard from '@/components/RentalHistoryDashboard.vue'
+import BooksTable from '@/components/BooksTable.vue'
+import BookRegister from './BookRegister.vue'
 
 const router = useRouter()
 const activeTab = ref('admin-accounts')
+const showRegisterModal = ref(false)
+const booksTableRef = ref(null)
 
 const setActiveTab = (tab) => {
   activeTab.value = tab
+}
+
+const openRegisterModal = () => {
+  showRegisterModal.value = true
+}
+
+const closeRegisterModal = () => {
+  showRegisterModal.value = false
 }
 
 // 관리자 권한 확인
@@ -245,70 +262,79 @@ onMounted(() => {
   padding: 1rem;
 }
 
-.section-header {
-  margin-bottom: 1.5rem;
+/* 모달 스타일 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  max-width: 1200px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #dee2e6;
+  background: #f8f9fa;
 }
 
-.section-title {
-  font-size: 1.8rem;
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.5rem;
   font-weight: 600;
   color: #212529;
-  margin-bottom: 8px;
-}
-
-.section-description {
-  font-size: 1rem;
-  color: #6c757d;
   margin: 0;
 }
 
-.redirect-card {
-  background: #007bff;
-  border-radius: 8px;
-  padding: 40px;
-  text-align: center;
-  color: white;
-}
-
-.redirect-content svg {
-  margin-bottom: 20px;
-  opacity: 0.9;
-}
-
-.redirect-content h3 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-
-.redirect-content p {
-  font-size: 1rem;
-  opacity: 0.9;
-  margin-bottom: 24px;
-}
-
-.redirect-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 6px;
-  color: white;
-  text-decoration: none;
-  font-weight: 500;
+.close-btn {
+  background: none;
+  border: none;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
   transition: all 0.3s ease;
 }
 
-.redirect-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.5);
-  color: white;
-  text-decoration: none;
+.close-btn:hover {
+  color: #495057;
+  background: #e9ecef;
+}
+
+.modal-content {
+  padding: 2rem;
 }
 
 /* 반응형 디자인 */
@@ -325,6 +351,15 @@ onMounted(() => {
   .admin-main {
     order: 1;
   }
+
+  .modal-container {
+    max-width: 95%;
+    margin: 10px;
+  }
+
+  .modal-content {
+    padding: 1.5rem;
+  }
 }
 
 @media (max-width: 768px) {
@@ -336,13 +371,17 @@ onMounted(() => {
     padding: 1rem;
   }
   
-  .redirect-card {
-    padding: 24px;
-  }
-  
   .dashboard-content {
     width: 100%;
     padding: 0 10px;
+  }
+
+  .modal-header {
+    padding: 1rem 1.5rem;
+  }
+
+  .modal-content {
+    padding: 1rem;
   }
 }
 </style>

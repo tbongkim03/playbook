@@ -80,9 +80,8 @@ export default {
 <style>
 .search-form {
     display: grid;
-    grid-template-columns: 9fr 1fr;
     column-gap: 10px;
-    width: 100%;
+    width: 70%;
 }
 
 #inputArea {

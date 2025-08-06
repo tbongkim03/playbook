@@ -1,3 +1,4 @@
+<!-- BooksTable.vue -->
 <template>
   <div class="book-management-container">
     <!-- 바코드 및 프린트 모달 -->
@@ -32,16 +33,15 @@
         </div>
         
         <div class="header-actions">
-          <router-link to="/books/register" custom v-slot="{ navigate }">
-            <button type="button" class="register-btn" @click="navigate">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                <line x1="12" y1="8" x2="12" y2="16" stroke="currentColor" stroke-width="2"/>
-                <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/>
-              </svg>
-              도서 등록
-            </button>
-          </router-link>
+          <!-- 라우터 링크 대신 이벤트 emit -->
+          <button type="button" class="register-btn" @click="$emit('open-register-modal')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+              <line x1="12" y1="8" x2="12" y2="16" stroke="currentColor" stroke-width="2"/>
+              <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            도서 등록
+          </button>
         </div>
       </div>
     </div>
@@ -61,7 +61,7 @@
                   class="toggle-input"
                 />
                 <span class="toggle-slider"></span>
-                <span class="toggle-text">프린트 모드</span>
+                <span class="toggle-text">프린트</span>
               </label>
             </div>
             
@@ -119,6 +119,25 @@
         <div class="table-header">
           <h3>도서 목록</h3>
           <div class="table-actions">
+            <button 
+              @click="refreshBooks" 
+              class="refresh-btn"
+              :disabled="isRefreshing"
+              title="목록 새로고침"
+            >
+              <svg 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                :class="{ 'spinning': isRefreshing }"
+              >
+                <path d="M3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12Z" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 3V7M12 17V21M21 12H17M7 12H3" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              {{ isRefreshing ? '새로고침 중...' : '새로고침' }}
+            </button>
             <span class="result-count">{{ totalCount }}개 중 {{ paginatedBooks.length }}개 표시</span>
           </div>
         </div>
@@ -255,6 +274,9 @@ import BookSearch from './BookSearch.vue'
 import Barcode from './Barcode.vue'
 import PrintBatch from './BookPrintBatch.vue'
 
+// emit 정의
+defineEmits(['open-register-modal'])
+
 const API_BASE = 'http://localhost:8080'
 
 const books = ref([])
@@ -269,6 +291,7 @@ const selectedSeqSortSecond = ref('')
 const selectedCntBook = ref('')
 const isPrint = ref(false)
 const isPrintBatchOpen = ref(false)
+const isRefreshing = ref(false)
 
 const fetchLargeCategories = async () => {
   const res = await fetch('http://localhost:8080/subjects')
@@ -475,14 +498,27 @@ function formatDate(dateString) {
   const date = new Date(dateString)
   return date.toLocaleDateString('ko-KR')
 }
+
+// 도서 목록 새로고침 메서드
+const refreshBooks = async () => {
+  isRefreshing.value = true
+  try {
+    await fetchBooks(currentPage.value)
+  } catch (error) {
+    console.error('새로고침 실패:', error)
+    alert('목록을 새로고침하는 중 오류가 발생했습니다.')
+  } finally {
+    isRefreshing.value = false
+  }
+}
+
 </script>
 
+<!-- 기존 스타일 유지 -->
 <style scoped>
 .book-management-container {
   min-height: 100vh;
-  background: #f8f9fa;
-  padding: 80px 0 40px;
-  margin-top: -5rem;
+  padding: 20px 0;
 }
 
 .page-header {
@@ -490,9 +526,6 @@ function formatDate(dateString) {
 }
 
 .header-content {
-  width: 98%;
-  margin: 0 auto;
-  padding: 0 0.7rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -544,9 +577,7 @@ function formatDate(dateString) {
 }
 
 .search-section {
-  width: 98%;
-  margin: 0 auto 1.5rem auto;
-  padding: 0 0.7rem;
+  margin: 0 0 1.5rem 0;
 }
 
 .search-card {
@@ -645,9 +676,7 @@ function formatDate(dateString) {
 }
 
 .stats-section {
-  width: 98%;
-  margin: 0 auto 1.5rem auto;
-  padding: 0 0.7rem;
+  margin: 0 0 1.5rem 0;
   display: flex;
   gap: 1rem;
 }
@@ -688,9 +717,7 @@ function formatDate(dateString) {
 }
 
 .table-section {
-  width: 98%;
-  margin: 0 auto;
-  padding: 0 0.7rem;
+  margin: 0;
 }
 
 .table-card {
@@ -715,6 +742,51 @@ function formatDate(dateString) {
   font-weight: 600;
   color: #212529;
   margin: 0;
+}
+
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.5rem 1rem;
+  background: #f8f9fa;
+  color: #495057;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.refresh-btn:hover:not(:disabled) {
+  background: #e9ecef;
+  border-color: #adb5bd;
+  color: #495057;
+}
+
+.refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.refresh-btn .spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .result-count {
@@ -901,9 +973,7 @@ function formatDate(dateString) {
 }
 
 .pagination-section {
-  width: 98%;
-  margin: 2rem auto 0 auto;
-  padding: 0 0.7rem;
+  margin: 2rem 0 0 0;
 }
 
 .pagination {
@@ -957,7 +1027,7 @@ function formatDate(dateString) {
 
 @media (max-width: 768px) {
   .book-management-container {
-    padding: 80px 0 20px;
+    padding: 20px 0;
   }
   
   .page-title {
@@ -998,111 +1068,6 @@ function formatDate(dateString) {
   .action-btn {
     width: 28px;
     height: 28px;
-  }
-}
-
-@media (max-width: 480px) {
-  .header-content,
-  .search-section,
-  .stats-section,
-  .table-section,
-  .pagination-section {
-    width: 100%;
-    padding: 0 10px;
-  }
-  
-  .search-content {
-    padding: 1rem;
-  }
-  
-  .table-header {
-    padding: 1rem;
-  }
-  
-  .books-table {
-    min-width: 800px;
-  }
-  
-  .pagination {
-    flex-wrap: wrap;
-    gap: 0.25rem;
-  }
-  
-  .page-btn {
-    padding: 0.375rem 0.5rem;
-    font-size: 0.8rem;
-    min-width: 32px;
-  }
-}
-
-/* 로딩 및 애니메이션 */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-/* 접근성 개선 */
-.action-btn:focus {
-  outline: 2px solid #007bff;
-  outline-offset: 2px;
-}
-
-.toggle-input:focus + .toggle-slider {
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-}
-
-/* 다크모드 대응 (선택사항) */
-@media (prefers-color-scheme: dark) {
-  .book-management-container {
-    background: #1a1a1a;
-  }
-  
-  .search-card,
-  .stat-card,
-  .table-card {
-    background: #2d2d2d;
-    border-color: #404040;
-  }
-  
-  .page-title {
-    color: #ffffff;
-  }
-  
-  .page-subtitle,
-  .result-count {
-    color: #b0b0b0;
-  }
-  
-  .books-table th {
-    background: #3d3d3d;
-    color: #ffffff;
-    border-color: #404040;
-  }
-  
-  .books-table td {
-    color: #e0e0e0;
-    border-color: #404040;
-  }
-  
-  .book-row:hover {
-    background: #3d3d3d;
-  }
-  
-  .category-select,
-  .count-input,
-  .barcode-input {
-    background: #3d3d3d;
-    color: #ffffff;
-    border-color: #555555;
-  }
-  
-  .barcode-input {
-    background: #404040;
   }
 }
 </style>
