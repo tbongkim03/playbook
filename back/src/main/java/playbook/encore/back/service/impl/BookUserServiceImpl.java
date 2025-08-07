@@ -54,7 +54,7 @@ public class BookUserServiceImpl implements BookUserService{
                 .statusUser(BookUser.StatusType.available)
                 .build();
         
-        BookUser savedBookUser = bookUserDAO.createUser(bookUser);
+        bookUserDAO.createUser(bookUser);
 
         // httpstatus, code, message, data 필요
         return new RegisterUserResponseDto(200, HttpStatus.OK, "회원가입을 완료하였습니다", null);
