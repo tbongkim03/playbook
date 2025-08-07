@@ -81,6 +81,12 @@ const message = ref('')
 const messageType = ref('success')
 const isLoading = ref(false)
 
+// 이벤트 핸들러들을 ref로 선언하여 정확히 제거할 수 있도록 함
+let clickHandler = null
+let keydownHandler = null
+let barcodeTimeout = null
+let keyTimeout = null
+
 // 한글-영문 매핑 테이블
 const koreanToEnglishMap = {
   'ㅁ': 'A', 'ㅠ': 'B', 'ㅊ': 'C', 'ㅇ': 'D', 'ㄷ': 'E', 'ㄹ': 'F', 'ㅎ': 'G', 'ㅗ': 'H',
@@ -122,8 +128,8 @@ const convertKoreanToEnglish = (text) => {
 const onBarcodeInput = () => {
   console.log('onBarcodeInput 호출됨:', barcodeBuffer.value)
   // 바코드 리더기는 빠르게 입력하므로 디바운스 적용
-  clearTimeout(window.barcodeTimeout)
-  window.barcodeTimeout = setTimeout(() => {
+  clearTimeout(barcodeTimeout)
+  barcodeTimeout = setTimeout(() => {
     processBarcodeInput()
   }, 100)
 }
@@ -305,16 +311,19 @@ onMounted(() => {
     console.log('barcodeInput이 null입니다')
   }
 
-  // 전역 클릭 이벤트로 포커스 유지
-  document.addEventListener('click', refocus)
+  // 클릭 이벤트 핸들러 정의 및 등록
+  clickHandler = () => {
+    refocus()
+  }
+  document.addEventListener('click', clickHandler)
   console.log('클릭 이벤트 리스너 등록됨')
   
   // 바코드 리더기를 위한 키보드 이벤트 처리
   let keyBuffer = ''
-  let keyTimeout = null
   let isProcessingBarcode = false
   
-  document.addEventListener('keydown', (e) => {
+  // 키보드 이벤트 핸들러 정의 및 등록
+  keydownHandler = (e) => {
     console.log('키 입력 감지:', e.key, e.code)
     
     // 바코드 처리 중이면 무시
@@ -386,14 +395,43 @@ onMounted(() => {
         setTimeout(() => { isProcessingBarcode = false }, 1000)
       }
     }, 500)
-  })
+  }
+  
+  document.addEventListener('keydown', keydownHandler)
+  console.log('키보드 이벤트 리스너 등록됨')
 })
 
 onUnmounted(() => {
-  document.removeEventListener('click', refocus)
-  if (window.barcodeTimeout) {
-    clearTimeout(window.barcodeTimeout)
+  console.log('컴포넌트 언마운트됨 - 이벤트 리스너 정리 시작')
+  
+  // 클릭 이벤트 리스너 제거
+  if (clickHandler) {
+    document.removeEventListener('click', clickHandler)
+    clickHandler = null
+    console.log('클릭 이벤트 리스너 제거됨')
   }
+  
+  // 키보드 이벤트 리스너 제거
+  if (keydownHandler) {
+    document.removeEventListener('keydown', keydownHandler)
+    keydownHandler = null
+    console.log('키보드 이벤트 리스너 제거됨')
+  }
+
+  // 타이머 정리
+  if (barcodeTimeout) {
+    clearTimeout(barcodeTimeout)
+    barcodeTimeout = null
+    console.log('바코드 타이머 정리됨')
+  }
+
+  if (keyTimeout) {
+    clearTimeout(keyTimeout)
+    keyTimeout = null
+    console.log('키 타이머 정리됨')
+  }
+  
+  console.log('컴포넌트 언마운트 완료')
 })
 </script>
 

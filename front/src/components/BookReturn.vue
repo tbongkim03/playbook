@@ -31,7 +31,6 @@
           @input="onBarcodeInput"
           @blur="refocus"
           autocomplete="off"
-          readonly
         />
       </div>
 
@@ -83,6 +82,12 @@ const message = ref('')
 const messageType = ref('success')
 const isLoading = ref(false)
 
+// 이벤트 핸들러들을 ref로 선언하여 정확히 제거할 수 있도록 함
+let clickHandler = null
+let keydownHandler = null
+let barcodeTimeout = null
+let keyTimeout = null
+
 // 한글-영문 매핑 테이블
 const koreanToEnglishMap = {
   'ㅁ': 'A', 'ㅠ': 'B', 'ㅊ': 'C', 'ㅇ': 'D', 'ㄷ': 'E', 'ㄹ': 'F', 'ㅎ': 'G', 'ㅗ': 'H',
@@ -122,26 +127,46 @@ const convertKoreanToEnglish = (text) => {
 
 // 바코드 입력 처리
 const onBarcodeInput = () => {
+  console.log('onBarcodeInput 호출됨:', barcodeBuffer.value)
   // 바코드 리더기는 빠르게 입력하므로 디바운스 적용
-  clearTimeout(window.barcodeTimeout)
-  window.barcodeTimeout = setTimeout(() => {
+  clearTimeout(barcodeTimeout)
+  barcodeTimeout = setTimeout(() => {
     processBarcodeInput()
   }, 100)
 }
 
 const processBarcodeInput = async () => {
   let barcode = barcodeBuffer.value.trim()
-  if (!barcode) return
+  console.log('input에서 바코드 처리 - 원본:', barcodeBuffer.value)
+  console.log('input에서 바코드 처리 - 트림 후:', barcode)
+  
+  if (!barcode) {
+    console.log('바코드가 비어있음')
+    return
+  }
 
   // 한글이 포함되어 있으면 영문으로 변환
   if (/[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(barcode)) {
+    console.log('한글 감지됨:', barcode)
     barcode = convertKoreanToEnglish(barcode)
+    console.log('영문 변환 후:', barcode)
+  }
+
+  // 바코드가 숫자로 시작하면 대분류가 누락된 것으로 판단
+  if (/^\d{2}-/.test(barcode)) {
+    console.log('대분류 누락 감지, 원본:', barcode)
+    showMessage('바코드의 첫 번째 문자가 누락되었습니다. 다시 스캔해주세요.', 'error')
+    barcodeBuffer.value = ''
+    return
   }
 
   // 바코드 형식 검증
   const barcodePattern = /^[A-Z]\d{2}-\d{13}-\d+$/
+  console.log('바코드 패턴 검증:', barcodePattern.test(barcode))
+  
   if (!barcodePattern.test(barcode)) {
-    showMessage('올바른 바코드 형식이 아닙니다.', 'error')
+    console.log('바코드 형식 오류:', barcode)
+    showMessage('올바른 바코드 형식이 아닙니다. (형식: A00-0000000000000-0)', 'error')
     barcodeBuffer.value = ''
     return
   }
@@ -151,20 +176,95 @@ const processBarcodeInput = async () => {
   barcodeBuffer.value = ''
 }
 
+const processBarcodeInputFromKeyboard = async (keyboardInput) => {
+  let barcode = keyboardInput.trim()
+  console.log('키보드에서 바코드 처리 - 원본:', keyboardInput)
+  console.log('키보드에서 바코드 처리 - 트림 후:', barcode)
+  
+  if (!barcode) {
+    console.log('바코드가 비어있음')
+    return
+  }
+
+  // 한글이 포함되어 있으면 영문으로 변환
+  if (/[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(barcode)) {
+    console.log('한글 감지됨:', barcode)
+    barcode = convertKoreanToEnglish(barcode)
+    console.log('영문 변환 후:', barcode)
+  }
+
+  // 바코드가 숫자로 시작하면 대분류가 누락된 것으로 판단
+  if (/^\d{2}-/.test(barcode)) {
+    console.log('대분류 누락 감지, 원본:', barcode)
+    // 일단 에러로 처리하고 사용자에게 다시 스캔하라고 안내
+    showMessage('바코드의 첫 번째 문자가 누락되었습니다. 다시 스캔해주세요.', 'error')
+    return
+  }
+
+  // 바코드 형식 검증
+  const barcodePattern = /^[A-Z]\d{2}-\d{13}-\d+$/
+  console.log('바코드 패턴 검증:', barcodePattern.test(barcode))
+  
+  if (!barcodePattern.test(barcode)) {
+    console.log('바코드 형식 오류:', barcode)
+    showMessage('올바른 바코드 형식이 아닙니다. (형식: A00-0000000000000-0)', 'error')
+    return
+  }
+
+  console.log('바코드 처리 시작:', barcode)
+  lastScannedBarcode.value = barcode
+  await returnBook(barcode)
+}
+
 // 도서 반납 API 호출
 const returnBook = async (barcode) => {
+  console.log('returnBook 호출됨:', barcode)
   isLoading.value = true
+  
+  const token = localStorage.getItem('jwtToken')
+  console.log('사용할 토큰:', token ? `${token.substring(0, 20)}...` : 'null')
+  
+  if (!token) {
+    showMessage('로그인이 필요합니다.', 'error')
+    isLoading.value = false
+    return
+  }
+  
   try {
-    const response = await axios.put('/api/return', barcode, {
+    console.log('API 요청 시작')
+    
+    const response = await axios({
+      method: 'put',  // 반납은 PUT 메소드 사용
+      url: 'http://localhost:8080/api/return',
+      data: barcode,
       headers: {
-        'Content-Type': 'text/plain'
-      }
+        'Content-Type': 'text/plain',
+        'Authorization': `Bearer ${token}`
+      },
+      withCredentials: false  // JWT 토큰 사용 시 false
     })
     
+    console.log('API 응답 성공:', response)
     showMessage(response.data, 'success')
+    
   } catch (error) {
-    const errorMessage = error.response?.data || '반납 처리 중 오류가 발생했습니다.'
-    showMessage(errorMessage, 'error')
+    console.error('API 요청 실패:', error)
+    
+    if (error.response) {
+      // 서버 응답이 있는 경우
+      console.error('응답 상태:', error.response.status)
+      console.error('응답 데이터:', error.response.data)
+      const errorMessage = error.response.data || `서버 오류: ${error.response.status}`
+      showMessage(errorMessage, 'error')
+    } else if (error.request) {
+      // 요청은 보냈지만 응답이 없는 경우
+      console.error('네트워크 오류:', error.message)
+      showMessage('네트워크 오류가 발생했습니다.', 'error')
+    } else {
+      // 요청 설정 중 오류
+      console.error('요청 오류:', error.message)
+      showMessage('요청 중 오류가 발생했습니다.', 'error')
+    }
   } finally {
     isLoading.value = false
   }
@@ -183,9 +283,11 @@ const showMessage = (msg, type = 'success') => {
 
 // 포커스 유지
 const refocus = () => {
+  console.log('refocus 호출됨')
   setTimeout(() => {
     if (barcodeInput.value) {
       barcodeInput.value.focus()
+      console.log('입력 필드에 포커스 설정됨')
     }
   }, 10)
 }
@@ -196,20 +298,140 @@ const goBack = () => {
 }
 
 onMounted(() => {
+  console.log('컴포넌트 마운트됨')
+  
+  // axios 기본 설정으로 withCredentials 비활성화
+  axios.defaults.withCredentials = false
+  
   // 컴포넌트 마운트 시 입력 필드에 포커스
   if (barcodeInput.value) {
     barcodeInput.value.focus()
+    console.log('마운트 시 포커스 설정됨')
+  } else {
+    console.log('barcodeInput이 null입니다')
   }
 
-  // 전역 클릭 이벤트로 포커스 유지
-  document.addEventListener('click', refocus)
+  // 클릭 이벤트 핸들러 정의 및 등록
+  clickHandler = () => {
+    refocus()
+  }
+  document.addEventListener('click', clickHandler)
+  console.log('클릭 이벤트 리스너 등록됨')
+  
+  // 바코드 리더기를 위한 키보드 이벤트 처리
+  let keyBuffer = ''
+  let isProcessingBarcode = false
+  
+  // 키보드 이벤트 핸들러 정의 및 등록
+  keydownHandler = (e) => {
+    console.log('키 입력 감지:', e.key, e.code)
+    
+    // 바코드 처리 중이면 무시
+    if (isProcessingBarcode) {
+      e.preventDefault()
+      return
+    }
+    
+    // 특수키 무시 (Shift, Ctrl, Alt 등) - 단, Process는 제외
+    if (e.key.length > 1 && !['Backspace', 'Delete', 'Tab', 'Enter', 'Process'].includes(e.key)) {
+      return
+    }
+    
+    // Process 키는 특별 처리 (바코드 리더기에서 A-Z를 Process로 전송할 수 있음)
+    if (e.key === 'Process') {
+      // e.code로 실제 키 확인하여 해당 문자 추가
+      const keyMap = {
+        'KeyA': 'A', 'KeyB': 'B', 'KeyC': 'C', 'KeyD': 'D', 'KeyE': 'E',
+        'KeyF': 'F', 'KeyG': 'G', 'KeyH': 'H', 'KeyZ': 'Z'
+      }
+      
+      if (keyMap[e.code]) {
+        keyBuffer += keyMap[e.code]
+        console.log(`Process ${e.code} 감지, ${keyMap[e.code]} 추가됨. 현재 버퍼:`, keyBuffer)
+      }
+      e.preventDefault()
+      return
+    }
+    
+    // Tab이나 Enter는 바코드 끝으로 간주
+    if (e.key === 'Tab' || e.key === 'Enter') {
+      e.preventDefault()
+      if (keyBuffer.trim() && !isProcessingBarcode) {
+        console.log('바코드 입력 완료:', keyBuffer)
+        isProcessingBarcode = true
+        barcodeBuffer.value = keyBuffer
+        processBarcodeInputFromKeyboard(keyBuffer)
+        keyBuffer = ''
+        setTimeout(() => { isProcessingBarcode = false }, 1000)
+      }
+      return
+    }
+    
+    // 백스페이스 처리
+    if (e.key === 'Backspace') {
+      keyBuffer = keyBuffer.slice(0, -1)
+      e.preventDefault()
+      return
+    }
+    
+    // 일반 문자 추가
+    if (e.key.length === 1) {
+      keyBuffer += e.key
+      console.log('현재 버퍼:', keyBuffer)
+      
+      // input 필드 업데이트 방지
+      e.preventDefault()
+    }
+    
+    // 타이머 리셋 (500ms 후 버퍼 클리어)
+    clearTimeout(keyTimeout)
+    keyTimeout = setTimeout(() => {
+      if (keyBuffer && !isProcessingBarcode) {
+        console.log('타임아웃으로 바코드 처리:', keyBuffer)
+        isProcessingBarcode = true
+        barcodeBuffer.value = keyBuffer
+        processBarcodeInputFromKeyboard(keyBuffer)
+        keyBuffer = ''
+        setTimeout(() => { isProcessingBarcode = false }, 1000)
+      }
+    }, 500)
+  }
+  
+  document.addEventListener('keydown', keydownHandler)
+  console.log('키보드 이벤트 리스너 등록됨')
 })
 
 onUnmounted(() => {
-  document.removeEventListener('click', refocus)
-  if (window.barcodeTimeout) {
-    clearTimeout(window.barcodeTimeout)
+  console.log('컴포넌트 언마운트됨 - 이벤트 리스너 정리 시작')
+  
+  // 클릭 이벤트 리스너 제거
+  if (clickHandler) {
+    document.removeEventListener('click', clickHandler)
+    clickHandler = null
+    console.log('클릭 이벤트 리스너 제거됨')
   }
+  
+  // 키보드 이벤트 리스너 제거
+  if (keydownHandler) {
+    document.removeEventListener('keydown', keydownHandler)
+    keydownHandler = null
+    console.log('키보드 이벤트 리스너 제거됨')
+  }
+
+  // 타이머 정리
+  if (barcodeTimeout) {
+    clearTimeout(barcodeTimeout)
+    barcodeTimeout = null
+    console.log('바코드 타이머 정리됨')
+  }
+
+  if (keyTimeout) {
+    clearTimeout(keyTimeout)
+    keyTimeout = null
+    console.log('키 타이머 정리됨')
+  }
+  
+  console.log('컴포넌트 언마운트 완료')
 })
 </script>
 
@@ -219,7 +441,6 @@ onUnmounted(() => {
   background: #f7f6f3;
   color: #37352f;
   padding: 20px;
-  margin-top: -1.5rem;
 }
 
 .header {
@@ -342,7 +563,8 @@ onUnmounted(() => {
 }
 
 .barcode-info {
-  background: rgba(255, 255, 255, 0.1);
+  background: #f7f6f3;
+  border: 1px solid #e9e5e3;
   border-radius: 6px;
   padding: 20px;
 }
