@@ -54,9 +54,15 @@ public class HistoryDAOImpl implements HistoryDAO {
 
         for (History history : historyList) {
             String bookTitle = history.getSeqBook().getTitleBook();
+            String bookAuthor = history.getSeqBook().getAuthorBook();
+            String bookIsbn = history.getSeqBook().getIsbnBook();
 
             // 유저 이름: 일반 유저가 있으면 그 이름, 없으면 관리자 이름
             String userName = history.getSeqUser() != null
+                    ? history.getSeqUser().getNameUser()
+                    : history.getSeqAdmin().getNameAdmin();
+
+            String userId = history.getSeqUser() != null
                     ? history.getSeqUser().getNameUser()
                     : history.getSeqAdmin().getNameAdmin();
 
@@ -75,7 +81,10 @@ public class HistoryDAOImpl implements HistoryDAO {
 
             RentalHistoryDto rentalHistoryDto = new RentalHistoryDto(
                     bookTitle,
+                    bookAuthor,
+                    bookIsbn,
                     userName,
+                    userId,
                     borrowDate,
                     returnDate,
                     status.toString()

@@ -151,6 +151,7 @@ public class HistoryServiceImpl implements HistoryService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public HistoryBookResponseDto getHistoryBooks() {
         RentalSummaryDto rentalSummaryDto = historyDAO.getRentalSummay();
         List<RentalHistoryDto> rentalHistoryDtoList = historyDAO.getRentalHistoryList();

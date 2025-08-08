@@ -234,14 +234,14 @@ const borrowBook = async (barcode) => {
     console.log('API 요청 시작')
     
     const response = await axios({
-      method: 'post',  // 백엔드가 POST로 변경됨
+      method: 'post',  
       url: 'http://localhost:8080/api/borrow',
       data: barcode,
       headers: {
         'Content-Type': 'text/plain',
         'Authorization': `Bearer ${token}`
       },
-      withCredentials: false  // JWT 토큰 사용 시 false
+      withCredentials: false
     })
     
     console.log('API 응답 성공:', response)

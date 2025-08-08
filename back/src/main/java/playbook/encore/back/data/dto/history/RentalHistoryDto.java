@@ -8,7 +8,10 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class RentalHistoryDto {
     private String bookTitle;
+    private String bookAuthor;
+    private String bookIsbn;
     private String userName;
+    private String userId;
     private LocalDate borrowDate;
     private LocalDate returnDate;
     private String status;

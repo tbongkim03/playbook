@@ -88,7 +88,7 @@
           <label>상태</label>
           <select v-model="filters.status" @change="applyFilters">
             <option value="all">전체</option>
-            <option value="rented">대여 중</option>
+            <option value="booked">대여 중</option>
             <option value="returned">반납 완료</option>
             <option value="overdue">연체</option>
           </select>
@@ -276,15 +276,15 @@
             <div class="detail-grid">
               <div class="detail-item">
                 <label>대여일</label>
-                <span>{{ formatDateTime(selectedRental.rentalDate) }}</span>
+                <span>{{ selectedRental.rentalDate }}</span>
               </div>
               <div class="detail-item">
                 <label>반납예정일</label>
-                <span>{{ formatDateTime(selectedRental.dueDate) }}</span>
+                <span>{{ selectedRental.rentalDate }}</span>
               </div>
               <div class="detail-item">
                 <label>반납일</label>
-                <span>{{ selectedRental.returnDate ? formatDateTime(selectedRental.returnDate) : '미반납' }}</span>
+                <span>{{ selectedRental.returnDate ? selectedRental.rentalDate : '미반납' }}</span>
               </div>
               <div class="detail-item">
                 <label>상태</label>
@@ -293,12 +293,6 @@
                 </span>
               </div>
             </div>
-          </div>
-
-          <div class="detail-actions" v-if="selectedRental.status === 'rented'">
-            <button class="return-confirm-btn" @click="processReturn(selectedRental)">
-              반납 처리
-            </button>
           </div>
         </div>
       </div>
@@ -318,10 +312,10 @@ const selectedRental = ref(null)
 
 // 통계 데이터
 const stats = ref({
-  totalRentals: 0,
-  activeRentals: 0,
-  totalReturns: 0,
-  overdueRentals: 0
+  totalRentals: 0,    // totalBorrowed
+  activeRentals: 0,   // currentlyBorrowed  
+  totalReturns: 0,    // totalReturned
+  overdueRentals: 0   // overdueCount
 })
 
 // 필터 및 검색
@@ -333,16 +327,34 @@ const filters = ref({
 })
 
 const searchQuery = ref('')
-
-// 페이지네이션
 const currentPage = ref(1)
 const itemsPerPage = 10
+
+const debugAuth = () => {
+  const token = localStorage.getItem('jwtToken')
+  const userType = localStorage.getItem('userType')
+  
+  console.log('인증 정보 확인:', {
+    토큰존재: !!token,
+    사용자정보: userType,
+  })
+  
+  // 관리자 권한 확인
+  if (!userType || userType !== 'admin') {
+    console.warn('관리자 권한이 필요합니다')
+    alert('관리자만 접근할 수 있습니다.')
+    return false
+  }
+  
+  return true
+}
 
 // API 헤더 설정
 const getAuthHeaders = () => {
   const token = localStorage.getItem('jwtToken')
+
   return {
-    Authorization: `Bearer ${token}`,
+    'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json'
   }
 }
@@ -351,23 +363,21 @@ const getAuthHeaders = () => {
 const filteredRentals = computed(() => {
   let filtered = rentalHistory.value
 
-  // 검색 필터
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(rental => 
       rental.bookTitle.toLowerCase().includes(query) ||
-      rental.bookAuthor.toLowerCase().includes(query) ||
+      (rental.bookAuthor && rental.bookAuthor.toLowerCase().includes(query)) ||
       rental.userName.toLowerCase().includes(query)
     )
   }
 
-  // 상태 필터
   if (filters.value.status !== 'all') {
     filtered = filtered.filter(rental => {
       if (filters.value.status === 'rented') {
-        return rental.status === 'rented' && !isOverdue(rental)
+        return rental.status === 'rented'
       } else if (filters.value.status === 'overdue') {
-        return rental.status === 'rented' && isOverdue(rental)
+        return rental.status === 'overdue'
       } else {
         return rental.status === filters.value.status
       }
@@ -440,83 +450,152 @@ const visiblePages = computed(() => {
 const fetchRentalHistory = async () => {
   try {
     isLoading.value = true
-    const response = await axios.get('http://localhost:8080/admin/rental-history', {
-      headers: getAuthHeaders()
+    
+    // 권한 확인
+    if (!debugAuth()) {
+      return
+    }
+    
+    const headers = getAuthHeaders()
+    if (!headers) return
+
+    console.log('API 요청 시작:', {
+      url: 'http://localhost:8080/api/book',
+      headers: headers
     })
-    rentalHistory.value = response.data
-    calculateStats()
+    
+    const response = await axios.get('http://localhost:8080/api/book', {
+      headers: headers
+    })
+    
+    console.log('API 응답 성공:', response.data)
+    console.log('응답 데이터 타입:', typeof response.data)
+    console.log('응답 데이터 키들:', Object.keys(response.data || {}))
+    
+    // 응답 데이터 구조 확인 및 처리 (HistoryBookResponseDto 기준)
+    const responseData = response.data
+    
+    // 1. 통계 데이터 처리 (RentalSummaryDto)
+    if (responseData && responseData.summary) {
+      console.log('통계 데이터:', responseData.summary)
+      stats.value = {
+        totalRentals: responseData.summary.totalBorrowed || 0,
+        activeRentals: responseData.summary.currentlyBorrowed || 0,
+        totalReturns: responseData.summary.totalReturned || 0,
+        overdueRentals: responseData.summary.overdueCount || 0
+      }
+      console.log('설정된 통계:', stats.value)
+    } else {
+      console.warn('통계 데이터가 없습니다')
+      stats.value = {
+        totalRentals: 0,
+        activeRentals: 0,
+        totalReturns: 0,
+        overdueRentals: 0
+      }
+    }
+    
+    // 2. 히스토리 데이터 처리 (List<RentalHistoryDto>)
+    let historyList = []
+    
+    if (responseData && responseData.history && Array.isArray(responseData.history)) {
+      historyList = responseData.history
+      console.log('히스토리 데이터 발견:', historyList.length, '개')
+    } else {
+      console.warn('히스토리 데이터가 없거나 잘못된 형식입니다')
+      console.log('응답 데이터 구조:', responseData)
+    }
+    
+    console.log('히스토리 리스트:', historyList)
+    console.log('히스토리 리스트 길이:', historyList.length)
+    
+    if (historyList.length > 0) {
+      console.log('첫 번째 히스토리 아이템:', historyList[0])
+    }
+    
+    // 3. 데이터 변환 및 설정 (RentalHistoryDto 기준)
+    rentalHistory.value = historyList.map((item, index) => {
+      console.log(`히스토리 아이템 ${index}:`, item)
+      
+      const mappedItem = {
+        id: index + 1, // ID 생성
+        bookTitle: item.bookTitle || '제목 없음',
+        bookAuthor: item.bookAuthor || '저자 정보 없음', // DTO에 author 필드가 없음
+        bookIsbn: item.bookIsbn || '', // DTO에 ISBN 필드가 없음
+        userName: item.userName || '사용자 정보 없음',
+        userId: item.userId || '사용자 정보 없음', // DTO에 userId 필드가 없음
+        rentalDate: item.borrowDate, // LocalDate 형태
+        returnDate: item.returnDate || null, // LocalDate 형태 또는 null
+        dueDate: null, // 계산해서 설정
+        status: item.status || 'unknown' // 백엔드에서 제공하는 상태값 사용
+      }
+      
+      // 반납예정일 계산 (대여일 + 7일)
+      if (mappedItem.rentalDate) {
+        mappedItem.dueDate = calculateDueDate(mappedItem.rentalDate)
+      }
+      
+      return mappedItem
+    })
+    
   } catch (error) {
-    console.error('대여 히스토리 조회 실패:', error)
-    alert('대여 히스토리를 불러오는데 실패했습니다.')
+    console.error('API 요청 실패:', error)
+    console.error('에러 상세:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    })
+    
+    if (error.response?.status === 403) {
+      alert('관리자만 접근할 수 있습니다.')
+      window.history.back()
+      return
+    }
+    
+    const errorMessage = error.response?.data?.message || 
+                        error.response?.data || 
+                        error.message || 
+                        '대여 히스토리를 불러오는데 실패했습니다.'
+    alert(errorMessage)
+    
   } finally {
     isLoading.value = false
   }
 }
 
-const calculateStats = () => {
-  const total = rentalHistory.value.length
-  const active = rentalHistory.value.filter(r => r.status === 'rented').length
-  const returned = rentalHistory.value.filter(r => r.status === 'returned').length
-  const overdue = rentalHistory.value.filter(r => r.status === 'rented' && isOverdue(r)).length
-
-  stats.value = {
-    totalRentals: total,
-    activeRentals: active,
-    totalReturns: returned,
-    overdueRentals: overdue
-  }
-}
-
-const isOverdue = (rental) => {
-  if (rental.status !== 'rented') return false
-  const dueDate = new Date(rental.dueDate)
-  const now = new Date()
-  return now > dueDate
+const calculateDueDate = (borrowDate) => {
+  if (!borrowDate) return null
+  const date = new Date(borrowDate)
+  date.setDate(date.getDate() + 7)
+  return date.toISOString().split('T')[0]
 }
 
 const getStatusClass = (rental) => {
-  if (rental.status === 'returned') return 'status-returned'
-  if (rental.status === 'rented' && isOverdue(rental)) return 'status-overdue'
-  if (rental.status === 'rented') return 'status-rented'
-  return ''
+  switch (rental.status) {
+    case 'returned':
+      return 'status-returned'
+    case 'overdue':
+      return 'status-overdue'
+    case 'booked':
+      return 'status-rented'
+  }
 }
 
 const getStatusText = (rental) => {
-  if (rental.status === 'returned') return '반납완료'
-  if (rental.status === 'rented' && isOverdue(rental)) return '연체'
-  if (rental.status === 'rented') return '대여중'
-  return '알 수 없음'
+  switch (rental.status) {
+    case 'returned':
+      return '반납완료'
+    case 'overdue':
+      return '연체'
+    case 'booked':
+      return '대여중'
+  }
 }
 
 const formatDate = (dateString) => {
   if (!dateString) return '-'
   const date = new Date(dateString)
   return date.toLocaleDateString('ko-KR')
-}
-
-const formatDateTime = (dateString) => {
-  if (!dateString) return '-'
-  const date = new Date(dateString)
-  return date.toLocaleString('ko-KR')
-}
-
-const processReturn = async (rental) => {
-  if (!confirm(`"${rental.bookTitle}" 도서의 반납을 처리하시겠습니까?`)) {
-    return
-  }
-
-  try {
-    await axios.post(`http://localhost:8080/admin/process-return/${rental.id}`, {}, {
-      headers: getAuthHeaders()
-    })
-    
-    alert('반납 처리가 완료되었습니다.')
-    closeDetailModal()
-    await fetchRentalHistory()
-  } catch (error) {
-    console.error('반납 처리 실패:', error)
-    alert(error.response?.data?.message || '반납 처리에 실패했습니다.')
-  }
 }
 
 const showRentalDetail = (rental) => {
@@ -540,7 +619,6 @@ const changePage = (page) => {
 }
 
 const exportData = () => {
-  // CSV 내보내기 기능
   const csvContent = [
     ['도서명', '저자', '사용자', '대여일', '반납예정일', '반납일', '상태'].join(','),
     ...rentalHistory.value.map(rental => [
