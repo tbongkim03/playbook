@@ -36,11 +36,11 @@ public class HistoryDAOImpl implements HistoryDAO {
     @Override
     public RentalSummaryDto getRentalSummay() {
         // 총 대여 수
-        int totalBorrowed = historyRepository.countByBookDt();
+        int totalBorrowed = historyRepository.countByBookDtIsNotNull();
         // 총 반납 수
-        int totalReturned = historyRepository.countByBookDtIsNotNullAndReturnDt();
+        int totalReturned = historyRepository.countByBookDtIsNotNullAndReturnDtIsNotNull();
         // 현재 대여 수
-        int currentlyBorrowed = historyRepository.countByBookDtAndReturnDtIsNull();
+        int currentlyBorrowed = historyRepository.countByBookDtIsNotNullAndReturnDtIsNull();
         // 총 연체 수
         int overdueCount = historyRepository.countByReturnDtIsNullAndBookDtBefore(LocalDate.now().minusDays(7));
 

@@ -24,9 +24,9 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
     // 대여 중인 책 수 확인
     int countBySeqUserAndReturnDtIsNull(BookUser bookUser);
 
-    int countByBookDt();
-    int countByBookDtIsNotNullAndReturnDt();
-    int countByBookDtAndReturnDtIsNull();
+    int countByBookDtIsNotNull();
+    int countByBookDtIsNotNullAndReturnDtIsNotNull();
+    int countByBookDtIsNotNullAndReturnDtIsNull();
     int countByReturnDtIsNullAndBookDtBefore(LocalDate localDate);
 
     // 연체 여부 확인
