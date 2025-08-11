@@ -157,7 +157,7 @@ onMounted(() => {
 <style scoped>
 .admin-dashboard {
   min-height: 100vh;
-  background: #f8f9fa;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   padding: 80px 0 40px;
 }
 
@@ -174,13 +174,13 @@ onMounted(() => {
   gap: 12px;
   font-size: 2.5rem;
   font-weight: 700;
-  color: #212529;
+  color: #2d3748;
   margin-bottom: 8px;
 }
 
 .dashboard-subtitle {
   font-size: 1.1rem;
-  color: #6c757d;
+  color: #718096;
   margin: 0;
 }
 
@@ -196,10 +196,10 @@ onMounted(() => {
 
 .admin-nav {
   background: white;
-  border-radius: 8px;
-  padding: 1rem;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-  border: 1px solid #dee2e6;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.03);
   height: fit-content;
 }
 
@@ -210,10 +210,10 @@ onMounted(() => {
 .nav-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #495057;
+  color: #2d3748;
   margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f1f5f9;
 }
 
 .nav-list {
@@ -227,39 +227,42 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 12px 16px;
+  padding: 14px 18px;
   border: none;
   background: transparent;
-  color: #6c757d;
+  color: #4a5568;
   font-size: 0.95rem;
   font-weight: 500;
-  border-radius: 6px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   text-align: left;
 }
 
 .nav-item:hover {
-  background: #e9ecef;
-  color: #495057;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  color: #2d3748;
+  transform: translateX(4px);
 }
 
 .nav-item.active {
-  background: #007bff;
-  color: white;
+  background: linear-gradient(135deg, #a8dadc 0%, #b8e6c1 100%);
+  color: #2d3748;
+  box-shadow: 0 4px 16px rgba(168, 218, 220, 0.3);
+  transform: translateX(4px);
 }
 
 .admin-main {
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-  border: 1px solid #dee2e6;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.03);
   overflow: hidden;
 }
 
 .content-section {
-  padding: 1rem;
+  padding: 24px;
 }
 
 /* 모달 스타일 */
@@ -269,23 +272,26 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: 20px;
+  backdrop-filter: blur(8px);
 }
 
 .modal-container {
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   max-width: 1200px;
   width: 100%;
   max-height: 90vh;
+  margin-top: 4rem;
   overflow-y: auto;
   animation: modalSlideIn 0.3s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 @keyframes modalSlideIn {
@@ -303,9 +309,10 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid #dee2e6;
-  background: #f8f9fa;
+  padding: 24px 32px;
+  border-bottom: 1px solid #f1f5f9;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 20px 20px 0 0;
 }
 
 .modal-title {
@@ -314,27 +321,34 @@ onMounted(() => {
   gap: 12px;
   font-size: 1.5rem;
   font-weight: 600;
-  color: #212529;
+  color: #2d3748;
   margin: 0;
 }
 
 .close-btn {
-  background: none;
+  background: linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 100%);
   border: none;
-  color: #6c757d;
+  color: #4a5568;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
+  padding: 8px;
+  border-radius: 12px;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  box-shadow: 0 2px 8px rgba(226, 232, 240, 0.3);
 }
 
 .close-btn:hover {
-  color: #495057;
-  background: #e9ecef;
+  background: linear-gradient(135deg, #cbd5e0 0%, #e2e8f0 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(226, 232, 240, 0.4);
 }
 
 .modal-content {
-  padding: 2rem;
+  padding: 32px;
 }
 
 /* 반응형 디자인 */
@@ -358,7 +372,7 @@ onMounted(() => {
   }
 
   .modal-content {
-    padding: 1.5rem;
+    padding: 24px;
   }
 }
 
@@ -368,7 +382,7 @@ onMounted(() => {
   }
   
   .content-section {
-    padding: 1rem;
+    padding: 16px;
   }
   
   .dashboard-content {
@@ -376,12 +390,68 @@ onMounted(() => {
     padding: 0 10px;
   }
 
+  .admin-nav {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .nav-item {
+    padding: 12px 16px;
+  }
+
   .modal-header {
-    padding: 1rem 1.5rem;
+    padding: 16px 24px;
   }
 
   .modal-content {
-    padding: 1rem;
+    padding: 16px;
+  }
+
+  .close-btn {
+    width: 32px;
+    height: 32px;
   }
 }
-</style>
+
+@media (max-width: 480px) {
+  .dashboard-header {
+    margin-bottom: 24px;
+  }
+
+  .dashboard-title {
+    font-size: 1.75rem;
+  }
+
+  .dashboard-subtitle {
+    font-size: 1rem;
+  }
+
+  .nav-title {
+    font-size: 1rem;
+  }
+
+  .nav-item {
+    font-size: 0.9rem;
+    padding: 10px 14px;
+  }
+
+  .modal-header {
+    padding: 12px 16px;
+  }
+
+  .modal-title {
+    font-size: 1.25rem;
+  }
+
+  .modal-content {
+    padding: 12px;
+  }
+
+  .admin-main {
+    border-radius: 16px;
+  }
+
+  .admin-nav {
+    border-radius: 16px;
+  }
+}</style>

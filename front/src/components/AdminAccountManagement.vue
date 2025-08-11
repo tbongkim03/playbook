@@ -153,7 +153,7 @@
         </div>
         <form @submit.prevent="updateAdmin" class="modal-form">
           <div class="form-group">
-            <label for="editAdminName">관리자 이름</label>
+            <label for="editAdminName">새 관리자 이름</label>
             <input 
               type="text" 
               id="editAdminName" 
@@ -163,20 +163,20 @@
             />
           </div>
           <div class="form-group">
-            <label for="editAdminPassword">새 비밀번호 (변경시에만 입력)</label>
+            <label for="editAdminPassword">새 비밀번호</label>
             <input 
               type="password" 
               id="editAdminPassword" 
-              v-model="editingAdmin.password" 
+              v-model="editingAdmin.pwAdmin" 
               placeholder="새 비밀번호를 입력하세요"
             />
           </div>
           <div class="form-group">
-            <label for="editAdminDiscord">디스코드 ID</label>
+            <label for="editAdminDiscord">새 디스코드 ID</label>
             <input 
               type="text" 
               id="editAdminDiscord" 
-              v-model="editingAdmin.discordId" 
+              v-model="editingAdmin.dcAdmin" 
               placeholder="디스코드 ID를 입력하세요"
             />
           </div>
@@ -309,7 +309,7 @@ const updateAdmin = async () => {
     isLoading.value = true
     const updateData = {
       nameAdmin: editingAdmin.value.nameAdmin,
-      discordId: editingAdmin.value.discordId
+      discordId: editingAdmin.value.dcAdmin
     }
     
     // 비밀번호가 입력된 경우에만 포함
@@ -417,13 +417,13 @@ onMounted(() => {
 .section-title {
   font-size: 1.8rem;
   font-weight: 700;
-  color: #1e293b;
+  color: #2d3748;
   margin-bottom: 8px;
 }
 
 .section-description {
   font-size: 1rem;
-  color: #64748b;
+  color: #718096;
   margin: 0;
 }
 
@@ -439,10 +439,11 @@ onMounted(() => {
   align-items: center;
   gap: 16px;
   padding: 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 16px;
-  color: white;
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+  background: linear-gradient(135deg, #ddbff0 0%, #e6ccf7 100%);
+  border-radius: 20px;
+  color: #2d3748;
+  box-shadow: 0 8px 32px rgba(221, 191, 240, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .stat-icon {
@@ -451,8 +452,8 @@ onMounted(() => {
   justify-content: center;
   width: 48px;
   height: 48px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
 }
 
 .stat-number {
@@ -477,39 +478,39 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   padding: 12px 20px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
+  background: linear-gradient(135deg, #b8e6c1 0%, #d4f1d4 100%);
+  color: #2d3748;
   border: none;
-  border-radius: 12px;
+  border-radius: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 6px 20px rgba(184, 230, 193, 0.3);
 }
 
 .add-admin-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 10px 30px rgba(184, 230, 193, 0.4);
 }
 
 .admin-table-container {
   background: white;
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.03);
 }
 
 .table-header {
-  padding: 20px 24px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f8fafc;
+  padding: 24px;
+  border-bottom: 1px solid #f1f5f9;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 .table-header h3 {
   font-size: 1.2rem;
   font-weight: 600;
-  color: #374151;
+  color: #2d3748;
   margin: 0;
 }
 
@@ -524,22 +525,27 @@ onMounted(() => {
 
 .admin-table th {
   text-align: left;
-  padding: 16px 24px;
-  background: #f8fafc;
-  color: #374151;
+  padding: 18px 24px;
+  background: #fafafa;
+  color: #2d3748;
   font-weight: 600;
   font-size: 0.9rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .admin-table td {
-  padding: 16px 24px;
-  border-bottom: 1px solid #f1f5f9;
-  color: #475569;
+  padding: 18px 24px;
+  border-bottom: 1px solid #f7fafc;
+  color: #4a5568;
 }
 
 .admin-row:hover {
-  background: #f8fafc;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.admin-name {
+  font-weight: 500;
+  color: #2d3748;
 }
 
 .admin-actions {
@@ -552,32 +558,34 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .edit-btn {
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
+  background: linear-gradient(135deg, #a8dadc 0%, #b8e6c1 100%);
+  color: #2d3748;
+  box-shadow: 0 2px 8px rgba(168, 218, 220, 0.3);
 }
 
 .edit-btn:hover {
-  background: #3b82f6;
-  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(168, 218, 220, 0.4);
 }
 
 .delete-btn {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  background: linear-gradient(135deg, #fdb5b5 0%, #fdc7c7 100%);
+  color: #2d3748;
+  box-shadow: 0 2px 8px rgba(253, 181, 181, 0.3);
 }
 
 .delete-btn:hover {
-  background: #ef4444;
-  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(253, 181, 181, 0.4);
 }
 
 /* 모달 스타일 */
@@ -587,20 +595,21 @@ onMounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
 }
 
 .modal-content {
   background: white;
-  border-radius: 16px;
+  border-radius: 20px;
   width: 90%;
   max-width: 500px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .modal-header {
@@ -614,7 +623,7 @@ onMounted(() => {
 .modal-header h3 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1e293b;
+  color: #2d3748;
   margin: 0;
 }
 
@@ -622,18 +631,19 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border: none;
-  background: rgba(107, 114, 128, 0.1);
-  border-radius: 8px;
-  color: #6b7280;
+  background: linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  color: #4a5568;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .modal-close:hover {
-  background: rgba(107, 114, 128, 0.2);
+  background: linear-gradient(135deg, #cbd5e0 0%, #e2e8f0 100%);
+  transform: translateY(-1px);
 }
 
 .modal-form {
@@ -648,23 +658,25 @@ onMounted(() => {
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
-  color: #374151;
+  color: #2d3748;
 }
 
 .form-group input {
   width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
+  padding: 14px 18px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
   font-size: 1rem;
   transition: all 0.3s ease;
   box-sizing: border-box;
+  background: #fafafa;
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #a8dadc;
+  box-shadow: 0 0 0 3px rgba(168, 218, 220, 0.15);
+  background: white;
 }
 
 .modal-actions {
@@ -677,32 +689,34 @@ onMounted(() => {
 .cancel-btn,
 .submit-btn,
 .delete-confirm-btn {
-  padding: 10px 20px;
+  padding: 12px 20px;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .cancel-btn {
-  background: rgba(107, 114, 128, 0.1);
-  color: #6b7280;
+  background: linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 100%);
+  color: #4a5568;
+  box-shadow: 0 4px 16px rgba(226, 232, 240, 0.3);
 }
 
 .cancel-btn:hover {
-  background: rgba(107, 114, 128, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(226, 232, 240, 0.4);
 }
 
 .submit-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  background: linear-gradient(135deg, #ddbff0 0%, #e6ccf7 100%);
+  color: #2d3748;
+  box-shadow: 0 4px 16px rgba(221, 191, 240, 0.3);
 }
 
 .submit-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 24px rgba(221, 191, 240, 0.4);
 }
 
 .submit-btn:disabled {
@@ -711,14 +725,14 @@ onMounted(() => {
 }
 
 .delete-confirm-btn {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
-  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+  background: linear-gradient(135deg, #fdb5b5 0%, #fdc7c7 100%);
+  color: #2d3748;
+  box-shadow: 0 4px 16px rgba(253, 181, 181, 0.3);
 }
 
 .delete-confirm-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+  box-shadow: 0 8px 24px rgba(253, 181, 181, 0.4);
 }
 
 .delete-confirm-btn:disabled {
@@ -741,17 +755,17 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   margin-bottom: 16px;
-  color: #f59e0b;
+  color: #f5c456;
 }
 
 .delete-content p {
   margin-bottom: 8px;
-  color: #374151;
+  color: #2d3748;
 }
 
 .warning-text {
   font-size: 0.9rem;
-  color: #6b7280;
+  color: #718096;
 }
 
 /* 반응형 디자인 */
@@ -766,7 +780,7 @@ onMounted(() => {
   
   .admin-table th,
   .admin-table td {
-    padding: 12px 16px;
+    padding: 14px 16px;
     font-size: 0.9rem;
   }
   
@@ -798,13 +812,21 @@ onMounted(() => {
   
   .admin-actions {
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
   }
   
   .edit-btn,
   .delete-btn {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
+  }
+  
+  .modal-content {
+    border-radius: 16px;
+  }
+  
+  .form-group input {
+    padding: 12px 16px;
   }
 }
 </style>

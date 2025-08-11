@@ -76,7 +76,7 @@
                 <path d="M6,18H4C3.46957,18 2.96086,17.7893 2.58579,17.4142C2.21071,17.0391 2,16.5304 2,16V11C2,10.4696 2.21071,9.96086 2.58579,9.58579C2.96086,9.21071 3.46957,9 4,9H20C20.5304,9 21.0391,9.21071 21.4142,9.58579C21.7893,9.96086 22,10.4696 22,11V16C22,16.5304 21.7893,17.0391 21.4142,17.4142C21.0391,17.7893 20.5304,18 20,18H18" stroke="currentColor" stroke-width="2"/>
                 <rect x="6" y="14" width="12" height="8" stroke="currentColor" stroke-width="2"/>
               </svg>
-              바코드 일괄 출력 ({{ booksToPrint.length }}개)
+              일괄 출력 ({{ booksToPrint.length }}개)
             </button>
           </div>
         </div>
@@ -85,7 +85,7 @@
 
     <!-- 통계 정보 -->
     <div class="stats-section">
-      <div class="stat-card">
+      <div class="stat-card total-books">
         <div class="stat-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20" stroke="currentColor" stroke-width="2"/>
@@ -98,7 +98,7 @@
         </div>
       </div>
       
-      <div class="stat-card" v-if="isPrint">
+      <div class="stat-card print-pending" v-if="isPrint">
         <div class="stat-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <polyline points="6,9 6,2 18,2 18,9" stroke="currentColor" stroke-width="2"/>
@@ -514,7 +514,6 @@ const refreshBooks = async () => {
 
 </script>
 
-<!-- 기존 스타일 유지 -->
 <style scoped>
 .book-management-container {
   min-height: 100vh;
@@ -541,12 +540,12 @@ const refreshBooks = async () => {
   gap: 12px;
   font-size: 2rem;
   font-weight: 700;
-  color: #212529;
+  color: #2d3748;
   margin-bottom: 0.5rem;
 }
 
 .page-subtitle {
-  color: #6c757d;
+  color: #718096;
   margin: 0;
   font-size: 1rem;
 }
@@ -560,20 +559,21 @@ const refreshBooks = async () => {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0.75rem 1.5rem;
-  background: #007bff;
-  color: white;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #b8e6c1 0%, #d4f1d4 100%);
+  color: #2d3748;
   border: none;
-  border-radius: 6px;
+  border-radius: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   text-decoration: none;
+  box-shadow: 0 6px 20px rgba(184, 230, 193, 0.3);
 }
 
 .register-btn:hover {
-  background: #0056b3;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(184, 230, 193, 0.4);
 }
 
 .search-section {
@@ -582,13 +582,13 @@ const refreshBooks = async () => {
 
 .search-card {
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-  border: 1px solid #dee2e6;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.03);
 }
 
 .search-content {
-  padding: 1.5rem;
+  padding: 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -620,10 +620,10 @@ const refreshBooks = async () => {
 
 .toggle-slider {
   position: relative;
-  width: 44px;
-  height: 24px;
-  background: #ced4da;
-  border-radius: 24px;
+  width: 48px;
+  height: 26px;
+  background: #e2e8f0;
+  border-radius: 26px;
   transition: background 0.3s ease;
 }
 
@@ -632,42 +632,45 @@ const refreshBooks = async () => {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   background: white;
   border-radius: 50%;
   transition: transform 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .toggle-input:checked + .toggle-slider {
-  background: #007bff;
+  background: linear-gradient(135deg, #a8dadc 0%, #b8e6c1 100%);
 }
 
 .toggle-input:checked + .toggle-slider::before {
-  transform: translateX(20px);
+  transform: translateX(22px);
 }
 
 .toggle-text {
   font-weight: 500;
-  color: #495057;
+  color: #2d3748;
 }
 
 .batch-print-btn {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0.5rem 1rem;
-  background: #28a745;
-  color: white;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #ddbff0 0%, #e6ccf7 100%);
+  color: #2d3748;
   border: none;
-  border-radius: 6px;
+  border-radius: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(221, 191, 240, 0.3);
 }
 
 .batch-print-btn:hover:not(:disabled) {
-  background: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(221, 191, 240, 0.4);
 }
 
 .batch-print-btn:disabled {
@@ -685,12 +688,22 @@ const refreshBooks = async () => {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1.5rem;
+  padding: 20px;
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-  border: 1px solid #dee2e6;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.03);
   min-width: 200px;
+}
+
+.stat-card.total-books .stat-icon {
+  background: linear-gradient(135deg, #a8dadc 0%, #b8e6c1 100%);
+  color: #2d3748;
+}
+
+.stat-card.print-pending .stat-icon {
+  background: linear-gradient(135deg, #ddbff0 0%, #e6ccf7 100%);
+  color: #2d3748;
 }
 
 .stat-icon {
@@ -699,21 +712,20 @@ const refreshBooks = async () => {
   justify-content: center;
   width: 48px;
   height: 48px;
-  background: #007bff;
-  color: white;
-  border-radius: 8px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .stat-number {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #212529;
+  color: #2d3748;
   line-height: 1;
 }
 
 .stat-label {
   font-size: 0.9rem;
-  color: #6c757d;
+  color: #718096;
 }
 
 .table-section {
@@ -722,9 +734,9 @@ const refreshBooks = async () => {
 
 .table-card {
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-  border: 1px solid #dee2e6;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.03);
   overflow: hidden;
 }
 
@@ -732,15 +744,15 @@ const refreshBooks = async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid #dee2e6;
-  background: #f8f9fa;
+  padding: 24px;
+  border-bottom: 1px solid #f1f5f9;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 .table-header h3 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #212529;
+  color: #2d3748;
   margin: 0;
 }
 
@@ -754,21 +766,21 @@ const refreshBooks = async () => {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 0.5rem 1rem;
-  background: #f8f9fa;
-  color: #495057;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 100%);
+  color: #4a5568;
+  border: none;
+  border-radius: 12px;
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(226, 232, 240, 0.3);
 }
 
 .refresh-btn:hover:not(:disabled) {
-  background: #e9ecef;
-  border-color: #adb5bd;
-  color: #495057;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(226, 232, 240, 0.4);
 }
 
 .refresh-btn:disabled {
@@ -790,7 +802,7 @@ const refreshBooks = async () => {
 }
 
 .result-count {
-  color: #6c757d;
+  color: #718096;
   font-size: 0.9rem;
 }
 
@@ -805,26 +817,26 @@ const refreshBooks = async () => {
 }
 
 .books-table th {
-  padding: 1rem 0.75rem;
-  background: #f8f9fa;
-  color: #495057;
+  padding: 18px 16px;
+  background: #fafafa;
+  color: #2d3748;
   font-weight: 600;
   font-size: 0.9rem;
-  border-bottom: 1px solid #dee2e6;
+  border-bottom: 1px solid #e2e8f0;
   text-align: left;
   white-space: nowrap;
 }
 
 .books-table td {
-  padding: 1rem 0.75rem;
-  border-bottom: 1px solid #f1f3f4;
-  color: #495057;
+  padding: 16px;
+  border-bottom: 1px solid #f7fafc;
+  color: #4a5568;
   font-size: 0.9rem;
   vertical-align: middle;
 }
 
 .book-row:hover {
-  background: #f8f9fa;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 .book-title {
@@ -842,6 +854,7 @@ const refreshBooks = async () => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: #2d3748;
 }
 
 .isbn,
@@ -859,37 +872,42 @@ const refreshBooks = async () => {
 
 .category-select {
   width: 120px;
-  padding: 0.375rem 0.5rem;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
+  padding: 8px 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
   font-size: 0.85rem;
-  background: white;
+  background: #fafafa;
+  transition: all 0.3s ease;
 }
 
 .category-select:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  border-color: #a8dadc;
+  box-shadow: 0 0 0 3px rgba(168, 218, 220, 0.15);
+  background: white;
 }
 
 .category-select:disabled {
-  background: #e9ecef;
+  background: #f1f5f9;
   opacity: 0.6;
 }
 
 .count-input {
   width: 60px;
-  padding: 0.375rem 0.5rem;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
+  padding: 8px 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
   font-size: 0.85rem;
   text-align: center;
+  background: #fafafa;
+  transition: all 0.3s ease;
 }
 
 .count-input:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  border-color: #a8dadc;
+  box-shadow: 0 0 0 3px rgba(168, 218, 220, 0.15);
+  background: white;
 }
 
 .barcode-display {
@@ -898,14 +916,15 @@ const refreshBooks = async () => {
 
 .barcode-input {
   width: 100%;
-  padding: 0.375rem 0.5rem;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
+  padding: 8px 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
   font-size: 0.8rem;
-  background: #f8f9fa;
+  background: #f8fafc;
   font-family: 'Courier New', monospace;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: #4a5568;
 }
 
 .action-buttons {
@@ -917,32 +936,34 @@ const refreshBooks = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border: none;
-  border-radius: 4px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .barcode-btn {
-  background: rgba(0, 123, 255, 0.1);
-  color: #007bff;
+  background: linear-gradient(135deg, #a8dadc 0%, #b8e6c1 100%);
+  color: #2d3748;
+  box-shadow: 0 2px 8px rgba(168, 218, 220, 0.3);
 }
 
 .barcode-btn:hover {
-  background: #007bff;
-  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(168, 218, 220, 0.4);
 }
 
 .delete-btn {
-  background: rgba(220, 53, 69, 0.1);
-  color: #dc3545;
+  background: linear-gradient(135deg, #fdb5b5 0%, #fdc7c7 100%);
+  color: #2d3748;
+  box-shadow: 0 2px 8px rgba(253, 181, 181, 0.3);
 }
 
 .delete-btn:hover {
-  background: #dc3545;
-  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(253, 181, 181, 0.4);
 }
 
 .empty-state {
@@ -951,20 +972,21 @@ const refreshBooks = async () => {
   align-items: center;
   justify-content: center;
   padding: 4rem 2rem;
-  color: #6c757d;
+  color: #718096;
   text-align: center;
 }
 
 .empty-state svg {
   margin-bottom: 1.5rem;
-  opacity: 0.5;
+  opacity: 0.4;
+  color: #a0aec0;
 }
 
 .empty-state h3 {
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: #495057;
+  color: #2d3748;
 }
 
 .empty-state p {
@@ -979,31 +1001,34 @@ const refreshBooks = async () => {
 .pagination {
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .page-btn {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #dee2e6;
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
   background: white;
-  color: #495057;
-  border-radius: 4px;
+  color: #4a5568;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 0.9rem;
-  min-width: 40px;
+  min-width: 44px;
   text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .page-btn:hover {
-  background: #e9ecef;
-  border-color: #adb5bd;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .page-btn.active {
-  background: #007bff;
-  color: white;
-  border-color: #007bff;
+  background: linear-gradient(135deg, #a8dadc 0%, #b8e6c1 100%);
+  color: #2d3748;
+  border-color: #a8dadc;
+  box-shadow: 0 4px 12px rgba(168, 218, 220, 0.3);
 }
 
 /* 반응형 디자인 */
@@ -1044,7 +1069,7 @@ const refreshBooks = async () => {
   
   .books-table th,
   .books-table td {
-    padding: 0.75rem 0.5rem;
+    padding: 14px 12px;
     font-size: 0.8rem;
   }
   
@@ -1055,19 +1080,59 @@ const refreshBooks = async () => {
   .category-select {
     width: 100px;
     font-size: 0.8rem;
+    padding: 6px 10px;
   }
   
   .count-input {
     width: 50px;
+    padding: 6px 10px;
   }
   
   .barcode-input {
     font-size: 0.75rem;
+    padding: 6px 10px;
   }
   
   .action-btn {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
+  }
+  
+  .page-btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    min-width: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-card,
+  .table-card {
+    border-radius: 16px;
+  }
+  
+  .register-btn {
+    border-radius: 12px;
+    padding: 10px 16px;
+  }
+  
+  .batch-print-btn,
+  .refresh-btn {
+    border-radius: 10px;
+  }
+  
+  .toggle-slider {
+    width: 44px;
+    height: 24px;
+  }
+  
+  .toggle-slider::before {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .toggle-input:checked + .toggle-slider::before {
+    transform: translateX(20px);
   }
 }
 </style>

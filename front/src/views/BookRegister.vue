@@ -20,7 +20,8 @@
                   placeholder="ISBN을 입력하세요" 
                   v-model="book.isbn" 
                   @keydown="blockJavascriptInput" 
-                  @keydown.space.prevent 
+                  @keydown.space.prevent
+                  @keydown.enter="handleIsbnEnter"
                 />
                 <button class="search-btn" type="button" @click="searchISBN" :disabled="isSearching">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -40,6 +41,7 @@
                 class="form-input" 
                 v-model="book.title" 
                 @keydown="blockJavascriptInput" 
+                @keydown.enter="handleFormEnter"
                 placeholder="도서 제목을 입력하세요"
                 required
               />
@@ -53,6 +55,7 @@
                 class="form-input" 
                 v-model="book.author" 
                 @keydown="blockJavascriptInput" 
+                @keydown.enter="handleFormEnter"
                 placeholder="저자를 입력하세요"
                 required
               />
@@ -66,6 +69,7 @@
                 class="form-input" 
                 v-model="book.publisher" 
                 @keydown="blockJavascriptInput" 
+                @keydown.enter="handleFormEnter"
                 placeholder="출판사를 입력하세요"
                 required
               />
@@ -79,6 +83,7 @@
                 class="form-input" 
                 v-model="book.publishDate" 
                 @keydown="blockJavascriptInput" 
+                @keydown.enter="handleFormEnter"
               />
             </div>
 
@@ -173,6 +178,7 @@ const emit = defineEmits(['book-registered', 'cancel'])
 const bookImg = ref(null)
 const isLoading = ref(false)
 const isSearching = ref(false)
+const hasSearched = ref(false) // 조회 완료 상태 추적
 
 const book = reactive({
   isbn: '',
@@ -211,10 +217,24 @@ function blockJavascriptInput(e) {
   }
 }
 
+// ISBN 입력 필드에서 엔터 키 처리
+function handleIsbnEnter(e) {
+  if (!isSearching.value && book.isbn && String(book.isbn).trim()) {
+    searchISBN()
+  }
+}
+
+// 다른 입력 필드에서 엔터 키 처리
+function handleFormEnter(e) {
+  if (hasSearched.value && isFormValid.value && !isLoading.value) {
+    submitBook()
+  }
+}
+
 async function searchISBN() {
   const apiKey = import.meta.env.VITE_NL_API_KEY
 
-  const isbn = book.isbn
+  const isbn = String(book.isbn || '').trim()
 
   if (!isbn) {
     alert('ISBN을 입력해주세요.')
@@ -241,6 +261,8 @@ async function searchISBN() {
     book.publisher = doc['PUBLISHER'] || ''
     book.publishDate = formatDate(doc['PUBLISH_PREDATE'] || '')
     book.title_url = doc['TITLE_URL'] || ''
+    
+    hasSearched.value = true // 조회 완료 상태 설정
 
   } catch (err) {
     console.error('API 조회 실패:', err)
@@ -336,6 +358,7 @@ function resetForm() {
   Object.keys(book).forEach(key => {
     book[key] = ''
   })
+  hasSearched.value = false // 조회 상태도 초기화
 }
 
 function useMouse(e) {
