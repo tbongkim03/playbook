@@ -1,11 +1,9 @@
 <template>
   <header class="main-header">
     <div class="header-content">
-      <router-link to="/" custom v-slot="{ navigate }">
-        <div class="logo-container" @click="navigate">
-          <img src="@/assets/playbook_logo-removebg-preview.png" alt="Logo" class="logo-img" />
-        </div>
-      </router-link>
+      <div class="logo-container" @click="goHome">
+        <img src="@/assets/playbook_logo-removebg-preview.png" alt="Logo" class="logo-img" />
+      </div>
 
       <div class="user-section">
         <template v-if="isLogin">
@@ -70,6 +68,11 @@ const router = useRouter()
 const showLoginButton = computed(() => {
   return !isLogin.value && route.path !== '/login'
 })
+
+function goHome() {
+  window.location.href = '/';
+}
+
 
 // 사용자 정보 가져오기 함수
 async function fetchUserInfo() {

@@ -22,8 +22,8 @@
                     <div class="link-group">
                         <h4>서비스</h4>
                         <ul>
-                            <li><a href="#" @click.prevent>도서 대여</a></li>
-                            <li><a href="#" @click.prevent>도서 반납</a></li>
+                            <li><a href="borrow">도서 대여</a></li>
+                            <li><a href="return">도서 반납</a></li>
                             <li><a href="#" @click.prevent>이용 안내</a></li>
                         </ul>
                     </div>
@@ -40,10 +40,10 @@
                     <div class="link-group">
                         <h4>정보</h4>
                         <ul>
-                            <li><a href="#" @click.prevent>회사 소개</a></li>
-                            <li><a href="#" @click.prevent>개인정보 처리방침</a></li>
-                            <li><a href="#" @click.prevent>이용 약관</a></li>
-                            <li><a href="#" @click.prevent>공지사항</a></li>
+                            <li><a href="https://www.en-core.com/resource/playdata" target="_blank">회사 소개</a></li>
+                            <li><a href="/service/info" @click="navigateToPage">개인정보 처리방침</a></li>
+                            <li><a href="/service/terms" @click="navigateToPage">이용 약관</a></li>
+                            <li><a href="/service/alarm" @click="navigateToPage">도서 대여 및 반납 알림 수신</a></li>
                         </ul>
                     </div>
                 </div>
@@ -102,8 +102,16 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 const currentDate = ref('')
+const router = useRouter()
+
+function navigateToPage(event) {
+  event.preventDefault()
+  const href = event.currentTarget.getAttribute('href')
+  router.push(href)
+}
 
 onMounted(() => {
     const now = new Date()

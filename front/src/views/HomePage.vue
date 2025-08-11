@@ -69,7 +69,7 @@
         <div class="content-header" v-if="filteredBookList.length > 0">
           <h2 class="section-title">
             {{ getSectionTitle() }}
-            <span class="book-count">({{ totalCount }}권)</span>
+            <span class="book-count">({{ displayCount }}권)</span>
           </h2>
         </div>
 
@@ -154,7 +154,6 @@ const selectedMediumCategoryLargeSeq = ref(null) // 중분류가 속한 대분�
 
 const hoveringWrapper = ref(false)
 const hoveredLargeCategory = ref(null)
-const hoveringMedium = ref(false)
 
 const bookList = ref([])
 const totalCount = ref(0)
@@ -253,11 +252,20 @@ const currentLargeForMedium = computed(() => {
 })
 
 const filteredBookList = computed(() => {
-  if (!selectedMediumCategory.value) {
-    return bookList.value
+  let filtered = bookList.value.filter(book => 
+    book.seqSortFirst !== 0 && book.seqSortSecond !== 0
+  );
+  
+  if (selectedMediumCategory.value) {
+    filtered = filtered.filter(book => book.seqSortSecond === selectedMediumCategory.value);
   }
-  return bookList.value.filter(book => book.seqSortSecond === selectedMediumCategory.value)
-})
+  
+  return filtered;
+});
+
+const displayCount = computed(() => {
+  return filteredBookList.value.length;
+});
 
 const mainMarginTop = computed(() => {
   const baseMargin = shouldShowMediumDropdown.value ? '180px' : '120px'
