@@ -55,7 +55,7 @@
             <tr v-for="admin in adminList" :key="admin.id" class="admin-row">
               <td class="admin-id">{{ admin.idAdmin }}</td>
               <td class="admin-name">{{ admin.nameAdmin }}</td>
-              <td class="admin-discord">{{ admin.discordId || '-' }}</td>
+              <td class="admin-discord">{{ admin.dcAdmin || '-' }}</td>
               <td class="admin-date">{{ formatDate(admin.createdAt) }}</td>
               <td class="admin-actions">
                 <button class="edit-btn" @click="openEditModal(admin)">
@@ -115,17 +115,17 @@
             <input 
               type="password" 
               id="newAdminPassword" 
-              v-model="newAdmin.password" 
+              v-model="newAdmin.pwAdmin" 
               required 
               placeholder="비밀번호를 입력하세요"
             />
           </div>
           <div class="form-group">
-            <label for="newAdminDiscord">디스코드 ID (선택사항)</label>
+            <label for="newAdminDiscord">디스코드 ID</label>
             <input 
               type="text" 
               id="newAdminDiscord" 
-              v-model="newAdmin.discordId" 
+              v-model="newAdmin.dcAdmin" 
               placeholder="디스코드 ID를 입력하세요"
             />
           </div>
@@ -240,9 +240,9 @@ const showDeleteModal = ref(false)
 // 폼 데이터
 const newAdmin = ref({
   idAdmin: '',
+  pwAdmin: '',
   nameAdmin: '',
-  password: '',
-  discordId: ''
+  dcAdmin: ''
 })
 
 const editingAdmin = ref({
@@ -270,7 +270,7 @@ const fetchAdminList = async () => {
     const response = await axios.get('http://localhost:8080/admin/list', {
       headers: getAuthHeaders()
     })
-    adminList.value = response.data
+    adminList.value = response.data.content
   } catch (error) {
     console.error('관리자 목록 조회 실패:', error)
     alert('관리자 목록을 불러오는데 실패했습니다.')
@@ -281,14 +281,14 @@ const fetchAdminList = async () => {
 
 // 관리자 추가
 const addAdmin = async () => {
-  if (!newAdmin.value.idAdmin || !newAdmin.value.nameAdmin || !newAdmin.value.password) {
+  if (!newAdmin.value.idAdmin || !newAdmin.value.nameAdmin || !newAdmin.value.pwAdmin || !newAdmin.value.dcAdmin) {
     alert('필수 정보를 모두 입력해주세요.')
     return
   }
 
   try {
     isLoading.value = true
-    await axios.post('http://localhost:8080/admin/create', newAdmin.value, {
+    await axios.post('http://localhost:8080/admin/register', newAdmin.value, {
       headers: getAuthHeaders()
     })
     
@@ -729,6 +729,7 @@ onMounted(() => {
 /* 삭제 모달 특별 스타일 */
 .delete-modal {
   max-width: 400px;
+  padding: 12px;
 }
 
 .delete-content {
