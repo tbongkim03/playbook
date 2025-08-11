@@ -70,10 +70,12 @@ public class HistoryDAOImpl implements HistoryDAO {
             LocalDate returnDate = history.getReturnDt();
 
             // 상태 결정
+            LocalDate dueDate = borrowDate.plusDays(7);
             History.StatusType status;
+
             if (returnDate != null) {
                 status = History.StatusType.returned;
-            } else if (borrowDate.isBefore(LocalDate.now())) {
+            } else if (dueDate.isBefore(LocalDate.now())) {
                 status = History.StatusType.overdue;
             } else {
                 status = History.StatusType.booked;
@@ -94,6 +96,11 @@ public class HistoryDAOImpl implements HistoryDAO {
         }
 
         return rentalHistoryDtoList;
+    }
+
+    @Override
+    public void deleteHistory(History history) {
+        historyRepository.delete(history);
     }
 
 }

@@ -37,7 +37,24 @@ public class HistoryController {
         } catch (Exception IllegalArgumentException) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
         }
+    }
 
+    @DeleteMapping("/book/{historyId}")
+    public ResponseEntity<?> deleteHistoryBook(
+            HttpServletRequest request,
+            @PathVariable int historyId
+    ) throws Exception {
+        try {
+            Object roleAttr = request.getAttribute("ROLE");
+            if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+                Admin user = (Admin) request.getAttribute("admin");
+                historyService.deleteHistoryBook(historyId);
+                return ResponseEntity.status(HttpStatus.OK).body("도서 대여 기록이 삭제되었습니다.");
+            }
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+        } catch (Exception IllegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        }
     }
 
     // 대여 부분

@@ -8,7 +8,7 @@ import playbook.encore.back.data.dto.bookUser.RegisterIdValidateResponseDto;
 import playbook.encore.back.data.entity.Admin;
 
 public interface AdminService {
-    RegisterAdminResponseDto createAdmin(RegisterAdminRequestDto registerAdminRequestDto);
+    RegisterAdminResponseDto createAdmin(Admin user, RegisterAdminRequestDto registerAdminRequestDto);
 
     RegisterIdValidateResponseDto checkUserId(String idAdmin);
 

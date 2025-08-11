@@ -159,7 +159,14 @@ public class HistoryServiceImpl implements HistoryService {
         return new HistoryBookResponseDto(rentalSummaryDto, rentalHistoryDtoList);
     }
 
-    // 연체인지
+    @Override
+    public void deleteHistoryBook(int historyId) {
+        History history = historyRepository.findById(historyId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 대여 기록입니다."));
+        historyDAO.deleteHistory(history);
+    }
+
+    // 연체 인지
     private boolean isOverdue(History history) {
         return history.getReturnDt() == null && history.getBookDt().isBefore(LocalDate.now().minusDays(7));
     }

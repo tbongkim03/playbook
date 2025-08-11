@@ -12,4 +12,6 @@ public interface HistoryDAO {
 
     RentalSummaryDto getRentalSummay();
     List<RentalHistoryDto> getRentalHistoryList();
+
+    void deleteHistory(History history);
 }

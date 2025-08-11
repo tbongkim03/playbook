@@ -15,6 +15,8 @@ import playbook.encore.back.data.entity.Admin;
 import playbook.encore.back.jwt.jwtUtil;
 import playbook.encore.back.service.AdminService;
 
+import java.util.Optional;
+
 @Service
 public class AdminServiceImpl implements AdminService {
 
@@ -30,12 +32,12 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public RegisterAdminResponseDto createAdmin(RegisterAdminRequestDto registerAdminRequestDto) {
+    public RegisterAdminResponseDto createAdmin(Admin user, RegisterAdminRequestDto registerAdminRequestDto) {
         String hashedPassword = BCrypt.hashpw(registerAdminRequestDto.getPwAdmin(), BCrypt.gensalt());
 
         Admin admin = Admin.builder()
                 .idAdmin(registerAdminRequestDto.getIdAdmin())
-                .pwAdmin(registerAdminRequestDto.getPwAdmin())
+                .pwAdmin(hashedPassword)
                 .nameAdmin(registerAdminRequestDto.getNameAdmin())
                 .dcAdmin(registerAdminRequestDto.getDcAdmin())
                 .agreeTermsAdmin(registerAdminRequestDto.isAgreeTermsAdmin())
@@ -44,7 +46,10 @@ public class AdminServiceImpl implements AdminService {
                 .statusAdmin(Admin.StatusTypeAdmin.available)
                 .build();
 
-        Admin savedAdmin = adminDAO.createAdmin(admin);
+        boolean savedAdmin = adminDAO.createAdmin(user, admin).isPresent();
+        if (!savedAdmin) {
+            throw new IllegalArgumentException("존재하지 않는 어드민입니다.");
+        }
 
         return new RegisterAdminResponseDto(200, HttpStatus.OK, "회원가입을 완료하였습니다", null);
     }

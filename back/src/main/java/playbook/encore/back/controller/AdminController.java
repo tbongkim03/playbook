@@ -24,11 +24,20 @@ public class AdminController {
     }
 
     // 회원가입 관련 부분
-//    @PostMapping("/register")
-//    public ResponseEntity<RegisterAdminResponseDto> registerAdmin(@RequestBody RegisterAdminRequestDto registerAdminRequestDto) throws Exception {
-//        RegisterAdminResponseDto registerAdminResponseDto = adminService.createAdmin(registerAdminRequestDto);
-//        return ResponseEntity.status(HttpStatus.OK).body(registerAdminResponseDto);
-//    }
+    @PostMapping("/register")
+    public ResponseEntity<?> registerAdmin(
+            HttpServletRequest request,
+            @RequestBody RegisterAdminRequestDto registerAdminRequestDto
+    ) throws Exception {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+            Admin user = (Admin) request.getAttribute("admin");
+            RegisterAdminResponseDto registerAdminResponseDto = adminService.createAdmin(user, registerAdminRequestDto);
+            return ResponseEntity.status(HttpStatus.OK).body(registerAdminResponseDto);
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+    }
+
     @GetMapping("/register/validate")
     public ResponseEntity<RegisterIdValidateResponseDto> validationId(@RequestParam("id") String idAdmin) throws Exception {
         RegisterIdValidateResponseDto registerIdValidateResponseDto = adminService.checkUserId(idAdmin);

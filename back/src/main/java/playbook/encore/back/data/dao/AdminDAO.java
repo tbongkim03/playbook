@@ -5,7 +5,7 @@ import playbook.encore.back.data.entity.Admin;
 import java.util.Optional;
 
 public interface AdminDAO {
-    Admin createAdmin(Admin admin);
+    Optional<Admin> createAdmin(Admin user, Admin admin);
 
     Optional<Admin> searchBookUserResultExact(String idAdmin);
 

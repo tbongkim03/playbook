@@ -17,7 +17,12 @@ public class AdminDAOImpl implements AdminDAO {
     private final AdminRepository adminRepository;
 
     @Override
-    public Admin createAdmin(Admin admin) { return adminRepository.save(admin);}
+    public Optional<Admin> createAdmin(Admin user, Admin admin) {
+        Optional<Admin> optionalAdmin = adminRepository.findByIdAdmin(user.getIdAdmin());
+        if (optionalAdmin.isEmpty()) return Optional.empty();
+        adminRepository.save(admin);
+        return Optional.of(admin);
+    }
 
     @Override
     public Optional<Admin> searchBookUserResultExact(String idAdmin) {
@@ -29,7 +34,7 @@ public class AdminDAOImpl implements AdminDAO {
         Optional<Admin> optionalAdmin = adminRepository.findByIdAdmin(id);
         if (optionalAdmin.isEmpty()) return Optional.empty();
         Admin admin = optionalAdmin.get();
-        if (!admin.getPwAdmin().equals(pw)) return Optional.empty();
+        if (!BCrypt.checkpw(pw, admin.getPwAdmin())) return Optional.empty();
         return Optional.of(admin);
     }
 

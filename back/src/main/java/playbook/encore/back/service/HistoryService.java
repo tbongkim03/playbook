@@ -7,4 +7,5 @@ public interface HistoryService {
     void handleBookReturn(Object user, String barcodeBook);
 
     HistoryBookResponseDto getHistoryBooks();
+    void deleteHistoryBook(int historyId);
 }
