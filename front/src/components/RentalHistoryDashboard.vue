@@ -280,11 +280,11 @@
               </div>
               <div class="detail-item">
                 <label>반납예정일</label>
-                <span>{{ selectedRental.rentalDate }}</span>
+                <span>{{ selectedRental.dueDate }}</span>
               </div>
               <div class="detail-item">
                 <label>반납일</label>
-                <span>{{ selectedRental.returnDate ? selectedRental.rentalDate : '미반납' }}</span>
+                <span>{{ selectedRental.dueDate ? selectedRental.dueDate : '미반납' }}</span>
               </div>
               <div class="detail-item">
                 <label>상태</label>
