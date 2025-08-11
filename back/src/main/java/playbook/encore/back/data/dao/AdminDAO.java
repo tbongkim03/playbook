@@ -2,6 +2,7 @@ package playbook.encore.back.data.dao;
 
 import playbook.encore.back.data.entity.Admin;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface AdminDAO {
@@ -16,4 +17,6 @@ public interface AdminDAO {
     Optional<Admin> changePw(Admin user, String hashedPassword);
 
     Optional<Admin> pwValidate(Admin user, String password);
+
+    List<Admin> getAdminList();
 }

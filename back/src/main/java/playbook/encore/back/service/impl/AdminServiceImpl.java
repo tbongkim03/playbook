@@ -6,15 +6,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import playbook.encore.back.data.dao.AdminDAO;
 import playbook.encore.back.data.dao.BookUserDAO;
-import playbook.encore.back.data.dto.admin.LoginAdminRequestDto;
-import playbook.encore.back.data.dto.admin.LoginAdminResponseDto;
-import playbook.encore.back.data.dto.admin.RegisterAdminRequestDto;
-import playbook.encore.back.data.dto.admin.RegisterAdminResponseDto;
+import playbook.encore.back.data.dto.admin.*;
 import playbook.encore.back.data.dto.bookUser.RegisterIdValidateResponseDto;
 import playbook.encore.back.data.entity.Admin;
 import playbook.encore.back.jwt.jwtUtil;
 import playbook.encore.back.service.AdminService;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
@@ -44,6 +42,7 @@ public class AdminServiceImpl implements AdminService {
                 .agreeInfoAdmin(registerAdminRequestDto.isAgreeInfoAdmin())
                 .agreeDiscordAlarmAdmin(registerAdminRequestDto.isAgreeDiscordAlarmAdmin())
                 .statusAdmin(Admin.StatusTypeAdmin.available)
+                .createdAt(LocalDate.now())
                 .build();
 
         boolean savedAdmin = adminDAO.createAdmin(user, admin).isPresent();
@@ -97,5 +96,14 @@ public class AdminServiceImpl implements AdminService {
             throw new IllegalArgumentException("과정 변경에 실패하였습니다. 다시 시도해 주세요");
         }
         return true;
+    }
+
+    @Override
+    public AdminListResponseDto getAdminList() {
+        AdminListResponseDto adminListResponseDto = new AdminListResponseDto(adminDAO.getAdminList());
+        if (adminListResponseDto.getContent().isEmpty()) {
+            throw new IllegalArgumentException("등록된 어드민이 없습니다.");
+        }
+        return adminListResponseDto;
     }
 }

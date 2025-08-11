@@ -11,6 +11,8 @@ import playbook.encore.back.data.entity.Admin;
 import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.service.AdminService;
 
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/admin")
@@ -111,6 +113,22 @@ public class AdminController {
                 Admin user = (Admin) request.getAttribute("admin");
                 boolean result = adminService.updateDiscord(user, newDiscord);
                 return ResponseEntity.status(HttpStatus.OK).body(result);
+            }
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+        } catch (Exception IllegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        }
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<?> getAdminList(
+            HttpServletRequest request
+    ) throws Exception {
+        try {
+            Object roleAttr = request.getAttribute("ROLE");
+            if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+                AdminListResponseDto adminListResponseDto = adminService.getAdminList();
+                return ResponseEntity.status(HttpStatus.OK).body(adminListResponseDto);
             }
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
         } catch (Exception IllegalArgumentException) {

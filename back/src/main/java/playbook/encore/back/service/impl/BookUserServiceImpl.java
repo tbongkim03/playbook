@@ -19,6 +19,8 @@ import playbook.encore.back.data.repository.CourseRepository;
 import playbook.encore.back.jwt.jwtUtil;
 import playbook.encore.back.service.BookUserService;
 
+import java.time.LocalDate;
+
 @Service
 public class BookUserServiceImpl implements BookUserService{
 
@@ -52,6 +54,7 @@ public class BookUserServiceImpl implements BookUserService{
                 .agreeInfoUser(registerUserRequestDto.isAgreeTermsUser())
                 .agreeDiscordAlarmUser(registerUserRequestDto.isAgreeDiscordAlarmUser())
                 .statusUser(BookUser.StatusType.available)
+                .createdAt(LocalDate.now())
                 .build();
         
         bookUserDAO.createUser(bookUser);

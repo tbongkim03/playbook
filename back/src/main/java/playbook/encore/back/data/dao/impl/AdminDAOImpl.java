@@ -8,6 +8,7 @@ import playbook.encore.back.data.entity.Admin;
 import playbook.encore.back.data.entity.BookUser;
 import playbook.encore.back.data.repository.AdminRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -70,5 +71,14 @@ public class AdminDAOImpl implements AdminDAO {
         } else {
             return Optional.empty();
         }
+    }
+
+    @Override
+    public List<Admin> getAdminList() {
+        List<Admin> adminList = adminRepository.findAll();
+        if (adminList.isEmpty()) {
+            throw new IllegalArgumentException("등록된 어드민이 없습니다.");
+        }
+        return adminList;
     }
 }

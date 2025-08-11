@@ -1,9 +1,6 @@
 package playbook.encore.back.service;
 
-import playbook.encore.back.data.dto.admin.LoginAdminRequestDto;
-import playbook.encore.back.data.dto.admin.LoginAdminResponseDto;
-import playbook.encore.back.data.dto.admin.RegisterAdminRequestDto;
-import playbook.encore.back.data.dto.admin.RegisterAdminResponseDto;
+import playbook.encore.back.data.dto.admin.*;
 import playbook.encore.back.data.dto.bookUser.RegisterIdValidateResponseDto;
 import playbook.encore.back.data.entity.Admin;
 
@@ -19,4 +16,6 @@ public interface AdminService {
     boolean updatePassword(Admin user, String newPassword);
 
     boolean updateDiscord(Admin user, String newDiscord);
+
+    AdminListResponseDto getAdminList();
 }
