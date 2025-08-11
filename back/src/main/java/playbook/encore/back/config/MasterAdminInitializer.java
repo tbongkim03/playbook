@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Configuration;
 import playbook.encore.back.data.entity.Admin;
 import playbook.encore.back.data.repository.AdminRepository;
 
+import java.time.LocalDate;
+
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
@@ -55,6 +57,7 @@ public class MasterAdminInitializer {
                         .agreeInfoAdmin(true)
                         .agreeDiscordAlarmAdmin(false)
                         .statusAdmin(Admin.StatusTypeAdmin.available)
+                        .createdAt(LocalDate.now())
                         .build();
 
                 adminRepository.save(masterAdmin);
