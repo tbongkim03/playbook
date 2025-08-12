@@ -81,4 +81,15 @@ public class AdminDAOImpl implements AdminDAO {
         }
         return adminList;
     }
+
+    @Override
+    public Optional<Admin> updateStatus(Admin user, Admin.StatusTypeAdmin status) {
+        Optional<Admin> optionalAdmin = adminRepository.findByIdAdmin(user.getIdAdmin());
+        if (optionalAdmin.isEmpty()) return Optional.empty();
+        Admin selectedAdmin = optionalAdmin.get();
+        Admin updatedAdmin;
+        selectedAdmin.setStatusAdmin(status);
+        updatedAdmin = adminRepository.save(selectedAdmin);
+        return Optional.of(updatedAdmin);
+    }
 }

@@ -20,4 +20,6 @@ public interface BookUserDAO {
     Optional<BookUser> changeCourse(BookUser bookUser, Integer newSeqCourse);
 
     Optional<BookUser> changeDiscord(BookUser bookUser, String newDiscord);
+
+    Optional<BookUser> updateStatus(BookUser bookUser, BookUser.StatusType status);
 }

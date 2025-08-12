@@ -94,4 +94,17 @@ public class BookUserDAOImpl implements BookUserDAO {
         return Optional.of(updatedUser);
     }
 
+    @Override
+    public Optional<BookUser> updateStatus(BookUser bookUser, BookUser.StatusType status) {
+        Optional<BookUser> optionalUser = bookUserRepository.findByIdUser(bookUser.getIdUser());
+        if (optionalUser.isEmpty()) return Optional.empty();
+        BookUser selectedUser = optionalUser.get();
+        BookUser updatedUser;
+
+        selectedUser.setStatusUser(status);
+        updatedUser = bookUserRepository.save(selectedUser);
+
+        return Optional.of(updatedUser);
+    }
+
 }

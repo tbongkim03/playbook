@@ -19,4 +19,6 @@ public interface AdminDAO {
     Optional<Admin> pwValidate(Admin user, String password);
 
     List<Admin> getAdminList();
+
+    Optional<Admin> updateStatus(Admin user, Admin.StatusTypeAdmin status);
 }
