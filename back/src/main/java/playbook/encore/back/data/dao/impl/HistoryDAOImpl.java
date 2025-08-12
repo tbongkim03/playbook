@@ -64,7 +64,7 @@ public class HistoryDAOImpl implements HistoryDAO {
 
             String userId = history.getSeqUser() != null
                     ? history.getSeqUser().getIdUser()
-                    : history.getSeqAdmin().getIdAdmin(); 
+                    : history.getSeqAdmin().getIdAdmin();
 
             LocalDate borrowDate = history.getBookDt();
             LocalDate returnDate = history.getReturnDt();

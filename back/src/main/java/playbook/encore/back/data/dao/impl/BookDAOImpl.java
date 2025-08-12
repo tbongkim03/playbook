@@ -39,7 +39,7 @@ public class BookDAOImpl implements BookDAO {
     public Page<Book> selectBookListByPage(int page) {
         int pageSize = 10;
         PageRequest pageRequest = PageRequest.of(page - 1, pageSize, Sort.by("seqBook").ascending());
-        return bookRepository.findAll(pageRequest);
+        return bookRepository.findAllWithNonZeroSeqSortSecond(pageRequest);
     }
 
     @Override
@@ -50,12 +50,12 @@ public class BookDAOImpl implements BookDAO {
         String jpql = "SELECT b FROM Book b " +
                 "JOIN b.seqSortSecond ss " +
                 "JOIN ss.seqSortFirst sf " +
-                "WHERE sf.seqSortFirst = :sortFirstId";
+                "WHERE sf.seqSortFirst = :sortFirstId AND ss.seqSortSecond != 0";
 
         String countJpql = "SELECT COUNT(b) FROM Book b " +
                 "JOIN b.seqSortSecond ss " +
                 "JOIN ss.seqSortFirst sf " +
-                "WHERE sf.seqSortFirst = :sortFirstId";
+                "WHERE sf.seqSortFirst = :sortFirstId AND ss.seqSortSecond != 0";
 
         List<Book> books = entityManager.createQuery(jpql, Book.class)
                 .setParameter("sortFirstId", sortFirstId)
@@ -108,20 +108,23 @@ public class BookDAOImpl implements BookDAO {
         }
     }
 
+    // 연관검색어
     @Override
     public List<Book> searchBooksRelated(String titleBook) throws Exception {
-        List<Book> bookList = bookRepository.findByTitleBookContaining(titleBook);
+        List<Book> bookList = bookRepository.findByTitleBookContainingAndSeqSortSecond_SeqSortSecondNot(titleBook, 0);
         return bookList;
     }
 
+    // 정확한 제목 검색
     @Override
     public List<Book> searchBooksResultExact(String titleBook) throws Exception {
-        return bookRepository.findByTitleBook(titleBook);
+        return bookRepository.findByTitleBookAndSeqSortSecond_SeqSortSecondNot(titleBook, 0);
     }
 
+    // 제목 포함 검색
     @Override
     public List<Book> searchBooksResultContaining(String titleBook) throws Exception {
-        return bookRepository.findByTitleBookContaining(titleBook);
+        return bookRepository.findByTitleBookContainingAndSeqSortSecond_SeqSortSecondNot(titleBook, 0);
     }
 
     @Override

@@ -162,6 +162,7 @@ public class BookServiceImpl implements BookService {
         return new BookCountResponseDto(isbn, counts);
     }
 
+    // 연관검색어
     @Override
     public List<BookSearchResponseDto> searchBookTitles(String titleBook) throws Exception {
         List<Book> bookList = bookDAO.searchBooksRelated(titleBook);
@@ -178,6 +179,7 @@ public class BookServiceImpl implements BookService {
         return responseList;
     }
 
+    // 정확한 제목 검색
     @Override
     public BookListResponseDto searchBooksByExactTitle(String titleBook) throws Exception {
         List<Book> books = bookDAO.searchBooksResultExact(titleBook);
@@ -190,6 +192,7 @@ public class BookServiceImpl implements BookService {
         return new BookListResponseDto(content, totalCount);
     }
 
+    // 제목 포함 검색
     @Override
     public BookListResponseDto searchBooksByTitleContaining(String titleBook) throws Exception {
         List<Book> books = bookDAO.searchBooksResultContaining(titleBook);
