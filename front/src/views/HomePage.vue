@@ -140,7 +140,7 @@
 import BookArea from '@/components/BookArea.vue'
 import BookSearch from '@/components/BookSearch.vue'
 import BorrowReturn from '@/components/BorrowReturn.vue'
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 
 const isModalOpen = ref(true)
 
@@ -158,6 +158,12 @@ const hoveredLargeCategory = ref(null)
 const bookList = ref([])
 const totalCount = ref(0)
 const currentPage = ref(1)
+
+const handleKeydown = (event) => {
+  if (event.key === 'Escape' && isModalOpen.value) {
+    isModalOpen.value = false
+  }
+}
 
 // 검색 상태 추가
 const isSearchMode = ref(false)
@@ -373,7 +379,13 @@ onMounted(async () => {
   await fetchMediumCategories()
   selectedLargeCategory.value = '전체'
   await loadBooks(1)
+  window.addEventListener('keydown', handleKeydown)
 })
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeydown)
+})
+
 </script>
 
 <style scoped>

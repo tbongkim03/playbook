@@ -269,7 +269,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, watchEffect } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch, watchEffect } from 'vue'
 import BookSearch from './BookSearch.vue'
 import Barcode from './Barcode.vue'
 import PrintBatch from './BookPrintBatch.vue'
@@ -292,6 +292,16 @@ const selectedCntBook = ref('')
 const isPrint = ref(false)
 const isPrintBatchOpen = ref(false)
 const isRefreshing = ref(false)
+
+const handleKeydown = (event) => {
+  if (event.key === 'Escape' && isOpen.value) {
+    isOpen.value = false
+  }
+
+  if (event.key === 'Escape' && isPrintBatchOpen.value) {
+    isPrintBatchOpen.value = false
+  }
+}
 
 const fetchLargeCategories = async () => {
   const res = await fetch('http://localhost:8080/subjects')
@@ -378,6 +388,11 @@ onMounted(async () => {
   await fetchLargeCategories()
   await fetchMediumCategories()
   await fetchBooks(currentPage.value)
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeydown)
 })
 
 // 각 book의 categoryLarge가 바뀔 때 개별 감시

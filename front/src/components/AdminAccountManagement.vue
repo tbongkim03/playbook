@@ -225,7 +225,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
 
 // 반응형 데이터
@@ -236,6 +236,20 @@ const isLoading = ref(false)
 const showAddModal = ref(false)
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
+
+const handleKeydown = (event) => {
+  if (event.key === 'Escape' && showAddModal.value) {
+    showAddModal.value = false
+  }
+
+  if (event.key === 'Escape' && showEditModal.value) {
+    showEditModal.value = false
+  }
+
+  if (event.key === 'Escape' && showDeleteModal.value) {
+    showDeleteModal.value = false
+  }
+}
 
 // 폼 데이터
 const newAdmin = ref({
@@ -402,6 +416,11 @@ const formatDate = (dateString) => {
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(() => {
   fetchAdminList()
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeydown)
 })
 </script>
 

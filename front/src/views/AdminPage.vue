@@ -112,7 +112,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import AdminAccountManagement from '@/components/AdminAccountManagement.vue'
 import RentalHistoryDashboard from '@/components/RentalHistoryDashboard.vue'
@@ -123,6 +123,12 @@ const router = useRouter()
 const activeTab = ref('admin-accounts')
 const showRegisterModal = ref(false)
 const booksTableRef = ref(null)
+
+const handleKeydown = (event) => {
+  if (event.key === 'Escape' && showRegisterModal.value) {
+    showRegisterModal.value = false
+  }
+}
 
 const setActiveTab = (tab) => {
   activeTab.value = tab
@@ -151,6 +157,11 @@ const checkAdminAuth = () => {
 
 onMounted(() => {
   checkAdminAuth()
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeydown)
 })
 </script>
 

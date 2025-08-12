@@ -58,6 +58,22 @@
         </div>
       </div>
 
+      <!-- 출력 설정 (출력 모드일 때만 표시) -->
+      <div class="print-settings" v-if="!isD && showBarcode">
+        <div class="setting-group">
+          <label for="startPosition" class="setting-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21 10C21 16.0751 16.0751 21 10 21C4.44772 21 0 16.5523 0 11C0 5.44772 4.44772 1 10 1C15.5228 1 20 5.44772 20 11" stroke="currentColor" stroke-width="2"/>
+              <circle cx="10" cy="11" r="3" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            라벨 시작 위치
+          </label>
+          <select id="startPosition" v-model="startPosition" class="setting-select">
+            <option v-for="n in 21" :key="n" :value="n - 1">{{ n }}번째</option>
+          </select>
+        </div>
+      </div>
+
       <!-- 바코드 정보 -->
       <div class="barcode-info" v-if="barcodeBook">
         <div class="info-row">
@@ -138,6 +154,7 @@ const msg = ref('')
 const isD = ref(false)
 const buttonsDisabled = ref(false)
 const showBarcode = ref(false)
+const startPosition = ref(0)  // 시작 위치 (0-20)
 const token = localStorage.getItem('jwtToken')
 
 function close() {
@@ -238,7 +255,7 @@ const saveBook = () => {
   postPrintedBook(false)
 }
 
-// 개별 출력 및 저장
+// 개별 출력 및 저장 - 폼텍 라벨지 형식으로 수정
 const printBarcode = () => {
   if (isD.value === true) {
     alert("🚫 중복된 바코드입니다. 출력할 수 없습니다.")
@@ -256,6 +273,28 @@ const printBarcode = () => {
     return
   }
 
+  // 빈 셀 생성 (시작 위치만큼)
+  const emptyCells = Array(startPosition.value).fill('<div class="barcode-cell"></div>')
+
+  // 바코드 셀 생성 (1개만)
+  const tempSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+  JsBarcode(tempSvg, props.barcodeBook, {
+    format: "CODE128",
+    lineColor: "#000",
+    width: 1,
+    height: 40,
+    displayValue: false,
+  })
+
+  const barcodeCell = `
+    <div class="barcode-cell">
+      ${tempSvg.outerHTML}
+      <div class="barcode-label">${props.barcodeBook} - ${props.titleBook}</div>
+    </div>
+  `
+
+  const content = [...emptyCells, barcodeCell].join('')
+
   const doc = printWindow.document
   doc.open()
   doc.write(`
@@ -265,37 +304,55 @@ const printBarcode = () => {
         <meta charset="UTF-8">
         <title>바코드 출력 - ${props.titleBook}</title>
         <style>
-          body { 
-            font-family: sans-serif; 
-            margin: 20px;
+          @page { size: A4; margin: 0; }
+          body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+
+          .print-area {
+            display: grid;
+            grid-template-columns: repeat(5, 38.1mm);
+            grid-auto-rows: 21.2mm;
+            gap: 0mm 2.5mm;
+            padding: 15mm 6.5mm; /* 상단, 좌우 여백 */
+          }
+
+          .barcode-cell {
+            width: 38.1mm;
+            height: 21.2mm;
+            border: 1px solid #ccc; /* 가이드용으로 보이게 하려면 #ccc */
+            border-radius: 5px;
+            box-sizing: border-box;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 10pt;
+          }
+
+          svg {
+            width: 35mm;
+          }
+
+          .barcode-label {
+            font-size: 5px;
+            margin-top: 1mm;
             text-align: center;
-          }
-          .barcode-container {
-            margin: 20px 0;
-          }
-          svg { 
-            width: auto; 
-            height: 60px; 
-          }
-          .book-info {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #333;
+            word-break: break-word;
           }
         </style>
       </head>
       <body>
-        <div class="barcode-container">
-          ${barcodeSvg.value.outerHTML}
-        </div>
-        <div class="book-info">
-          <strong>${props.titleBook}</strong><br>
-          수량: ${props.cntBook}권
+        <div class="print-area">
+          ${content}
         </div>
         <script>
           window.onload = function() {
             window.print();
-          }
+          };
         </` + `script>
       </body>
     </html>
@@ -516,11 +573,49 @@ const postPrintedBook = async (printCheckBook) => {
   flex: 1;
 }
 
+/* 출력 설정 섹션 */
+.print-settings {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 300px;
+}
+
+.setting-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.setting-select {
+  padding: 0.75rem 1rem;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.setting-select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
 /* 바코드 정보 */
 .barcode-info {
   padding: 1.5rem;
   border-bottom: 1px solid #e9ecef;
-  background: #f8f9fa;
+  background: white;
 }
 
 .info-row {
@@ -585,113 +680,118 @@ const postPrintedBook = async (printCheckBook) => {
 
 /* 액션 버튼 */
 .modal-actions {
-  padding: 1.5rem;
-  background: white;
+ padding: 1.5rem;
+ background: white;
 }
 
 .action-buttons {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
+ display: flex;
+ gap: 1rem;
+ margin-bottom: 1rem;
 }
 
 .action-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
-  flex: 1;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: 0.5rem;
+ padding: 0.75rem 1rem;
+ border: none;
+ border-radius: 6px;
+ font-weight: 600;
+ cursor: pointer;
+ transition: all 0.3s ease;
+ font-size: 0.9rem;
+ flex: 1;
 }
 
 .save-btn {
-  background: #6c757d;
-  color: white;
+ background: #6c757d;
+ color: white;
 }
 
 .save-btn:hover:not(:disabled) {
-  background: #5a6268;
-  transform: translateY(-1px);
+ background: #5a6268;
+ transform: translateY(-1px);
 }
 
 .print-btn {
-  background: #007bff;
-  color: white;
+ background: #007bff;
+ color: white;
 }
 
 .print-btn:hover:not(:disabled) {
-  background: #0056b3;
-  transform: translateY(-1px);
+ background: #0056b3;
+ transform: translateY(-1px);
 }
 
 .close-btn-bottom {
-  background: rgba(108, 117, 125, 0.1);
-  color: #6c757d;
-  width: 100%;
+ background: rgba(108, 117, 125, 0.1);
+ color: #6c757d;
+ width: 100%;
 }
 
 .close-btn-bottom:hover {
-  background: rgba(108, 117, 125, 0.2);
-  color: #495057;
+ background: rgba(108, 117, 125, 0.2);
+ color: #495057;
 }
 
 .action-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
+ opacity: 0.6;
+ cursor: not-allowed;
+ transform: none;
 }
 
 /* 반응형 디자인 */
 @media (max-width: 480px) {
-  .modal-container {
-    width: 95%;
-    margin: 10px;
-  }
-  
-  .modal-header,
-  .status-section,
-  .barcode-info,
-  .barcode-preview,
-  .modal-actions {
-    padding: 1rem;
-  }
-  
-  .header-content {
-    gap: 0.75rem;
-  }
-  
-  .header-icon {
-    width: 40px;
-    height: 40px;
-  }
-  
-  .modal-title {
-    font-size: 1.1rem;
-  }
-  
-  .action-buttons {
-    flex-direction: column;
-  }
-  
-  .action-btn {
-    width: 100%;
-  }
+ .modal-container {
+   width: 95%;
+   margin: 10px;
+ }
+ 
+ .modal-header,
+ .status-section,
+ .print-settings,
+ .barcode-info,
+ .barcode-preview,
+ .modal-actions {
+   padding: 1rem;
+ }
+ 
+ .header-content {
+   gap: 0.75rem;
+ }
+ 
+ .header-icon {
+   width: 40px;
+   height: 40px;
+ }
+ 
+ .modal-title {
+   font-size: 1.1rem;
+ }
+ 
+ .settings-grid {
+   grid-template-columns: 1fr;
+ }
+ 
+ .action-buttons {
+   flex-direction: column;
+ }
+ 
+ .action-btn {
+   width: 100%;
+ }
 }
 
 /* 로딩 애니메이션 */
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+ to {
+   transform: rotate(360deg);
+ }
 }
 
 .status-message.loading .status-icon svg {
-  animation: spin 2s linear infinite;
+ animation: spin 2s linear infinite;
 }
 </style>
