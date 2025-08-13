@@ -35,6 +35,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/users/course")
                 .addPathPatterns("/users/validate", "/admin/validate")
                 .addPathPatterns("/admin/list")
+                .addPathPatterns("/api/naver/book-search")
                 // books 관련 관리자 전용 경로들 추가
                 .addPathPatterns("/books") // POST 요청 포함
                 .addPathPatterns("/books/*") // PUT, DELETE 요청 포함
