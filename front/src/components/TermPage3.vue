@@ -275,17 +275,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- 최종 동의 안내 -->
-                    <div class="final-agreement">
-                        <div class="agreement-box">
-                            <h4>📝 최종 동의 확인</h4>
-                            <p>
-                                위 내용을 충분히 읽고 이해하였으며, 도서 대여 및 반납 알림 수신에 동의합니다.
-                                본 동의는 언제든지 철회할 수 있으며, 철회 시 알림 서비스가 중단됩니다.
-                            </p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
