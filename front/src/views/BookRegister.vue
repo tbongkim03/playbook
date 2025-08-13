@@ -328,7 +328,7 @@ async function submitBook() {
     authorBook: book.author,
     publisherBook: book.publisher,
     publishDateBook: book.publishDate,
-    imageBook: book.title_url
+    imageBook: book.title_url || ''
   }
 
   try {
@@ -373,73 +373,46 @@ async function submitBook() {
 }
 
 async function searchBookImageFromNaver() {
-  console.log('백엔드 프록시를 통해 네이버 API 호출')
-  
-  // 검색어 생성 (제목 + 저자)
-  let searchQuery = book.title.trim()
-  if (book.author.trim()) {
-    // "지은이: " 같은 접두사 제거하고 세미콜론으로 분리된 저자명 처리
-    const cleanAuthor = book.author
-      .replace(/^(지은이:|엮은이:|저자:|작가:)\s*/g, '')
-      .split(';')[0] // 첫 번째 저자만 사용
-      .trim()
-    if (cleanAuthor) {
-      searchQuery += ' ' + cleanAuthor
-    }
-  }
-
-  console.log('검색어:', searchQuery)
-
-  if (!searchQuery) {
-    throw new Error('검색할 도서 정보가 부족합니다.')
-  }
+  console.log('백엔드 프록시를 통해 네이버 책 상세 검색 API 호출 (ISBN 기반)')
 
   const token = localStorage.getItem('jwtToken')
   
-  try {
-    // 네이버 API 프록시 엔드포인트 호출
-    const response = await fetch('http://localhost:8080/api/naver/book-search', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        query: searchQuery,
-        display: 5,
-        sort: 'sim'
+  // ISBN이 있으면 ISBN으로 우선 검색
+  if (book.isbn && String(book.isbn).trim()) {
+    try {
+      console.log('ISBN으로 상세 검색 시도:', book.isbn)
+      
+      const response = await fetch('http://localhost:8080/api/naver/book-search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          isbn: String(book.isbn).trim(),
+          display: 10
+        })
       })
-    })
 
-    console.log('백엔드 API 응답 상태:', response.status)
+      console.log("백엔드 API 응답 상태:", response.status)
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('백엔드 API 오류 응답:', errorText)
-      throw new Error(`백엔드 API 호출 실패: ${response.status} - ${errorText}`)
+      if (response.ok) {
+        const data = await response.json()
+        console.log("ISBN 검색 응답 데이터:", data)
+        
+        if (data.items && data.items.length > 0) {
+          const imageUrl = data.items[0].image
+          if (imageUrl) {
+            console.log('ISBN 검색으로 이미지 발견:', imageUrl)
+            return imageUrl
+          }
+        }
+      } else {
+        console.warn('ISBN 검색 실패:', response.status)
+      }
+    } catch (error) {
+      console.error('ISBN 검색 중 오류:', error)
     }
-
-    const data = await response.json()
-    console.log('백엔드 API 응답 데이터:', data)
-    
-    if (!data.items || data.items.length === 0) {
-      throw new Error('검색 결과가 없습니다.')
-    }
-
-    // 첫 번째 결과의 이미지 URL 반환
-    const imageUrl = data.items[0].image || ''
-    
-    if (!imageUrl) {
-      throw new Error('이미지를 찾을 수 없습니다.')
-    }
-
-    console.log('네이버 API로 찾은 이미지:', imageUrl)
-    
-    return imageUrl
-
-  } catch (error) {
-    console.error('네이버 API 검색 중 오류:', error)
-    throw error
   }
 }
 
