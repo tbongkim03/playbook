@@ -262,6 +262,24 @@ async function searchISBN() {
     book.publishDate = formatDate(doc['PUBLISH_PREDATE'] || '')
     book.title_url = doc['TITLE_URL'] || ''
     
+    console.log('국립중앙도서관 API에서 가져온 TITLE_URL:', book.title_url)
+    
+    // TITLE_URL이 없는 경우 네이버 검색 API로 이미지 검색
+    if (!book.title_url || book.title_url.trim() === '') {
+      console.log('TITLE_URL이 비어있어 네이버 API로 이미지를 검색합니다...')
+      try {
+        const naverImageUrl = await searchBookImageFromNaver()
+        book.title_url = naverImageUrl
+        console.log('네이버 API에서 가져온 이미지로 설정:', book.title_url)
+      } catch (error) {
+        console.warn('네이버 API 이미지 검색 실패:', error)
+        // 실패해도 계속 진행 (이미지 없이)
+        book.title_url = ''
+      }
+    } else {
+      console.log('국립중앙도서관 API에서 이미지를 가져왔습니다:', book.title_url)
+    }
+    
     hasSearched.value = true // 조회 완료 상태 설정
 
   } catch (err) {
@@ -351,6 +369,77 @@ async function submitBook() {
     alert(`등록 실패: ${err.message}`)
   } finally {
     isLoading.value = false
+  }
+}
+
+async function searchBookImageFromNaver() {
+  console.log('백엔드 프록시를 통해 네이버 API 호출')
+  
+  // 검색어 생성 (제목 + 저자)
+  let searchQuery = book.title.trim()
+  if (book.author.trim()) {
+    // "지은이: " 같은 접두사 제거하고 세미콜론으로 분리된 저자명 처리
+    const cleanAuthor = book.author
+      .replace(/^(지은이:|엮은이:|저자:|작가:)\s*/g, '')
+      .split(';')[0] // 첫 번째 저자만 사용
+      .trim()
+    if (cleanAuthor) {
+      searchQuery += ' ' + cleanAuthor
+    }
+  }
+
+  console.log('검색어:', searchQuery)
+
+  if (!searchQuery) {
+    throw new Error('검색할 도서 정보가 부족합니다.')
+  }
+
+  const token = localStorage.getItem('jwtToken')
+  
+  try {
+    // 네이버 API 프록시 엔드포인트 호출
+    const response = await fetch('http://localhost:8080/api/naver/book-search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        query: searchQuery,
+        display: 5,
+        sort: 'sim'
+      })
+    })
+
+    console.log('백엔드 API 응답 상태:', response.status)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('백엔드 API 오류 응답:', errorText)
+      throw new Error(`백엔드 API 호출 실패: ${response.status} - ${errorText}`)
+    }
+
+    const data = await response.json()
+    console.log('백엔드 API 응답 데이터:', data)
+    
+    if (!data.items || data.items.length === 0) {
+      throw new Error('검색 결과가 없습니다.')
+    }
+
+    // 첫 번째 결과의 이미지 URL 반환
+    const imageUrl = data.items[0].image || ''
+    
+    if (!imageUrl) {
+      throw new Error('이미지를 찾을 수 없습니다.')
+    }
+
+    console.log('네이버 API로 찾은 이미지:', imageUrl)
+    
+    return imageUrl
+
+  } catch (error) {
+    console.error('네이버 API 검색 중 오류:', error)
+    throw error
   }
 }
 
