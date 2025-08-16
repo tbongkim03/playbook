@@ -39,6 +39,7 @@ public class WebConfig implements WebMvcConfigurer {
                 // books 관련 관리자 전용 경로들 추가
                 .addPathPatterns("/books") // POST 요청 포함
                 .addPathPatterns("/books/*") // PUT, DELETE 요청 포함
+                .addPathPatterns("/books/all")
                 .addPathPatterns("/books/count")
                 .addPathPatterns("/books/batch/print")
                 .addPathPatterns("/books/unprinted")
