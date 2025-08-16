@@ -243,6 +243,17 @@ public class HistoryServiceImpl implements HistoryService {
         historyDAO.deleteHistory(history);
     }
 
+    @Override
+    public HistoryBookResponseDto getMyHistory(BookUser user) {
+        List<RentalHistoryDto> rentalHistoryDtoList = historyDAO.getMyRentalHistoryList(user);
+        if (rentalHistoryDtoList.isEmpty()) {
+            throw new IllegalArgumentException("대여 기록이 없습니다.");
+        }
+
+        RentalSummaryDto rentalSummaryDto = historyDAO.getMyRentalSummay(user);
+        return new HistoryBookResponseDto(rentalSummaryDto, rentalHistoryDtoList);
+    }
+
     // 연체 인지
     private boolean isOverdue(History history) {
         return history.getReturnDt() == null && history.getBookDt().isBefore(LocalDate.now().minusDays(7));

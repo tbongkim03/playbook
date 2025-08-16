@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import playbook.encore.back.data.dao.HistoryDAO;
 import playbook.encore.back.data.dto.history.RentalHistoryDto;
 import playbook.encore.back.data.dto.history.RentalSummaryDto;
+import playbook.encore.back.data.entity.BookUser;
 import playbook.encore.back.data.entity.History;
 import playbook.encore.back.data.repository.HistoryRepository;
 
@@ -101,6 +102,62 @@ public class HistoryDAOImpl implements HistoryDAO {
     @Override
     public void deleteHistory(History history) {
         historyRepository.delete(history);
+    }
+
+    @Override
+    public List<RentalHistoryDto> getMyRentalHistoryList(BookUser user) {
+        List<History> historyList = historyRepository.findBySeqUser(user);
+        List<RentalHistoryDto> rentalHistoryDtoList = new ArrayList<>();
+
+        for (History history : historyList) {
+            String bookTitle = history.getSeqBook().getTitleBook();
+            String bookAuthor = history.getSeqBook().getAuthorBook();
+            String bookIsbn = history.getSeqBook().getIsbnBook();
+
+            LocalDate borrowDate = history.getBookDt();
+            LocalDate returnDate = history.getReturnDt();
+
+            // 상태 결정
+            LocalDate dueDate = borrowDate.plusDays(7);
+            History.StatusType status;
+
+            if (returnDate != null) {
+                status = History.StatusType.returned;
+            } else if (dueDate.isBefore(LocalDate.now())) {
+                status = History.StatusType.overdue;
+            } else {
+                status = History.StatusType.booked;
+            }
+
+            RentalHistoryDto rentalHistoryDto = new RentalHistoryDto(
+                    bookTitle,
+                    bookAuthor,
+                    bookIsbn,
+                    user.getNameUser(),
+                    user.getIdUser(),
+                    borrowDate,
+                    returnDate,
+                    status.toString()
+            );
+
+            rentalHistoryDtoList.add(rentalHistoryDto);
+        }
+
+        return rentalHistoryDtoList;
+    }
+
+    @Override
+    public RentalSummaryDto getMyRentalSummay(BookUser user) {
+        // 총 대여 수
+        int totalBorrowed = historyRepository.countBySeqUserAndBookDtIsNotNull(user);
+        // 총 반납 수
+        int totalReturned = historyRepository.countBySeqUserAndBookDtIsNotNullAndReturnDtIsNotNull(user);
+        // 현재 대여 수
+        int currentlyBorrowed = historyRepository.countBySeqUserAndBookDtIsNotNullAndReturnDtIsNull(user);
+        // 총 연체 수
+        int overdueCount = historyRepository.countBySeqUserAndReturnDtIsNullAndBookDtBefore(user, LocalDate.now().minusDays(7));
+
+        return new RentalSummaryDto(totalBorrowed, totalReturned, currentlyBorrowed, overdueCount);
     }
 
 }

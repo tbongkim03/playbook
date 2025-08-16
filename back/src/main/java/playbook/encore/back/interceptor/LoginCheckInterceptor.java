@@ -47,10 +47,12 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
                 || ((uri.equals("/admin/register") && method.equals("POST")))
                 || ((uri.equals("/admin/register/validate") && method.equals("GET")))
                 || ((uri.equals("/admin/list") && method.equals("GET")))
-                || ((uri.equals("/api/borrow") && method.equals("POST")))
-                || ((uri.equals("/api/return") && method.equals("PUT")))
-                || ((uri.equals("/api/book") && method.equals("GET")))
+                || ((uri.equals("/history/borrow") && method.equals("POST")))
+                || ((uri.equals("/history/return") && method.equals("PUT")))
+                || ((uri.equals("/history/book") && method.equals("GET")))
                 || ((uri.equals("/api/naver/book-search") && method.equals("POST")))
+                || ((uri.equals("/favor") && (method.equals("GET") || method.equals("POST") || method.equals("DELETE"))))
+                || ((uri.equals("/history/me") && method.equals("GET")))
         ) {
             // 로그인 검증 로직
             if (!isLoggedIn(request, response, handler)) {

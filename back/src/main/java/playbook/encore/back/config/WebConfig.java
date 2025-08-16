@@ -27,7 +27,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginCheckInterceptor)
-                .addPathPatterns("/api/borrow", "/api/return", "/api/book")
+                .addPathPatterns("/history/borrow", "/history/return", "/history/book", "/history/me")
                 .addPathPatterns("/users/me", "/admin/me")
                 .addPathPatterns("/users/password", "/admin/password")
                 .addPathPatterns("/users/discord", "/admin/discord")
@@ -36,6 +36,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/users/validate", "/admin/validate")
                 .addPathPatterns("/admin/list")
                 .addPathPatterns("/api/naver/book-search")
+                .addPathPatterns("/favor")
+                .addPathPatterns("/history/me")
                 // books 관련 관리자 전용 경로들 추가
                 .addPathPatterns("/books") // POST 요청 포함
                 .addPathPatterns("/books/*") // PUT, DELETE 요청 포함

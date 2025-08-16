@@ -31,4 +31,11 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
 
     // 연체 여부 확인
     List<History> findAllBySeqUserAndReturnDtIsNull(BookUser bookUser);
+
+    // 개인 대여 기록 조회
+    List<History> findBySeqUser(BookUser user);
+    int countBySeqUserAndBookDtIsNotNull(BookUser user);
+    int countBySeqUserAndBookDtIsNotNullAndReturnDtIsNotNull(BookUser user);
+    int countBySeqUserAndBookDtIsNotNullAndReturnDtIsNull(BookUser user);
+    int countBySeqUserAndReturnDtIsNullAndBookDtBefore(BookUser user, LocalDate localDate);
 }

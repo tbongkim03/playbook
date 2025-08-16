@@ -7,11 +7,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import playbook.encore.back.data.dto.history.HistoryBookResponseDto;
 import playbook.encore.back.data.entity.Admin;
+import playbook.encore.back.data.entity.BookUser;
 import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.service.HistoryService;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/history")
 public class HistoryController {
 
     private final HistoryService historyService;
@@ -118,6 +119,30 @@ public class HistoryController {
             return ResponseEntity.status(HttpStatus.OK).body("도서 반납이 완료되었습니다.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.OK).body(e.getMessage());  // 상태는 OK, 메시지만 연체 or 잘못된 형식
+        }
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getMyHistory(
+            HttpServletRequest request
+    ) throws Exception {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (roleAttr == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("접근 권한이 없습니다.");
+        }
+        LoginCheckInterceptor.RoleType role = (LoginCheckInterceptor.RoleType) roleAttr;
+
+        BookUser user = (BookUser) request.getAttribute("user");
+
+        if (role != LoginCheckInterceptor.RoleType.USER) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("사용자만 접근 가능합니다.");
+        }
+
+        try {
+            HistoryBookResponseDto result = historyService.getMyHistory(user);
+            return ResponseEntity.status(HttpStatus.OK).body(result);
+        } catch (Exception IllegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
         }
     }
 }
