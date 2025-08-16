@@ -5,7 +5,6 @@ import lombok.*;
 @Data
 @AllArgsConstructor
 public class NaverBookSearchRequestDto {
-    private String query;
-    private int display = 5;
-    private String sort = "sim";
+    private String isbn;
+    private int display = 10;
 }

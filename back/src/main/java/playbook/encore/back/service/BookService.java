@@ -15,6 +15,7 @@ import java.util.List;
 public interface BookService {
     BookResponseDto insertBook(BookRequestDto bookRequestDto);
     BookListResponseDto getBookList(int page) throws Exception;
+    BookListResponseDto getAllBooks(int page) throws Exception;
     BookResponseDto getBookById(int bookId) throws Exception;
     BookResponseDto changeBook(int bookId, BookSortAndBarcodeRequestDto bookSortAndBarcodeRequestDto) throws Exception;
     void deleteBookById(int bookId) throws Exception;
@@ -26,4 +27,5 @@ public interface BookService {
     List<BookUnprintedResponseDto> findUnprintedBooks() throws Exception;
     BookBarcodeUniqueResponseDto checkDuplicated(BookBarcodeUniqueRequestDto bookBarcodeUniqueRequestDto) throws Exception;
     BookListResponseDto getBookListBySortFirst(int sortFirstId, int page);
+
 }

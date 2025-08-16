@@ -95,6 +95,18 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    public BookListResponseDto getAllBooks(int page) throws Exception {
+        Page<Book> books = bookDAO.selectAllBooks(page);
+
+        List<BookResponseDto> content = books.stream()
+            .map(this::convertToDto)
+            .collect(Collectors.toList());
+
+        int totalCount = content.size();
+        return new BookListResponseDto(content, totalCount);
+    }
+
+    @Override
     public BookListResponseDto getBookListBySortFirst(int sortFirstId, int page) {
         Page<Book> bookPage = bookDAO.selectBookListByPageBySortFirst(sortFirstId, page);
 

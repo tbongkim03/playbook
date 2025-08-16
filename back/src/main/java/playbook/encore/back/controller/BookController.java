@@ -37,6 +37,19 @@ public class BookController {
         return ResponseEntity.status(HttpStatus.OK).body(bookListResponseDto);
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllBooks(
+            HttpServletRequest request,
+            @RequestParam int page
+    ) throws Exception {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+        }
+        BookListResponseDto bookListResponseDto = bookService.getAllBooks(page);
+        return ResponseEntity.status(HttpStatus.OK).body(bookListResponseDto);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<BookResponseDto> getBookById(@PathVariable("id") int bookId) throws Exception {
         BookResponseDto bookResponseDto = bookService.getBookById(bookId);

@@ -11,6 +11,8 @@ public interface BookDAO {
 
     Page<Book> selectBookListByPage(int page) throws Exception;
 
+    Page<Book> selectAllBooks(int page) throws Exception;
+
     Book selectBookById(int bookId) throws Exception;
 
     Book updateBook(Book book) throws Exception;
