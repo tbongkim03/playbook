@@ -12,6 +12,7 @@ import BookReturn from '@/components/BookReturn.vue';
 import TermPage1 from '@/components/TermPage1.vue';
 import TermPage3 from '@/components/TermPage3.vue';
 import TermPage2 from '@/components/TermPage2.vue';
+import MyPage from '@/views/MyPage.vue';
 
 const routes = [
   {
@@ -38,6 +39,11 @@ const routes = [
     path: '/register',
     name: 'PageRegister',
     component: PageRegister
+  },
+  {
+    path: '/users',
+    name: 'Mypage',
+    component: MyPage
   },
   {
     path: '/admin',
