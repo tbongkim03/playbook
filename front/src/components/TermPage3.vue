@@ -6,17 +6,17 @@
                 <div class="breadcrumb">
                     <router-link to="/" class="breadcrumb-item">홈</router-link>
                     <span class="breadcrumb-separator">/</span>
-                    <span class="breadcrumb-current">도서 대여 및 반납 알림 수신 동의서</span>
+                    <span class="breadcrumb-current">도서 대출 및 반납 알림 수신 동의서</span>
                 </div>
                 
                 <div class="page-title">
                     <div class="title-icon">🔔</div>
-                    <h1>도서 대여 및 반납 알림 수신 동의서</h1>
+                    <h1>도서 대출 및 반납 알림 수신 동의서</h1>
                     <div class="title-badge">디스코드 알림</div>
                 </div>
                 
                 <p class="page-description">
-                    원활한 도서 대여 서비스 이용을 위한 디스코드 알림 수신에 관한 동의서입니다.
+                    원활한 도서 대출 서비스 이용을 위한 디스코드 알림 수신에 관한 동의서입니다.
                     연체 방지와 서비스 품질 향상을 위해 확인해 주세요.
                 </p>
                 
@@ -39,7 +39,7 @@
                         </div>
                         <div class="discord-hero-content">
                             <h3>디스코드 알림 서비스</h3>
-                            <p>도서 대여/반납 관련 중요 정보를 디스코드 메시지로 실시간 알림받으세요</p>
+                            <p>도서 대출/반납 관련 중요 정보를 디스코드 메시지로 실시간 알림받으세요</p>
                         </div>
                     </div>
                 </div>
@@ -60,7 +60,7 @@
                     <div class="notification-preamble">
                         <h2>도서 대여 및 반납 알림 수신 동의서</h2>
                         <div class="preamble-text">
-                            본인은 도서 대여 및 반납 기한과 관련된 알림 메시지를 수신하는 것에 동의합니다.
+                            본인은 도서 대출 및 반납 기한과 관련된 알림 메시지를 수신하는 것에 동의합니다.
                         </div>
                     </div>
 
@@ -74,8 +74,8 @@
                                         <div class="notification-type">
                                             <div class="type-icon">📚</div>
                                             <div class="type-content">
-                                                <strong>도서 대여 완료 안내</strong>
-                                                <p>대여 신청이 승인되어 도서 대여가 완료되었을 때 발송되는 알림</p>
+                                                <strong>도서 대출 완료 안내</strong>
+                                                <p>대출 신청이 승인되어 도서 대출이 완료되었을 때 발송되는 알림</p>
                                                 <div class="example-message">
                                                     "📚 도서 대여가 완료되었습니다. 반납 예정일: 2024.01.15"
                                                 </div>
@@ -88,7 +88,7 @@
                                                 <strong>반납 예정일 안내</strong>
                                                 <p>반납 예정일 1-2일 전에 미리 알려주는 사전 알림</p>
                                                 <div class="example-message">
-                                                    "⏰ 대여하신 도서의 반납 예정일이 내일입니다. (2024.01.15)"
+                                                    "⏰ 대출하신 도서의 반납 예정일이 내일입니다. (2024.01.15)"
                                                 </div>
                                             </div>
                                         </div>
@@ -99,7 +99,7 @@
                                                 <strong>연체 발생 알림</strong>
                                                 <p>반납 기한을 초과하여 연체가 발생했을 때 즉시 발송되는 알림</p>
                                                 <div class="example-message critical">
-                                                    "🚨 도서 연체가 발생했습니다. 즉시 반납해 주세요. (연체일: 3일, 대여정지: 6일)"
+                                                    "🚨 도서 연체가 발생했습니다. 즉시 반납해 주세요. (연체일: 3일, 대출정지: 6일)"
                                                 </div>
                                             </div>
                                         </div>
@@ -141,10 +141,10 @@
                                     <div class="purpose-card primary">
                                         <div class="purpose-icon">📋</div>
                                         <div class="purpose-content">
-                                            <strong>도서 대여 및 반납 기한 안내</strong>
-                                            <p>정확한 대여/반납 일정을 실시간으로 알려드려 원활한 서비스 이용을 돕습니다</p>
+                                            <strong>도서 대출 및 반납 기한 안내</strong>
+                                            <p>정확한 대출/반납 일정을 실시간으로 알려드려 원활한 서비스 이용을 돕습니다</p>
                                             <div class="purpose-detail">
-                                                대여 승인, 반납 예정일, 반납 완료 등 모든 과정을 투명하게 안내합니다
+                                                대출 승인, 반납 예정일, 반납 완료 등 모든 과정을 투명하게 안내합니다
                                             </div>
                                         </div>
                                     </div>
@@ -224,7 +224,7 @@
                                             <div class="limitation-list">
                                                 <div class="limitation-item">• 반납 기한 알림을 받을 수 없어 연체 위험 증가</div>
                                                 <div class="limitation-item">• 중요한 서비스 변경사항을 놓칠 수 있음</div>
-                                                <div class="limitation-item">• 도서 대여 서비스 전체 이용 제한 가능</div>
+                                                <div class="limitation-item">• 도서 대출 서비스 전체 이용 제한 가능</div>
                                             </div>
                                         </div>
                                     </div>
@@ -239,11 +239,11 @@
                         <div class="examples-content">
                             <div class="example-message rental">
                                 <div class="message-header">
-                                    <span class="message-type">대여 완료</span>
+                                    <span class="message-type">대출 완료</span>
                                     <span class="message-time">방금 전</span>
                                 </div>
                                 <div class="message-content">
-                                    📚 <strong>[클린 코드]</strong> 도서 대여가 완료되었습니다.<br>
+                                    📚 <strong>[클린 코드]</strong> 도서 대출이 완료되었습니다.<br>
                                     📅 반납 예정일: 2024년 1월 15일<br>
                                     💡 반납일을 꼭 지켜주세요!
                                 </div>

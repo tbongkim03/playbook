@@ -16,7 +16,7 @@
                 </div>
                 
                 <p class="page-description">
-                    도서 대여 서비스를 이용하기 위한 이용약관입니다. 
+                    도서 대출 서비스를 이용하기 위한 이용약관입니다. 
                     서비스 이용 전 반드시 확인해 주세요.
                 </p>
                 
@@ -38,7 +38,7 @@
                         <a href="#terms-changes" class="toc-link">제3조 약관의 게시 및 변경</a>
                         <a href="#membership" class="toc-link">제4조 회원가입</a>
                         <a href="#member-duties" class="toc-link">제5조 회원의 의무</a>
-                        <a href="#rental-period" class="toc-link">제7조 대여 기간 및 반납 의무</a>
+                        <a href="#rental-period" class="toc-link">제7조 대출 기간 및 반납 의무</a>
                         <a href="#overdue-penalty" class="toc-link">제8조 연체에 대한 제재</a>
                         <a href="#loss-damage" class="toc-link">제9조 도서의 분실 및 훼손</a>
                         <a href="#other-provisions" class="toc-link">제10조~12조 기타 조항</a>
@@ -48,9 +48,9 @@
                 <!-- 본문 -->
                 <div class="terms-content">
                     <div class="terms-preamble">
-                        <h2>도서 대여 서비스 이용약관</h2>
+                        <h2>도서 대출 서비스 이용약관</h2>
                         <div class="preamble-text">
-                            본 약관은 도서 대여 서비스를 이용함에 있어 회사(또는 서비스 운영자)와 
+                            본 약관은 도서 대출 서비스를 이용함에 있어 회사(또는 서비스 운영자)와 
                             회원 간의 권리, 의무 및 책임 사항을 규정함을 목적으로 합니다.
                         </div>
                     </div>
@@ -59,7 +59,7 @@
                         <h3>제1조 (목적)</h3>
                         <div class="article-content">
                             <p>
-                                이 약관은 회사가 제공하는 도서 대여 서비스(이하 "서비스")의 
+                                이 약관은 회사가 제공하는 도서 대출 서비스(이하 "서비스")의 
                                 이용 조건 및 절차, 회사와 회원 간의 권리·의무 및 책임사항을 
                                 규정함을 목적으로 합니다.
                             </p>
@@ -79,13 +79,13 @@
                                 <div class="definition-item">
                                     <div class="definition-number">②</div>
                                     <div class="definition-content">
-                                        <strong>"도서"</strong>라 함은 서비스에서 대여를 위해 제공하는 도서를 말합니다.
+                                        <strong>"도서"</strong>라 함은 서비스에서 대출을 위해 제공하는 도서를 말합니다.
                                     </div>
                                 </div>
                                 <div class="definition-item">
                                     <div class="definition-number">③</div>
                                     <div class="definition-content">
-                                        <strong>"대여"</strong>라 함은 회사가 회원에게 일정 기간 도서를 빌려주는 행위를 말합니다.
+                                        <strong>"대출"</strong>라 함은 회사가 회원에게 일정 기간 도서를 빌려주는 행위를 말합니다.
                                     </div>
                                 </div>
                             </div>
@@ -147,7 +147,7 @@
                                 </div>
                                 <div class="clause-item">
                                     <span class="clause-number">③</span>
-                                    <p>회원은 대여한 도서를 정해진 반납 기한까지 반환해야 합니다.</p>
+                                    <p>회원은 대출한 도서를 정해진 반납 기한까지 반환해야 합니다.</p>
                                 </div>
                             </div>
                         </div>
@@ -159,7 +159,7 @@
                             <div class="clause-list">
                                 <div class="clause-item">
                                     <span class="clause-number">①</span>
-                                    <p>회원은 회사가 정한 대여 기간 내에 대여한 도서를 반납해야 합니다.</p>
+                                    <p>회원은 회사가 정한 대출 기간 내에 대출한 도서를 반납해야 합니다.</p>
                                 </div>
                                 <div class="clause-item">
                                     <span class="clause-number">②</span>
@@ -175,14 +175,14 @@
                             <div class="clause-list">
                                 <div class="clause-item">
                                     <span class="clause-number">①</span>
-                                    <p>회원이 반납 기한을 초과하여 도서를 연체할 경우, 연체일 수의 2배 기간 동안 추가 대여가 제한됩니다.</p>
+                                    <p>회원이 반납 기한을 초과하여 도서를 연체할 경우, 연체일 수의 2배 기간 동안 추가 대출이 제한됩니다.</p>
                                     <div class="example-box">
                                         <strong>📌 예시:</strong> 3일 연체 시 → 6일 대여 정지
                                     </div>
                                 </div>
                                 <div class="clause-item">
                                     <span class="clause-number">②</span>
-                                    <p>회사는 연체 사실 및 대여 제한 기간을 회원에게 고지합니다.</p>
+                                    <p>회사는 연체 사실 및 대출 제한 기간을 회원에게 고지합니다.</p>
                                 </div>
                             </div>
                         </div>
@@ -194,7 +194,7 @@
                             <div class="clause-list">
                                 <div class="clause-item">
                                     <span class="clause-number">①</span>
-                                    <p>회원이 대여한 도서를 분실하거나 심각하게 훼손한 경우, 동일 도서로 배상해야 합니다.</p>
+                                    <p>회원이 대출한 도서를 분실하거나 심각하게 훼손한 경우, 동일 도서로 배상해야 합니다.</p>
                                 </div>
                                 <div class="clause-item">
                                     <span class="clause-number">②</span>

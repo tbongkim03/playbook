@@ -53,7 +53,7 @@ const props = defineProps({
 
 .img-area {
     width: 100%;
-    height: auto;
+    height: 430px;
     background-color: #f8f9fa;
     display: flex;
     align-items: center;
@@ -64,7 +64,7 @@ const props = defineProps({
 .img-area img {
     width: 100%;
     height: auto;
-    object-fit: contain;
+    object-fit: cover;
 }
 
 .book-info {

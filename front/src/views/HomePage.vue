@@ -198,8 +198,11 @@ const loadBooks = async (page = 1) => {
     const res = await fetch(url)
     const data = await res.json()
 
-    bookList.value = data.content || []
-    totalCount.value = data.totalCount || 0
+    // printCheckBook이 1인 책만 필터링
+    const filteredBooks = (data.content || []).filter(book => book.printCheckBook === true)
+    
+    bookList.value = filteredBooks
+    totalCount.value = filteredBooks.length // 필터링된 책의 개수로 업데이트
     currentPage.value = page
     
     // 검색 모드 해제
@@ -217,7 +220,7 @@ const getMediumOptions = (largeCode) => {
   return mediumCategoriesAll.value.filter(m => m.seqSortFirst === large.seqSortFirst)
 }
 
-// 대분류 활성화 상태 판단 함수 추가
+// 대분류 활성화 상태 판단 함수
 const isLargeCategoryActive = (largeCategoryName) => {
   // 직접 선택된 경우
   if (selectedLargeCategory.value === largeCategoryName) {
@@ -259,7 +262,9 @@ const currentLargeForMedium = computed(() => {
 
 const filteredBookList = computed(() => {
   let filtered = bookList.value.filter(book => 
-    book.seqSortFirst !== 0 && book.seqSortSecond !== 0
+    book.seqSortFirst !== 0 && 
+    book.seqSortSecond !== 0 &&
+    book.printCheckBook === true  // printCheckBook이 1인 책만 표시
   );
   
   if (selectedMediumCategory.value) {
@@ -347,15 +352,15 @@ const fetchBooks = async (page = 1, query = '', exact = false) => {
     isSearchMode.value = false
   }
 
-  // console.log('👉 호출 URL:', url.toString());
-
   const res = await fetch(url.toString());
   if (!res.ok) {
-    const errorMessage = await response.text();
-    throw new Error(errorMessage || `서버 오류: ${response.status}`)
+    const errorMessage = await res.text();
+    throw new Error(errorMessage || `서버 오류: ${res.status}`)
   }
 
   const data = await res.json();
+
+  console.log(data)
 
   if (!data.content) {
     alert('서버 응답 데이터 오류: ', data);
@@ -364,8 +369,11 @@ const fetchBooks = async (page = 1, query = '', exact = false) => {
     return;
   }
 
-  totalCount.value = data.totalCount;
-  bookList.value = data.content.map(book => {
+  // 검색 결과에서 printCheckBook이 1인 책만 필터링
+  const filteredBooks = data.content.filter(book => book.printCheckBook === true);
+
+  totalCount.value = filteredBooks.length;
+  bookList.value = filteredBooks.map(book => {
     return {
       ...book
     };

@@ -153,7 +153,7 @@
                 <th>출판일</th>
                 <th>대분류</th>
                 <th>중분류</th>
-                <th>수량</th>
+                <th>번호</th>
                 <th>바코드</th>
                 <th>작업</th>
               </tr>
@@ -346,19 +346,29 @@ function onSearch({ query, exact }) {
 
 const fetchBooks = async (page = 1, query = '', exact = false) => {
   let url
+  const token = localStorage.getItem('jwtToken')
   if (query && query.trim()) {
     url = new URL(`${API_BASE}/books/search`)
     url.searchParams.set('q', query.trim())
     url.searchParams.set('exact', exact)
   } else {
-    url = new URL(`${API_BASE}/books`)
+    url = new URL(`${API_BASE}/books/all`)
     url.searchParams.set('page', page)
   }
 
-  const res = await fetch(url.toString())
-  if (!res.ok) {
-    alert('검색 오류: ', res.status)
-    return
+  const res = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+
+  if (!res.ok) { 
+      const errorText = await res.text()
+      alert(`검색 오류: ${errorText}`)
+      console.error('API Error:', res.status, errorText)
+      return
   }
 
   const data = await res.json()

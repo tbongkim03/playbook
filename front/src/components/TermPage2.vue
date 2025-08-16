@@ -16,7 +16,7 @@
                 </div>
                 
                 <p class="page-description">
-                    도서 대여 서비스 제공을 위한 개인정보 수집 및 이용에 관한 동의서입니다.
+                    도서 대출 서비스 제공을 위한 개인정보 수집 및 이용에 관한 동의서입니다.
                     개인정보 보호를 위해 반드시 확인해 주세요.
                 </p>
                 
@@ -45,7 +45,7 @@
                     <div class="privacy-preamble">
                         <h2>개인정보 수집·이용 동의서</h2>
                         <div class="preamble-text">
-                            본인은 도서 대여 서비스 제공을 위하여 아래와 같은 개인정보를 
+                            본인은 도서 대출 서비스 제공을 위하여 아래와 같은 개인정보를 
                             수집·이용하는 것에 동의합니다.
                         </div>
                     </div>
@@ -89,7 +89,7 @@
                                         </div>
                                         <div class="item-content">
                                             <strong>디스코드 아이디</strong>
-                                            <p>도서 대여/반납 알림 메시지 발송을 위한 연락처</p>
+                                            <p>도서 대출/반납 알림 메시지 발송을 위한 연락처</p>
                                         </div>
                                     </div>
                                 </div>
@@ -115,8 +115,8 @@
                                     <div class="purpose-card">
                                         <div class="purpose-icon">📚</div>
                                         <div class="purpose-content">
-                                            <strong>도서 대여 및 반납 서비스 제공</strong>
-                                            <p>도서 대여 신청 처리, 대여 현황 관리, 반납 처리</p>
+                                            <strong>도서 대출 및 반납 서비스 제공</strong>
+                                            <p>도서 대출 신청 처리, 대여 현황 관리, 반납 처리</p>
                                         </div>
                                     </div>
                                     
@@ -124,7 +124,7 @@
                                         <div class="purpose-icon">🔔</div>
                                         <div class="purpose-content">
                                             <strong>디스코드를 통한 알림 서비스</strong>
-                                            <p>대여 완료, 반납 예정일, 연체 발생 등 중요 사항 알림</p>
+                                            <p>대출 완료, 반납 예정일, 연체 발생 등 중요 사항 알림</p>
                                         </div>
                                     </div>
                                 </div>
@@ -185,7 +185,7 @@
                                             <p>필수 항목에 대한 동의를 거부할 경우, 서비스 이용이 제한될 수 있습니다.</p>
                                             <div class="limitation-detail">
                                                 • 회원가입 불가<br>
-                                                • 도서 대여 서비스 이용 불가<br>
+                                                • 도서 대출 서비스 이용 불가<br>
                                                 • 알림 서비스 이용 불가
                                             </div>
                                         </div>

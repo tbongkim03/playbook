@@ -21,7 +21,7 @@
                                 <path d="M9 7h6M9 11h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </div>
-                        <h2 class="card-title">도서 대여</h2>
+                        <h2 class="card-title">도서 대출</h2>
                         <p class="card-description">새로운 책을 대여해보세요</p>
                     </div>
                     <div class="function-card return-card" @click="navigateTo('/return')">
