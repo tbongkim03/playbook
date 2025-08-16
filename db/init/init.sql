@@ -78,6 +78,13 @@ CREATE TABLE tb_sort_second (
     PRIMARY KEY (seq_sort_second)
 );
 
+CREATE TABLE tb_favor (
+    seq_favor    INT               NOT NULL,
+    seq_user     INT               NOT NULL,
+    seq_book     INT               NOT NULL,
+    PRIMARY KEY (seq_favor)
+);
+
 -- 외래키
 ALTER TABLE tb_book ADD CONSTRAINT FK_tb_sort_second_TO_tb_book
 FOREIGN KEY (seq_sort_second)
@@ -105,5 +112,12 @@ REFERENCES tb_course (seq_course);
 
 ALTER TABLE tb_sort_second ADD CONSTRAINT FK_tb_sort_first_TO_tb_sort_second
 FOREIGN KEY (seq_sort_first)
-REFERENCES tb_sort_first(seq_sort_first)
+REFERENCES tb_sort_first(seq_sort_first);
 
+ALTER TABLE tb_favor ADD CONSTRAINT FK_tb_user_TO_tb_favor
+FOREIGN KEY (seq_user)
+REFERENCES tb_user (seq_user) ON DELETE CASCADE;
+
+ALTER TABLE tb_favor ADD CONSTRAINT FK_tb_book_TO_tb_favor
+FOREIGN KEY (seq_book)
+REFERENCES tb_book (seq_book) ON DELETE CASCADE;
