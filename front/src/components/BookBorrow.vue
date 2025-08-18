@@ -235,7 +235,7 @@ const borrowBook = async (barcode) => {
     
     const response = await axios({
       method: 'post',  
-      url: 'http://localhost:8080/api/borrow',
+      url: 'http://localhost:8080/history/borrow',
       data: barcode,
       headers: {
         'Content-Type': 'text/plain',

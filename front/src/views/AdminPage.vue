@@ -61,6 +61,19 @@
                 대여/반납 히스토리
               </button>
             </li>
+            <li>
+              <button 
+                class="nav-item" 
+                :class="{ active: activeTab === 'statistics' }"
+                @click="setActiveTab('statistics')"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 3V21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M9 9L12 6L16 10L20 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                통계 대시보드
+              </button>
+            </li>
           </ul>
         </div>
       </nav>
@@ -80,6 +93,10 @@
         <!-- 대여/반납 히스토리 -->
         <div v-if="activeTab === 'rental-history'" class="content-section">
           <RentalHistoryDashboard />
+        </div>
+        <!-- 통계 대시보드 -->
+        <div v-if="activeTab === 'statistics'" class="content-section">
+          <StatisticsDashboard />
         </div>
       </main>
     </div>
@@ -116,6 +133,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import AdminAccountManagement from '@/components/AdminAccountManagement.vue'
 import RentalHistoryDashboard from '@/components/RentalHistoryDashboard.vue'
+import StatisticsDashboard from '@/components/StatisticsDashboard.vue'
 import BooksTable from '@/components/BooksTable.vue'
 import BookRegister from './BookRegister.vue'
 
