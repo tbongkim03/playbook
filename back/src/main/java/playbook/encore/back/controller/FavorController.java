@@ -3,9 +3,7 @@ package playbook.encore.back.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import playbook.encore.back.data.dto.favor.FavorResponseDto;
 import playbook.encore.back.data.entity.BookUser;
 import playbook.encore.back.interceptor.LoginCheckInterceptor;
@@ -29,13 +27,61 @@ public class FavorController {
     ) throws Exception {
         Object roleAttr = request.getAttribute("ROLE");
         if (roleAttr == null || !LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
-            return ResponseEntity.status(403).body("일반 유저만 접근 가능합니다.");
+            return ResponseEntity.status(403).body("일반 회원만 접근 가능합니다.");
         }
-        BookUser user = (BookUser) request.getAttribute("user");
-        List<FavorResponseDto> favorData = favorService.getFavorList(user);
-
-        return ResponseEntity.ok(favorData);
+        try {
+            Object userAttr = request.getAttribute("user");
+            if (userAttr == null || !(userAttr instanceof BookUser)) {
+                return ResponseEntity.status(403).body("사용자 정보가 없습니다.");
+            }
+            BookUser user = (BookUser) request.getAttribute("user");
+            List<FavorResponseDto> favorData = favorService.getFavorList(user);
+            return ResponseEntity.ok(favorData);
+        } catch (Exception e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+        }
     }
 
+    @PostMapping
+    public ResponseEntity<?> addFavor(
+            HttpServletRequest request,
+            @RequestBody int bookId
+    ) throws Exception {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (roleAttr == null || !LoginCheckInterceptor.RoleType.USER.equals(roleAttr))
+            return ResponseEntity.status(403).body("일반 회원만 접근 가능합니다.");
+        try {
+            Object userAttr = request.getAttribute("user");
+            if (userAttr == null || !(userAttr instanceof BookUser)) {
+                return ResponseEntity.status(403).body("사용자 정보가 없습니다.");
+            }
+            BookUser user = (BookUser) request.getAttribute("user");
+            favorService.addFavor(user, bookId);
+            return ResponseEntity.ok("즐겨찾기에 추가되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+        }
+    }
 
+    @DeleteMapping
+    public ResponseEntity<?> deleteFavor(
+            HttpServletRequest request,
+            @RequestBody int bookId
+    ) throws Exception {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (roleAttr == null || !LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
+            return ResponseEntity.status(403).body("일반 회원만 접근 가능합니다.");
+        }
+        try {
+            Object userAttr = request.getAttribute("user");
+            if (userAttr == null || !(userAttr instanceof BookUser)) {
+                return ResponseEntity.status(403).body("사용자 정보가 없습니다.");
+            }
+            BookUser user = (BookUser) request.getAttribute("user");
+            favorService.deleteFavor(user, bookId);
+            return ResponseEntity.ok("즐겨찾기에서 삭제되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+        }
+    }
 }

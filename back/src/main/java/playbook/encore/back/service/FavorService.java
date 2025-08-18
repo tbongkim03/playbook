@@ -7,4 +7,8 @@ import java.util.List;
 
 public interface FavorService {
     List<FavorResponseDto> getFavorList(BookUser user);
+
+    void addFavor(BookUser user, int bookId);
+
+    void deleteFavor(BookUser user, int bookId);
 }

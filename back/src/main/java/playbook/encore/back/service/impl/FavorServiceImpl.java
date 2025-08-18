@@ -27,4 +27,14 @@ public class FavorServiceImpl implements FavorService {
         }
         return favors;
     }
+
+    @Override
+    public void addFavor(BookUser user, int bookId) {
+        favorDAO.addFavor(user, bookId);
+    }
+
+    @Override
+    public void deleteFavor(BookUser user, int bookId) {
+        favorDAO.deleteFavor(user, bookId);
+    }
 }
