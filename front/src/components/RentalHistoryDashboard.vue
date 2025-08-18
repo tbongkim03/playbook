@@ -460,11 +460,11 @@ const fetchRentalHistory = async () => {
     if (!headers) return
 
     console.log('API 요청 시작:', {
-      url: 'http://localhost:8080/api/book',
+      url: 'http://localhost:8080/history/book',
       headers: headers
     })
     
-    const response = await axios.get('http://localhost:8080/api/book', {
+    const response = await axios.get('http://localhost:8080/history/book', {
       headers: headers
     })
     
