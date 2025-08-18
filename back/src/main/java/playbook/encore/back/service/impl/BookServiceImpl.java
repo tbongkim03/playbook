@@ -49,7 +49,8 @@ public class BookServiceImpl implements BookService {
                 entity.getImgUrlBook(),
                 entity.getBarcodeBook(),
                 entity.getCntBook(),
-                entity.isPrintCheckBook()
+                entity.isPrintCheckBook(),
+                entity.isBookBorrowed()
         );
     }
 

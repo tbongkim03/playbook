@@ -4,8 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import playbook.encore.back.data.dao.HistoryDAO;
+import playbook.encore.back.data.dto.history.PopularLabelDto;
 import playbook.encore.back.data.dto.history.RentalHistoryDto;
 import playbook.encore.back.data.dto.history.RentalSummaryDto;
+import playbook.encore.back.data.dto.history.UserReadingRankDto;
 import playbook.encore.back.data.entity.BookUser;
 import playbook.encore.back.data.entity.History;
 import playbook.encore.back.data.repository.HistoryRepository;
@@ -160,4 +162,33 @@ public class HistoryDAOImpl implements HistoryDAO {
         return new RentalSummaryDto(totalBorrowed, totalReturned, currentlyBorrowed, overdueCount);
     }
 
+    @Override
+    public List<PopularLabelDto> findPopularFirstSortByCourse(int courseId) {
+        return historyRepository.findPopularFirstSortByCourse(courseId);
+    }
+
+    @Override
+    public List<PopularLabelDto> findPopularFirstSortAll() {
+        return historyRepository.findPopularFirstSortAll();
+    }
+
+    @Override
+    public List<PopularLabelDto> findPopularSecondSortAll() {
+        return historyRepository.findPopularSecondSortAll();
+    }
+
+    @Override
+    public List<PopularLabelDto> findPopularSecondSortByCourse(int courseId) {
+        return historyRepository.findPopularSecondSortByCourse(courseId);
+    }
+
+    @Override
+    public List<UserReadingRankDto> findUserReadingRankByCourse(int courseId) {
+        return historyRepository.findUserReadingRankByCourse(courseId);
+    }
+
+    @Override
+    public List<UserReadingRankDto> findUserReadingRankAll() {
+        return historyRepository.findUserReadingRankAll();
+    }
 }

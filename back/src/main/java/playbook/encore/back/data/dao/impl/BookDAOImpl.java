@@ -149,4 +149,11 @@ public class BookDAOImpl implements BookDAO {
         return bookRepository.existsByBarcodeBookAndSeqBookNot(barcodeBook, seqBook);
     }
 
+    @Override
+    public Book bookStatusUpdate(Book book, boolean status) throws Exception {
+        Book selectedBook = bookRepository.findById(book.getSeqBook())
+                .orElseThrow(() -> new IllegalArgumentException("해당 도서는 존재하지 않습니다."));
+        selectedBook.setBookBorrowed(status);
+        return bookRepository.save(selectedBook);
+    }
 }

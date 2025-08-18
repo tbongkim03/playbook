@@ -6,10 +6,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import playbook.encore.back.data.dto.history.HistoryBookResponseDto;
+import playbook.encore.back.data.dto.history.PopularLabelDto;
+import playbook.encore.back.data.dto.history.UserReadingRankDto;
 import playbook.encore.back.data.entity.Admin;
 import playbook.encore.back.data.entity.BookUser;
 import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.service.HistoryService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/history")
@@ -140,6 +144,106 @@ public class HistoryController {
 
         try {
             HistoryBookResponseDto result = historyService.getMyHistory(user);
+            return ResponseEntity.status(HttpStatus.OK).body(result);
+        } catch (Exception IllegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        }
+    }
+
+    // 인기 대분류 조회
+    @GetMapping("/popular/first/{courseId}")
+    public ResponseEntity<?> getPopularFirstSortByCourse(
+            HttpServletRequest request,
+            @PathVariable int courseId
+    ) throws Exception {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+        }
+        try {
+            List<PopularLabelDto> result = historyService.findPopularFirstSortByCourse(courseId);
+            return ResponseEntity.status(HttpStatus.OK).body(result);
+        } catch (Exception IllegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        }
+    }
+
+    // 인기 대분류 전체 조회
+    @GetMapping("/popular/first")
+    public ResponseEntity<?> getPopularFirstSortAll(
+            HttpServletRequest request
+    ) throws Exception {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+        try {
+            List<PopularLabelDto> result = historyService.findPopularFirstSortAll();
+            return ResponseEntity.status(HttpStatus.OK).body(result);
+        } catch (Exception IllegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        }
+    }
+
+    // 인기 중분류 조회
+    @GetMapping("/popular/second/{courseId}")
+    public ResponseEntity<?> getPopularSecondSortByCourse(
+            HttpServletRequest request,
+            @PathVariable int courseId
+    ) throws Exception {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+        try {
+            List<PopularLabelDto> result = historyService.findPopularSecondSortByCourse(courseId);
+            return ResponseEntity.status(HttpStatus.OK).body(result);
+        } catch (Exception IllegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        }
+    }
+
+    // 인기 중분류 전체 조회
+    @GetMapping("/popular/second")
+    public ResponseEntity<?> getPopularSecondSortAll(
+            HttpServletRequest request
+    ) throws Exception {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+        try {
+            List<PopularLabelDto> result = historyService.findPopularSecondSortAll();
+            return ResponseEntity.status(HttpStatus.OK).body(result);
+        } catch (Exception IllegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        }
+    }
+
+    // 사용자 독서 랭킹 조회
+    @GetMapping("/rank/{courseId}")
+    public ResponseEntity<?> getUserReadingRankByCourse(
+            HttpServletRequest request,
+            @PathVariable int courseId
+    ) throws Exception {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+        try {
+            List<UserReadingRankDto> result = historyService.findUserReadingRankByCourse(courseId);
+            return ResponseEntity.status(HttpStatus.OK).body(result);
+        } catch (Exception IllegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        }
+    }
+
+    // 전체 사용자 독서 랭킹 조회
+    @GetMapping("/rank")
+    public ResponseEntity<?> getUserReadingRankAll(
+            HttpServletRequest request
+    ) throws Exception {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+        try {
+            List<UserReadingRankDto> result = historyService.findUserReadingRankAll();
             return ResponseEntity.status(HttpStatus.OK).body(result);
         } catch (Exception IllegalArgumentException) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());

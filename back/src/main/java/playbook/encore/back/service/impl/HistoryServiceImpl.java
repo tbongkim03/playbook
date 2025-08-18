@@ -4,11 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import playbook.encore.back.data.dao.AdminDAO;
+import playbook.encore.back.data.dao.BookDAO;
 import playbook.encore.back.data.dao.BookUserDAO;
 import playbook.encore.back.data.dao.HistoryDAO;
-import playbook.encore.back.data.dto.history.HistoryBookResponseDto;
-import playbook.encore.back.data.dto.history.RentalHistoryDto;
-import playbook.encore.back.data.dto.history.RentalSummaryDto;
+import playbook.encore.back.data.dto.history.*;
 import playbook.encore.back.data.entity.Admin;
 import playbook.encore.back.data.entity.Book;
 import playbook.encore.back.data.entity.BookUser;
@@ -29,9 +28,11 @@ public class HistoryServiceImpl implements HistoryService {
     private final HistoryRepository historyRepository;
     private final AdminDAO adminDAO;
     private final BookUserDAO bookUserDAO;
+    private final CourseRepository courseRepository;
+    private final BookDAO bookDAO;
 
     @Autowired
-    public HistoryServiceImpl(HistoryDAO historyDAO, AdminRepository adminRepository, BookUserRepository bookUserRepository, BookRepository bookRepository, HistoryRepository historyRepository, AdminDAO adminDAO, BookUserDAO bookUserDAO) {
+    public HistoryServiceImpl(HistoryDAO historyDAO, AdminRepository adminRepository, BookUserRepository bookUserRepository, BookRepository bookRepository, HistoryRepository historyRepository, AdminDAO adminDAO, BookUserDAO bookUserDAO, CourseRepository courseRepository, BookDAO bookDAO) {
         this.historyDAO = historyDAO;
         this.adminRepository = adminRepository;
         this.bookUserRepository = bookUserRepository;
@@ -39,6 +40,8 @@ public class HistoryServiceImpl implements HistoryService {
         this.historyRepository = historyRepository;
         this.adminDAO = adminDAO;
         this.bookUserDAO = bookUserDAO;
+        this.courseRepository = courseRepository;
+        this.bookDAO = bookDAO;
     }
 
     @Override
@@ -126,6 +129,14 @@ public class HistoryServiceImpl implements HistoryService {
         History history = historyBuilder.build();
         historyDAO.bookBorrow(history);
 
+        try {
+            // 대여 기록 저장 후 상태 업데이트
+            Book borrowBook = bookDAO.bookStatusUpdate(book, true);
+        } catch (Exception e) {
+            // 대여 기록 저장 실패 시 롤백
+            throw new RuntimeException(e.getMessage());
+        }
+
         // 대여 후 상태 업데이트
         if (isAdmin) {
             Admin admin = (Admin) user;
@@ -185,6 +196,14 @@ public class HistoryServiceImpl implements HistoryService {
         LocalDate today = LocalDate.now();
         history.setReturnDt(today);
         historyDAO.bookReturn(history);
+
+        try {
+            // 반납 기록 저장 후 상태 업데이트
+            Book borrowBook = bookDAO.bookStatusUpdate(book, false);
+        } catch (Exception e) {
+            // 반납 기록 저장 실패 시 롤백
+            throw new RuntimeException(e.getMessage());
+        }
 
         // 반납한 도서가 연체인지 먼저 확인
         boolean isReturnedBookOverdue = isOverdue(history);
@@ -259,5 +278,42 @@ public class HistoryServiceImpl implements HistoryService {
         return history.getReturnDt() == null && history.getBookDt().isBefore(LocalDate.now().minusDays(7));
     }
 
+    @Override
+    public List<PopularLabelDto> findPopularFirstSortByCourse(int courseId) {
+        if (!courseRepository.existsById(courseId)) {
+            throw new IllegalArgumentException("유효하지 않은 과정 ID입니다.");
+        }
+        return historyDAO.findPopularFirstSortByCourse(courseId);
+    }
+    @Override
+    public List<PopularLabelDto> findPopularFirstSortAll() {
+        return historyDAO.findPopularFirstSortAll();
+    }
+
+    @Override
+    public List<PopularLabelDto> findPopularSecondSortByCourse(int courseId) {
+        if (!courseRepository.existsById(courseId)) {
+            throw new IllegalArgumentException("유효하지 않은 과정 ID입니다.");
+        }
+        return historyDAO.findPopularSecondSortByCourse(courseId);
+    }
+
+    @Override
+    public List<PopularLabelDto> findPopularSecondSortAll() {
+        return historyDAO.findPopularSecondSortAll();
+    }
+
+    @Override
+    public List<UserReadingRankDto> findUserReadingRankByCourse(int courseId) {
+        if (!courseRepository.existsById(courseId)) {
+            throw new IllegalArgumentException("유효하지 않은 과정 ID입니다.");
+        }
+        return historyDAO.findUserReadingRankByCourse(courseId);
+    }
+
+    @Override
+    public List<UserReadingRankDto> findUserReadingRankAll() {
+        return historyDAO.findUserReadingRankAll();
+    }
 
 }

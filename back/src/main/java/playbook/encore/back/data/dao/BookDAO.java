@@ -32,4 +32,6 @@ public interface BookDAO {
     boolean checkDuplicates(int seqBook, String barcodeBook) throws Exception;
 
     Page<Book> selectBookListByPageBySortFirst(int sortFirstId, int page);
+
+    Book bookStatusUpdate(Book book, boolean status) throws Exception;
 }

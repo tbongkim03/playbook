@@ -18,8 +18,9 @@ public class BookResponseDto {
     private String barcodeBook;
     private Integer cntBook;
     private boolean printCheckBook;
+    private boolean isBookBorrowed;
 
-    public BookResponseDto(Integer seqBook, Integer seqSortSecond, String isbnBook, String titleBook, String authorBook, String publisherBook, LocalDate publishDateBook, String imageBook, String barcodeBook, Integer cntBook, boolean printCheckBook) {
+    public BookResponseDto(Integer seqBook, Integer seqSortSecond, String isbnBook, String titleBook, String authorBook, String publisherBook, LocalDate publishDateBook, String imageBook, String barcodeBook, Integer cntBook, boolean printCheckBook, boolean isBookBorrowed) {
         this.seqBook = seqBook;
         this.seqSortSecond = seqSortSecond;
         this.isbnBook = isbnBook;
@@ -31,5 +32,6 @@ public class BookResponseDto {
         this.barcodeBook = barcodeBook;
         this.cntBook = cntBook;
         this.printCheckBook = printCheckBook;
+        this.isBookBorrowed = isBookBorrowed;
     }
 }
