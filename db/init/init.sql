@@ -12,6 +12,7 @@ CREATE TABLE tb_book (
     barcode_book    VARCHAR(30)     NULL,
     cnt_book        INT             NULL,
     print_check_book TINYINT(1)     NOT NULL DEFAULT 0,
+    is_book_borrowed TINYINT(1)     NOT NULL DEFAULT 0,
     PRIMARY KEY (seq_book)
 );
 
