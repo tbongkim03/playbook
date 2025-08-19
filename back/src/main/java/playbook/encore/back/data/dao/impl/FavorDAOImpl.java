@@ -11,6 +11,7 @@ import playbook.encore.back.data.repository.BookRepository;
 import playbook.encore.back.data.repository.FavorRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class FavorDAOImpl implements FavorDAO {
@@ -37,6 +38,10 @@ public class FavorDAOImpl implements FavorDAO {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 책입니다."));
 
+        if (favorRepository.existsBySeqUserAndSeqBook(user, book)) {
+            throw new IllegalArgumentException("이미 찜한 책입니다.");
+        }
+
         Favor favor = Favor.builder()
                 .seqUser(user)
                 .seqBook(book)
@@ -46,11 +51,12 @@ public class FavorDAOImpl implements FavorDAO {
 
     @Override
     public void deleteFavor(BookUser user, int bookId) {
-        Favor favor = favorRepository.findById(bookId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 즐겨찾기입니다."));
-        if (!favor.getSeqUser().equals(user)) {
-            throw new IllegalArgumentException("해당 즐겨찾기는 현재 사용자와 연결되어 있지 않습니다.");
-        }
-        favorRepository.delete(favor);
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 책입니다."));
+
+        Favor favor = favorRepository.findBySeqUserAndSeqBook(user, book)
+                .orElseThrow(() -> new IllegalArgumentException("찜하기 목록에 해당 책이 없습니다."));
+
+        favorRepository.deleteBySeqUserAndSeqBook(user, book);
     }
 }
