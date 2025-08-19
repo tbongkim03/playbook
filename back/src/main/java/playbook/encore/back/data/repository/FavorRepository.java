@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface FavorRepository extends JpaRepository<Favor, Integer> {
-    @Query("SELECT new playbook.encore.back.data.dto.favor.FavorResponseDto(f.seqFavor, b.titleBook, b.authorBook) " +
+    @Query("SELECT new playbook.encore.back.data.dto.favor.FavorResponseDto(f.seqFavor, b.seqBook, b.titleBook, b.authorBook) " +
             "FROM Favor f " +
             "JOIN f.seqBook b " +
             "WHERE f.seqUser = :user")
