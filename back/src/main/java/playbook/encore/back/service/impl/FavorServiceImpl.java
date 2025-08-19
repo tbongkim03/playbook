@@ -2,6 +2,7 @@ package playbook.encore.back.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import playbook.encore.back.data.dao.FavorDAO;
 import playbook.encore.back.data.dto.favor.FavorResponseDto;
 import playbook.encore.back.data.entity.BookUser;
@@ -34,6 +35,7 @@ public class FavorServiceImpl implements FavorService {
     }
 
     @Override
+    @Transactional
     public void deleteFavor(BookUser user, int bookId) {
         favorDAO.deleteFavor(user, bookId);
     }
