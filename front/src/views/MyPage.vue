@@ -141,7 +141,27 @@
             </svg>
           </div>
           <h2 class="section-title">나의 서비스 이용 기록</h2>
-          <span class="count-badge">{{ rentalHistory.length }}</span>
+          <span class="count-badge">{{ rentalSummary.totalBorrowed }}</span>
+        </div>
+
+        <!-- 이용 통계 -->
+        <div class="rental-stats">
+          <div class="stat-card">
+            <div class="stat-value">{{ rentalSummary.totalBorrowed }}</div>
+            <div class="stat-label">총 대여</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">{{ rentalSummary.currentlyBorrowed }}</div>
+            <div class="stat-label">현재 대여중</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">{{ rentalSummary.totalReturned }}</div>
+            <div class="stat-label">반납 완료</div>
+          </div>
+          <div class="stat-card" :class="{ warning: rentalSummary.overdueCount > 0 }">
+            <div class="stat-value">{{ rentalSummary.overdueCount }}</div>
+            <div class="stat-label">연체</div>
+          </div>
         </div>
 
         <div v-if="rentalHistory.length === 0" class="empty-state">
@@ -156,11 +176,15 @@
         </div>
 
         <div v-else class="history-list">
-          <div v-for="record in rentalHistory" :key="record.id" class="history-item">
+          <div v-for="record in rentalHistory" :key="`${record.bookIsbn}-${record.borrowDate}`" class="history-item">
             <div class="history-info">
-              <h4 class="history-title">{{ record.title }}</h4>
-              <p class="history-date">대여일: {{ formatDate(record.rentalDate) }}</p>
-              <p class="history-status" :class="record.status">{{ getStatusText(record.status) }}</p>
+              <h4 class="history-title">{{ record.bookTitle }}</h4>
+              <p class="history-author">{{ record.bookAuthor }}</p>
+              <div class="history-details">
+                <p class="history-date">대여일: {{ formatDate(record.borrowDate) }}</p>
+                <p v-if="record.returnDate" class="history-date">반납일: {{ formatDate(record.returnDate) }}</p>
+                <p class="history-status" :class="record.status">{{ getStatusText(record.status) }}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -387,8 +411,14 @@ const currentCourse = ref('')
 // 찜한 도서 목록
 const favoriteBooks = ref([])
 
-// 대여 기록
+// 대여 기록 및 통계
 const rentalHistory = ref([])
+const rentalSummary = ref({
+  totalBorrowed: 0,
+  totalReturned: 0,
+  currentlyBorrowed: 0,
+  overdueCount: 0
+})
 
 // 모달 상태
 const passwordModal = ref(false)
@@ -511,7 +541,13 @@ async function loadRentalHistory() {
     
     if (response.ok) {
       const data = await response.json()
-      rentalHistory.value = data
+      rentalHistory.value = data.history || []
+      rentalSummary.value = data.summary || {
+        totalBorrowed: 0,
+        totalReturned: 0,
+        currentlyBorrowed: 0,
+        overdueCount: 0
+      }
     }
   } catch (error) {
     console.error('대여 기록 로드 실패:', error)
@@ -666,6 +702,7 @@ async function removeFavorite(seqBook) {
 
 // 날짜 포맷팅
 function formatDate(dateString) {
+  if (!dateString) return '-'
   const date = new Date(dateString)
   return date.toLocaleDateString('ko-KR')
 }
@@ -673,7 +710,7 @@ function formatDate(dateString) {
 // 상태 텍스트 변환
 function getStatusText(status) {
   const statusMap = {
-    'rented': '대여중',
+    'booked': '대여중',
     'returned': '반납완료',
     'overdue': '연체'
   }
@@ -1202,6 +1239,49 @@ async function changeCourse() {
   background: #f3f4f6;
 }
 
+.rental-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.stat-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.stat-card.warning {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.stat-card.warning .stat-value {
+  color: #dc2626;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
 .history-list {
   display: flex;
   flex-direction: column;
@@ -1209,22 +1289,36 @@ async function changeCourse() {
 }
 
 .history-item {
-  padding: 1rem;
+  padding: 1.5rem;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
 }
 
 .history-title {
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: 1.1rem;
+  font-weight: 600;
   color: #1a1a1a;
   margin: 0 0 0.5rem 0;
+  line-height: 1.4;
+}
+
+.history-author {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 1rem 0;
+}
+
+.history-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
 }
 
 .history-date {
   font-size: 0.875rem;
   color: #6b7280;
-  margin: 0 0 0.25rem 0;
+  margin: 0;
 }
 
 .history-status {
@@ -1232,11 +1326,11 @@ async function changeCourse() {
   font-weight: 500;
   margin: 0;
   display: inline-block;
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 4px 12px;
+  border-radius: 12px;
 }
 
-.history-status.rented {
+.history-status.booked {
   background: #dbeafe;
   color: #1d4ed8;
 }
@@ -1566,6 +1660,16 @@ async function changeCourse() {
 
   .modal-actions {
     flex-direction: column;
+  }
+
+  .rental-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .history-details {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
 }
 </style>

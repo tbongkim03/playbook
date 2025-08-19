@@ -5,7 +5,7 @@
     <div v-else-if="error" class="main">
         {{ error }}
     </div>
-    <div v-else-if="book" class="main">
+    <div v-else-if="book" class="main" :class="{ 'borrowed-book': book.bookBorrowed }">
         <div class="left-area">
             <div :class="{'img-container':book.title_url}" ref="bookImg" @mousemove="useMouse" @mouseleave="resetTransform">
                 <div :class="{'overlay':book.title_url}" ref="overLay"></div>
@@ -16,9 +16,40 @@
                     @error="handleImageError"
                     @load="handleImageLoad"
                 />
+                
+                
+                <!-- 대여중 오버레이 (이미지에만 적용) -->
+                <div v-if="book.bookBorrowed" class="borrowed-overlay">
+                    <div class="borrowed-badge-large">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="currentColor"/>
+                            <path d="M9 12L11 14L15 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span class="borrowed-text-large">대여중</span>
+                    </div>
+                    <div class="borrowed-dimmer"></div>
+                    
+                    <!-- 중앙 대여중 메시지 -->
+                    <div class="borrowed-center-message">
+                        <div class="borrowed-icon">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <p class="borrowed-message">현재 대여 중</p>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="right-area">
+            <!-- 대여중 알림 배너 -->
+            <div v-if="book.bookBorrowed" class="borrowed-alert">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>이 도서는 현재 대여 중입니다</span>
+            </div>
+
             <!-- 책 기본 정보 -->
             <div class="book-info">
                 <h1 class="book-title">{{ book.titleBook }}</h1>
@@ -37,15 +68,29 @@
                     <span class="label">바코드:</span>
                     <span class="value">{{ book.barcodeBook }}</span>
                 </div>
+                <div class="info-item">
+                    <span class="label">대여 상태:</span>
+                    <span class="value" :class="book.bookBorrowed ? 'status-borrowed' : 'status-available'">
+                        {{ book.bookBorrowed ? '대여중' : '대여 가능' }}
+                    </span>
+                </div>
             </div>
 
             <!-- 액션 버튼 -->
             <div class="action-buttons">
-                <button class="btn btn-primary" @click="handleBorrow">
-                    <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button 
+                    class="btn"
+                    :class="book.bookBorrowed ? 'btn-disabled' : 'btn-primary'"
+                    @click="handleBorrow"
+                    :disabled="book.bookBorrowed"
+                >
+                    <svg v-if="!book.bookBorrowed" class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253z" />
                     </svg>
-                    대출하기
+                    <svg v-else class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
+                    </svg>
+                    {{ book.bookBorrowed ? '대여 불가' : '대출하기' }}
                 </button>
                 
                 <button class="btn btn-secondary" @click="handleWishlist">
@@ -61,6 +106,16 @@
                     </svg>
                     공유하기
                 </button>
+            </div>
+
+            <!-- 대여중일 때 추가 정보 -->
+            <div v-if="book.bookBorrowed" class="borrowed-info">
+                <h3>다른 옵션</h3>
+                <ul>
+                    <li>• 유사한 도서를 검색해보세요</li>
+                    <li>• 반납 예정일을 확인하고 예약하세요</li>
+                    <li>• 다른 지점에서 대여 가능한지 확인하세요</li>
+                </ul>
             </div>
         </div>
     </div>
@@ -94,12 +149,47 @@ const handleImageLoad = () => {
 }
 
 const handleBorrow = () => {
-  router.push('/borrow')
+    if (book.value.bookBorrowed) {
+        alert('이 도서는 현재 대여 중입니다.')
+        return
+    }
+    router.push('/borrow')
 }
 
-const handleWishlist = () => {
-    console.log('찜하기 클릭')
-    // 찜하기 로직 구현
+const handleWishlist = async () => {
+    try {
+        const token = localStorage.getItem('jwtToken')
+        const response = await axios.post('http://localhost:8080/favor', book.value.seqBook, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        
+        if (response.status === 200) {
+            alert(response.data || '찜 목록에 추가되었습니다!')
+        }
+    } catch (error) {
+        console.error('찜하기 요청 실패:', error)
+        
+        if (error.response) {
+            const status = error.response.status
+            const message = error.response.data || '오류가 발생했습니다.'
+            
+            if (status === 403) {
+                alert(message)
+            } else if (status === 401) {
+                alert('로그인이 필요합니다.')
+                router.push('/login')
+            } else {
+                alert(`오류: ${message}`)
+            }
+        } else if (error.request) {
+            alert('서버와의 연결에 실패했습니다. 잠시 후 다시 시도해주세요.')
+        } else {
+            alert('요청 처리 중 오류가 발생했습니다.')
+        }
+    }
 }
 
 const handleShare = () => {
@@ -135,29 +225,137 @@ onMounted(async () => {
     padding: 0.7rem;
     margin: 0 auto;
 }
+
 .left-area {
     width: 50%;
+    position: relative;
 }
+
 .left-area, .right-area {
     min-width: 720px;
     width: 100%;
     padding: 1rem;
     margin: 0 auto;
 }
+
 .img-container {
     position: relative;
 }
+
 .img-container, .book-img {
     width: 70%;
     height: auto;
     border: 1px solid #e1e3e5;
     object-fit: contain;
 }
+
+/* 대여중 오버레이는 이미지 컨테이너에만 적용 */
+.borrowed-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 70%; /* 이미지와 같은 크기 */
+    height: 100%;
+    z-index: 10;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.borrowed-dimmer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(3px);
+}
+
+.borrowed-badge-large {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+    animation: pulse 2s infinite;
+    z-index: 11;
+}
+
+.borrowed-text-large {
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+}
+
+.borrowed-center-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: white;
+    z-index: 11;
+}
+
+.borrowed-icon {
+    background: rgba(239, 68, 68, 0.9);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
+}
+
+.borrowed-message {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+    }
+    50% {
+        box-shadow: 0 6px 25px rgba(239, 68, 68, 0.7);
+        transform: scale(1.02);
+    }
+}
+
 .right-area {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     gap: 2rem;
+}
+
+/* 대여중 알림 배너 */
+.borrowed-alert {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border: 2px solid #fca5a5;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #dc2626;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
+}
+
+.borrowed-alert svg {
+    flex-shrink: 0;
 }
 
 .title {
@@ -241,6 +439,18 @@ onMounted(async () => {
     font-size: 0.9rem;
 }
 
+.status-borrowed {
+    background-color: #fef2f2;
+    color: #dc2626;
+    font-weight: 700;
+}
+
+.status-available {
+    background-color: #f0fdf4;
+    color: #16a34a;
+    font-weight: 700;
+}
+
 .action-buttons {
     display: flex;
     gap: 0.75rem;
@@ -260,6 +470,12 @@ onMounted(async () => {
     font-size: 0.95rem;
 }
 
+.btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none !important;
+}
+
 .btn-icon {
     width: 1.25rem;
     height: 1.25rem;
@@ -270,9 +486,18 @@ onMounted(async () => {
     color: white;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
     background-color: #2563eb;
     transform: translateY(-1px);
+}
+
+.btn-disabled {
+    background-color: #dc2626;
+    color: white;
+}
+
+.btn-disabled:hover {
+    background-color: #b91c1c;
 }
 
 .btn-secondary {
@@ -293,5 +518,64 @@ onMounted(async () => {
 .btn-tertiary:hover {
     background-color: #7c3aed;
     transform: translateY(-1px);
+}
+
+/* 대여중일 때 추가 정보 */
+.borrowed-info {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+}
+
+.borrowed-info h3 {
+    color: #374151;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.borrowed-info ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.borrowed-info li {
+    color: #6b7280;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .main {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+    
+    .left-area, .right-area {
+        min-width: auto;
+    }
+    
+    .borrowed-badge-large {
+        top: 10px;
+        right: 10px;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+    
+    .borrowed-center-message {
+        padding: 0 20px;
+    }
+    
+    .borrowed-icon {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .borrowed-message {
+        font-size: 1rem;
+    }
 }
 </style>
