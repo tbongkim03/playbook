@@ -263,6 +263,7 @@ public class HistoryServiceImpl implements HistoryService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public HistoryBookResponseDto getMyHistory(BookUser user) {
         List<RentalHistoryDto> rentalHistoryDtoList = historyDAO.getMyRentalHistoryList(user);
         if (rentalHistoryDtoList.isEmpty()) {
