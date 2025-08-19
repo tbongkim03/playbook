@@ -387,12 +387,12 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
+import axios from 'axios'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-// JWT 토큰 (실제로는 로컬스토리지나 스토어에서 가져와야 함)
-const jwtToken = ref(localStorage.getItem('jwtToken') || '')
+const jwtToken = ref(localStorage.getItem('jwtToken'))
 
 // API 기본 URL
 const API_BASE_URL = 'http://localhost:8080'
@@ -683,20 +683,49 @@ function goToBookDetail(seqBook) {
 // 찜 해제
 async function removeFavorite(seqBook) {
   try {
-    const response = await fetch(`${API_BASE_URL}/favor`, {
-      method: 'DELETE',
-      headers: getHeaders(),
-      body: JSON.stringify({ seqBook })
+        
+    if (!jwtToken.value) {
+        alert('로그인이 필요합니다.')
+        router.push('/login')
+        return
+    }
+    console.log(seqBook)
+
+    response = await axios.delete('http://localhost:8080/favor', {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${jwtToken.value}`
+        },
+        data: seqBook
     })
 
     if (response.ok) {
       favoriteBooks.value = favoriteBooks.value.filter(book => book.seqBook !== seqBook)
     } else {
-      alert('찜 해제에 실패했습니다.')
+      const errorMessage = await response.text()
+      alert(`찜 해제에 실패했습니다: ${errorMessage}`)
     }
   } catch (error) {
     console.error('찜 해제 실패:', error)
-    alert('찜 해제 중 오류가 발생했습니다.')
+    
+    if (error.response) {
+      const status = error.response.status
+      const message = error.response.data || '오류가 발생했습니다.'
+      
+      if (status === 403) {
+        alert(message)
+      } else if (status === 401) {
+        alert('로그인이 필요하거나 토큰이 만료되었습니다.')
+        localStorage.removeItem('jwtToken')
+        router.push('/login')
+      } else {
+        alert(`오류: ${message}`)
+      }
+    } else if (error.request) {
+      alert('서버와의 연결에 실패했습니다. 잠시 후 다시 시도해주세요.')
+    } else {
+      alert('찜 해제 중 오류가 발생했습니다.')
+    }
   }
 }
 

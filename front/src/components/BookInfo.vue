@@ -197,7 +197,6 @@ const handleWishlist = async () => {
         if (response.status === 200) {
             // 상태 토글
             isWishlisted.value = !isWishlisted.value
-            alert(response.data || (isWishlisted.value ? '찜 목록에 추가되었습니다!' : '찜 목록에서 삭제되었습니다!'))
         }
     } catch (error) {
         console.error('찜하기 요청 실패:', error)
