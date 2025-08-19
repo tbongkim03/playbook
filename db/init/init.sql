@@ -80,7 +80,7 @@ CREATE TABLE tb_sort_second (
 );
 
 CREATE TABLE tb_favor (
-    seq_favor    INT               NOT NULL,
+    seq_favor    INT               NOT NULL AUTO_INCREMENT,
     seq_user     INT               NOT NULL,
     seq_book     INT               NOT NULL,
     PRIMARY KEY (seq_favor)
