@@ -683,27 +683,25 @@ function goToBookDetail(seqBook) {
 // 찜 해제
 async function removeFavorite(seqBook) {
   try {
-        
     if (!jwtToken.value) {
-        alert('로그인이 필요합니다.')
-        router.push('/login')
-        return
+      alert('로그인이 필요합니다.')
+      router.push('/login')
+      return
     }
-    console.log(seqBook)
+    
+    console.log('삭제할 seqBook:', seqBook)
 
-    response = await axios.delete('http://localhost:8080/favor', {
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${jwtToken.value}`
-        },
-        data: seqBook
+    const response = await axios.delete('http://localhost:8080/favor', {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${jwtToken.value}`
+      },
+      data: seqBook
     })
 
-    if (response.ok) {
+    // axios는 response.status로 확인
+    if (response.status === 200) {
       favoriteBooks.value = favoriteBooks.value.filter(book => book.seqBook !== seqBook)
-    } else {
-      const errorMessage = await response.text()
-      alert(`찜 해제에 실패했습니다: ${errorMessage}`)
     }
   } catch (error) {
     console.error('찜 해제 실패:', error)
