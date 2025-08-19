@@ -1,6 +1,7 @@
 package playbook.encore.back.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,8 +15,11 @@ import playbook.encore.back.data.dto.book.BookResponseDto;
 import playbook.encore.back.data.dto.book.BookSearchResponseDto;
 import playbook.encore.back.data.dto.book.BookSortAndBarcodeRequestDto;
 import playbook.encore.back.data.dto.book.BookUnprintedResponseDto;
+import playbook.encore.back.data.repository.BookUserRepository;
 import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.service.BookService;
+
+import playbook.encore.back.jwt.jwtUtil;
 
 import java.util.List;
 
@@ -24,11 +28,13 @@ import java.util.List;
 public class BookController {
 
     private final BookService bookService;
+    private final jwtUtil jwtUtil;
 
 
     @Autowired
-    public BookController(BookService bookService) {
+    public BookController(BookService bookService, jwtUtil jwtUtil) {
         this.bookService = bookService;
+        this.jwtUtil = jwtUtil;
     }
 
     @GetMapping
@@ -51,8 +57,31 @@ public class BookController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BookResponseDto> getBookById(@PathVariable("id") int bookId) throws Exception {
-        BookResponseDto bookResponseDto = bookService.getBookById(bookId);
+    public ResponseEntity<?> getBookById(
+            HttpServletRequest request,
+            @PathVariable("id") int bookId
+    ) throws Exception {
+
+        String idUser = null;
+
+        try {
+            // JWT 토큰 추출 시도
+            String authHeader = request.getHeader("Authorization");
+
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+
+                String reason = jwtUtil.validateAndGetReason(token);
+
+                if (reason == null || reason.equals("VALID")) {
+                    idUser = jwtUtil.getIdUserFromToken(token);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("JWT 토큰 처리 실패: " + e.getMessage());
+            e.printStackTrace();
+        }
+        BookResponseDto bookResponseDto = bookService.getBookById(bookId, idUser);
         return ResponseEntity.status(HttpStatus.OK).body(bookResponseDto);
     }
 

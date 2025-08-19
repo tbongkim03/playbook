@@ -27,4 +27,6 @@ public interface HistoryDAO {
     List<PopularLabelDto> findPopularSecondSortAll();
     List<UserReadingRankDto> findUserReadingRankByCourse(int courseId);
     List<UserReadingRankDto> findUserReadingRankAll();
+
+    boolean existsByBookIdAndSeqUserAndReturnDateIsNull(int bookId, int userSeq);
 }

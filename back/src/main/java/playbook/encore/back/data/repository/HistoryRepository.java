@@ -113,4 +113,6 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
         ORDER BY COUNT(h.seqHistory) DESC
     """)
     List<UserReadingRankDto> findUserReadingRankAll();
+
+    boolean existsBySeqBook_SeqBookAndSeqUser_SeqUserAndReturnDtIsNull(int bookId, int userSeq);
 }

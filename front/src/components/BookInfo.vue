@@ -253,8 +253,15 @@ const checkWishlistStatus = async () => {
 
 onMounted(async () => {
     try {
-        console.log('요청할 bookId:', bookId)
-        const res = await axios.get(`http://localhost:8080/books/${bookId}`)
+        const token = localStorage.getItem('jwtToken')
+        const headers = {}
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`
+        }
+        
+        const res = await axios.get(`http://localhost:8080/books/${bookId}`, {
+            headers: headers
+        })
         
         if (res.data) {
             book.value = res.data

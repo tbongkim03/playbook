@@ -78,7 +78,7 @@ public class BookDAOImpl implements BookDAO {
     }
 
     @Override
-    public Book selectBookById(int bookId) throws Exception {
+    public Book selectBookById(int bookId, String idUser) throws Exception {
         Optional<Book> optionalBook = bookRepository.findById(bookId);
         if (optionalBook.isPresent()) {
             Book selectedBook = optionalBook.get();

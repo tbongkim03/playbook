@@ -191,4 +191,10 @@ public class HistoryDAOImpl implements HistoryDAO {
     public List<UserReadingRankDto> findUserReadingRankAll() {
         return historyRepository.findUserReadingRankAll();
     }
+
+    @Override
+    public boolean existsByBookIdAndSeqUserAndReturnDateIsNull(int bookId, int userSeq) {
+        boolean result = historyRepository.existsBySeqBook_SeqBookAndSeqUser_SeqUserAndReturnDtIsNull(bookId, userSeq);
+        return result;
+    }
 }

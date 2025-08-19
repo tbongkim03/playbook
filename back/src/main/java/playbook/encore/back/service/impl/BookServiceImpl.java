@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import playbook.encore.back.data.dao.BookDAO;
+import playbook.encore.back.data.dao.HistoryDAO;
 import playbook.encore.back.data.dto.book.BookBarcodeUniqueRequestDto;
 import playbook.encore.back.data.dto.book.BookBarcodeUniqueResponseDto;
 import playbook.encore.back.data.dto.book.BookCountResponseDto;
@@ -15,8 +16,10 @@ import playbook.encore.back.data.dto.book.BookSearchResponseDto;
 import playbook.encore.back.data.dto.book.BookSortAndBarcodeRequestDto;
 import playbook.encore.back.data.dto.book.BookUnprintedResponseDto;
 import playbook.encore.back.data.entity.Book;
+import playbook.encore.back.data.entity.BookUser;
 import playbook.encore.back.data.entity.SortSecond;
 import playbook.encore.back.data.repository.BookRepository;
+import playbook.encore.back.data.repository.BookUserRepository;
 import playbook.encore.back.data.repository.SortSecondRepository;
 import playbook.encore.back.service.BookService;
 
@@ -29,29 +32,34 @@ public class BookServiceImpl implements BookService {
     private final BookDAO bookDAO;
     private final BookRepository bookRepository;
     private final SortSecondRepository sortSecondRepository;
+    private final HistoryDAO historyDAO;
+    private final BookUserRepository bookUserRepository;
 
     @Autowired
-    public BookServiceImpl(BookDAO bookDAO, BookRepository bookRepository, SortSecondRepository sortSecondRepository) {
+    public BookServiceImpl(BookDAO bookDAO, BookRepository bookRepository, SortSecondRepository sortSecondRepository, HistoryDAO historyDAO, BookUserRepository bookUserRepository) {
         this.bookDAO = bookDAO;
         this.bookRepository = bookRepository;
         this.sortSecondRepository = sortSecondRepository;
+        this.historyDAO = historyDAO;
+        this.bookUserRepository = bookUserRepository;
     }
 
     private BookResponseDto convertToDto(Book entity) {
-        return new BookResponseDto(
-                entity.getSeqBook(),
-                entity.getSeqSortSecond().getSeqSortSecond(),
-                entity.getIsbnBook(),
-                entity.getTitleBook(),
-                entity.getAuthorBook(),
-                entity.getPublisherBook(),
-                entity.getPublishDateBook(),
-                entity.getImgUrlBook(),
-                entity.getBarcodeBook(),
-                entity.getCntBook(),
-                entity.isPrintCheckBook(),
-                entity.isBookBorrowed()
-        );
+        return BookResponseDto.builder()
+                .seqBook(entity.getSeqBook())
+                .seqSortSecond(entity.getSeqSortSecond().getSeqSortSecond())
+                .isbnBook(entity.getIsbnBook())
+                .titleBook(entity.getTitleBook())
+                .authorBook(entity.getAuthorBook())
+                .publisherBook(entity.getPublisherBook())
+                .publishDateBook(String.valueOf(entity.getPublishDateBook()))
+                .imageBook(entity.getImgUrlBook())
+                .barcodeBook(entity.getBarcodeBook())
+                .cntBook(entity.getCntBook())
+                .printCheckBook(entity.isPrintCheckBook())
+                .bookBorrowed(entity.isBookBorrowed())
+                .isBorrowedByMe(false)
+                .build();
     }
 
     @Override
@@ -121,13 +129,32 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookResponseDto getBookById(int bookId) throws Exception {
-        Book selectedBook = bookDAO.selectBookById(bookId);
+    public BookResponseDto getBookById(int bookId, String idUser) throws Exception {
+        Book selectedBook = bookDAO.selectBookById(bookId, idUser);
         BookResponseDto bookResponseDto = convertToDto(selectedBook);
 
+        // 로그인한 사용자인 경우, 해당 책을 빌렸는지 확인
+        if (idUser != null) {
+            // idUser로 seqUser 조회
+            Integer userSeq = bookUserRepository.findByIdUser(idUser)
+                    .map(BookUser::getSeqUser)
+                    .orElse(null);
+            if (userSeq != null) {
+                boolean isBorrowedByMe = checkIfBookBorrowedByUser(bookId, userSeq);
+                bookResponseDto.setBorrowedByMe(isBorrowedByMe);
+            } else {
+                bookResponseDto.setBorrowedByMe(false);
+            }
+        } else {
+            bookResponseDto.setBorrowedByMe(false);
+        }
         return bookResponseDto;
     }
 
+    private boolean checkIfBookBorrowedByUser(int bookId, int userSeq) {
+        boolean result = historyDAO.existsByBookIdAndSeqUserAndReturnDateIsNull(bookId, userSeq);
+        return result;
+    }
 
     // 프린트 함, 분류, 책 권수, 바코드 값 넣기.
     @Override

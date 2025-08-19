@@ -13,7 +13,7 @@ public interface BookDAO {
 
     Page<Book> selectAllBooks(int page) throws Exception;
 
-    Book selectBookById(int bookId) throws Exception;
+    Book selectBookById(int bookId, String idUser) throws Exception;
 
     Book updateBook(Book book) throws Exception;
 
