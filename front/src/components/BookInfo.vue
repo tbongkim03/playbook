@@ -93,11 +93,18 @@
                     {{ book.bookBorrowed ? '대여 불가' : '대출하기' }}
                 </button>
                 
-                <button class="btn btn-secondary" @click="handleWishlist">
-                    <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button 
+                    class="btn"
+                    :class="isWishlisted ? 'btn-wishlisted' : 'btn-secondary'"
+                    @click="handleWishlist"
+                >
+                    <svg v-if="!isWishlisted" class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                     </svg>
-                    찜하기
+                    <svg v-else class="btn-icon" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    {{ isWishlisted ? '찜 해제' : '찜하기' }}
                 </button>
 
                 <button class="btn btn-tertiary" @click="handleShare">
@@ -113,8 +120,7 @@
                 <h3>다른 옵션</h3>
                 <ul>
                     <li>• 유사한 도서를 검색해보세요</li>
-                    <li>• 반납 예정일을 확인하고 예약하세요</li>
-                    <li>• 다른 지점에서 대여 가능한지 확인하세요</li>
+                    <li>• 찜하기를 통해 반납 시 디스코드로 알림을 받아보세요</li>
                 </ul>
             </div>
         </div>
@@ -138,6 +144,7 @@ const loading = ref(true)
 const error = ref(null)
 const bookImg = ref(null)
 const overLay = ref(null)
+const isWishlisted = ref(false) // 찜하기 상태 추가
 
 const handleImageError = (event) => {
     console.error('이미지 로딩 실패:', event.target.src)
@@ -159,15 +166,38 @@ const handleBorrow = () => {
 const handleWishlist = async () => {
     try {
         const token = localStorage.getItem('jwtToken')
-        const response = await axios.post('http://localhost:8080/favor', book.value.seqBook, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
-        })
+        
+        if (!token) {
+            alert('로그인이 필요합니다.')
+            router.push('/login')
+            return
+        }
+        
+        let response
+        
+        if (isWishlisted.value) {
+            // 찜하기 해제 - DELETE 요청
+            response = await axios.delete('http://localhost:8080/favor', {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                data: book.value.seqBook
+            })
+        } else {
+            // 찜하기 추가 - POST 요청
+            response = await axios.post('http://localhost:8080/favor', book.value.seqBook, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+        }
         
         if (response.status === 200) {
-            alert(response.data || '찜 목록에 추가되었습니다!')
+            // 상태 토글
+            isWishlisted.value = !isWishlisted.value
+            alert(response.data || (isWishlisted.value ? '찜 목록에 추가되었습니다!' : '찜 목록에서 삭제되었습니다!'))
         }
     } catch (error) {
         console.error('찜하기 요청 실패:', error)
@@ -179,7 +209,8 @@ const handleWishlist = async () => {
             if (status === 403) {
                 alert(message)
             } else if (status === 401) {
-                alert('로그인이 필요합니다.')
+                alert('로그인이 필요하거나 토큰이 만료되었습니다.')
+                localStorage.removeItem('jwtToken')
                 router.push('/login')
             } else {
                 alert(`오류: ${message}`)
@@ -197,6 +228,30 @@ const handleShare = () => {
     alert('클립보드에 복사되었습니다!')
 }
 
+// 찜하기 상태 확인 함수
+const checkWishlistStatus = async () => {
+    try {
+        const token = localStorage.getItem('jwtToken')
+        if (!token) return
+        
+        const response = await axios.get('http://localhost:8080/favor', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        
+        if (response.status === 200 && response.data) {
+            const favorList = response.data
+            isWishlisted.value = favorList.some(favor => 
+                favor.titleBook === book.value.titleBook && 
+                favor.authorBook === book.value.authorBook
+            )
+        }
+    } catch (error) {
+        console.log('찜하기 상태 확인 실패:', error)
+    }
+}
+
 onMounted(async () => {
     try {
         console.log('요청할 bookId:', bookId)
@@ -204,6 +259,7 @@ onMounted(async () => {
         
         if (res.data) {
             book.value = res.data
+            await checkWishlistStatus()
         } else {
             error.value = '책 데이터가 없습니다.'
         }
@@ -508,6 +564,40 @@ onMounted(async () => {
 .btn-secondary:hover {
     background-color: #374151;
     transform: translateY(-1px);
+}
+
+.btn-wishlisted {
+    background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
+}
+
+.btn-wishlisted:hover {
+    background: linear-gradient(135deg, #db2777 0%, #9d174d 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(236, 72, 153, 0.5);
+}
+
+.btn-wishlisted .btn-icon {
+    animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+    0%, 100% {
+        transform: scale(1);
+    }
+    14% {
+        transform: scale(1.1);
+    }
+    28% {
+        transform: scale(1);
+    }
+    42% {
+        transform: scale(1.1);
+    }
+    70% {
+        transform: scale(1);
+    }
 }
 
 .btn-tertiary {
