@@ -58,7 +58,7 @@
                   <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/>
                   <path d="M8 14L10 16L16 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                대여/반납 히스토리
+                대출/반납 히스토리
               </button>
             </li>
             <li>
@@ -90,7 +90,7 @@
           <BooksTable ref="booksTableRef" @open-register-modal="openRegisterModal" />
         </div>
 
-        <!-- 대여/반납 히스토리 -->
+        <!-- 대출/반납 히스토리 -->
         <div v-if="activeTab === 'rental-history'" class="content-section">
           <RentalHistoryDashboard />
         </div>

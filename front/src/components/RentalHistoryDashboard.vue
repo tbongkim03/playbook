@@ -1,8 +1,8 @@
 <template>
   <div class="rental-history-dashboard">
     <div class="section-header">
-      <h2 class="section-title">대여/반납 히스토리</h2>
-      <p class="section-description">도서 대여 및 반납 현황을 모니터링할 수 있습니다.</p>
+      <h2 class="section-title">대출/반납 히스토리</h2>
+      <p class="section-description">도서 대출 및 반납 현황을 모니터링할 수 있습니다.</p>
     </div>
 
     <!-- 통계 카드 -->
@@ -29,7 +29,7 @@
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ stats.activeRentals }}</div>
-          <div class="stat-label">현재 대여 중</div>
+          <div class="stat-label">현재 대출 중</div>
         </div>
       </div>
 
@@ -88,7 +88,7 @@
           <label>상태</label>
           <select v-model="filters.status" @change="applyFilters">
             <option value="all">전체</option>
-            <option value="booked">대여 중</option>
+            <option value="booked">대출 중</option>
             <option value="returned">반납 완료</option>
             <option value="overdue">연체</option>
           </select>
@@ -115,7 +115,7 @@
     <!-- 히스토리 테이블 -->
     <div class="history-table-container">
       <div class="table-header">
-        <h3>대여/반납 히스토리</h3>
+        <h3>대출/반납 히스토리</h3>
         <div class="table-actions">
           <button class="export-btn" @click="exportData">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -143,7 +143,7 @@
               <th>도서명</th>
               <th>저자</th>
               <th>사용자</th>
-              <th>대여일</th>
+              <th>대출일</th>
               <th>반납예정일</th>
               <th>반납일</th>
               <th>상태</th>
@@ -192,7 +192,7 @@
             <path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" stroke="currentColor" stroke-width="2"/>
           </svg>
           <h3>데이터가 없습니다</h3>
-          <p>조건에 맞는 대여/반납 기록이 없습니다.</p>
+          <p>조건에 맞는 대출/반납 기록이 없습니다.</p>
         </div>
       </div>
 
@@ -230,7 +230,7 @@
     <div v-if="showDetailModal" class="modal-overlay" @click="closeDetailModal">
       <div class="modal-content detail-modal" @click.stop>
         <div class="modal-header">
-          <h3>대여 상세 정보</h3>
+          <h3>대출 상세 정보</h3>
           <button class="modal-close" @click="closeDetailModal">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
@@ -272,10 +272,10 @@
           </div>
 
           <div class="detail-section">
-            <h4>대여 정보</h4>
+            <h4>대출 정보</h4>
             <div class="detail-grid">
               <div class="detail-item">
-                <label>대여일</label>
+                <label>대출일</label>
                 <span>{{ selectedRental.rentalDate }}</span>
               </div>
               <div class="detail-item">
@@ -329,25 +329,6 @@ const filters = ref({
 const searchQuery = ref('')
 const currentPage = ref(1)
 const itemsPerPage = 10
-
-const debugAuth = () => {
-  const token = localStorage.getItem('jwtToken')
-  const userType = localStorage.getItem('userType')
-  
-  console.log('인증 정보 확인:', {
-    토큰존재: !!token,
-    사용자정보: userType,
-  })
-  
-  // 관리자 권한 확인
-  if (!userType || userType !== 'admin') {
-    console.warn('관리자 권한이 필요합니다')
-    alert('관리자만 접근할 수 있습니다.')
-    return false
-  }
-  
-  return true
-}
 
 // API 헤더 설정
 const getAuthHeaders = () => {
@@ -451,18 +432,8 @@ const fetchRentalHistory = async () => {
   try {
     isLoading.value = true
     
-    // 권한 확인
-    if (!debugAuth()) {
-      return
-    }
-    
     const headers = getAuthHeaders()
     if (!headers) return
-
-    console.log('API 요청 시작:', {
-      url: 'http://localhost:8080/history/book',
-      headers: headers
-    })
     
     const response = await axios.get('http://localhost:8080/history/book', {
       headers: headers
@@ -555,7 +526,7 @@ const fetchRentalHistory = async () => {
     const errorMessage = error.response?.data?.message || 
                         error.response?.data || 
                         error.message || 
-                        '대여 히스토리를 불러오는데 실패했습니다.'
+                        '대출 히스토리를 불러오는데 실패했습니다.'
     alert(errorMessage)
     
   } finally {
@@ -588,7 +559,7 @@ const getStatusText = (rental) => {
     case 'overdue':
       return '연체'
     case 'booked':
-      return '대여중'
+      return '대출중'
   }
 }
 
@@ -620,7 +591,7 @@ const changePage = (page) => {
 
 const exportData = () => {
   const csvContent = [
-    ['도서명', '저자', '사용자', '대여일', '반납예정일', '반납일', '상태'].join(','),
+    ['도서명', '저자', '사용자', '대출일', '반납예정일', '반납일', '상태'].join(','),
     ...rentalHistory.value.map(rental => [
       rental.bookTitle,
       rental.bookAuthor,

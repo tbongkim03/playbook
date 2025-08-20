@@ -41,10 +41,6 @@
                 <div class="title">{{ book.titleBook }}</div>
                 <div class="book-info-footer">
                     <div class="author">{{ book.authorBook }}</div>
-                    <!-- 디버깅용 정보 -->
-                    <div style="font-size: 0.7rem; color: #999; margin-top: 4px;">
-                        Debug: borrowed={{ book.bookBorrowed }}, byMe={{ book.borrowedByMe }}
-                    </div>
                 </div>
             </div>
         </div>
@@ -67,10 +63,6 @@ const handleImageError = (event) => {
     event.target.src = noImage
 }
 
-// 디버깅용 - 콘솔에서 확인
-console.log('Book data:', props.book)
-console.log('bookBorrowed:', props.book.bookBorrowed)
-console.log('borrowedByMe:', props.book.borrowedByMe)
 </script>
 
 <style scoped>
@@ -90,32 +82,8 @@ console.log('borrowedByMe:', props.book.borrowedByMe)
     position: relative;
 }
 
-.book-area.borrowed::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    border-radius: 8px 8px 0 0;
-    z-index: 5;
-}
-
 .book-area.my-borrowed {
     position: relative;
-}
-
-.book-area.my-borrowed::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    border-radius: 8px 8px 0 0;
-    z-index: 5;
 }
 
 .isBooked {

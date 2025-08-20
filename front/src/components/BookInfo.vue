@@ -25,7 +25,7 @@
                             <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="currentColor"/>
                             <path d="M9 12L11 14L15 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        <span class="borrowed-text-large">대출중</span>
+                        <span class="borrowed-text-large">대출 중</span>
                     </div>
                     <div class="borrowed-dimmer"></div>
                     
@@ -46,7 +46,7 @@
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        <span class="my-borrowed-text">대출중</span>
+                        <span class="my-borrowed-text">대출 중</span>
                     </div>
                 </div>
             </div>
@@ -188,9 +188,9 @@ const handleImageLoad = () => {
 
 const getStatusText = () => {
     if (book.value.borrowedByMe) {
-        return '사용자님께서 대출중'
+        return '대출 중'
     } else if (book.value.bookBorrowed) {
-        return '대출중'
+        return '대출 중'
     } else {
         return '대출 가능'
     }
