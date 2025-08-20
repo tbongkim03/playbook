@@ -195,7 +195,15 @@ const loadBooks = async (page = 1) => {
       url = `http://localhost:8080/books/sortFirst?id=${selectedLargeCategorySeq.value}&page=${page}`
     }
 
-    const res = await fetch(url)
+    const token = localStorage.getItem('jwtToken')
+
+    const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+    })
     const data = await res.json()
 
     // printCheckBook이 1인 책만 필터링
