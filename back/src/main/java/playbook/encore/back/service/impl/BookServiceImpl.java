@@ -82,8 +82,6 @@ public class BookServiceImpl implements BookService {
                 .printCheckBook(false)
                 .build();
 
-        // 바코드 문자열 생성 로직 구현, 책 갯수 파악 로직 구현 deprecated
-
         Book savedBook = bookDAO.insertBook(book);
         BookResponseDto bookResponseDto = convertToDto(savedBook);
 
@@ -91,12 +89,33 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookListResponseDto getBookList(int page) throws Exception {
+    public BookListResponseDto getBookList(int page, String idUser) throws Exception {
         Page<Book> bookPage = bookDAO.selectBookListByPage(page);
 
+        Integer userSeq = null;
+        if (idUser != null) {
+            userSeq = bookUserRepository.findByIdUser(idUser)
+                    .map(BookUser::getSeqUser)
+                    .orElse(null);
+        }
+
+        final Integer finalUserSeq = userSeq;
+
         List<BookResponseDto> content = bookPage.getContent().stream()
-            .map(this::convertToDto)
-            .collect(Collectors.toList());
+                .map(book -> {
+                    BookResponseDto bookResponseDto = convertToDto(book);
+
+                    // 로그인한 사용자이고 userSeq가 존재하는 경우, 해당 책을 빌렸는지 확인
+                    if (finalUserSeq != null) {
+                        boolean isBorrowedByMe = checkIfBookBorrowedByUser(book.getSeqBook(), finalUserSeq);
+                        bookResponseDto.setBorrowedByMe(isBorrowedByMe);
+                    } else {
+                        bookResponseDto.setBorrowedByMe(false);
+                    }
+
+                    return bookResponseDto;
+                })
+                .collect(Collectors.toList());
 
         int totalCount = (int) bookPage.getTotalElements();
         BookListResponseDto bookListResponseDto = new BookListResponseDto(content, totalCount);

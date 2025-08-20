@@ -14,7 +14,7 @@ import java.util.List;
 
 public interface BookService {
     BookResponseDto insertBook(BookRequestDto bookRequestDto);
-    BookListResponseDto getBookList(int page) throws Exception;
+    BookListResponseDto getBookList(int page, String idUser) throws Exception;
     BookListResponseDto getAllBooks(int page) throws Exception;
     BookResponseDto getBookById(int bookId, String idUser) throws Exception;
     BookResponseDto changeBook(int bookId, BookSortAndBarcodeRequestDto bookSortAndBarcodeRequestDto) throws Exception;

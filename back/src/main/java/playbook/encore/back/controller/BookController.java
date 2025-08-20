@@ -38,8 +38,30 @@ public class BookController {
     }
 
     @GetMapping
-    public ResponseEntity<BookListResponseDto> getBooks(@RequestParam int page) throws Exception {
-        BookListResponseDto bookListResponseDto = bookService.getBookList(page);
+    public ResponseEntity<BookListResponseDto> getBooks(
+            HttpServletRequest request,
+            @RequestParam int page
+    ) throws Exception {
+        String idUser = null;
+
+        try {
+            // JWT 토큰 추출 시도
+            String authHeader = request.getHeader("Authorization");
+
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+
+                String reason = jwtUtil.validateAndGetReason(token);
+
+                if (reason == null || reason.equals("VALID")) {
+                    idUser = jwtUtil.getIdUserFromToken(token);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("JWT 토큰 처리 실패: " + e.getMessage());
+            e.printStackTrace();
+        }
+        BookListResponseDto bookListResponseDto = bookService.getBookList(page, idUser);
         return ResponseEntity.status(HttpStatus.OK).body(bookListResponseDto);
     }
 
