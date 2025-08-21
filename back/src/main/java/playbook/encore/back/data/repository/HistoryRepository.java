@@ -45,7 +45,7 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
 
     // 1. 인기 대분류 (특정 과정)
     @Query("""
-        SELECT new playbook.encore.back.data.dto.history.PopularLabelDto(sf.nameSortFirst, COUNT(h))
+        SELECT new playbook.encore.back.data.dto.history.PopularLabelDto(sf.korSortFirst, COUNT(h))
         FROM History h
         JOIN h.seqBook b
         JOIN b.seqSortSecond ss
@@ -59,7 +59,7 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
 
     // 1-1. 인기 대분류 (전체 과정)
     @Query("""
-        SELECT new playbook.encore.back.data.dto.history.PopularLabelDto(sf.nameSortFirst, COUNT(h.seqHistory))
+        SELECT new playbook.encore.back.data.dto.history.PopularLabelDto(sf.korSortFirst, COUNT(h.seqHistory))
         FROM History h
         JOIN h.seqBook b
         JOIN b.seqSortSecond ss
@@ -71,7 +71,7 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
 
     // 2. 인기 중분류 (특정 과정)
     @Query("""
-        SELECT new playbook.encore.back.data.dto.history.PopularLabelDto(ss.nameSortSecond, COUNT(h.seqHistory))
+        SELECT new playbook.encore.back.data.dto.history.PopularLabelDto(ss.korSortSecond, COUNT(h.seqHistory))
         FROM History h
         JOIN h.seqBook b
         JOIN b.seqSortSecond ss
@@ -83,7 +83,7 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
 
     // 2-1. 인기 중분류 (전체 과정)
     @Query("""
-        SELECT new playbook.encore.back.data.dto.history.PopularLabelDto(ss.nameSortSecond, COUNT(h.seqHistory))
+        SELECT new playbook.encore.back.data.dto.history.PopularLabelDto(ss.korSortSecond, COUNT(h.seqHistory))
         FROM History h
         JOIN h.seqBook b
         JOIN b.seqSortSecond ss

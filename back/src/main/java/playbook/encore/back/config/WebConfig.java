@@ -28,6 +28,9 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginCheckInterceptor)
                 .addPathPatterns("/history/borrow", "/history/return", "/history/book", "/history/me")
+                .addPathPatterns("/history/popular/first", "/history/popular/first/*")
+                .addPathPatterns("/history/popular/second", "/history/popular/second/*")
+                .addPathPatterns("/history/rank", "/history/rank/*")
                 .addPathPatterns("/users/me", "/admin/me")
                 .addPathPatterns("/users/password", "/admin/password")
                 .addPathPatterns("/users/discord", "/admin/discord")

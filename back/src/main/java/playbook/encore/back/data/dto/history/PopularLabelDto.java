@@ -5,6 +5,6 @@ import lombok.*;
 @Data
 @AllArgsConstructor
 public class PopularLabelDto {
-    private String nameSortFirst;
+    private String korSortLabel;
     private Long rentalCount;
 }
