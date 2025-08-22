@@ -110,6 +110,15 @@
             </div>
 
             <div class="filter-group">
+              <label class="filter-label">대여상태</label>
+              <select v-model="filters.borrowStatus" class="filter-select">
+                <option value="">전체</option>
+                <option value="borrowed">대여중</option>
+                <option value="available">대여가능</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
               <label class="filter-label">정렬</label>
               <select v-model="filters.sortBy" class="filter-select">
                 <option value="title_asc">제목 가나다순</option>
@@ -199,6 +208,33 @@
         </div>
       </div>
 
+      <div class="stat-card borrowed-books">
+        <div class="stat-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 4H18C18.5304 4 19.0391 4.21071 19.4142 4.58579C19.7893 4.96086 20 5.46957 20 6V18C20 18.5304 19.7893 19.0391 19.4142 19.4142C19.0391 19.7893 18.5304 20 18 20H6C5.46957 20 4.96086 19.7893 4.58579 19.4142C4.21071 19.0391 4 18.5304 4 18V6C4 5.46957 4.21071 4.96086 4.58579 4.58579C4.96086 4.21071 5.46957 4 6 4H8" stroke="currentColor" stroke-width="2"/>
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1" stroke="currentColor" stroke-width="2"/>
+            <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/>
+            <line x1="8" y1="16" x2="12" y2="16" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ borrowedCount }}</div>
+          <div class="stat-label">대여중</div>
+        </div>
+      </div>
+
+      <div class="stat-card available-books">
+        <div class="stat-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polyline points="20,6 9,17 4,12" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ availableCount }}</div>
+          <div class="stat-label">대여가능</div>
+        </div>
+      </div>
+
       <div v-if="isPrint" class="stat-card print-ready">
         <div class="stat-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -255,12 +291,21 @@
                 <th class="col-category">대분류</th>
                 <th class="col-category">중분류</th>
                 <th class="col-count">수량</th>
+                <th class="col-status">대여상태</th>
                 <th class="col-barcode">바코드</th>
                 <th class="col-actions">작업</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="book in paginatedBooks" :key="book.seqBook" class="book-row">
+              <tr 
+                v-for="book in paginatedBooks" 
+                :key="book.seqBook" 
+                :class="[
+                  'book-row', 
+                  { 'active-row': activeRowId === book.seqBook }
+                ]"
+                @click="setActiveRow(book.seqBook)"
+              >
                 <td class="book-title col-title">
                   <div class="title-content">
                     <span class="title-text" :title="book.titleBook">{{ book.titleBook }}</span>
@@ -271,7 +316,11 @@
                 <td class="publisher col-publisher" :title="book.publisherBook">{{ book.publisherBook }}</td>
                 <td class="publish-date col-date">{{ formatDate(book.publishDateBook) }}</td>
                 <td class="category-large col-category">
-                  <select class="category-select" v-model="book.categoryLarge">
+                  <select 
+                    class="category-select" 
+                    v-model="book.categoryLarge"
+                    @click="setActiveRow(book.seqBook)"
+                  >
                     <option
                       v-for="category in largeCategories"
                       :key="category.nameSortFirst"
@@ -286,6 +335,7 @@
                     class="category-select"
                     v-model="book.categoryMedium"
                     :disabled="!book.mediumOptions.length"
+                    @click="setActiveRow(book.seqBook)"
                   >
                     <option
                       v-for="(category, index) in book.mediumOptions"
@@ -302,8 +352,17 @@
                     class="count-input" 
                     v-model="book.cntBook" 
                     min="1" 
-                    @input="() => { if (book.cntBook < 1) book.cntBook = 1 }" 
+                    @input="() => { if (book.cntBook < 1) book.cntBook = 1 }"
+                    @click="setActiveRow(book.seqBook)"
                   />
+                </td>
+                <td class="borrow-status col-status">
+                  <span :class="[
+                    'status-badge',
+                    book.bookBorrowed ? 'status-borrowed' : 'status-available'
+                  ]">
+                    {{ book.bookBorrowed ? '대여중' : '대여가능' }}
+                  </span>
                 </td>
                 <td class="barcode col-barcode">
                   <div class="barcode-display">
@@ -413,12 +472,14 @@ const selectedCntBook = ref('')
 const isPrint = ref(false)
 const isPrintBatchOpen = ref(false)
 const isRefreshing = ref(false)
+const activeRowId = ref(null) // 마지막으로 클릭한 행 ID 추가
 
 // 필터 상태
 const filters = ref({
   searchQuery: '',
   categoryLarge: '',
   categoryMedium: '',
+  borrowStatus: '',
   sortBy: 'title_asc'
 })
 
@@ -475,6 +536,15 @@ const availableMediumCategories = computed(() => {
   if (!filters.value.categoryLarge) return []
   return getMediumOptions(filters.value.categoryLarge)
 })
+
+// 대여 상태별 통계
+const borrowedCount = computed(() => 
+  allBooks.value.filter(book => book.bookBorrowed === true).length
+)
+
+const availableCount = computed(() => 
+  allBooks.value.filter(book => book.bookBorrowed === false).length
+)
 
 // 모든 도서 데이터 가져오기 (페이지네이션 없이)
 const fetchBooks = async () => {
@@ -548,6 +618,15 @@ const filteredBooks = computed(() => {
   // 중분류 필터
   if (filters.value.categoryMedium) {
     result = result.filter(book => book.categoryMedium === filters.value.categoryMedium)
+  }
+
+  // 대여 상태 필터
+  if (filters.value.borrowStatus) {
+    if (filters.value.borrowStatus === 'borrowed') {
+      result = result.filter(book => book.bookBorrowed === true)
+    } else if (filters.value.borrowStatus === 'available') {
+      result = result.filter(book => book.bookBorrowed === false)
+    }
   }
 
   // 프린트 모드 필터
@@ -632,6 +711,7 @@ const resetFilters = () => {
     searchQuery: '',
     categoryLarge: '',
     categoryMedium: '',
+    borrowStatus: '',
     sortBy: 'title_asc'
   }
   currentPage.value = 1
@@ -719,6 +799,11 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeydown)
 })
 
+// 활성 행 설정
+const setActiveRow = (seqBook) => {
+  activeRowId.value = seqBook
+}
+
 // 도서 삭제
 async function deleteBook(book) {
   if (!confirm(`"${book.titleBook}" 도서를 삭제하시겠습니까?`)) {
@@ -726,6 +811,7 @@ async function deleteBook(book) {
   }
 
   try {
+    setActiveRow(book.seqBook) // 클릭 시 활성 행 설정
     const token = localStorage.getItem('jwtToken')
     const response = await fetch(`${API_BASE}/books/${book.seqBook}`, {
       method: 'DELETE',
@@ -740,6 +826,7 @@ async function deleteBook(book) {
     }
 
     allBooks.value = allBooks.value.filter(b => b.seqBook !== book.seqBook)
+    activeRowId.value = null // 삭제 후 활성 행 초기화
     alert('삭제에 성공하였습니다.')
   } catch (error) {
     alert(`삭제 실패: ${error.message}`)
@@ -748,6 +835,7 @@ async function deleteBook(book) {
 
 // 바코드 생성
 function barcodeCreate(book) {
+  setActiveRow(book.seqBook) // 클릭 시 활성 행 설정
   selectedSeqBook.value = book.seqBook
   selectedSeqSortSecond.value = book.categoryMedium
   selectedCntBook.value = book.cntBook
@@ -1116,6 +1204,16 @@ const refreshBooks = async () => {
   color: #2d3748;
 }
 
+.stat-card.borrowed-books .stat-icon {
+  background: linear-gradient(135deg, #fdb5b5 0%, #fdc7c7 100%);
+  color: #2d3748;
+}
+
+.stat-card.available-books .stat-icon {
+  background: linear-gradient(135deg, #a8dadc 0%, #b8e6c1 100%);
+  color: #2d3748;
+}
+
 .stat-card.print-ready .stat-icon {
   background: linear-gradient(135deg, #ddbff0 0%, #e6ccf7 100%);
   color: #2d3748;
@@ -1232,14 +1330,14 @@ const refreshBooks = async () => {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
-  min-width: 1200px;
+  min-width: 1000px;
 }
 
 .books-table th,
 .books-table td {
-  padding: 10px 6px;
+  padding: 8px 4px;
   border-bottom: 1px solid #f7fafc;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   vertical-align: middle;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1254,22 +1352,32 @@ const refreshBooks = async () => {
   position: sticky;
   top: 0;
   z-index: 10;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
 }
 
-/* 컬럼별 너비 설정 - 더 컴팩트하게 */
-.col-title { width: 220px; }
-.col-isbn { width: 110px; }
-.col-author { width: 100px; }
-.col-publisher { width: 100px; }
-.col-date { width: 85px; }
-.col-category { width: 90px; }
-.col-count { width: 50px; }
-.col-barcode { width: 160px; }
-.col-actions { width: 80px; }
+/* 컬럼별 너비 설정 - 화면에 맞게 최적화 */
+.col-title { width: 180px; }
+.col-isbn { width: 85px; }
+.col-author { width: 80px; }
+.col-publisher { width: 80px; }
+.col-date { width: 70px; }
+.col-category { width: 75px; }
+.col-count { width: 45px; }
+.col-status { width: 70px; }
+.col-barcode { width: 120px; }
+.col-actions { width: 65px; }
 
 .book-row:hover {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.book-row.active-row {
+  background: linear-gradient(135deg, #e6f3ff 0%, #f0f8ff 100%);
+  border-left: 3px solid #4299e1;
+}
+
+.book-row.active-row:hover {
+  background: linear-gradient(135deg, #e6f3ff 0%, #f0f8ff 100%);
 }
 
 .book-title .title-text {
@@ -1282,10 +1390,10 @@ const refreshBooks = async () => {
 
 .category-select {
   width: 100%;
-  padding: 4px 6px;
+  padding: 3px 4px;
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 0.7rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
   background: #fafafa;
   transition: all 0.3s ease;
 }
@@ -1304,10 +1412,10 @@ const refreshBooks = async () => {
 
 .count-input {
   width: 100%;
-  padding: 4px 6px;
+  padding: 3px 4px;
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 0.7rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
   text-align: center;
   background: #fafafa;
   transition: all 0.3s ease;
@@ -1320,12 +1428,34 @@ const refreshBooks = async () => {
   background: white;
 }
 
+.status-badge {
+  display: inline-block;
+  padding: 3px 6px;
+  border-radius: 8px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.status-borrowed {
+  background: linear-gradient(135deg, #fdb5b5 0%, #fdc7c7 100%);
+  color: #2d3748;
+  box-shadow: 0 1px 3px rgba(253, 181, 181, 0.3);
+}
+
+.status-available {
+  background: linear-gradient(135deg, #a8dadc 0%, #b8e6c1 100%);
+  color: #2d3748;
+  box-shadow: 0 1px 3px rgba(168, 218, 220, 0.3);
+}
+
 .barcode-input {
   width: 100%;
-  padding: 4px 6px;
+  padding: 3px 4px;
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 0.65rem;
+  border-radius: 4px;
+  font-size: 0.6rem;
   background: #f8fafc;
   font-family: 'Courier New', monospace;
   color: #4a5568;
@@ -1335,7 +1465,7 @@ const refreshBooks = async () => {
 
 .action-buttons {
   display: flex;
-  gap: 2px;
+  gap: 1px;
   justify-content: center;
 }
 
@@ -1343,10 +1473,10 @@ const refreshBooks = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -1354,28 +1484,28 @@ const refreshBooks = async () => {
 .barcode-btn {
   background: linear-gradient(135deg, #a8dadc 0%, #b8e6c1 100%);
   color: #2d3748;
-  box-shadow: 0 1px 4px rgba(168, 218, 220, 0.3);
+  box-shadow: 0 1px 3px rgba(168, 218, 220, 0.3);
 }
 
 .barcode-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(168, 218, 220, 0.4);
+  box-shadow: 0 2px 6px rgba(168, 218, 220, 0.4);
 }
 
 .delete-btn {
   background: linear-gradient(135deg, #fdb5b5 0%, #fdc7c7 100%);
   color: #2d3748;
-  box-shadow: 0 1px 4px rgba(253, 181, 181, 0.3);
+  box-shadow: 0 1px 3px rgba(253, 181, 181, 0.3);
 }
 
 .delete-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(253, 181, 181, 0.4);
+  box-shadow: 0 2px 6px rgba(253, 181, 181, 0.4);
 }
 
 .action-btn svg {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
 }
 
 .empty-state {
@@ -1539,29 +1669,30 @@ const refreshBooks = async () => {
   }
   
   .books-table {
-    min-width: 1000px;
+    min-width: 850px;
   }
   
   .action-btn {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
   }
   
   .action-btn svg {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
   }
   
   /* 컬럼별 너비 재조정 */
-  .col-title { width: 180px; }
-  .col-isbn { width: 90px; }
-  .col-author { width: 80px; }
-  .col-publisher { width: 80px; }
-  .col-date { width: 70px; }
-  .col-category { width: 75px; }
-  .col-count { width: 45px; }
-  .col-barcode { width: 140px; }
-  .col-actions { width: 70px; }
+  .col-title { width: 140px; }
+  .col-isbn { width: 70px; }
+  .col-author { width: 65px; }
+  .col-publisher { width: 65px; }
+  .col-date { width: 60px; }
+  .col-category { width: 60px; }
+  .col-count { width: 40px; }
+  .col-status { width: 60px; }
+  .col-barcode { width: 100px; }
+  .col-actions { width: 55px; }
 }
 
 @media (max-width: 480px) {
@@ -1577,4 +1708,5 @@ const refreshBooks = async () => {
   .result-count {
     font-size: 0.8rem;
   }
-}</style>
+}
+</style>,
