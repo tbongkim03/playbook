@@ -18,7 +18,7 @@ CREATE TABLE tb_book (
 
 CREATE TABLE tb_user (
     seq_user        INT             NOT NULL AUTO_INCREMENT,
-    seq_course      INT             NOT NULL,
+    seq_course      INT             NULL,
     id_user         VARCHAR(30)     NOT NULL UNIQUE,
     pw_user         VARCHAR(255)    NOT NULL,
     name_user       VARCHAR(20)     NOT NULL,
@@ -50,7 +50,7 @@ CREATE TABLE tb_history (
     seq_admin       INT             NULL,
     seq_user        INT             NULL,
     seq_course      INT             NULL,
-    seq_book        INT             NOT NULL,
+    seq_book        INT             NULL,
     book_dt         DATE            NOT NULL,
     return_dt       DATE            NULL,
     PRIMARY KEY (seq_history)
@@ -93,23 +93,23 @@ REFERENCES tb_sort_second (seq_sort_second);
 
 ALTER TABLE tb_user ADD CONSTRAINT FK_tb_course_TO_tb_user
 FOREIGN KEY (seq_course)
-REFERENCES tb_course (seq_course);
+REFERENCES tb_course (seq_course) ON DELETE SET NULL;
 
 ALTER TABLE tb_history ADD CONSTRAINT FK_tb_admin_TO_tb_history
 FOREIGN KEY (seq_admin)
-REFERENCES tb_admin (seq_admin);
+REFERENCES tb_admin (seq_admin) ON DELETE SET NULL;
 
 ALTER TABLE tb_history ADD CONSTRAINT FK_tb_user_TO_tb_history
 FOREIGN KEY (seq_user)
-REFERENCES tb_user (seq_user);
+REFERENCES tb_user (seq_user) ON DELETE SET NULL;
 
 ALTER TABLE tb_history ADD CONSTRAINT FK_tb_book_TO_tb_history
 FOREIGN KEY (seq_book)
-REFERENCES tb_book (seq_book);
+REFERENCES tb_book (seq_book) ON DELETE SET NULL;
 
 ALTER TABLE tb_history ADD CONSTRAINT FK_tb_course_TO_tb_history
 FOREIGN KEY (seq_course)
-REFERENCES tb_course (seq_course);
+REFERENCES tb_course (seq_course) ON DELETE SET NULL;
 
 ALTER TABLE tb_sort_second ADD CONSTRAINT FK_tb_sort_first_TO_tb_sort_second
 FOREIGN KEY (seq_sort_first)
