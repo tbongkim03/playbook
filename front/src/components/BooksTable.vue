@@ -33,7 +33,6 @@
         </div>
         
         <div class="header-actions">
-          <!-- 라우터 링크 대신 이벤트 emit -->
           <button type="button" class="register-btn" @click="$emit('open-register-modal')">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
@@ -46,13 +45,13 @@
       </div>
     </div>
 
-    <!-- 필터 및 검색 영역 -->
+    <!-- 필터 및 검색 영역 개선 -->
     <div class="filter-section">
       <div class="filter-card">
         <div class="filter-content">
-          <!-- 검색 필터 -->
-          <div class="search-filters">
-            <div class="filter-group">
+          <!-- 첫 번째 줄: 검색 및 필터 -->
+          <div class="filter-row primary-filters">
+            <div class="filter-group search-group">
               <label class="filter-label">검색</label>
               <div class="search-input-wrapper">
                 <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -78,7 +77,6 @@
               </div>
             </div>
 
-            <!-- 분류 필터 -->
             <div class="filter-group">
               <label class="filter-label">대분류</label>
               <select v-model="filters.categoryLarge" class="filter-select">
@@ -86,7 +84,7 @@
                 <option
                   v-for="category in largeCategories"
                   :key="category.nameSortFirst"
-                  :value="category.nameSortFirst"
+                  :value="category.seqSortFirst"
                 >
                   {{ category.korSortFirst }}
                 </option>
@@ -111,7 +109,6 @@
               </select>
             </div>
 
-            <!-- 정렬 옵션 -->
             <div class="filter-group">
               <label class="filter-label">정렬</label>
               <select v-model="filters.sortBy" class="filter-select">
@@ -125,9 +122,11 @@
                 <option value="date_asc">출판일 오래된순</option>
               </select>
             </div>
-
-            <!-- 필터 초기화 -->
-            <div class="filter-group">
+          </div>
+          
+          <!-- 두 번째 줄: 액션 버튼들 -->
+          <div class="filter-row action-controls">
+            <div class="control-group">
               <button @click="resetFilters" class="reset-filters-btn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12Z" stroke="currentColor" stroke-width="2"/>
@@ -136,34 +135,35 @@
                 초기화
               </button>
             </div>
-          </div>
-          
-          <div class="print-controls">
-            <div class="print-toggle">
-              <label class="toggle-label">
-                <input 
-                  type="checkbox" 
-                  v-model="isPrint" 
-                  class="toggle-input"
-                />
-                <span class="toggle-slider"></span>
-                <span class="toggle-text">프린트</span>
-              </label>
-            </div>
             
-            <button 
-              v-if="isPrint" 
-              @click="printBarcodes" 
-              class="batch-print-btn"
-              :disabled="booksToPrint.length === 0"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <polyline points="6,9 6,2 18,2 18,9" stroke="currentColor" stroke-width="2"/>
-                <path d="M6,18H4C3.46957,18 2.96086,17.7893 2.58579,17.4142C2.21071,17.0391 2,16.5304 2,16V11C2,10.4696 2.21071,9.96086 2.58579,9.58579C2.96086,9.21071 3.46957,9 4,9H20C20.5304,9 21.0391,9.21071 21.4142,9.58579C21.7893,9.96086 22,10.4696 22,11V16C22,16.5304 21.7893,17.0391 21.4142,17.4142C21.0391,17.7893 20.5304,18 20,18H18" stroke="currentColor" stroke-width="2"/>
-                <rect x="6" y="14" width="12" height="8" stroke="currentColor" stroke-width="2"/>
-              </svg>
-              일괄 출력 ({{ booksToPrint.length }})
-            </button>
+            <div class="print-controls">
+              <div class="print-toggle">
+                <label class="toggle-label">
+                  <input 
+                    type="checkbox" 
+                    v-model="isPrint" 
+                    class="toggle-input"
+                  />
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-text">프린트 모드</span>
+                </label>
+              </div>
+              
+              <button 
+                v-if="isPrint" 
+                @click="printBarcodes" 
+                class="batch-print-btn"
+                :disabled="booksToPrint.length === 0"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <polyline points="6,9 6,2 18,2 18,9" stroke="currentColor" stroke-width="2"/>
+                  <path d="M6,18H4C3.46957,18 2.96086,17.7893 2.58579,17.4142C2.21071,17.0391 2,16.5304 2,16V11C2,10.4696 2.21071,9.96086 2.58579,9.58579C2.96086,9.21071 3.46957,9 4,9H20C20.5304,9 21.0391,9.21071 21.4142,9.58579C21.7893,9.96086 22,10.4696 22,11V16C22,16.5304 21.7893,17.0391 21.4142,17.4142C21.0391,17.7893 20.5304,18 20,18H18" stroke="currentColor" stroke-width="2"/>
+                  <rect x="6" y="14" width="12" height="8" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                일괄 출력
+                <span class="count-badge">{{ booksToPrint.length }}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -196,6 +196,20 @@
         <div class="stat-content">
           <div class="stat-number">{{ allBooks.length }}</div>
           <div class="stat-label">전체 도서</div>
+        </div>
+      </div>
+
+      <div v-if="isPrint" class="stat-card print-ready">
+        <div class="stat-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polyline points="6,9 6,2 18,2 18,9" stroke="currentColor" stroke-width="2"/>
+            <path d="M6,18H4C3.46957,18 2.96086,17.7893 2.58579,17.4142C2.21071,17.0391 2,16.5304 2,16V11C2,10.4696 2.21071,9.96086 2.58579,9.58579C2.96086,9.21071 3.46957,9 4,9H20C20.5304,9 21.0391,9.21071 21.4142,9.58579C21.7893,9.96086 22,10.4696 22,11V16C22,16.5304 21.7893,17.0391 21.4142,17.4142C21.0391,17.7893 20.5304,18 20,18H18" stroke="currentColor" stroke-width="2"/>
+            <rect x="6" y="14" width="12" height="8" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ booksToPrint.length }}</div>
+          <div class="stat-label">출력 대기</div>
         </div>
       </div>
     </div>
@@ -233,30 +247,30 @@
           <table class="books-table">
             <thead>
               <tr>
-                <th>제목</th>
-                <th>ISBN</th>
-                <th>저자</th>
-                <th>출판사</th>
-                <th>출판일</th>
-                <th>대분류</th>
-                <th>중분류</th>
-                <th>번호</th>
-                <th>바코드</th>
-                <th>작업</th>
+                <th class="col-title">제목</th>
+                <th class="col-isbn">ISBN</th>
+                <th class="col-author">저자</th>
+                <th class="col-publisher">출판사</th>
+                <th class="col-date">출판일</th>
+                <th class="col-category">대분류</th>
+                <th class="col-category">중분류</th>
+                <th class="col-count">수량</th>
+                <th class="col-barcode">바코드</th>
+                <th class="col-actions">작업</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="book in paginatedBooks" :key="book.seqBook" class="book-row">
-                <td class="book-title">
+                <td class="book-title col-title">
                   <div class="title-content">
-                    <span class="title-text">{{ book.titleBook }}</span>
+                    <span class="title-text" :title="book.titleBook">{{ book.titleBook }}</span>
                   </div>
                 </td>
-                <td class="isbn">{{ book.isbnBook }}</td>
-                <td class="author">{{ book.authorBook }}</td>
-                <td class="publisher">{{ book.publisherBook }}</td>
-                <td class="publish-date">{{ formatDate(book.publishDateBook) }}</td>
-                <td class="category-large">
+                <td class="isbn col-isbn" :title="book.isbnBook">{{ book.isbnBook }}</td>
+                <td class="author col-author" :title="book.authorBook">{{ book.authorBook }}</td>
+                <td class="publisher col-publisher" :title="book.publisherBook">{{ book.publisherBook }}</td>
+                <td class="publish-date col-date">{{ formatDate(book.publishDateBook) }}</td>
+                <td class="category-large col-category">
                   <select class="category-select" v-model="book.categoryLarge">
                     <option
                       v-for="category in largeCategories"
@@ -267,7 +281,7 @@
                     </option>
                   </select>
                 </td>
-                <td class="category-medium">
+                <td class="category-medium col-category">
                   <select
                     class="category-select"
                     v-model="book.categoryMedium"
@@ -282,7 +296,7 @@
                     </option>
                   </select>
                 </td>
-                <td class="book-count">
+                <td class="book-count col-count">
                   <input 
                     type="number" 
                     class="count-input" 
@@ -291,19 +305,20 @@
                     @input="() => { if (book.cntBook < 1) book.cntBook = 1 }" 
                   />
                 </td>
-                <td class="barcode">
+                <td class="barcode col-barcode">
                   <div class="barcode-display">
                     <input 
                       type="text" 
                       class="barcode-input" 
                       v-model="book.barcodeBook" 
                       readonly
+                      :title="book.barcodeBook"
                     />
                   </div>
                 </td>
-                <td class="actions">
+                <td class="actions col-actions">
                   <div class="action-buttons">
-                    <button @click="barcodeCreate(book)" class="action-btn barcode-btn">
+                    <button @click="barcodeCreate(book)" class="action-btn barcode-btn" title="바코드 생성">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <rect x="3" y="4" width="4" height="16" stroke="currentColor" stroke-width="2"/>
                         <rect x="9" y="4" width="2" height="16" stroke="currentColor" stroke-width="2"/>
@@ -311,7 +326,7 @@
                         <rect x="17" y="4" width="4" height="16" stroke="currentColor" stroke-width="2"/>
                       </svg>
                     </button>
-                    <button @click="deleteBook(book)" class="action-btn delete-btn">
+                    <button @click="deleteBook(book)" class="action-btn delete-btn" title="도서 삭제">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <polyline points="3,6 5,6 21,6" stroke="currentColor" stroke-width="2"/>
                         <path d="M19,6V20C19,20.5304 18.7893,21.0391 18.4142,21.4142C18.0391,21.7893 17.5304,22 17,22H7C6.46957,22 5.96086,21.7893 5.58579,21.4142C5.21071,21.0391 5,20.5304 5,20V6M8,6V4C8,3.46957 8.21071,2.96086 8.58579,2.58579C8.96086,2.21071 9.46957,2 10,2H14C14.5304,2 15.0391,2.21071 15.4142,2.58579C15.7893,2.96086 16,3.46957 16,4V6" stroke="currentColor" stroke-width="2"/>
@@ -409,7 +424,7 @@ const filters = ref({
 
 // 페이지네이션 상태
 const currentPage = ref(1)
-const pageSize = 20
+const pageSize = 15 // 줄여서 한 화면에 더 잘 들어가도록
 
 // 키보드 이벤트 핸들러
 const handleKeydown = (event) => {
@@ -820,6 +835,7 @@ const refreshBooks = async () => {
   box-shadow: 0 10px 30px rgba(184, 230, 193, 0.4);
 }
 
+/* 필터 섹션 개선 */
 .filter-section {
   margin: 0 0 1.5rem 0;
 }
@@ -834,22 +850,43 @@ const refreshBooks = async () => {
 .filter-content {
   padding: 24px;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 2rem;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.search-filters {
+.filter-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.primary-filters {
+  flex: 1;
+}
+
+.action-controls {
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 1.5rem;
+  margin-top: 0;
+}
+
+.control-group {
   display: flex;
   gap: 1rem;
-  align-items: flex-end;
-  flex: 1;
 }
 
 .filter-group {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  min-width: 140px;
+}
+
+.search-group {
+  min-width: 280px;
 }
 
 .filter-label {
@@ -872,7 +909,7 @@ const refreshBooks = async () => {
 }
 
 .search-input {
-  width: 300px;
+  width: 100%;
   padding: 12px 12px 12px 40px;
   border: 2px solid #e2e8f0;
   border-radius: 12px;
@@ -910,13 +947,13 @@ const refreshBooks = async () => {
 }
 
 .filter-select {
-  min-width: 140px;
   padding: 12px 16px;
   border: 2px solid #e2e8f0;
   border-radius: 12px;
   font-size: 0.9rem;
   background: #fafafa;
   transition: all 0.3s ease;
+  min-width: 120px;
 }
 
 .filter-select:focus {
@@ -1008,6 +1045,7 @@ const refreshBooks = async () => {
 .toggle-text {
   font-weight: 500;
   color: #2d3748;
+  white-space: nowrap;
 }
 
 .batch-print-btn {
@@ -1023,6 +1061,7 @@ const refreshBooks = async () => {
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 16px rgba(221, 191, 240, 0.3);
+  white-space: nowrap;
 }
 
 .batch-print-btn:hover:not(:disabled) {
@@ -1035,10 +1074,19 @@ const refreshBooks = async () => {
   cursor: not-allowed;
 }
 
+.count-badge {
+  background: rgba(255, 255, 255, 0.3);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
 .stats-section {
   margin: 0 0 1.5rem 0;
   display: flex;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .stat-card {
@@ -1050,11 +1098,17 @@ const refreshBooks = async () => {
   border-radius: 20px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
   border: 1px solid rgba(0, 0, 0, 0.03);
-  min-width: 200px;
+  min-width: 180px;
+  flex: 1;
 }
 
 .stat-card.total-books .stat-icon {
   background: linear-gradient(135deg, #a8dadc 0%, #b8e6c1 100%);
+  color: #2d3748;
+}
+
+.stat-card.print-ready .stat-icon {
+  background: linear-gradient(135deg, #ddbff0 0%, #e6ccf7 100%);
   color: #2d3748;
 }
 
@@ -1066,6 +1120,7 @@ const refreshBooks = async () => {
   height: 48px;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
 }
 
 .stat-number {
@@ -1156,78 +1211,72 @@ const refreshBooks = async () => {
 .result-count {
   color: #718096;
   font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 .table-wrapper {
   overflow-x: auto;
 }
 
+/* 테이블 컬럼 너비 최적화 */
 .books-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
   min-width: 1200px;
 }
 
-.books-table th {
-  padding: 18px 16px;
-  background: #fafafa;
-  color: #2d3748;
-  font-weight: 600;
-  font-size: 0.9rem;
-  border-bottom: 1px solid #e2e8f0;
-  text-align: left;
+.books-table th,
+.books-table td {
+  padding: 10px 6px;
+  border-bottom: 1px solid #f7fafc;
+  font-size: 0.8rem;
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.books-table td {
-  padding: 16px;
-  border-bottom: 1px solid #f7fafc;
-  color: #4a5568;
-  font-size: 0.9rem;
-  vertical-align: middle;
+.books-table th {
+  background: #fafafa;
+  color: #2d3748;
+  font-weight: 600;
+  text-align: left;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  font-size: 0.75rem;
 }
+
+/* 컬럼별 너비 설정 - 더 컴팩트하게 */
+.col-title { width: 220px; }
+.col-isbn { width: 110px; }
+.col-author { width: 100px; }
+.col-publisher { width: 100px; }
+.col-date { width: 85px; }
+.col-category { width: 90px; }
+.col-count { width: 50px; }
+.col-barcode { width: 160px; }
+.col-actions { width: 80px; }
 
 .book-row:hover {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
-.book-title {
-  max-width: 200px;
-}
-
-.title-content {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.title-text {
+.book-title .title-text {
   font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   color: #2d3748;
-}
-
-.isbn,
-.author,
-.publisher {
-  max-width: 150px;
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.publish-date {
-  white-space: nowrap;
 }
 
 .category-select {
-  width: 120px;
-  padding: 8px 12px;
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
-  font-size: 0.85rem;
+  width: 100%;
+  padding: 4px 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.7rem;
   background: #fafafa;
   transition: all 0.3s ease;
 }
@@ -1235,7 +1284,7 @@ const refreshBooks = async () => {
 .category-select:focus {
   outline: none;
   border-color: #a8dadc;
-  box-shadow: 0 0 0 3px rgba(168, 218, 220, 0.15);
+  box-shadow: 0 0 0 2px rgba(168, 218, 220, 0.15);
   background: white;
 }
 
@@ -1245,11 +1294,11 @@ const refreshBooks = async () => {
 }
 
 .count-input {
-  width: 60px;
-  padding: 8px 12px;
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
-  font-size: 0.85rem;
+  width: 100%;
+  padding: 4px 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.7rem;
   text-align: center;
   background: #fafafa;
   transition: all 0.3s ease;
@@ -1258,40 +1307,37 @@ const refreshBooks = async () => {
 .count-input:focus {
   outline: none;
   border-color: #a8dadc;
-  box-shadow: 0 0 0 3px rgba(168, 218, 220, 0.15);
+  box-shadow: 0 0 0 2px rgba(168, 218, 220, 0.15);
   background: white;
-}
-
-.barcode-display {
-  max-width: 180px;
 }
 
 .barcode-input {
   width: 100%;
-  padding: 8px 12px;
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
-  font-size: 0.8rem;
+  padding: 4px 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.65rem;
   background: #f8fafc;
   font-family: 'Courier New', monospace;
+  color: #4a5568;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #4a5568;
 }
 
 .action-buttons {
   display: flex;
-  gap: 0.5rem;
+  gap: 2px;
+  justify-content: center;
 }
 
 .action-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 26px;
+  height: 26px;
   border: none;
-  border-radius: 12px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -1299,23 +1345,28 @@ const refreshBooks = async () => {
 .barcode-btn {
   background: linear-gradient(135deg, #a8dadc 0%, #b8e6c1 100%);
   color: #2d3748;
-  box-shadow: 0 2px 8px rgba(168, 218, 220, 0.3);
+  box-shadow: 0 1px 4px rgba(168, 218, 220, 0.3);
 }
 
 .barcode-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(168, 218, 220, 0.4);
+  box-shadow: 0 2px 8px rgba(168, 218, 220, 0.4);
 }
 
 .delete-btn {
   background: linear-gradient(135deg, #fdb5b5 0%, #fdc7c7 100%);
   color: #2d3748;
-  box-shadow: 0 2px 8px rgba(253, 181, 181, 0.3);
+  box-shadow: 0 1px 4px rgba(253, 181, 181, 0.3);
 }
 
 .delete-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(253, 181, 181, 0.4);
+  box-shadow: 0 2px 8px rgba(253, 181, 181, 0.4);
+}
+
+.action-btn svg {
+  width: 12px;
+  height: 12px;
 }
 
 .empty-state {
@@ -1397,21 +1448,21 @@ const refreshBooks = async () => {
   padding: 10px 12px;
 }
 
-/* 반응형 디자인 */
+/* 반응형 디자인 개선 */
 @media (max-width: 1400px) {
-  .filter-content {
-    flex-direction: column;
-    gap: 1.5rem;
-    align-items: stretch;
-  }
-  
-  .search-filters {
+  .filter-row {
     flex-wrap: wrap;
-    gap: 1rem;
   }
   
-  .search-input {
-    width: 250px;
+  .primary-filters {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  .action-controls {
+    width: 100%;
+    padding-top: 1rem;
+    border-top: 1px solid #f1f5f9;
   }
 }
 
@@ -1422,22 +1473,32 @@ const refreshBooks = async () => {
     align-items: stretch;
   }
   
-  .search-filters {
+  .filter-row {
     flex-direction: column;
     align-items: stretch;
   }
   
   .filter-group {
     width: 100%;
+    min-width: auto;
   }
   
-  .search-input,
-  .filter-select {
-    width: 100%;
+  .search-group {
+    min-width: auto;
+  }
+  
+  .action-controls {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
   }
   
   .print-controls {
     justify-content: space-between;
+  }
+  
+  .stats-section {
+    flex-direction: column;
   }
 }
 
@@ -1450,80 +1511,61 @@ const refreshBooks = async () => {
     font-size: 1.5rem;
   }
   
-  .stats-section {
-    flex-direction: column;
+  .filter-content {
+    padding: 16px;
   }
   
-  .stat-card {
-    min-width: auto;
+  .table-header {
+    padding: 16px;
   }
   
   .books-table th,
   .books-table td {
-    padding: 14px 12px;
-    font-size: 0.8rem;
+    padding: 8px 4px;
+    font-size: 0.75rem;
+  }
+  
+  .books-table th {
+    font-size: 0.7rem;
   }
   
   .books-table {
-    min-width: 900px;
-  }
-  
-  .category-select {
-    width: 100px;
-    font-size: 0.8rem;
-    padding: 6px 10px;
-  }
-  
-  .count-input {
-    width: 50px;
-    padding: 6px 10px;
-  }
-  
-  .barcode-input {
-    font-size: 0.75rem;
-    padding: 6px 10px;
+    min-width: 1000px;
   }
   
   .action-btn {
-    width: 32px;
-    height: 32px;
-  }
-  
-  .page-btn {
-    padding: 8px 12px;
-    font-size: 0.8rem;
-    min-width: 40px;
-  }
-}
-
-@media (max-width: 480px) {
-  .filter-card,
-  .table-card {
-    border-radius: 16px;
-  }
-  
-  .register-btn {
-    border-radius: 12px;
-    padding: 10px 16px;
-  }
-  
-  .batch-print-btn,
-  .refresh-btn {
-    border-radius: 10px;
-  }
-  
-  .toggle-slider {
-    width: 44px;
+    width: 24px;
     height: 24px;
   }
   
-  .toggle-slider::before {
-    width: 20px;
-    height: 20px;
+  .action-btn svg {
+    width: 10px;
+    height: 10px;
   }
   
-  .toggle-input:checked + .toggle-slider::before {
-    transform: translateX(20px);
-  }
+  /* 컬럼별 너비 재조정 */
+  .col-title { width: 180px; }
+  .col-isbn { width: 90px; }
+  .col-author { width: 80px; }
+  .col-publisher { width: 80px; }
+  .col-date { width: 70px; }
+  .col-category { width: 75px; }
+  .col-count { width: 45px; }
+  .col-barcode { width: 140px; }
+  .col-actions { width: 70px; }
 }
-</style>
+
+@media (max-width: 480px) {
+  .toggle-text {
+    display: none;
+  }
+  
+  .batch-print-btn {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+  
+  .result-count {
+    font-size: 0.8rem;
+  }
+}</style>

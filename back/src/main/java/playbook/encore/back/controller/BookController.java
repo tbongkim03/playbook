@@ -74,7 +74,7 @@ public class BookController {
         if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
         }
-        List<Book> booklist = bookService.getAllBooks();
+        List<BookResponseDto> booklist = bookService.getAllBooks();
         return ResponseEntity.status(HttpStatus.OK).body(booklist);
     }
 
