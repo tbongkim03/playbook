@@ -83,7 +83,7 @@
                 <option value="">전체</option>
                 <option
                   v-for="category in largeCategories"
-                  :key="category.nameSortFirst"
+                  :key="category.seqSortFirst"
                   :value="category.seqSortFirst"
                 >
                   {{ category.korSortFirst }}
@@ -464,12 +464,10 @@ const findLargeCodeFromSeqSecond = (seqSecond) => {
   return large?.nameSortFirst || ''
 }
 
-// 특정 대분류 nameSortFirst에 해당하는 중분류 옵션들
-const getMediumOptions = (largeCode) => {
-  const large = largeCategories.value.find(l => l.nameSortFirst === largeCode)
-  if (!large) return []
-  
-  return mediumCategoriesAll.value.filter(m => m.seqSortFirst === large.seqSortFirst)
+// 특정 대분류 seqSortFirst에 해당하는 중분류 옵션들
+const getMediumOptions = (largeSeq) => {
+  if (!largeSeq) return []
+  return mediumCategoriesAll.value.filter(m => m.seqSortFirst === largeSeq)
 }
 
 // 선택된 대분류에 따른 중분류 옵션
@@ -540,7 +538,11 @@ const filteredBooks = computed(() => {
 
   // 대분류 필터
   if (filters.value.categoryLarge) {
-    result = result.filter(book => book.categoryLarge === filters.value.categoryLarge)
+    result = result.filter(book => {
+      const large = largeCategories.value.find(l => l.seqSortFirst === filters.value.categoryLarge)
+      if (!large) return false
+      return book.categoryLarge === large.nameSortFirst
+    })
   }
 
   // 중분류 필터
@@ -665,8 +667,15 @@ watchEffect(() => {
       }
       book.mediumOptions = []
     } else {
-      // 대분류에 맞는 중분류 옵션
-      const newOptions = getMediumOptions(largeCode)
+      // 대분류에 맞는 중분류 옵션 - nameSortFirst로 찾기
+      const large = largeCategories.value.find(l => l.nameSortFirst === largeCode)
+      if (!large) {
+        book.mediumOptions = []
+        book.categoryMedium = ''
+        return
+      }
+      
+      const newOptions = mediumCategoriesAll.value.filter(m => m.seqSortFirst === large.seqSortFirst)
       const newOptionsIds = newOptions.map(m => m.seqSortSecond)
 
       // 옵션이 변경되었을 때만 업데이트
