@@ -123,15 +123,13 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookListResponseDto getAllBooks(int page) throws Exception {
-        Page<Book> books = bookDAO.selectAllBooks(page);
-
-        List<BookResponseDto> content = books.stream()
-            .map(this::convertToDto)
-            .collect(Collectors.toList());
-
-        int totalCount = (int) books.getTotalElements();
-        return new BookListResponseDto(content, totalCount);
+    @Transactional
+    public List<Book> getAllBooks() throws Exception {
+        List<Book> books = bookDAO.selectAllBooks();
+        if (books.isEmpty()) {
+            throw new Exception("등록된 책이 없습니다.");
+        }
+        return books;
     }
 
     @Override

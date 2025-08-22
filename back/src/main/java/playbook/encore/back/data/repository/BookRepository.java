@@ -18,6 +18,9 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
     List<Book> findByTitleBookContainingAndSeqSortSecond_SeqSortSecondNot(String titleBook, Integer seqSortSecond);
     List<Book> findByTitleBookAndSeqSortSecond_SeqSortSecondNot(String titleBook, Integer seqSortSecond);
 
+    @Query("SELECT b FROM Book b LEFT JOIN FETCH b.seqSortSecond ss LEFT JOIN FETCH ss.seqSortFirst")
+    List<Book> findAllWithCategories();
+
     @Query("SELECT b FROM Book b WHERE b.seqSortSecond.seqSortSecond != 0")
     Page<Book> findAllWithNonZeroSeqSortSecond(Pageable pageable);
     

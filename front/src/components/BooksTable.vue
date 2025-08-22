@@ -46,11 +46,97 @@
       </div>
     </div>
 
-    <!-- 검색 및 필터 영역 -->
-    <div class="search-section">
-      <div class="search-card">
-        <div class="search-content">
-          <BookSearch @search="onSearch" />
+    <!-- 필터 및 검색 영역 -->
+    <div class="filter-section">
+      <div class="filter-card">
+        <div class="filter-content">
+          <!-- 검색 필터 -->
+          <div class="search-filters">
+            <div class="filter-group">
+              <label class="filter-label">검색</label>
+              <div class="search-input-wrapper">
+                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+                  <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <input 
+                  type="text" 
+                  v-model="filters.searchQuery"
+                  placeholder="제목, 저자, 출판사, ISBN으로 검색..."
+                  class="search-input"
+                />
+                <button 
+                  v-if="filters.searchQuery"
+                  @click="filters.searchQuery = ''"
+                  class="clear-search-btn"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
+                    <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- 분류 필터 -->
+            <div class="filter-group">
+              <label class="filter-label">대분류</label>
+              <select v-model="filters.categoryLarge" class="filter-select">
+                <option value="">전체</option>
+                <option
+                  v-for="category in largeCategories"
+                  :key="category.nameSortFirst"
+                  :value="category.nameSortFirst"
+                >
+                  {{ category.korSortFirst }}
+                </option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-label">중분류</label>
+              <select 
+                v-model="filters.categoryMedium" 
+                class="filter-select"
+                :disabled="!filters.categoryLarge"
+              >
+                <option value="">전체</option>
+                <option
+                  v-for="category in availableMediumCategories"
+                  :key="category.seqSortSecond"
+                  :value="category.seqSortSecond"
+                >
+                  {{ category.korSortSecond }}
+                </option>
+              </select>
+            </div>
+
+            <!-- 정렬 옵션 -->
+            <div class="filter-group">
+              <label class="filter-label">정렬</label>
+              <select v-model="filters.sortBy" class="filter-select">
+                <option value="title_asc">제목 가나다순</option>
+                <option value="title_desc">제목 역순</option>
+                <option value="author_asc">저자 가나다순</option>
+                <option value="author_desc">저자 역순</option>
+                <option value="publisher_asc">출판사 가나다순</option>
+                <option value="publisher_desc">출판사 역순</option>
+                <option value="date_desc">출판일 최신순</option>
+                <option value="date_asc">출판일 오래된순</option>
+              </select>
+            </div>
+
+            <!-- 필터 초기화 -->
+            <div class="filter-group">
+              <button @click="resetFilters" class="reset-filters-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12Z" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 3V7M12 17V21M21 12H17M7 12H3" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                초기화
+              </button>
+            </div>
+          </div>
           
           <div class="print-controls">
             <div class="print-toggle">
@@ -76,7 +162,7 @@
                 <path d="M6,18H4C3.46957,18 2.96086,17.7893 2.58579,17.4142C2.21071,17.0391 2,16.5304 2,16V11C2,10.4696 2.21071,9.96086 2.58579,9.58579C2.96086,9.21071 3.46957,9 4,9H20C20.5304,9 21.0391,9.21071 21.4142,9.58579C21.7893,9.96086 22,10.4696 22,11V16C22,16.5304 21.7893,17.0391 21.4142,17.4142C21.0391,17.7893 20.5304,18 20,18H18" stroke="currentColor" stroke-width="2"/>
                 <rect x="6" y="14" width="12" height="8" stroke="currentColor" stroke-width="2"/>
               </svg>
-              일괄 출력 ({{ booksToPrint.length }}개)
+              일괄 출력 ({{ booksToPrint.length }})
             </button>
           </div>
         </div>
@@ -93,22 +179,23 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-number">{{ totalCount }}</div>
-          <div class="stat-label">총 도서</div>
+          <div class="stat-number">{{ filteredBooks.length }}</div>
+          <div class="stat-label">표시된 도서</div>
         </div>
       </div>
       
-      <div class="stat-card print-pending" v-if="isPrint">
+      <div class="stat-card total-books">
         <div class="stat-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <polyline points="6,9 6,2 18,2 18,9" stroke="currentColor" stroke-width="2"/>
-            <path d="M6,18H4C3.46957,18 2.96086,17.7893 2.58579,17.4142C2.21071,17.0391 2,16.5304 2,16V11C2,10.4696 2.21071,9.96086 2.58579,9.58579C2.96086,9.21071 3.46957,9 4,9H20C20.5304,9 21.0391,9.21071 21.4142,9.58579C21.7893,9.96086 22,10.4696 22,11V16C22,16.5304 21.7893,17.0391 21.4142,17.4142C21.0391,17.7893 20.5304,18 20,18H18" stroke="currentColor" stroke-width="2"/>
-            <rect x="6" y="14" width="12" height="8" stroke="currentColor" stroke-width="2"/>
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+            <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/>
+            <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/>
+            <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/>
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-number">{{ paginatedBooks.length }}</div>
-          <div class="stat-label">미출력 도서</div>
+          <div class="stat-number">{{ allBooks.length }}</div>
+          <div class="stat-label">전체 도서</div>
         </div>
       </div>
     </div>
@@ -138,7 +225,7 @@
               </svg>
               {{ isRefreshing ? '새로고침 중...' : '새로고침' }}
             </button>
-            <span class="result-count">{{ totalCount }}개 중 {{ paginatedBooks.length }}개 표시</span>
+            <span class="result-count">{{ paginatedBooks.length }}개 표시 (페이지 {{ currentPage }}/{{ totalPages }})</span>
           </div>
         </div>
         
@@ -243,7 +330,7 @@
               <path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" stroke="currentColor" stroke-width="2"/>
             </svg>
             <h3>도서가 없습니다</h3>
-            <p>조건에 맞는 도서가 없습니다. 새로운 도서를 등록해보세요.</p>
+            <p>조건에 맞는 도서가 없습니다. 필터를 초기화하거나 새로운 도서를 등록해보세요.</p>
           </div>
         </div>
       </div>
@@ -253,7 +340,17 @@
     <div class="pagination-section" v-if="totalPages > 1">
       <div class="pagination">
         <button
-          v-for="page in totalPages"
+          @click="currentPage = Math.max(1, currentPage - 1)"
+          :disabled="currentPage === 1"
+          class="page-btn prev-btn"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polyline points="15,18 9,12 15,6" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </button>
+        
+        <button
+          v-for="page in visiblePages"
           :key="page"
           @click="currentPage = page"
           :class="[
@@ -263,14 +360,23 @@
         >
           {{ page }}
         </button>
+        
+        <button
+          @click="currentPage = Math.min(totalPages, currentPage + 1)"
+          :disabled="currentPage === totalPages"
+          class="page-btn next-btn"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polyline points="9,18 15,12 9,6" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch, watchEffect } from 'vue'
-import BookSearch from './BookSearch.vue'
+import { ref, computed, onMounted, onBeforeUnmount, watchEffect } from 'vue'
 import Barcode from './Barcode.vue'
 import PrintBatch from './BookPrintBatch.vue'
 
@@ -279,10 +385,10 @@ defineEmits(['open-register-modal'])
 
 const API_BASE = 'http://localhost:8080'
 
-const books = ref([])
+// 데이터 상태
+const allBooks = ref([])
 const largeCategories = ref([])
 const mediumCategoriesAll = ref([])
-const totalCount = ref(0)
 const isOpen = ref(false)
 const selectedBarcode = ref('')
 const selectedBookTitle = ref('')
@@ -293,6 +399,19 @@ const isPrint = ref(false)
 const isPrintBatchOpen = ref(false)
 const isRefreshing = ref(false)
 
+// 필터 상태
+const filters = ref({
+  searchQuery: '',
+  categoryLarge: '',
+  categoryMedium: '',
+  sortBy: 'title_asc'
+})
+
+// 페이지네이션 상태
+const currentPage = ref(1)
+const pageSize = 20
+
+// 키보드 이벤트 핸들러
 const handleKeydown = (event) => {
   if (event.key === 'Escape' && isOpen.value) {
     isOpen.value = false
@@ -303,12 +422,14 @@ const handleKeydown = (event) => {
   }
 }
 
+// 대분류 데이터 가져오기
 const fetchLargeCategories = async () => {
   const res = await fetch('http://localhost:8080/subjects')
   largeCategories.value = await res.json()
   console.log('[fetchLargeCategories]', largeCategories.value)
 }
 
+// 중분류 데이터 가져오기
 const fetchMediumCategories = async () => {
   const res = await fetch('http://localhost:8080/subtitles')
   mediumCategoriesAll.value = await res.json()
@@ -324,64 +445,53 @@ const findLargeCodeFromSeqSecond = (seqSecond) => {
   const medium = findMediumCategory(seqSecond)
   if (!medium) return ''
   
-  // seqSortFirst로 대분류 정보 찾기
   const large = largeCategories.value.find(l => l.seqSortFirst === medium.seqSortFirst)
   return large?.nameSortFirst || ''
 }
 
 // 특정 대분류 nameSortFirst에 해당하는 중분류 옵션들
 const getMediumOptions = (largeCode) => {
-  // 대분류 nameSortFirst로 seqSortFirst 찾기
   const large = largeCategories.value.find(l => l.nameSortFirst === largeCode)
   if (!large) return []
   
-  // 해당 seqSortFirst에 속하는 중분류들 반환
   return mediumCategoriesAll.value.filter(m => m.seqSortFirst === large.seqSortFirst)
 }
 
-function onSearch({ query, exact }) {
-  console.log('검색 요청:', query, exact)
-  fetchBooks(1, query, exact)
-}
+// 선택된 대분류에 따른 중분류 옵션
+const availableMediumCategories = computed(() => {
+  if (!filters.value.categoryLarge) return []
+  return getMediumOptions(filters.value.categoryLarge)
+})
 
-const fetchBooks = async (page = 1, query = '', exact = false) => {
-  let url
+// 모든 도서 데이터 가져오기 (페이지네이션 없이)
+const fetchBooks = async () => {
   const token = localStorage.getItem('jwtToken')
-  if (query && query.trim()) {
-    url = new URL(`${API_BASE}/books/search`)
-    url.searchParams.set('q', query.trim())
-    url.searchParams.set('exact', exact)
-  } else {
-    url = new URL(`${API_BASE}/books/all`)
-    url.searchParams.set('page', page)
-  }
+  const url = `${API_BASE}/books/all`
 
-  const res = await fetch(url.toString(), {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    })
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  })
 
   if (!res.ok) { 
-      const errorText = await res.text()
-      alert(`검색 오류: ${errorText}`)
-      console.error('API Error:', res.status, errorText)
-      return
+    const errorText = await res.text()
+    alert(`데이터 로드 오류: ${errorText}`)
+    console.error('API Error:', res.status, errorText)
+    return
   }
 
   const data = await res.json()
 
-  if (!data.content) {
+  if (!Array.isArray(data)) {
     console.error('서버 응답 데이터 오류: ', data)
-    books.value = []
-    totalCount.value = 0
+    allBooks.value = []
     return
   }
 
-  totalCount.value = data.totalCount
-  books.value = data.content.map(book => {
+  allBooks.value = data.map(book => {
     const largeCode = findLargeCodeFromSeqSecond(book.seqSortSecond)
     const mediumOptions = getMediumOptions(largeCode)
     return {
@@ -393,21 +503,143 @@ const fetchBooks = async (page = 1, query = '', exact = false) => {
   })
 }
 
-onMounted(async () => {
-  // 대분류와 중분류 데이터를 먼저 로드한 후 책 데이터 처리
-  await fetchLargeCategories()
-  await fetchMediumCategories()
-  await fetchBooks(currentPage.value)
-  window.addEventListener('keydown', handleKeydown)
+// 한글 문자열 비교를 위한 함수
+const compareKorean = (a, b) => {
+  return a.localeCompare(b, 'ko-KR')
+}
+
+// 필터링된 도서 목록
+const filteredBooks = computed(() => {
+  let result = [...allBooks.value]
+
+  // 검색 필터
+  if (filters.value.searchQuery.trim()) {
+    const query = filters.value.searchQuery.trim().toLowerCase()
+    result = result.filter(book => 
+      book.titleBook?.toLowerCase().includes(query) ||
+      book.authorBook?.toLowerCase().includes(query) ||
+      book.publisherBook?.toLowerCase().includes(query) ||
+      book.isbnBook?.toLowerCase().includes(query)
+    )
+  }
+
+  // 대분류 필터
+  if (filters.value.categoryLarge) {
+    result = result.filter(book => book.categoryLarge === filters.value.categoryLarge)
+  }
+
+  // 중분류 필터
+  if (filters.value.categoryMedium) {
+    result = result.filter(book => book.categoryMedium === filters.value.categoryMedium)
+  }
+
+  // 프린트 모드 필터
+  if (isPrint.value) {
+    result = result.filter(book => book.printCheckBook === false)
+  }
+
+  // 정렬
+  result.sort((a, b) => {
+    switch (filters.value.sortBy) {
+      case 'title_asc':
+        return compareKorean(a.titleBook || '', b.titleBook || '')
+      case 'title_desc':
+        return compareKorean(b.titleBook || '', a.titleBook || '')
+      case 'author_asc':
+        return compareKorean(a.authorBook || '', b.authorBook || '')
+      case 'author_desc':
+        return compareKorean(b.authorBook || '', a.authorBook || '')
+      case 'publisher_asc':
+        return compareKorean(a.publisherBook || '', b.publisherBook || '')
+      case 'publisher_desc':
+        return compareKorean(b.publisherBook || '', a.publisherBook || '')
+      case 'date_desc':
+        return new Date(b.publishDateBook || 0) - new Date(a.publishDateBook || 0)
+      case 'date_asc':
+        return new Date(a.publishDateBook || 0) - new Date(b.publishDateBook || 0)
+      default:
+        return 0
+    }
+  })
+
+  return result
 })
 
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleKeydown)
+// 페이지네이션 계산
+const totalPages = computed(() => Math.ceil(filteredBooks.value.length / pageSize))
+
+const paginatedBooks = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  const end = start + pageSize
+  return filteredBooks.value.slice(start, end)
 })
+
+// 페이지네이션 표시 페이지 번호들
+const visiblePages = computed(() => {
+  const total = totalPages.value
+  const current = currentPage.value
+  const delta = 2
+
+  let start = Math.max(1, current - delta)
+  let end = Math.min(total, current + delta)
+
+  if (end - start < 4) {
+    if (start === 1) {
+      end = Math.min(total, start + 4)
+    } else {
+      start = Math.max(1, end - 4)
+    }
+  }
+
+  const pages = []
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+  return pages
+})
+
+// 프린트할 도서 목록
+const booksToPrint = computed(() => {
+  return filteredBooks.value.filter(book =>
+    book.printCheckBook === false &&
+    book.categoryLarge !== 0 &&
+    book.categoryMedium !== 0 &&
+    book.barcodeBook &&
+    book.barcodeBook.trim() !== ''
+  )
+})
+
+// 필터 초기화
+const resetFilters = () => {
+  filters.value = {
+    searchQuery: '',
+    categoryLarge: '',
+    categoryMedium: '',
+    sortBy: 'title_asc'
+  }
+  currentPage.value = 1
+}
+
+// 대분류 변경 시 중분류 초기화
+watchEffect(() => {
+  if (!filters.value.categoryLarge) {
+    filters.value.categoryMedium = ''
+  } else {
+    const availableOptions = availableMediumCategories.value
+    if (filters.value.categoryMedium && !availableOptions.find(opt => opt.seqSortSecond === filters.value.categoryMedium)) {
+      filters.value.categoryMedium = ''
+    }
+  }
+})
+
+// 필터 변경 시 첫 페이지로 이동
+watchEffect(() => {
+  currentPage.value = 1
+}, { flush: 'sync' })
 
 // 각 book의 categoryLarge가 바뀔 때 개별 감시
 watchEffect(() => {
-  books.value.forEach(book => {
+  allBooks.value.forEach(book => {
     const largeCode = book.categoryLarge
     const oldOptions = book.mediumOptions?.map(m => m.seqSortSecond) || []
 
@@ -451,33 +683,19 @@ watchEffect(() => {
   })
 })
 
-const currentPage = ref(1)
-const pageSize = 10
-
-const totalPages = computed(() => Math.ceil(totalCount.value / pageSize))
-
-const paginatedBooks = computed(() => {
-  if (isPrint.value) {
-    return books.value.filter(book => book.printCheckBook === false)
-  } else {
-    return books.value
-  }
+// 마운트 시 데이터 로드
+onMounted(async () => {
+  await fetchLargeCategories()
+  await fetchMediumCategories()
+  await fetchBooks()
+  window.addEventListener('keydown', handleKeydown)
 })
 
-const booksToPrint = computed(() => {
-  return books.value.filter(book =>
-    book.printCheckBook === false &&
-    book.categoryLarge !== 0 &&
-    book.categoryMedium !== 0 &&
-    book.barcodeBook &&
-    book.barcodeBook.trim() !== ''
-  )
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeydown)
 })
 
-watch(currentPage, (newPage) => {
-  fetchBooks(newPage)
-})
-
+// 도서 삭제
 async function deleteBook(book) {
   if (!confirm(`"${book.titleBook}" 도서를 삭제하시겠습니까?`)) {
     return
@@ -497,14 +715,14 @@ async function deleteBook(book) {
       throw new Error(errorMessage || `서버 오류: ${response.status}`)
     }
 
-    books.value = books.value.filter(b => b.seqBook !== book.seqBook)
-    totalCount.value--
+    allBooks.value = allBooks.value.filter(b => b.seqBook !== book.seqBook)
     alert('삭제에 성공하였습니다.')
   } catch (error) {
     alert(`삭제 실패: ${error.message}`)
   }
 }
 
+// 바코드 생성
 function barcodeCreate(book) {
   selectedSeqBook.value = book.seqBook
   selectedSeqSortSecond.value = book.categoryMedium
@@ -514,21 +732,23 @@ function barcodeCreate(book) {
   isOpen.value = true
 }
 
+// 일괄 프린트
 function printBarcodes() {
   isPrintBatchOpen.value = true
 }
 
+// 날짜 포맷팅
 function formatDate(dateString) {
   if (!dateString) return '-'
   const date = new Date(dateString)
   return date.toLocaleDateString('ko-KR')
 }
 
-// 도서 목록 새로고침 메서드
+// 도서 목록 새로고침
 const refreshBooks = async () => {
   isRefreshing.value = true
   try {
-    await fetchBooks(currentPage.value)
+    await fetchBooks()
   } catch (error) {
     console.error('새로고침 실패:', error)
     alert('목록을 새로고침하는 중 오류가 발생했습니다.')
@@ -536,7 +756,6 @@ const refreshBooks = async () => {
     isRefreshing.value = false
   }
 }
-
 </script>
 
 <style scoped>
@@ -601,23 +820,136 @@ const refreshBooks = async () => {
   box-shadow: 0 10px 30px rgba(184, 230, 193, 0.4);
 }
 
-.search-section {
+.filter-section {
   margin: 0 0 1.5rem 0;
 }
 
-.search-card {
+.filter-card {
   background: white;
   border-radius: 20px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
   border: 1px solid rgba(0, 0, 0, 0.03);
 }
 
-.search-content {
+.filter-content {
   padding: 24px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
   gap: 2rem;
+}
+
+.search-filters {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  flex: 1;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #4a5568;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: #a0aec0;
+  z-index: 1;
+}
+
+.search-input {
+  width: 300px;
+  padding: 12px 12px 12px 40px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  background: #fafafa;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #a8dadc;
+  box-shadow: 0 0 0 3px rgba(168, 218, 220, 0.15);
+  background: white;
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: #a0aec0;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.clear-search-btn:hover {
+  background: #f7fafc;
+  color: #4a5568;
+}
+
+.filter-select {
+  min-width: 140px;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  background: #fafafa;
+  transition: all 0.3s ease;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #a8dadc;
+  box-shadow: 0 0 0 3px rgba(168, 218, 220, 0.15);
+  background: white;
+}
+
+.filter-select:disabled {
+  background: #f1f5f9;
+  opacity: 0.6;
+}
+
+.reset-filters-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #f56565 0%, #fc8181 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
+}
+
+.reset-filters-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(245, 101, 101, 0.4);
 }
 
 .print-controls {
@@ -723,11 +1055,6 @@ const refreshBooks = async () => {
 
 .stat-card.total-books .stat-icon {
   background: linear-gradient(135deg, #a8dadc 0%, #b8e6c1 100%);
-  color: #2d3748;
-}
-
-.stat-card.print-pending .stat-icon {
-  background: linear-gradient(135deg, #ddbff0 0%, #e6ccf7 100%);
   color: #2d3748;
 }
 
@@ -1026,6 +1353,7 @@ const refreshBooks = async () => {
 .pagination {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 8px;
 }
 
@@ -1041,12 +1369,20 @@ const refreshBooks = async () => {
   min-width: 44px;
   text-align: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.page-btn:hover {
+.page-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .page-btn.active {
@@ -1056,7 +1392,29 @@ const refreshBooks = async () => {
   box-shadow: 0 4px 12px rgba(168, 218, 220, 0.3);
 }
 
+.prev-btn,
+.next-btn {
+  padding: 10px 12px;
+}
+
 /* 반응형 디자인 */
+@media (max-width: 1400px) {
+  .filter-content {
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: stretch;
+  }
+  
+  .search-filters {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .search-input {
+    width: 250px;
+  }
+}
+
 @media (max-width: 1200px) {
   .header-content {
     flex-direction: column;
@@ -1064,10 +1422,18 @@ const refreshBooks = async () => {
     align-items: stretch;
   }
   
-  .search-content {
+  .search-filters {
     flex-direction: column;
-    gap: 1rem;
     align-items: stretch;
+  }
+  
+  .filter-group {
+    width: 100%;
+  }
+  
+  .search-input,
+  .filter-select {
+    width: 100%;
   }
   
   .print-controls {
@@ -1131,7 +1497,7 @@ const refreshBooks = async () => {
 }
 
 @media (max-width: 480px) {
-  .search-card,
+  .filter-card,
   .table-card {
     border-radius: 16px;
   }

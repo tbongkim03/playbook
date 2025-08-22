@@ -11,7 +11,7 @@ public interface BookDAO {
 
     Page<Book> selectBookListByPage(int page) throws Exception;
 
-    Page<Book> selectAllBooks(int page) throws Exception;
+    List<Book> selectAllBooks() throws Exception;
 
     Book selectBookById(int bookId, String idUser) throws Exception;
 

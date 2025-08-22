@@ -43,10 +43,8 @@ public class BookDAOImpl implements BookDAO {
     }
 
     @Override
-    public Page<Book> selectAllBooks(int page) {
-        int pageSize = 10;
-        PageRequest pageRequest = PageRequest.of(page - 1, pageSize, Sort.by("seqBook").ascending());
-        return bookRepository.findAll(pageRequest);
+    public List<Book> selectAllBooks() {
+        return bookRepository.findAllWithCategories();
     }
 
     @Override

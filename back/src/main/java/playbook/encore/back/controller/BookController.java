@@ -15,6 +15,7 @@ import playbook.encore.back.data.dto.book.BookResponseDto;
 import playbook.encore.back.data.dto.book.BookSearchResponseDto;
 import playbook.encore.back.data.dto.book.BookSortAndBarcodeRequestDto;
 import playbook.encore.back.data.dto.book.BookUnprintedResponseDto;
+import playbook.encore.back.data.entity.Book;
 import playbook.encore.back.data.repository.BookUserRepository;
 import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.service.BookService;
@@ -67,15 +68,14 @@ public class BookController {
 
     @GetMapping("/all")
     public ResponseEntity<?> getAllBooks(
-            HttpServletRequest request,
-            @RequestParam int page
+            HttpServletRequest request
     ) throws Exception {
         Object roleAttr = request.getAttribute("ROLE");
         if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
         }
-        BookListResponseDto bookListResponseDto = bookService.getAllBooks(page);
-        return ResponseEntity.status(HttpStatus.OK).body(bookListResponseDto);
+        List<Book> booklist = bookService.getAllBooks();
+        return ResponseEntity.status(HttpStatus.OK).body(booklist);
     }
 
     @GetMapping("/{id}")

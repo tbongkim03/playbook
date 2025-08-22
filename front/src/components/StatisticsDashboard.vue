@@ -18,8 +18,12 @@
         <label for="courseSelect">과정 선택:</label>
         <select id="courseSelect" v-model="selectedCourse" @change="fetchData" class="filter-select">
           <option value="">전체 과정</option>
-          <option v-for="course in courses" :key="course.id" :value="course.id">
-            {{ course.name }}
+          <option 
+            v-for="(course, index) in courses"
+            :key="index"
+            :value="course.seqCourse"
+          >
+            {{ course.title }} ({{ course.trprDegr }}기)
           </option>
         </select>
       </div>
@@ -67,7 +71,7 @@
               <tbody>
                 <tr v-for="(item, index) in popularFirstSort" :key="index">
                   <td>{{ index + 1 }}</td>
-                  <td>{{ item.nameSortFirst }}</td>
+                  <td>{{ item.korSortFirst }}</td>
                   <td>{{ item.rentalCount }}</td>
                 </tr>
               </tbody>
@@ -102,7 +106,7 @@
               <tbody>
                 <tr v-for="(item, index) in popularSecondSort" :key="index">
                   <td>{{ index + 1 }}</td>
-                  <td>{{ item.nameSortFirst }}</td>
+                  <td>{{ item.korSortFirst }}</td>
                   <td>{{ item.rentalCount }}</td>
                 </tr>
               </tbody>
@@ -176,13 +180,128 @@ const popularFirstSort = ref([])
 const popularSecondSort = ref([])
 const userReadingRank = ref([])
 
-// 과정 목록 (실제로는 API에서 가져와야 함)
-const courses = ref([
-  { id: 1, name: 'Java 개발자 과정' },
-  { id: 2, name: 'Python 데이터 사이언스 과정' },
-  { id: 3, name: 'React 프론트엔드 과정' },
-  { id: 4, name: 'DevOps 과정' }
-])
+// 과정 목록
+const courses = ref([])
+
+async function getCourseList() {
+  const apiKey = import.meta.env.VITE_WORK24_API_KEY
+  const today = new Date()
+  const sixMonthsAgo = new Date()
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+
+  function formatDateToYYYYMMDD(date) {
+    const yyyy = date.getFullYear()
+    const mm = String(date.getMonth() + 1).padStart(2, '0')
+    const dd = String(date.getDate()).padStart(2, '0')
+    return `${yyyy}${mm}${dd}`
+  }
+
+  const srchTraStDt = formatDateToYYYYMMDD(sixMonthsAgo)
+  const srchTraEndDt = formatDateToYYYYMMDD(today)
+
+  const url =
+    `https://www.work24.go.kr/cm/openApi/call/hr/callOpenApiSvcInfo310L01.do?authKey=${apiKey}` +
+    `&returnType=JSON&outType=1&pageNum=1&pageSize=100` +
+    `&srchTraStDt=${srchTraStDt}&srchTraEndDt=${srchTraEndDt}` +
+    `&srchTraArea1=11&srchNcs1=20&crseTracseSe=C0104&srchTraGbn=M1001&srchTraOrganNm=플레이데이터평생교육원` +
+    `&sort=ASC&sortCol=2`
+
+  try {
+    const res = await fetch(url)
+    const data = await res.json()
+    const apiCoursesRaw = data?.srchList || []
+
+    if (apiCoursesRaw.length === 0) return
+
+    const apiCourses = apiCoursesRaw.map(item => {
+      const title = item.title.includes(' - ') ? item.title.split(' - ')[0] : item.title
+      const fullName = `${title} ${item.trprDegr}기`
+      return {
+        nameCourse: fullName,
+        startDtCourse: item.traStartDate,
+        finishDtCourse: item.traEndDate,
+        trprDegr: item.trprDegr,
+        seqCourse: item.trprId
+      }
+    })
+
+    const dbRes = await fetch(`${title_url}/courses`)
+    const dbCourses = await dbRes.json()
+
+    for (const apiItem of apiCourses) {
+      const exists = dbCourses.find(dbItem => dbItem.nameCourse === apiItem.nameCourse)
+      if (!exists) {
+        await fetch(`${title_url}/courses`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nameCourse: apiItem.nameCourse,
+            startDtCourse: apiItem.startDtCourse,
+            finishDtCourse: apiItem.finishDtCourse
+          })
+        })
+      }
+    }
+
+    for (const dbItem of dbCourses) {
+      const exists = apiCourses.find(apiItem => apiItem.nameCourse === dbItem.nameCourse)
+      if (!exists) {
+        await fetch(`${title_url}/courses/${dbItem.seqCourse}`, {
+          method: 'DELETE'
+        })
+      }
+    }
+
+    for (const apiItem of apiCourses) {
+      const dbItem = dbCourses.find(db => db.nameCourse === apiItem.nameCourse)
+      if (dbItem) {
+        const isDifferent =
+          dbItem.startDtCourse !== apiItem.startDtCourse ||
+          dbItem.finishDtCourse !== apiItem.finishDtCourse
+
+        if (isDifferent) {
+          await fetch(`${title_url}/courses/${dbItem.seqCourse}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              nameCourse: apiItem.nameCourse,
+              startDtCourse: apiItem.startDtCourse,
+              finishDtCourse: apiItem.finishDtCourse
+            })
+          })
+        }
+      }
+    }
+
+    const finalDbRes = await fetch(`${title_url}/courses`)
+    const finalDbCourses = await finalDbRes.json()
+
+    courses.value = finalDbCourses
+      .map(item => {
+        const parts = item.nameCourse.split(' ')
+        const isLastPartGeneration = parts[parts.length - 1].endsWith('기')
+        const title = isLastPartGeneration
+          ? parts.slice(0, -1).join(' ')
+          : item.nameCourse
+        const generation = isLastPartGeneration 
+          ? parts[parts.length - 1].replace('기', '') 
+          : '1'
+        
+        return {
+          title,
+          trprDegr: generation,
+          seqCourse: item.seqCourse,
+          nameCourse: item.nameCourse,
+          startDtCourse: item.startDtCourse,
+          finishDtCourse: item.finishDtCourse
+        }
+      })
+      .sort((a, b) => a.title.localeCompare(b.title, 'ko'))
+
+  } catch (err) {
+    console.error('API 조회 실패:', err)
+  }
+}
 
 // 뷰 토글 상태
 const showFirstSortTable = ref(false)
@@ -287,7 +406,8 @@ const fetchData = async () => {
     await Promise.all([
       fetchPopularFirstSort(),
       fetchPopularSecondSort(),
-      fetchUserReadingRank()
+      fetchUserReadingRank(),
+      getCourseList()
     ])
     
     // 차트 업데이트
