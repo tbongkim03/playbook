@@ -3,6 +3,7 @@ package playbook.encore.back.data.dao.impl;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -31,8 +32,24 @@ public class BookDAOImpl implements BookDAO {
 
     @Override
     public Book insertBook(Book book) {
-        Book savedBook = bookRepository.save(book);
-        return savedBook;
+        try {
+            Book savedBook = bookRepository.save(book);
+            return savedBook;
+        } catch (DataIntegrityViolationException e) {
+            String errorMessage = e.getCause().getMessage();
+
+            if (errorMessage.contains("Data too long for column")) {
+                // 어느 컬럼에서 문제가 발생했는지 파악
+                if (errorMessage.contains("author_book")) {
+                    throw new IllegalArgumentException("저자명이 너무 깁니다. 최대 길이를 확인해주세요.");
+                } else if (errorMessage.contains("title_book")) {
+                    throw new IllegalArgumentException("책 제목이 너무 깁니다. 최대 길이를 확인해주세요.");
+                }
+                throw new IllegalArgumentException("입력된 데이터가 허용된 길이를 초과했습니다.");
+            }
+
+            throw new IllegalArgumentException("데이터 저장 중 오류가 발생했습니다.");
+        }
     }
 
     @Override

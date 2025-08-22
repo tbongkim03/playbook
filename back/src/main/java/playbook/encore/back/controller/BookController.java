@@ -74,8 +74,13 @@ public class BookController {
         if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
         }
-        List<BookResponseDto> booklist = bookService.getAllBooks();
-        return ResponseEntity.status(HttpStatus.OK).body(booklist);
+        try {
+            List<BookResponseDto> booklist = bookService.getAllBooks();
+            return ResponseEntity.status(HttpStatus.OK).body(booklist);
+        } catch (Exception e) {
+            System.out.println("책 목록 조회 중 오류 발생: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")
