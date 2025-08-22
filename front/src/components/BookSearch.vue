@@ -161,13 +161,11 @@ export default {
             this.$emit('search', { query: this.query, exact: false });
         },
         blockJavascriptInput(event) {
-            // 기존 JavaScript 입력 차단 로직이 있다면 여기에 추가
             // 방향키와 Enter, Escape는 차단하지 않도록 수정
             const allowedKeys = ['ArrowDown', 'ArrowUp', 'Enter', 'Escape', 'Backspace', 'Delete'];
             if (allowedKeys.includes(event.key)) {
                 return; // 허용된 키는 차단하지 않음
             }
-            // 다른 특수 키나 스크립트 입력 차단 로직
         },
     },
 };

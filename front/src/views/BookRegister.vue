@@ -232,7 +232,7 @@ function handleFormEnter(e) {
 }
 
 async function searchISBN() {
-  const apiKey = import.meta.env.VITE_NL_API_KEY
+  // const apiKey = import.meta.env.VITE_NL_API_KEY
 
   const isbn = String(book.isbn || '').trim()
 
@@ -244,8 +244,15 @@ async function searchISBN() {
   isSearching.value = true
 
   try {
-    const url = `https://www.nl.go.kr/seoji/SearchApi.do?cert_key=${apiKey}&result_style=json&page_no=1&page_size=1&isbn=${isbn}`
-    const res = await fetch(url)
+    // const url = `https://www.nl.go.kr/seoji/SearchApi.do?cert_key=${apiKey}&result_style=json&page_no=1&page_size=1&isbn=${isbn}`
+    const res = await fetch('http://localhost:8080/api/national-library/isbn', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(isbn)
+    })
     const data = await res.json()
 
     const doc = data?.docs?.[0] || null

@@ -51,6 +51,7 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
                 || ((uri.equals("/history/return") && method.equals("PUT")))
                 || ((uri.equals("/history/book") && method.equals("GET")))
                 || ((uri.equals("/api/naver/book-search") && method.equals("POST")))
+                || ((uri.equals("/api/national-library/isbn") && method.equals("POST")))
                 || ((uri.equals("/favor") && (method.equals("GET") || method.equals("POST") || method.equals("DELETE"))))
                 || ((uri.equals("/history/me") && method.equals("GET")))
                 || ((uri.equals("/history/popular/first") && method.equals("GET")))

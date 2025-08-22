@@ -282,6 +282,8 @@ const selectedCourse = ref(null)
 
 const fromTerm = window.history.state?.fromTerm
 
+const token = localStorage.getItem("jwtToken")
+
 if (!fromTerm) {
   alert('잘못된 접근입니다.')
   router.replace('/')
@@ -307,19 +309,19 @@ const filteredCourseList = computed(() => {
 })
 
 // 날짜 계산
-const today = new Date()
-const sixMonthsAgo = new Date()
-sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+// const today = new Date()
+// const sixMonthsAgo = new Date()
+// sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
 
-function formatDateToYYYYMMDD(date) {
-  const yyyy = date.getFullYear()
-  const mm = String(date.getMonth() + 1).padStart(2, '0')
-  const dd = String(date.getDate()).padStart(2, '0')
-  return `${yyyy}${mm}${dd}`
-}
+// function formatDateToYYYYMMDD(date) {
+//   const yyyy = date.getFullYear()
+//   const mm = String(date.getMonth() + 1).padStart(2, '0')
+//   const dd = String(date.getDate()).padStart(2, '0')
+//   return `${yyyy}${mm}${dd}`
+// }
 
-const srchTraStDt = formatDateToYYYYMMDD(sixMonthsAgo)
-const srchTraEndDt = formatDateToYYYYMMDD(today)
+// const srchTraStDt = formatDateToYYYYMMDD(sixMonthsAgo)
+// const srchTraEndDt = formatDateToYYYYMMDD(today)
 
 onMounted(() => {
   getCourseList()
@@ -331,17 +333,23 @@ onBeforeUnmount(() => {
 })
 
 async function getCourseList() {
-  const apiKey = import.meta.env.VITE_WORK24_API_KEY
-  const url =
-    `https://www.work24.go.kr/cm/openApi/call/hr/callOpenApiSvcInfo310L01.do?authKey=${apiKey}` +
-    `&returnType=JSON&outType=1&pageNum=1&pageSize=100` +
-    `&srchTraStDt=${srchTraStDt}&srchTraEndDt=${srchTraEndDt}` +
-    `&srchTraArea1=11&srchNcs1=20&crseTracseSe=C0104&srchTraGbn=M1001&srchTraOrganNm=플레이데이터평생교육원` +
-    `&sort=ASC&sortCol=2`
+  // const apiKey = import.meta.env.VITE_WORK24_API_KEY
+  // const url =
+  //   `https://www.work24.go.kr/cm/openApi/call/hr/callOpenApiSvcInfo310L01.do?authKey=${apiKey}` +
+  //   `&returnType=JSON&outType=1&pageNum=1&pageSize=100` +
+  //   `&srchTraStDt=${srchTraStDt}&srchTraEndDt=${srchTraEndDt}` +
+  //   `&srchTraArea1=11&srchNcs1=20&crseTracseSe=C0104&srchTraGbn=M1001&srchTraOrganNm=플레이데이터평생교육원` +
+  //   `&sort=ASC&sortCol=2`
 
   try {
     // 1. 외부 API에서 데이터 가져오기
-    const res = await fetch(url)
+    // const res = await fetch(url)
+    const res = await fetch('http://localhost:8080/api/work24/course', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
     const data = await res.json()
     const apiCoursesRaw = data?.srchList || []
 
