@@ -78,7 +78,7 @@ public class BookServiceImpl implements BookService {
                 .publishDateBook(bookRequestDto.getPublishDateBook())
                 .imgUrlBook(bookRequestDto.getImageBook())
                 .barcodeBook(null)
-                .cntBook(null)
+                .cntBook(0)
                 .printCheckBook(false)
                 .build();
 
@@ -130,7 +130,7 @@ public class BookServiceImpl implements BookService {
             .map(this::convertToDto)
             .collect(Collectors.toList());
 
-        int totalCount = content.size();
+        int totalCount = (int) books.getTotalElements();
         return new BookListResponseDto(content, totalCount);
     }
 
