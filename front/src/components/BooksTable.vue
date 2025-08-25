@@ -110,11 +110,11 @@
             </div>
 
             <div class="filter-group">
-              <label class="filter-label">대여상태</label>
+              <label class="filter-label">대출상태</label>
               <select v-model="filters.borrowStatus" class="filter-select">
                 <option value="">전체</option>
-                <option value="borrowed">대여중</option>
-                <option value="available">대여가능</option>
+                <option value="borrowed">대출 중</option>
+                <option value="available">대출가능</option>
               </select>
             </div>
 
@@ -219,7 +219,7 @@
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ borrowedCount }}</div>
-          <div class="stat-label">대여중</div>
+          <div class="stat-label">대출 중</div>
         </div>
       </div>
 
@@ -231,7 +231,7 @@
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ availableCount }}</div>
-          <div class="stat-label">대여가능</div>
+          <div class="stat-label">대출가능</div>
         </div>
       </div>
 
@@ -291,7 +291,7 @@
                 <th class="col-category">대분류</th>
                 <th class="col-category">중분류</th>
                 <th class="col-count">수량</th>
-                <th class="col-status">대여상태</th>
+                <th class="col-status">대출상태</th>
                 <th class="col-barcode">바코드</th>
                 <th class="col-actions">작업</th>
               </tr>
@@ -359,9 +359,11 @@
                 <td class="borrow-status col-status">
                   <span :class="[
                     'status-badge',
-                    book.bookBorrowed ? 'status-borrowed' : 'status-available'
+                    book.bookBorrowed ? 'status-borrowed' : 
+                    (book.printCheckBook ? 'status-available' : 'status-unavailable')
                   ]">
-                    {{ book.bookBorrowed ? '대여중' : '대여가능' }}
+                    {{ book.bookBorrowed ? '대출중' : 
+                      (book.printCheckBook ? '대출가능' : '대출불가') }}
                   </span>
                 </td>
                 <td class="barcode col-barcode">
@@ -607,7 +609,7 @@ const filteredBooks = computed(() => {
   }
 
   // 대분류 필터
-  if (filters.value.categoryLarge) {
+  if (filters.value.categoryLarge !== '') {  // 빈 문자열이 아니면 필터링
     result = result.filter(book => {
       const large = largeCategories.value.find(l => l.seqSortFirst === filters.value.categoryLarge)
       if (!large) return false
@@ -615,15 +617,15 @@ const filteredBooks = computed(() => {
     })
   }
 
-  // 중분류 필터
-  if (filters.value.categoryMedium) {
+  // 중분류 필터  
+  if (filters.value.categoryMedium !== '') {  // 빈 문자열이 아니면 필터링
     result = result.filter(book => book.categoryMedium === filters.value.categoryMedium)
   }
 
   // 대여 상태 필터
   if (filters.value.borrowStatus) {
     if (filters.value.borrowStatus === 'borrowed') {
-      result = result.filter(book => book.bookBorrowed === true)
+      result = result.filter(book => book.bookBorrowed === true && book.printCheckBook === true)
     } else if (filters.value.borrowStatus === 'available') {
       result = result.filter(book => book.bookBorrowed === false)
     }
@@ -719,15 +721,16 @@ const resetFilters = () => {
 
 // 대분류 변경 시 중분류 초기화
 watchEffect(() => {
-  if (!filters.value.categoryLarge) {
+  if (filters.value.categoryLarge === '') {
     filters.value.categoryMedium = ''
   } else {
     const availableOptions = availableMediumCategories.value
-    if (filters.value.categoryMedium && !availableOptions.find(opt => opt.seqSortSecond === filters.value.categoryMedium)) {
+    if (filters.value.categoryMedium !== '' && !availableOptions.find(opt => opt.seqSortSecond === filters.value.categoryMedium)) {
       filters.value.categoryMedium = ''
     }
   }
 })
+
 
 // 필터 변경 시 첫 페이지로 이동
 watchEffect(() => {

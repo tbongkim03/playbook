@@ -232,8 +232,9 @@ function handleFormEnter(e) {
 }
 
 async function searchISBN() {
-  // const apiKey = import.meta.env.VITE_NL_API_KEY
+  const apiKey = import.meta.env.VITE_NL_API_KEY
 
+  const token = localStorage.getItem('jwtToken')
   const isbn = String(book.isbn || '').trim()
 
   if (!isbn) {
@@ -245,6 +246,7 @@ async function searchISBN() {
 
   try {
     // const url = `https://www.nl.go.kr/seoji/SearchApi.do?cert_key=${apiKey}&result_style=json&page_no=1&page_size=1&isbn=${isbn}`
+    // const res = await fetch(url)
     const res = await fetch('http://localhost:8080/api/national-library/isbn', {
       method: 'POST',
       headers: {
@@ -325,8 +327,6 @@ async function submitBook() {
     alert('필수 정보를 모두 입력해주세요.')
     return
   }
-
-  const token = localStorage.getItem('jwtToken')
   
   const payload = {
     seqSortSecond: 0,
@@ -340,7 +340,9 @@ async function submitBook() {
 
   try {
     isLoading.value = true
-    
+    const token = localStorage.getItem('jwtToken')
+    console.log(token || '0')
+
     const response = await fetch('http://localhost:8080/books', {
       method: 'POST',
       headers: {

@@ -22,7 +22,7 @@
                             </svg>
                         </div>
                         <h2 class="card-title">도서 대출</h2>
-                        <p class="card-description">새로운 책을 대여해보세요</p>
+                        <p class="card-description">새로운 책을 대출해보세요</p>
                     </div>
                     <div class="function-card return-card" @click="navigateTo('/return')">
                         <div class="card-icon">
@@ -33,7 +33,7 @@
                             </svg>
                         </div>
                         <h2 class="card-title">도서 반납</h2>
-                        <p class="card-description">대여한 책을 반납하세요</p>
+                        <p class="card-description">대출한 책을 반납하세요</p>
                     </div>
                 </div>
             </div>        
