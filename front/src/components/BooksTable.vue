@@ -114,7 +114,8 @@
               <select v-model="filters.borrowStatus" class="filter-select">
                 <option value="">전체</option>
                 <option value="borrowed">대출 중</option>
-                <option value="available">대출가능</option>
+                <option value="available">대출 가능</option>
+                <option value="unavailable">대출 불가</option>
               </select>
             </div>
 
@@ -231,7 +232,21 @@
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ availableCount }}</div>
-          <div class="stat-label">대출가능</div>
+          <div class="stat-label">대출 가능</div>
+        </div>
+      </div>
+
+      <div class="stat-card unavailable-books">
+        <div class="stat-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+            <line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" stroke-width="2"/>
+            <line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ unavailableCount }}</div>
+          <div class="stat-label">대출 불가</div>
         </div>
       </div>
 
@@ -290,7 +305,7 @@
                 <th class="col-date">출판일</th>
                 <th class="col-category">대분류</th>
                 <th class="col-category">중분류</th>
-                <th class="col-count">수량</th>
+                <th class="col-count">번호</th>
                 <th class="col-status">대출상태</th>
                 <th class="col-barcode">바코드</th>
                 <th class="col-actions">작업</th>
@@ -359,11 +374,9 @@
                 <td class="borrow-status col-status">
                   <span :class="[
                     'status-badge',
-                    book.bookBorrowed ? 'status-borrowed' : 
-                    (book.printCheckBook ? 'status-available' : 'status-unavailable')
+                    getBookStatusClass(book)
                   ]">
-                    {{ book.bookBorrowed ? '대출중' : 
-                      (book.printCheckBook ? '대출가능' : '대출불가') }}
+                    {{ getBookStatusText(book) }}
                   </span>
                 </td>
                 <td class="barcode col-barcode">
@@ -500,6 +513,50 @@ const handleKeydown = (event) => {
   }
 }
 
+// 도서 상태 관련 함수들
+const getBookStatus = (book) => {
+  // 바코드가 출력되지 않았으면 대출불가
+  if (!book.printCheckBook) {
+    return 'unavailable'
+  }
+  
+  // 바코드가 출력되었고 대출 중이면 대출중
+  if (book.bookBorrowed) {
+    return 'borrowed'
+  }
+  
+  // 바코드가 출력되었고 대출 중이 아니면 대출가능
+  return 'available'
+}
+
+const getBookStatusText = (book) => {
+  const status = getBookStatus(book)
+  switch (status) {
+    case 'borrowed':
+      return '대출 중'
+    case 'available':
+      return '대출 가능'
+    case 'unavailable':
+      return '대출 불가'
+    default:
+      return '대출 불가'
+  }
+}
+
+const getBookStatusClass = (book) => {
+  const status = getBookStatus(book)
+  switch (status) {
+    case 'borrowed':
+      return 'status-borrowed'
+    case 'available':
+      return 'status-available'
+    case 'unavailable':
+      return 'status-unavailable'
+    default:
+      return 'status-unavailable'
+  }
+}
+
 // 대분류 데이터 가져오기
 const fetchLargeCategories = async () => {
   const res = await fetch('http://localhost:8080/subjects')
@@ -539,13 +596,17 @@ const availableMediumCategories = computed(() => {
   return getMediumOptions(filters.value.categoryLarge)
 })
 
-// 대여 상태별 통계
+// 대여 상태별 통계 - 개선된 로직
 const borrowedCount = computed(() => 
-  allBooks.value.filter(book => book.bookBorrowed === true).length
+  allBooks.value.filter(book => getBookStatus(book) === 'borrowed').length
 )
 
 const availableCount = computed(() => 
-  allBooks.value.filter(book => book.bookBorrowed === false).length
+  allBooks.value.filter(book => getBookStatus(book) === 'available').length
+)
+
+const unavailableCount = computed(() => 
+  allBooks.value.filter(book => getBookStatus(book) === 'unavailable').length
 )
 
 // 모든 도서 데이터 가져오기 (페이지네이션 없이)
@@ -593,7 +654,7 @@ const compareKorean = (a, b) => {
   return a.localeCompare(b, 'ko-KR')
 }
 
-// 필터링된 도서 목록
+// 필터링된 도서 목록 - 개선된 상태 필터링
 const filteredBooks = computed(() => {
   let result = [...allBooks.value]
 
@@ -622,13 +683,9 @@ const filteredBooks = computed(() => {
     result = result.filter(book => book.categoryMedium === filters.value.categoryMedium)
   }
 
-  // 대여 상태 필터
+  // 대여 상태 필터 - 개선된 로직
   if (filters.value.borrowStatus) {
-    if (filters.value.borrowStatus === 'borrowed') {
-      result = result.filter(book => book.bookBorrowed === true && book.printCheckBook === true)
-    } else if (filters.value.borrowStatus === 'available') {
-      result = result.filter(book => book.bookBorrowed === false)
-    }
+    result = result.filter(book => getBookStatus(book) === filters.value.borrowStatus)
   }
 
   // 프린트 모드 필터
@@ -730,7 +787,6 @@ watchEffect(() => {
     }
   }
 })
-
 
 // 필터 변경 시 첫 페이지로 이동
 watchEffect(() => {
@@ -1217,6 +1273,11 @@ const refreshBooks = async () => {
   color: #2d3748;
 }
 
+.stat-card.unavailable-books .stat-icon {
+  background: linear-gradient(135deg, #f0a8a8 0%, #f5b2b2 100%);
+  color: #2d3748;
+}
+
 .stat-card.print-ready .stat-icon {
   background: linear-gradient(135deg, #ddbff0 0%, #e6ccf7 100%);
   color: #2d3748;
@@ -1451,6 +1512,12 @@ const refreshBooks = async () => {
   background: linear-gradient(135deg, #a8dadc 0%, #b8e6c1 100%);
   color: #2d3748;
   box-shadow: 0 1px 3px rgba(168, 218, 220, 0.3);
+}
+
+.status-unavailable {
+  background: linear-gradient(135deg, #f0a8a8 0%, #f5b2b2 100%);
+  color: #2d3748;
+  box-shadow: 0 1px 3px rgba(240, 168, 168, 0.3);
 }
 
 .barcode-input {
@@ -1712,4 +1779,4 @@ const refreshBooks = async () => {
     font-size: 0.8rem;
   }
 }
-</style>,
+</style>
