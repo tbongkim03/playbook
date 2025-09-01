@@ -173,7 +173,6 @@
 import { ref, watch, computed, onMounted, nextTick } from 'vue'
 import JsBarcode from 'jsbarcode'
 
-// Props 정의 - 부모 컴포넌트에서 필터 정보를 받아옵니다
 const props = defineProps({
   books: {
     type: Array,
