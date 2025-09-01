@@ -14,7 +14,9 @@
           </div>
           <div class="header-text">
             <h2 class="modal-title">바코드 출력</h2>
-            <p class="modal-subtitle">선택한 도서의 바코드를 출력합니다</p>
+            <p class="modal-subtitle">
+              {{ hasActiveFilters ? '필터링된' : '전체' }} 미출력 도서의 바코드를 출력합니다
+            </p>
           </div>
         </div>
         <button class="close-btn" @click="close">
@@ -23,6 +25,24 @@
             <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
           </svg>
         </button>
+      </div>
+
+      <!-- 필터 정보 표시 -->
+      <div v-if="hasActiveFilters" class="filter-info">
+        <div class="filter-badge-container">
+          <span class="filter-label">적용된 필터:</span>
+          <div class="filter-badges">
+            <span v-if="filters.searchQuery" class="filter-badge search">
+              검색: "{{ filters.searchQuery }}"
+            </span>
+            <span v-if="filters.categoryLarge" class="filter-badge category">
+              대분류: {{ getLargeCategoryName(filters.categoryLarge) }}
+            </span>
+            <span v-if="filters.categoryMedium" class="filter-badge category">
+              중분류: {{ getMediumCategoryName(filters.categoryMedium) }}
+            </span>
+          </div>
+        </div>
       </div>
 
       <!-- 설정 영역 -->
@@ -60,8 +80,12 @@
         <!-- 통계 정보 -->
         <div class="stats-info">
           <div class="stat-item">
-            <span class="stat-label">총 도서</span>
-            <span class="stat-value">{{ books.length }}개</span>
+            <span class="stat-label">전체 미출력</span>
+            <span class="stat-value">{{ allUnprintedBooks.length }}개</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">필터링 후</span>
+            <span class="stat-value">{{ filteredBooks.length }}개</span>
           </div>
           <div class="stat-item">
             <span class="stat-label">출력 예정</span>
@@ -109,7 +133,12 @@
               <rect x="17" y="4" width="4" height="16" stroke="currentColor" stroke-width="2"/>
             </svg>
             <h4>출력할 바코드가 없습니다</h4>
-            <p>미출력 도서가 없거나 조건에 맞는 도서를 찾을 수 없습니다.</p>
+            <p>
+              {{ hasActiveFilters 
+                ? '적용된 필터 조건에 맞는 미출력 도서가 없습니다.' 
+                : '미출력 도서가 없습니다.' 
+              }}
+            </p>
           </div>
         </div>
       </div>
@@ -144,6 +173,26 @@
 import { ref, watch, computed, onMounted, nextTick } from 'vue'
 import JsBarcode from 'jsbarcode'
 
+// Props 정의 - 부모 컴포넌트에서 필터 정보를 받아옵니다
+const props = defineProps({
+  books: {
+    type: Array,
+    default: () => []
+  },
+  filters: {
+    type: Object,
+    default: () => ({})
+  },
+  largeCategories: {
+    type: Array,
+    default: () => []
+  },
+  mediumCategories: {
+    type: Array,
+    default: () => []
+  }
+})
+
 const startPosition = ref(0)
 const token = localStorage.getItem('jwtToken')
 
@@ -152,14 +201,89 @@ function close() {
   emit('close')
 }
 
-// 1. 바코드 책 리스트 (fetch로 받아옴)
-const books = ref([])
+// 전체 미출력 도서 데이터
+const allUnprintedBooks = ref([])
 
-// 2. 출력 시 사용자가 선택하는 바코드 수
+// 출력 시 사용자가 선택하는 바코드 수
 const options = ref([])
 const selectedCountPerPage = ref(1)
 
-// 3. fetch 사용해서 조건에 맞는 바코드 책 리스트 가져오기
+// 필터가 적용되었는지 확인
+const hasActiveFilters = computed(() => {
+  return !!(
+    props.filters.searchQuery ||
+    props.filters.categoryLarge ||
+    props.filters.categoryMedium
+  )
+})
+
+// 한글 문자열 비교를 위한 함수
+const compareKorean = (a, b) => {
+  return a.localeCompare(b, 'ko-KR')
+}
+
+// 대분류 이름 가져오기
+const getLargeCategoryName = (seqSortFirst) => {
+  const category = props.largeCategories.find(cat => cat.seqSortFirst === seqSortFirst)
+  return category ? category.korSortFirst : ''
+}
+
+// 중분류 이름 가져오기
+const getMediumCategoryName = (seqSortSecond) => {
+  const category = props.mediumCategories.find(cat => cat.seqSortSecond === seqSortSecond)
+  return category ? category.korSortSecond : ''
+}
+
+// seqSortSecond로부터 대분류 코드 찾기
+const findLargeCodeFromSeqSecond = (seqSecond) => {
+  const medium = props.mediumCategories.find(m => m.seqSortSecond === seqSecond)
+  if (!medium) return ''
+  
+  const large = props.largeCategories.find(l => l.seqSortFirst === medium.seqSortFirst)
+  return large?.nameSortFirst || ''
+}
+
+// 필터링된 도서 목록
+const filteredBooks = computed(() => {
+  let result = [...allUnprintedBooks.value]
+
+  // 검색 필터 적용
+  if (props.filters.searchQuery?.trim()) {
+    const query = props.filters.searchQuery.trim().toLowerCase()
+    result = result.filter(book => 
+      book.titleBook?.toLowerCase().includes(query) ||
+      book.authorBook?.toLowerCase().includes(query) ||
+      book.publisherBook?.toLowerCase().includes(query) ||
+      book.isbnBook?.toLowerCase().includes(query)
+    )
+  }
+
+  // 대분류 필터 적용
+  if (props.filters.categoryLarge !== '' && props.filters.categoryLarge !== undefined) {
+    result = result.filter(book => {
+      const bookLargeCode = findLargeCodeFromSeqSecond(book.seqSortSecond)
+      const large = props.largeCategories.find(l => l.seqSortFirst === props.filters.categoryLarge)
+      return large && bookLargeCode === large.nameSortFirst
+    })
+  }
+
+  // 중분류 필터 적용
+  if (props.filters.categoryMedium !== '' && props.filters.categoryMedium !== undefined) {
+    result = result.filter(book => book.seqSortSecond === props.filters.categoryMedium)
+  }
+
+  // 정렬 (제목 가나다순)
+  result.sort((a, b) => compareKorean(a.titleBook || '', b.titleBook || ''))
+
+  return result
+})
+
+// 보여줄 책 슬라이스
+const displayedBooks = computed(() => {
+  return filteredBooks.value.slice(0, selectedCountPerPage.value)
+})
+
+// fetch 사용해서 조건에 맞는 바코드 책 리스트 가져오기
 const fetchUnprintedBarcodes = async () => {
   try {
     const res = await fetch('http://localhost:8080/books/unprinted', { 
@@ -170,25 +294,26 @@ const fetchUnprintedBarcodes = async () => {
       throw new Error(errorMessage || `서버 오류: ${res.status}`)
     }  
     const data = await res.json()
-    books.value = data
+    allUnprintedBooks.value = data
 
-    // 옵션 초기화 (1 ~ books.length)
-    options.value = []
-    for (let i = 1; i <= books.value.length; i++) {
-      options.value.push(i)
-    }
-    selectedCountPerPage.value = books.value.length > 0 ? books.value.length : 1
+    // 옵션 초기화 (1 ~ filteredBooks.length)
+    updateOptions()
   } catch (error) {
     alert(error)
   }
 }
 
-// 4. 보여줄 책 슬라이스
-const displayedBooks = computed(() => {
-  return books.value.slice(0, selectedCountPerPage.value)
-})
+// 옵션 업데이트 함수
+const updateOptions = () => {
+  options.value = []
+  const maxCount = filteredBooks.value.length
+  for (let i = 1; i <= maxCount; i++) {
+    options.value.push(i)
+  }
+  selectedCountPerPage.value = maxCount > 0 ? maxCount : 1
+}
 
-// 6. 바코드 생성
+// 바코드 생성
 const barcodeSvgs = ref([])
 
 const generateBarcodes = () => {
@@ -207,18 +332,24 @@ const generateBarcodes = () => {
   })
 }
 
-// 7. 데이터가 변경되거나 선택 수가 바뀌면 바코드 다시 생성
-watch([() => selectedCountPerPage.value, books], () => {
+// 필터링된 결과가 변경되면 옵션 업데이트
+watch(filteredBooks, () => {
+  updateOptions()
   generateBarcodes()
 })
 
-// 8. 컴포넌트 마운트 시 데이터 불러오기 및 바코드 생성
+// 데이터가 변경되거나 선택 수가 바뀌면 바코드 다시 생성
+watch([() => selectedCountPerPage.value], () => {
+  generateBarcodes()
+})
+
+// 컴포넌트 마운트 시 데이터 불러오기 및 바코드 생성
 onMounted(async () => {
   await fetchUnprintedBarcodes()
   generateBarcodes()
 })
 
-// 9. 출력 함수
+// 출력 함수
 const printAll = async () => {
   if (!displayedBooks.value.length) {
     alert('출력할 바코드가 없습니다.')
@@ -350,6 +481,7 @@ const printAll = async () => {
 </script>
 
 <style scoped>
+/* 기존 스타일 유지 */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -392,6 +524,54 @@ const printAll = async () => {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+/* 필터 정보 섹션 추가 */
+.filter-info {
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #e3f2fd 0%, #f1f8e9 100%);
+  border-bottom: 1px solid #e9ecef;
+}
+
+.filter-badge-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.filter-label {
+  font-weight: 600;
+  color: #1976d2;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.filter-badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.filter-badge.search {
+  background: linear-gradient(135deg, #bbdefb 0%, #e1f5fe 100%);
+  color: #0d47a1;
+  border: 1px solid #90caf9;
+}
+
+.filter-badge.category {
+  background: linear-gradient(135deg, #c8e6c9 0%, #e8f5e8 100%);
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
 }
 
 /* 모달 헤더 */
@@ -718,6 +898,20 @@ const printAll = async () => {
   .modal-title {
     font-size: 1.25rem;
   }
+
+  .filter-info {
+    padding: 0.75rem 1rem;
+  }
+
+  .filter-badge-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .filter-badges {
+    width: 100%;
+  }
   
   .settings-grid {
     grid-template-columns: 1fr;
@@ -752,6 +946,14 @@ const printAll = async () => {
   
   .header-content {
     gap: 0.75rem;
+  }
+
+  .filter-badges {
+    flex-direction: column;
+  }
+
+  .filter-badge {
+    align-self: flex-start;
   }
   
   .settings-section,

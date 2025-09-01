@@ -15,6 +15,9 @@
     <PrintBatch 
       v-if="isPrintBatchOpen" 
       :books="booksToPrint" 
+      :filters="filters"
+      :largeCategories="largeCategories"
+      :mediumCategories="mediumCategoriesAll"
       @close="isPrintBatchOpen = false"
     />
 
