@@ -30,9 +30,10 @@ public class HistoryServiceImpl implements HistoryService {
     private final BookUserDAO bookUserDAO;
     private final CourseRepository courseRepository;
     private final BookDAO bookDAO;
+    private final DiscordNotificationService discordNotificationService;
 
     @Autowired
-    public HistoryServiceImpl(HistoryDAO historyDAO, AdminRepository adminRepository, BookUserRepository bookUserRepository, BookRepository bookRepository, HistoryRepository historyRepository, AdminDAO adminDAO, BookUserDAO bookUserDAO, CourseRepository courseRepository, BookDAO bookDAO) {
+    public HistoryServiceImpl(HistoryDAO historyDAO, AdminRepository adminRepository, BookUserRepository bookUserRepository, BookRepository bookRepository, HistoryRepository historyRepository, AdminDAO adminDAO, BookUserDAO bookUserDAO, CourseRepository courseRepository, BookDAO bookDAO, DiscordNotificationService discordNotificationService) {
         this.historyDAO = historyDAO;
         this.adminRepository = adminRepository;
         this.bookUserRepository = bookUserRepository;
@@ -42,21 +43,28 @@ public class HistoryServiceImpl implements HistoryService {
         this.bookUserDAO = bookUserDAO;
         this.courseRepository = courseRepository;
         this.bookDAO = bookDAO;
+        this.discordNotificationService = discordNotificationService;
     }
 
     @Override
     @Transactional
     public void handleBookBorrow(Object human, String barcodeBook) {
         Object user;
+        String userName;
+        String discordId;
         boolean isAdmin = false;
 
         if (human instanceof BookUser bookUser) {
             user = bookUserRepository.findByIdUser(bookUser.getIdUser())
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+            userName = ((BookUser) user).getNameUser();
+            discordId = ((BookUser) user).getDcUser();
         } else if (human instanceof Admin admin) {
             user = adminRepository.findByIdAdmin(admin.getIdAdmin())
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 운영자입니다."));
             isAdmin = true;
+            userName = ((Admin) user).getNameAdmin();
+            discordId = ((Admin) user).getDcAdmin();
         } else {
             throw new IllegalArgumentException("잘못된 사용자 타입입니다.");
         }
@@ -132,6 +140,12 @@ public class HistoryServiceImpl implements HistoryService {
         try {
             // 대여 기록 저장 후 상태 업데이트
             Book borrowBook = bookDAO.bookStatusUpdate(book, true);
+            discordNotificationService.sendBorrowNotification(
+                    discordId,
+                    userName,
+                    borrowBook.getTitleBook(),
+                    LocalDate.now().plusDays(7).toString()
+            );
         } catch (Exception e) {
             // 대여 기록 저장 실패 시 롤백
             throw new RuntimeException(e.getMessage());
@@ -164,13 +178,19 @@ public class HistoryServiceImpl implements HistoryService {
     public void handleBookReturn(Object human, String barcodeBook) {
         Object user;
         boolean isAdmin = false;
+        String userName;
+        String discordId;
 
         if (human instanceof BookUser bookUser) {
             user = bookUserRepository.findByIdUser(bookUser.getIdUser())
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+            userName = ((BookUser) user).getNameUser();
+            discordId = ((BookUser) user).getDcUser();
         } else if (human instanceof Admin admin) {
             user = adminRepository.findByIdAdmin(admin.getIdAdmin())
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 운영자입니다."));
+            userName = ((Admin) user).getNameAdmin();
+            discordId = ((Admin) user).getDcAdmin();
             isAdmin = true;
         } else {
             throw new IllegalArgumentException("잘못된 사용자 타입입니다.");
@@ -200,6 +220,11 @@ public class HistoryServiceImpl implements HistoryService {
         try {
             // 반납 기록 저장 후 상태 업데이트
             Book borrowBook = bookDAO.bookStatusUpdate(book, false);
+            discordNotificationService.sendReturnNotification(
+                    discordId,
+                    userName,
+                    borrowBook.getTitleBook()
+            );
         } catch (Exception e) {
             // 반납 기록 저장 실패 시 롤백
             throw new RuntimeException(e.getMessage());

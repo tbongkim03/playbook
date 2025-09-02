@@ -8,4 +8,6 @@ import playbook.encore.back.data.entity.BookUser;
 
 public interface BookUserRepository extends JpaRepository<BookUser, Integer> {
     Optional<BookUser> findByIdUser(String idUser);
+
+    Optional<BookUser> findByDcUser(String discordUsername);
 }

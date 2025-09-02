@@ -12,6 +12,7 @@ public class RentalHistoryDto {
     private String bookIsbn;
     private String userName;
     private String userId;
+    private String courseName;
     private LocalDate borrowDate;
     private LocalDate returnDate;
     private String status;

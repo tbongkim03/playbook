@@ -90,6 +90,7 @@ public class HistoryDAOImpl implements HistoryDAO {
                     bookIsbn,
                     userName,
                     userId,
+                    history.getSeqUser() != null ? history.getSeqUser().getSeqCourse().getNameCourse() : null,
                     borrowDate,
                     returnDate,
                     status.toString()
@@ -137,6 +138,7 @@ public class HistoryDAOImpl implements HistoryDAO {
                     bookIsbn,
                     user.getNameUser(),
                     user.getIdUser(),
+                    user.getSeqCourse().getNameCourse(),
                     borrowDate,
                     returnDate,
                     status.toString()

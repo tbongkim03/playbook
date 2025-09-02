@@ -7,4 +7,6 @@ import java.util.Optional;
 
 public interface AdminRepository extends JpaRepository<Admin, Integer> {
     Optional<Admin> findByIdAdmin(String idAdmin);
+
+    Optional<Admin> findByDcAdmin(String discordUsername);
 }

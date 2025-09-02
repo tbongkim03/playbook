@@ -5,10 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import playbook.encore.back.data.dto.history.PopularLabelDto;
 import playbook.encore.back.data.dto.history.UserReadingRankDto;
-import playbook.encore.back.data.entity.Admin;
-import playbook.encore.back.data.entity.Book;
-import playbook.encore.back.data.entity.BookUser;
-import playbook.encore.back.data.entity.History;
+import playbook.encore.back.data.entity.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -115,4 +112,12 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
     List<UserReadingRankDto> findUserReadingRankAll();
 
     boolean existsBySeqBook_SeqBookAndSeqUser_SeqUserAndReturnDtIsNull(int bookId, int userSeq);
+
+    @Query("SELECT h FROM History h WHERE h.bookDt = :bookDate AND h.returnDt IS NULL")
+    List<History> findByBookDtAndReturnDtIsNull(@Param("bookDate") LocalDate bookDate);
+
+    @Query("SELECT h FROM History h WHERE h.bookDt < :overdueDate AND h.returnDt IS NULL")
+    List<History> findOverdueBooks(@Param("overdueDate") LocalDate overdueDate);
+
+    List<History> findBySeqCourseAndReturnDtIsNull(Course course);
 }

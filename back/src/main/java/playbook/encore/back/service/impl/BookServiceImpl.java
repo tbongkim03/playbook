@@ -89,8 +89,8 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookListResponseDto getBookList(int page, String idUser) throws Exception {
-        Page<Book> bookPage = bookDAO.selectBookListByPage(page);
+    public BookListResponseDto getBookList(String idUser) throws Exception {
+        List<Book> bookList = bookDAO.selectBookListAll();
 
         Integer userSeq = null;
         if (idUser != null) {
@@ -101,7 +101,7 @@ public class BookServiceImpl implements BookService {
 
         final Integer finalUserSeq = userSeq;
 
-        List<BookResponseDto> content = bookPage.getContent().stream()
+        List<BookResponseDto> content = bookList.stream()
                 .map(book -> {
                     BookResponseDto bookResponseDto = convertToDto(book);
 
@@ -117,7 +117,7 @@ public class BookServiceImpl implements BookService {
                 })
                 .collect(Collectors.toList());
 
-        int totalCount = (int) bookPage.getTotalElements();
+        int totalCount = (int) bookList.size();
         BookListResponseDto bookListResponseDto = new BookListResponseDto(content, totalCount);
         return bookListResponseDto;
     }

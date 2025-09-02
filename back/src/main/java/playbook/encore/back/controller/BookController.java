@@ -39,9 +39,8 @@ public class BookController {
     }
 
     @GetMapping
-    public ResponseEntity<BookListResponseDto> getBooks(
-            HttpServletRequest request,
-            @RequestParam int page
+    public ResponseEntity<?> getBooks(
+            HttpServletRequest request
     ) throws Exception {
         String idUser = null;
 
@@ -58,12 +57,12 @@ public class BookController {
                     idUser = jwtUtil.getIdUserFromToken(token);
                 }
             }
+            BookListResponseDto bookListResponseDto = bookService.getBookList(idUser);
+            return ResponseEntity.status(HttpStatus.OK).body(bookListResponseDto);
         } catch (Exception e) {
             System.out.println("JWT 토큰 처리 실패: " + e.getMessage());
-            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
-        BookListResponseDto bookListResponseDto = bookService.getBookList(page, idUser);
-        return ResponseEntity.status(HttpStatus.OK).body(bookListResponseDto);
     }
 
     @GetMapping("/all")

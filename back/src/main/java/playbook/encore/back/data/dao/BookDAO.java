@@ -9,7 +9,7 @@ import org.springframework.data.domain.Page;
 public interface BookDAO {
     Book insertBook(Book book);
 
-    Page<Book> selectBookListByPage(int page) throws Exception;
+    List<Book> selectBookListAll() throws Exception;
 
     List<Book> selectAllBooks() throws Exception;
 

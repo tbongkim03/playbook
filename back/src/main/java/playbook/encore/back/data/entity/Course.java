@@ -24,5 +24,5 @@ public class Course {
     private LocalDate startDtCourse;
 
     @Column(name = "finish_dt_course", nullable = false)
-    private LocalDate finistDtCourse;
+    private LocalDate finishDtCourse;
 }
