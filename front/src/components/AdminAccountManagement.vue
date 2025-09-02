@@ -52,7 +52,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="admin in adminList" :key="admin.id" class="admin-row">
+            <tr v-for="admin in adminList" :key="admin.idAdmin" class="admin-row">
               <td class="admin-id">{{ admin.idAdmin }}</td>
               <td class="admin-name">{{ admin.nameAdmin }}</td>
               <td class="admin-discord">{{ admin.dcAdmin || '-' }}</td>
@@ -62,12 +62,6 @@
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2"/>
                     <path d="M18.5 2.5C18.8978 2.10217 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.10217 21.5 2.5C21.8978 2.89782 22.1213 3.43739 22.1213 4C22.1213 4.56261 21.8978 5.10217 21.5 5.5L12 15L8 16L9 12L18.5 2.5Z" stroke="currentColor" stroke-width="2"/>
-                  </svg>
-                </button>
-                <button class="delete-btn" @click="confirmDelete(admin)">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <polyline points="3,6 5,6 21,6" stroke="currentColor" stroke-width="2"/>
-                    <path d="M19,6V20C19,20.5304 18.7893,21.0391 18.4142,21.4142C18.0391,21.7893 17.5304,22 17,22H7C6.46957,22 5.96086,21.7893 5.58579,21.4142C5.21071,21.0391 5,20.5304 5,20V6M8,6V4C8,3.46957 8.21071,2.96086 8.58579,2.58579C8.96086,2.21071 9.46957,2 10,2H14C14.5304,2 15.0391,2.21071 15.4142,2.58579C15.7893,2.96086 16,3.46957 16,4V6" stroke="currentColor" stroke-width="2"/>
                   </svg>
                 </button>
               </td>
@@ -92,13 +86,27 @@
         <form @submit.prevent="addAdmin" class="modal-form">
           <div class="form-group">
             <label for="newAdminId">관리자 ID</label>
-            <input 
-              type="text" 
-              id="newAdminId" 
-              v-model="newAdmin.idAdmin" 
-              required 
-              placeholder="관리자 ID를 입력하세요"
-            />
+            <div class="id-input-group">
+              <input 
+                type="text" 
+                id="newAdminId" 
+                v-model="newAdmin.idAdmin" 
+                required 
+                placeholder="관리자 ID를 입력하세요"
+                @blur="validateId"
+              />
+              <button 
+                type="button" 
+                class="validate-btn" 
+                @click="validateId"
+                :disabled="!newAdmin.idAdmin"
+              >
+                중복확인
+              </button>
+            </div>
+            <div v-if="idValidation.message" :class="['validation-message', idValidation.isValid ? 'valid' : 'invalid']">
+              {{ idValidation.message }}
+            </div>
           </div>
           <div class="form-group">
             <label for="newAdminName">관리자 이름</label>
@@ -131,7 +139,11 @@
           </div>
           <div class="modal-actions">
             <button type="button" class="cancel-btn" @click="closeAddModal">취소</button>
-            <button type="submit" class="submit-btn" :disabled="isLoading">
+            <button 
+              type="submit" 
+              class="submit-btn" 
+              :disabled="isLoading || !idValidation.isValid || !newAdmin.idAdmin"
+            >
               {{ isLoading ? '추가 중...' : '추가' }}
             </button>
           </div>
@@ -139,11 +151,11 @@
       </div>
     </div>
 
-    <!-- 관리자 수정 모달 -->
+    <!-- 관리자 수정 모달 (디스코드만 수정 가능) -->
     <div v-if="showEditModal" class="modal-overlay" @click="closeEditModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
-          <h3>관리자 정보 수정</h3>
+          <h3>디스코드 ID 수정</h3>
           <button class="modal-close" @click="closeEditModal">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
@@ -153,22 +165,21 @@
         </div>
         <form @submit.prevent="updateAdmin" class="modal-form">
           <div class="form-group">
-            <label for="editAdminName">새 관리자 이름</label>
+            <label>관리자 ID</label>
             <input 
               type="text" 
-              id="editAdminName" 
-              v-model="editingAdmin.nameAdmin" 
-              required 
-              placeholder="관리자 이름을 입력하세요"
+              :value="editingAdmin.idAdmin" 
+              disabled
+              class="disabled-input"
             />
           </div>
           <div class="form-group">
-            <label for="editAdminPassword">새 비밀번호</label>
+            <label>관리자 이름</label>
             <input 
-              type="password" 
-              id="editAdminPassword" 
-              v-model="editingAdmin.pwAdmin" 
-              placeholder="새 비밀번호를 입력하세요"
+              type="text" 
+              :value="editingAdmin.nameAdmin" 
+              disabled
+              class="disabled-input"
             />
           </div>
           <div class="form-group">
@@ -189,38 +200,6 @@
         </form>
       </div>
     </div>
-
-    <!-- 삭제 확인 모달 -->
-    <div v-if="showDeleteModal" class="modal-overlay" @click="closeDeleteModal">
-      <div class="modal-content delete-modal" @click.stop>
-        <div class="modal-header">
-          <h3>관리자 삭제</h3>
-          <button class="modal-close" @click="closeDeleteModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
-              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
-            </svg>
-          </button>
-        </div>
-        <div class="delete-content">
-          <div class="warning-icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M10.29 3.86L1.82 18C1.64466 18.3024 1.55298 18.6453 1.55298 18.995C1.55298 19.3447 1.64466 19.6876 1.82 19.99C1.99534 20.2924 2.24708 20.5441 2.55 20.72C2.85292 20.8959 3.19596 20.9896 3.546 20.99H20.454C20.804 20.9896 21.1471 20.8959 21.45 20.72C21.7529 20.5441 22.0047 20.2924 22.18 19.99C22.3553 19.6876 22.447 19.3447 22.447 18.995C22.447 18.6453 22.3553 18.3024 22.18 18L13.71 3.86C13.5347 3.55764 13.2829 3.30596 12.98 3.13C12.6771 2.95404 12.3341 2.86035 11.984 2.86035C11.6339 2.86035 11.2909 2.95404 10.988 3.13C10.6851 3.30596 10.4333 3.55764 10.258 3.86H10.29Z" stroke="currentColor" stroke-width="2"/>
-              <line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="2"/>
-              <dot cx="12" cy="17" r="1" fill="currentColor"/>
-            </svg>
-          </div>
-          <p>정말로 <strong>{{ deletingAdmin?.nameAdmin }}</strong> 관리자를 삭제하시겠습니까?</p>
-          <p class="warning-text">이 작업은 되돌릴 수 없습니다.</p>
-        </div>
-        <div class="modal-actions">
-          <button type="button" class="cancel-btn" @click="closeDeleteModal">취소</button>
-          <button type="button" class="delete-confirm-btn" @click="deleteAdmin" :disabled="isLoading">
-            {{ isLoading ? '삭제 중...' : '삭제' }}
-          </button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -235,7 +214,13 @@ const isLoading = ref(false)
 // 모달 상태
 const showAddModal = ref(false)
 const showEditModal = ref(false)
-const showDeleteModal = ref(false)
+
+// ID 검증 상태
+const idValidation = ref({
+  isValid: false,
+  message: '',
+  checked: false
+})
 
 const handleKeydown = (event) => {
   if (event.key === 'Escape' && showAddModal.value) {
@@ -244,10 +229,6 @@ const handleKeydown = (event) => {
 
   if (event.key === 'Escape' && showEditModal.value) {
     showEditModal.value = false
-  }
-
-  if (event.key === 'Escape' && showDeleteModal.value) {
-    showDeleteModal.value = false
   }
 }
 
@@ -260,13 +241,10 @@ const newAdmin = ref({
 })
 
 const editingAdmin = ref({
-  id: null,
+  idAdmin: '',
   nameAdmin: '',
-  password: '',
-  discordId: ''
+  dcAdmin: ''
 })
-
-const deletingAdmin = ref(null)
 
 // API 헤더 설정
 const getAuthHeaders = () => {
@@ -277,6 +255,38 @@ const getAuthHeaders = () => {
   }
 }
 
+// ID 중복 확인
+const validateId = async () => {
+  if (!newAdmin.value.idAdmin) {
+    idValidation.value = {
+      isValid: false,
+      message: 'ID를 입력해주세요.',
+      checked: false
+    }
+    return
+  }
+
+  try {
+    const response = await axios.get(`http://localhost:8080/admin/register/validate`, {
+      params: { id: newAdmin.value.idAdmin },
+      headers: getAuthHeaders()
+    })
+    
+    idValidation.value = {
+      isValid: response.data.available,
+      message: response.data.available ? '사용 가능한 ID입니다.' : '이미 사용중인 ID입니다.',
+      checked: true
+    }
+  } catch (error) {
+    console.error('ID 검증 실패:', error)
+    idValidation.value = {
+      isValid: false,
+      message: 'ID 검증에 실패했습니다.',
+      checked: false
+    }
+  }
+}
+
 // 관리자 목록 조회
 const fetchAdminList = async () => {
   try {
@@ -284,10 +294,18 @@ const fetchAdminList = async () => {
     const response = await axios.get('http://localhost:8080/admin/list', {
       headers: getAuthHeaders()
     })
-    adminList.value = response.data.content
+    // 백엔드의 AdminListResponseDto 구조에 맞게 수정
+    adminList.value = response.data.content || response.data.adminList || response.data
   } catch (error) {
     console.error('관리자 목록 조회 실패:', error)
-    alert('관리자 목록을 불러오는데 실패했습니다.')
+    if (error.response?.status === 403) {
+      alert('관리자 권한이 필요합니다.')
+    } else if (error.response?.status === 401) {
+      alert('로그인이 필요합니다.')
+      // 로그인 페이지로 리다이렉트 로직 추가 가능
+    } else {
+      alert('관리자 목록을 불러오는데 실패했습니다.')
+    }
   } finally {
     isLoading.value = false
   }
@@ -295,14 +313,19 @@ const fetchAdminList = async () => {
 
 // 관리자 추가
 const addAdmin = async () => {
-  if (!newAdmin.value.idAdmin || !newAdmin.value.nameAdmin || !newAdmin.value.pwAdmin || !newAdmin.value.dcAdmin) {
+  if (!newAdmin.value.idAdmin || !newAdmin.value.nameAdmin || !newAdmin.value.pwAdmin) {
     alert('필수 정보를 모두 입력해주세요.')
+    return
+  }
+
+  if (!idValidation.value.isValid) {
+    alert('ID 중복확인을 완료해주세요.')
     return
   }
 
   try {
     isLoading.value = true
-    await axios.post('http://localhost:8080/admin/register', newAdmin.value, {
+    const response = await axios.post('http://localhost:8080/admin/register', newAdmin.value, {
       headers: getAuthHeaders()
     })
     
@@ -311,55 +334,40 @@ const addAdmin = async () => {
     await fetchAdminList()
   } catch (error) {
     console.error('관리자 추가 실패:', error)
-    alert(error.response?.data?.message || '관리자 추가에 실패했습니다.')
+    if (error.response?.status === 403) {
+      alert('관리자만 접근 가능합니다.')
+    } else if (error.response?.status === 401) {
+      alert('인증에 실패했습니다.')
+    } else {
+      alert(error.response?.data || '관리자 추가에 실패했습니다.')
+    }
   } finally {
     isLoading.value = false
   }
 }
 
-// 관리자 수정
+// 관리자 디스코드 ID 수정 (백엔드 API에 맞게 수정)
 const updateAdmin = async () => {
   try {
     isLoading.value = true
-    const updateData = {
-      nameAdmin: editingAdmin.value.nameAdmin,
-      discordId: editingAdmin.value.dcAdmin
-    }
     
-    // 비밀번호가 입력된 경우에만 포함
-    if (editingAdmin.value.password) {
-      updateData.password = editingAdmin.value.password
-    }
-
-    await axios.put(`http://localhost:8080/admin/update/${editingAdmin.value.id}`, updateData, {
+    const response = await axios.put('http://localhost:8080/admin/discord', 
+      editingAdmin.value.dcAdmin, {
       headers: getAuthHeaders()
     })
     
-    alert('관리자 정보가 성공적으로 수정되었습니다.')
+    alert('디스코드 ID가 성공적으로 수정되었습니다.')
     closeEditModal()
     await fetchAdminList()
   } catch (error) {
     console.error('관리자 수정 실패:', error)
-    alert(error.response?.data?.message || '관리자 수정에 실패했습니다.')
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// 관리자 삭제
-const deleteAdmin = async () => {
-  try {
-    isLoading.value = true
-    await axios.delete(`http://localhost:8080/admin/delete/${deletingAdmin.value.id}`, {
-      headers: getAuthHeaders()
-    })
-    
-    alert('관리자가 성공적으로 삭제되었습니다.')
-    closeDeleteModal()
-    await fetchAdminList()
-  } catch (error) {
-    console.error('관리자 삭제 실패:', error)
-    alert(error.response?.data?.message || '관리자 삭제에 실패했습니다.')
+    if (error.response?.status === 403) {
+      alert('관리자만 접근 가능합니다.')
+    } else if (error.response?.status === 401) {
+      alert('인증에 실패했습니다.')
+    } else {
+      alert(error.response?.data || '관리자 수정에 실패했습니다.')
+    }
   } finally {
     isLoading.value = false
   }
@@ -370,18 +378,22 @@ const closeAddModal = () => {
   showAddModal.value = false
   newAdmin.value = {
     idAdmin: '',
+    pwAdmin: '',
     nameAdmin: '',
-    password: '',
-    discordId: ''
+    dcAdmin: ''
+  }
+  idValidation.value = {
+    isValid: false,
+    message: '',
+    checked: false
   }
 }
 
 const openEditModal = (admin) => {
   editingAdmin.value = {
-    id: admin.id,
+    idAdmin: admin.idAdmin,
     nameAdmin: admin.nameAdmin,
-    password: '',
-    discordId: admin.discordId || ''
+    dcAdmin: admin.dcAdmin || ''
   }
   showEditModal.value = true
 }
@@ -389,21 +401,10 @@ const openEditModal = (admin) => {
 const closeEditModal = () => {
   showEditModal.value = false
   editingAdmin.value = {
-    id: null,
+    idAdmin: '',
     nameAdmin: '',
-    password: '',
-    discordId: ''
+    dcAdmin: ''
   }
-}
-
-const confirmDelete = (admin) => {
-  deletingAdmin.value = admin
-  showDeleteModal.value = true
-}
-
-const closeDeleteModal = () => {
-  showDeleteModal.value = false
-  deletingAdmin.value = null
 }
 
 // 날짜 포맷팅
@@ -572,8 +573,7 @@ onBeforeUnmount(() => {
   gap: 8px;
 }
 
-.edit-btn,
-.delete-btn {
+.edit-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -583,9 +583,6 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-}
-
-.edit-btn {
   background: linear-gradient(135deg, #a8dadc 0%, #b8e6c1 100%);
   color: #2d3748;
   box-shadow: 0 2px 8px rgba(168, 218, 220, 0.3);
@@ -594,17 +591,6 @@ onBeforeUnmount(() => {
 .edit-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(168, 218, 220, 0.4);
-}
-
-.delete-btn {
-  background: linear-gradient(135deg, #fdb5b5 0%, #fdc7c7 100%);
-  color: #2d3748;
-  box-shadow: 0 2px 8px rgba(253, 181, 181, 0.3);
-}
-
-.delete-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(253, 181, 181, 0.4);
 }
 
 /* 모달 스타일 */
@@ -698,6 +684,58 @@ onBeforeUnmount(() => {
   background: white;
 }
 
+.disabled-input {
+  background: #f1f5f9 !important;
+  color: #718096 !important;
+  cursor: not-allowed !important;
+}
+
+.id-input-group {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.id-input-group input {
+  flex: 1;
+}
+
+.validate-btn {
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #a8dadc 0%, #b8e6c1 100%);
+  color: #2d3748;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.validate-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(168, 218, 220, 0.3);
+}
+
+.validate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.validation-message {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.validation-message.valid {
+  color: #28a745;
+}
+
+.validation-message.invalid {
+  color: #dc3545;
+}
+
 .modal-actions {
   display: flex;
   gap: 12px;
@@ -706,8 +744,7 @@ onBeforeUnmount(() => {
 }
 
 .cancel-btn,
-.submit-btn,
-.delete-confirm-btn {
+.submit-btn {
   padding: 12px 20px;
   border: none;
   border-radius: 12px;
@@ -743,50 +780,6 @@ onBeforeUnmount(() => {
   cursor: not-allowed;
 }
 
-.delete-confirm-btn {
-  background: linear-gradient(135deg, #fdb5b5 0%, #fdc7c7 100%);
-  color: #2d3748;
-  box-shadow: 0 4px 16px rgba(253, 181, 181, 0.3);
-}
-
-.delete-confirm-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(253, 181, 181, 0.4);
-}
-
-.delete-confirm-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* 삭제 모달 특별 스타일 */
-.delete-modal {
-  max-width: 400px;
-  padding: 12px;
-}
-
-.delete-content {
-  padding: 0 24px 24px 24px;
-  text-align: center;
-}
-
-.warning-icon {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 16px;
-  color: #f5c456;
-}
-
-.delete-content p {
-  margin-bottom: 8px;
-  color: #2d3748;
-}
-
-.warning-text {
-  font-size: 0.9rem;
-  color: #718096;
-}
-
 /* 반응형 디자인 */
 @media (max-width: 768px) {
   .stats-grid {
@@ -818,9 +811,16 @@ onBeforeUnmount(() => {
   }
   
   .cancel-btn,
-  .submit-btn,
-  .delete-confirm-btn {
+  .submit-btn {
     width: 100%;
+  }
+
+  .id-input-group {
+    flex-direction: column;
+  }
+
+  .validate-btn {
+    align-self: stretch;
   }
 }
 
@@ -834,8 +834,7 @@ onBeforeUnmount(() => {
     gap: 6px;
   }
   
-  .edit-btn,
-  .delete-btn {
+  .edit-btn {
     width: 32px;
     height: 32px;
   }
