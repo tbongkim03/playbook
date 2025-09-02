@@ -71,7 +71,7 @@
               <tbody>
                 <tr v-for="(item, index) in popularFirstSort" :key="index">
                   <td>{{ index + 1 }}</td>
-                  <td>{{ item.korSortFirst }}</td>
+                  <td>{{ item.korSortLabel }}</td>
                   <td>{{ item.rentalCount }}</td>
                 </tr>
               </tbody>
@@ -106,7 +106,7 @@
               <tbody>
                 <tr v-for="(item, index) in popularSecondSort" :key="index">
                   <td>{{ index + 1 }}</td>
-                  <td>{{ item.korSortFirst }}</td>
+                  <td>{{ item.korSortLabel }}</td>
                   <td>{{ item.rentalCount }}</td>
                 </tr>
               </tbody>
@@ -417,9 +417,10 @@ const fetchData = async () => {
       getCourseList()
     ])
     
-    // 차트 업데이트
+    // DOM 업데이트 완료 후 차트 생성
     await nextTick()
-    updateCharts()
+    // 추가 대기 시간으로 확실한 렌더링 보장
+    setTimeout(updateCharts, 100)
   } catch (err) {
     error.value = err.message || '데이터를 불러오는 중 오류가 발생했습니다'
   } finally {
@@ -427,8 +428,10 @@ const fetchData = async () => {
   }
 }
 
+
 // 차트 생성/업데이트 함수들
-const createFirstSortChart = () => {
+const createFirstSortChart = async () => {
+  await nextTick()
   if (!firstSortChart.value || popularFirstSort.value.length === 0) return
 
   const ctx = firstSortChart.value.getContext('2d')
@@ -437,12 +440,15 @@ const createFirstSortChart = () => {
     firstSortChartInstance.destroy()
   }
 
-  const data = popularFirstSort.value.slice(0, 10) // 상위 10개만
+  // 차트 생성 전 짧은 대기
+  await new Promise(resolve => setTimeout(resolve, 50))
+
+  const data = popularFirstSort.value.slice(0, 10)
 
   firstSortChartInstance = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: data.map(item => item.nameSortFirst),
+      labels: data.map(item => item.korSortLabel),
       datasets: [{
         data: data.map(item => item.rentalCount),
         backgroundColor: [
@@ -469,7 +475,9 @@ const createFirstSortChart = () => {
   })
 }
 
-const createSecondSortChart = () => {
+
+const createSecondSortChart = async () => {
+  await nextTick()
   if (!secondSortChart.value || popularSecondSort.value.length === 0) return
 
   const ctx = secondSortChart.value.getContext('2d')
@@ -478,12 +486,14 @@ const createSecondSortChart = () => {
     secondSortChartInstance.destroy()
   }
 
-  const data = popularSecondSort.value.slice(0, 8) // 상위 8개만
+  await new Promise(resolve => setTimeout(resolve, 50))
+
+  const data = popularSecondSort.value.slice(0, 8)
 
   secondSortChartInstance = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: data.map(item => item.nameSortFirst),
+      labels: data.map(item => item.korSortLabel),
       datasets: [{
         label: '대여 횟수',
         data: data.map(item => item.rentalCount),
@@ -512,7 +522,8 @@ const createSecondSortChart = () => {
   })
 }
 
-const createUserRankChart = () => {
+const createUserRankChart = async () => {
+  await nextTick()
   if (!userRankChart.value || userReadingRank.value.length === 0) return
 
   const ctx = userRankChart.value.getContext('2d')
@@ -521,7 +532,9 @@ const createUserRankChart = () => {
     userRankChartInstance.destroy()
   }
 
-  const data = userReadingRank.value.slice(0, 15) // 상위 15명만
+  await new Promise(resolve => setTimeout(resolve, 50))
+
+  const data = userReadingRank.value.slice(0, 15)
 
   userRankChartInstance = new Chart(ctx, {
     type: 'bar',
@@ -538,7 +551,7 @@ const createUserRankChart = () => {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      indexAxis: 'y', // 수평 막대 차트
+      indexAxis: 'y',
       plugins: {
         legend: {
           display: false
@@ -556,10 +569,11 @@ const createUserRankChart = () => {
   })
 }
 
-const updateCharts = () => {
-  if (!showFirstSortTable.value) createFirstSortChart()
-  if (!showSecondSortTable.value) createSecondSortChart()
-  if (!showRankTable.value) createUserRankChart()
+const updateCharts = async () => {
+  await nextTick()
+  if (!showFirstSortTable.value) await createFirstSortChart()
+  if (!showSecondSortTable.value) await createSecondSortChart()
+  if (!showRankTable.value) await createUserRankChart()
 }
 
 // 뷰 토글 함수들

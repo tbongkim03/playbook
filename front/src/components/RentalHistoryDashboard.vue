@@ -143,6 +143,7 @@
               <th>도서명</th>
               <th>저자</th>
               <th>사용자</th>
+              <th>과정</th>
               <th>대출일</th>
               <th>반납예정일</th>
               <th>반납일</th>
@@ -155,6 +156,7 @@
               <td class="book-title">{{ rental.bookTitle }}</td>
               <td class="book-author">{{ rental.bookAuthor }}</td>
               <td class="user-name">{{ rental.userName }}</td>
+              <td class="course-name">{{ rental.courseDisplay }}</td>
               <td class="rental-date">{{ formatDate(rental.rentalDate) }}</td>
               <td class="due-date">{{ formatDate(rental.dueDate) }}</td>
               <td class="return-date">{{ rental.returnDate ? formatDate(rental.returnDate) : '-' }}</td>
@@ -268,6 +270,10 @@
                 <label>사용자 ID</label>
                 <span>{{ selectedRental.userId }}</span>
               </div>
+              <div class="detail-item">
+                <label>과정명</label>
+                <span>{{ selectedRental.courseName || '-' }}</span>
+              </div>
             </div>
           </div>
 
@@ -284,7 +290,7 @@
               </div>
               <div class="detail-item">
                 <label>반납일</label>
-                <span>{{ selectedRental.dueDate ? selectedRental.dueDate : '미반납' }}</span>
+                <span>{{ selectedRental.returnDate ? selectedRental.returnDate : '미반납' }}</span>
               </div>
               <div class="detail-item">
                 <label>상태</label>
@@ -338,6 +344,17 @@ const getAuthHeaders = () => {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json'
   }
+}
+
+// 과정명을 첫 단어와 마지막 단어만 표시하는 함수
+const formatCourseName = (courseName) => {
+  if (!courseName) return ''
+  
+  const words = courseName.trim().split(/\s+/)
+  if (words.length === 0) return ''
+  if (words.length === 1) return words[0]
+  
+  return `${words[0]} ${words[words.length - 1]}`
 }
 
 // 계산된 속성
@@ -491,10 +508,12 @@ const fetchRentalHistory = async () => {
       const mappedItem = {
         id: index + 1, // ID 생성
         bookTitle: item.bookTitle || '제목 없음',
-        bookAuthor: item.bookAuthor || '저자 정보 없음', // DTO에 author 필드가 없음
-        bookIsbn: item.bookIsbn || '', // DTO에 ISBN 필드가 없음
+        bookAuthor: item.bookAuthor || '저자 정보 없음',
+        bookIsbn: item.bookIsbn || '',
         userName: item.userName || '사용자 정보 없음',
-        userId: item.userId || '사용자 정보 없음', // DTO에 userId 필드가 없음
+        userId: item.userId || '사용자 정보 없음',
+        courseName: item.courseName || null, // 원본 과정명 저장
+        courseDisplay: formatCourseName(item.courseName), // 표시용 과정명
         rentalDate: item.borrowDate, // LocalDate 형태
         returnDate: item.returnDate || null, // LocalDate 형태 또는 null
         dueDate: null, // 계산해서 설정
@@ -549,6 +568,8 @@ const getStatusClass = (rental) => {
       return 'status-overdue'
     case 'booked':
       return 'status-rented'
+    default:
+      return 'status-returned'
   }
 }
 
@@ -560,6 +581,8 @@ const getStatusText = (rental) => {
       return '연체'
     case 'booked':
       return '대출중'
+    default:
+      return '반납완료'
   }
 }
 
@@ -591,11 +614,12 @@ const changePage = (page) => {
 
 const exportData = () => {
   const csvContent = [
-    ['도서명', '저자', '사용자', '대출일', '반납예정일', '반납일', '상태'].join(','),
+    ['도서명', '저자', '사용자', '과정', '대출일', '반납예정일', '반납일', '상태'].join(','),
     ...rentalHistory.value.map(rental => [
       rental.bookTitle,
       rental.bookAuthor,
       rental.userName,
+      rental.courseDisplay,
       formatDate(rental.rentalDate),
       formatDate(rental.dueDate),
       rental.returnDate ? formatDate(rental.returnDate) : '',
@@ -608,6 +632,11 @@ const exportData = () => {
   link.href = URL.createObjectURL(blob)
   link.download = `rental_history_${new Date().toISOString().split('T')[0]}.csv`
   link.click()
+}
+
+const processReturn = (rental) => {
+  // 반납 처리 로직 (필요시 구현)
+  console.log('반납 처리:', rental)
 }
 
 // 컴포넌트 마운트 시 데이터 로드
@@ -867,6 +896,16 @@ onMounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
   color: #2d3748;
+}
+
+.course-name {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: 500;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .status-badge {
@@ -1217,6 +1256,10 @@ onMounted(() => {
   
   .book-title {
     max-width: 120px;
+  }
+  
+  .course-name {
+    max-width: 100px;
   }
   
   .modal-content {
