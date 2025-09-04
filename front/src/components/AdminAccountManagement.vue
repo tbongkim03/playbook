@@ -247,7 +247,7 @@
             </div>
           </div>
         </div>
-        <form @submit.prevent="deleteAdmin" class="modal-form">
+        <form @submit.prevent="deleteAdmin(deletingAdmin.idAdmin)" class="modal-form">
           <div class="form-group">
             <label for="deletePassword">현재 비밀번호 확인</label>
             <input 
@@ -351,11 +351,13 @@ const getAuthHeaders = () => {
 // 비밀번호 검증
 const validatePassword = async (idAdmin, password) => {
   try {
-    const response = await axios.get(`http://localhost:8080/admin/validate`, {
-      params: { id: idAdmin },
-      headers: getAuthHeaders(),
-      data: password
-    })
+    const response = await axios.post(
+      `http://localhost:8080/admin/validate?id=${idAdmin}`,
+      password,
+      {
+        headers: getAuthHeaders()
+      }
+    )
     return response.data
   } catch (error) {
     console.error('비밀번호 검증 실패:', error)
@@ -373,11 +375,6 @@ const fetchCurrentUser = async () => {
   } catch (error) {
     console.error('현재 사용자 정보 조회 실패:', error)
   }
-}
-
-// 현재 로그인한 사용자인지 확인 (더 이상 필요 없지만 호환성을 위해 유지)
-const isCurrentUser = (idAdmin) => {
-  return currentUser.value.idAdmin === idAdmin
 }
 
 // ID 중복 확인
@@ -521,7 +518,7 @@ const confirmDeleteAdmin = (admin) => {
 }
 
 // 관리자 삭제 (비밀번호 검증 포함)
-const deleteAdmin = async () => {
+const deleteAdmin = async (idAdmin) => {
   if (!deletePassword.value) {
     alert('현재 비밀번호를 입력해주세요.')
     return
@@ -531,7 +528,7 @@ const deleteAdmin = async () => {
     isLoading.value = true
     
     // 먼저 비밀번호 검증
-    await validatePassword(currentUser.value.idAdmin, deletePassword.value)
+    await validatePassword(idAdmin, deletePassword.value)
     
     // 비밀번호가 맞으면 관리자 삭제
     const response = await axios.delete('http://localhost:8080/admin', {

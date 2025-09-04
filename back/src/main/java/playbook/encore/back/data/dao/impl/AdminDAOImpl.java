@@ -67,9 +67,7 @@ public class AdminDAOImpl implements AdminDAO {
         Optional<Admin> optionalUser = adminRepository.findByIdAdmin(idAdmin);
         if (optionalAdmin.isEmpty()) return Optional.empty();
         if (optionalUser.isEmpty()) return Optional.empty();
-        if (!optionalAdmin.get().getIdAdmin().equals(optionalUser.get().getIdAdmin()))
-            return Optional.empty();
-        Admin selectedUser = optionalAdmin.get();
+        Admin selectedUser = optionalUser.get();
         if (BCrypt.checkpw(password, selectedUser.getPwAdmin())) {
             return Optional.of(selectedUser);
         } else {

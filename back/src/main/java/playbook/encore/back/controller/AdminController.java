@@ -68,7 +68,7 @@ public class AdminController {
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
     }
-    @GetMapping("/validate")
+    @PostMapping("/validate")
     public ResponseEntity<?> getCurrentPassword(
             HttpServletRequest request,
             @RequestParam("id") String idAdmin,

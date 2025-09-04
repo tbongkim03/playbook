@@ -57,7 +57,7 @@ public class BookUserController {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("유저만 접근 가능합니다.");
     }
 
-    @GetMapping("/validate")
+    @PostMapping("/validate")
     public ResponseEntity<?> getCurrentPassword(
             HttpServletRequest request,
             @RequestBody String password
