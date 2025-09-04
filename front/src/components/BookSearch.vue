@@ -61,8 +61,11 @@ export default {
                 if (!response.ok) throw new Error('네트워크 오류');
                 const data = await response.json();
 
+                // printCheckBook이 true인 항목들만 필터링
+                const availableBooks = data.filter(item => item.printCheckBook === true);
+
                 // 중복 제거
-                const uniqueTitles = Array.from(new Set(data.map(item => item.titleBook)));
+                const uniqueTitles = Array.from(new Set(availableBooks.map(item => item.titleBook)));
 
                 this.suggestions = uniqueTitles;
                 this.selectedIndex = -1; // 새로운 검색 결과가 나올 때 선택 초기화
@@ -77,6 +80,8 @@ export default {
             this.suggestions = [];
             this.selectedIndex = -1;
             this.isFocused = false;
+            // 포커스 해제
+            this.$refs.searchInput.blur();
             this.$emit('search', { query: suggestion, exact: true });
         },
         onInput() {
@@ -158,6 +163,8 @@ export default {
             this.suggestions = [];
             this.selectedIndex = -1;
             this.isFocused = false;
+            // 검색 후 포커스 해제
+            this.$refs.searchInput.blur();
             this.$emit('search', { query: this.query, exact: false });
         },
         blockJavascriptInput(event) {

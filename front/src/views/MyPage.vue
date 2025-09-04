@@ -1,7 +1,6 @@
 <template>
   <div class="mypage-wrapper">
     <div class="mypage-container">
-      <!-- 헤더 -->
       <header class="page-header">
         <div class="header-content">
           <h1 class="page-title">마이페이지</h1>
@@ -9,7 +8,6 @@
         </div>
       </header>
 
-      <!-- 유저 정보 카드 -->
       <section class="user-info-section">
         <div class="section-header">
           <div class="section-icon">
@@ -22,7 +20,6 @@
         </div>
 
         <div class="user-info-grid">
-          <!-- 이름 -->
           <div class="info-item">
             <label class="info-label">이름</label>
             <div class="info-value">
@@ -30,7 +27,6 @@
             </div>
           </div>
 
-          <!-- 아이디 -->
           <div class="info-item">
             <label class="info-label">아이디</label>
             <div class="info-value">
@@ -38,7 +34,6 @@
             </div>
           </div>
 
-          <!-- 비밀번호 변경 -->
           <div class="info-item">
             <label class="info-label">비밀번호</label>
             <div class="info-value">
@@ -53,39 +48,15 @@
             </div>
           </div>
 
-          <!-- 디스코드 아이디 변경 -->
-          <div class="info-item">
-            <label class="info-label">디스코드 아이디</label>
-            <div class="info-value">
-              <span class="value-text">{{ userInfo.dcUser }}</span>
-              <button @click="openDiscordModal" class="edit-button">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2"/>
-                  <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2"/>
-                </svg>
-                변경
-              </button>
-            </div>
-          </div>
-
-          <!-- 수강중인 과정 변경 -->
           <div class="info-item">
             <label class="info-label">수강중인 과정</label>
             <div class="info-value">
               <span class="value-text">{{ currentCourse }}</span>
-              <button @click="openCourseModal" class="edit-button">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2"/>
-                  <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2"/>
-                </svg>
-                변경
-              </button>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- 나의 찜 목록 -->
       <section class="favorites-section">
         <div class="section-header">
           <div class="section-icon favorites">
@@ -131,7 +102,6 @@
         </div>
       </section>
 
-      <!-- 나의 서비스 이용 기록 -->
       <section class="rental-history-section">
         <div class="section-header">
           <div class="section-icon rental">
@@ -144,7 +114,6 @@
           <span class="count-badge">{{ rentalSummary.totalBorrowed }}</span>
         </div>
 
-        <!-- 이용 통계 -->
         <div class="rental-stats">
           <div class="stat-card">
             <div class="stat-value">{{ rentalSummary.totalBorrowed }}</div>
@@ -191,7 +160,6 @@
       </section>
     </div>
 
-    <!-- 비밀번호 변경 모달 -->
     <div v-if="passwordModal" class="modal-overlay" @click="closePasswordModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
@@ -205,178 +173,155 @@
         <form @submit.prevent="changePassword" class="modal-form">
           <div class="input-group">
             <label class="input-label">현재 비밀번호</label>
-            <input 
-              type="password" 
-              v-model="passwordForm.currentPassword"
-              class="form-input"
-              :class="{ error: passwordForm.errors.currentPassword }"
-              placeholder="현재 비밀번호를 입력하세요"
-            >
+            <div class="input-container">
+              <input 
+                :type="showCurrentPassword ? 'text' : 'password'"
+                v-model="passwordForm.currentPassword"
+                class="form-input"
+                :class="{ 
+                  error: passwordForm.errors.currentPassword,
+                  'has-buttons': true
+                }"
+                placeholder="현재 비밀번호를 입력하세요"
+              >
+              
+              <div class="input-buttons">
+                <button 
+                v-if="passwordForm.currentPassword"
+                type="button"
+                @click="clearCurrentPassword"
+                class="clear-button"
+                title="입력 내용 지우기"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                  <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
+                </svg>
+              </button>
+                <button 
+                  type="button"
+                  @click="toggleCurrentPassword"
+                  class="toggle-password-button"
+                  :title="showCurrentPassword ? '비밀번호 숨기기' : '비밀번호 보기'"
+                >
+                  <svg v-if="showCurrentPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2"/>
+                    <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                  <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/>
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
             <div v-if="passwordForm.errors.currentPassword" class="error-message">
               {{ passwordForm.errors.currentPassword }}
             </div>
           </div>
+
           <div class="input-group">
             <label class="input-label">새 비밀번호</label>
-            <input 
-              type="password" 
-              v-model="passwordForm.newPassword"
-              class="form-input"
-              :class="{ error: passwordForm.errors.newPassword }"
-              placeholder="새 비밀번호를 입력하세요 (4-8자, 영문+숫자)"
-            >
+            <div class="input-container">
+              <input 
+                :type="showNewPassword ? 'text' : 'password'"
+                v-model="passwordForm.newPassword"
+                class="form-input"
+                :class="{ 
+                  error: passwordForm.errors.newPassword,
+                  'has-buttons': true
+                }"
+                placeholder="새 비밀번호를 입력하세요 (4-8자, 영문+숫자)"
+              >
+              
+              <div class="input-buttons">
+                <button 
+                v-if="passwordForm.newPassword"
+                type="button"
+                @click="clearNewPassword"
+                class="clear-button"
+                title="입력 내용 지우기"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                  <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
+                </svg>
+              </button>
+                <button 
+                  type="button"
+                  @click="toggleNewPassword"
+                  class="toggle-password-button"
+                  :title="showNewPassword ? '비밀번호 숨기기' : '비밀번호 보기'"
+                >
+                  <svg v-if="showNewPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2"/>
+                    <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                  <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/>
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
             <div v-if="passwordForm.errors.newPassword" class="error-message">
               {{ passwordForm.errors.newPassword }}
             </div>
           </div>
+
           <div class="input-group">
             <label class="input-label">새 비밀번호 확인</label>
-            <input 
-              type="password" 
-              v-model="passwordForm.confirmPassword"
-              class="form-input"
-              :class="{ error: passwordForm.errors.confirmPassword }"
-              placeholder="새 비밀번호를 다시 입력하세요"
-            >
+            <div class="input-container">
+              <input 
+                :type="showConfirmPassword ? 'text' : 'password'"
+                v-model="passwordForm.confirmPassword"
+                class="form-input"
+                :class="{ 
+                  error: passwordForm.errors.confirmPassword,
+                  'has-buttons': true
+                }"
+                placeholder="새 비밀번호를 다시 입력하세요"
+              >
+              
+              <div class="input-buttons">
+                <button 
+                v-if="passwordForm.confirmPassword"
+                type="button"
+                @click="clearConfirmPassword"
+                class="clear-button"
+                title="입력 내용 지우기"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                  <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
+                </svg>
+              </button>
+                <button 
+                  type="button"
+                  @click="toggleConfirmPassword"
+                  class="toggle-password-button"
+                  :title="showConfirmPassword ? '비밀번호 숨기기' : '비밀번호 보기'"
+                >
+                  <svg v-if="showConfirmPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2"/>
+                    <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                  <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/>
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
             <div v-if="passwordForm.errors.confirmPassword" class="error-message">
               {{ passwordForm.errors.confirmPassword }}
             </div>
           </div>
+
           <div class="modal-actions">
             <button type="button" @click="closePasswordModal" class="cancel-button">취소</button>
             <button type="submit" class="submit-button" :disabled="passwordForm.loading">
               {{ passwordForm.loading ? '변경 중...' : '변경하기' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- 디스코드 변경 모달 -->
-    <div v-if="discordModal" class="modal-overlay" @click="closeDiscordModal">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h3>디스코드 아이디 변경</h3>
-          <button @click="closeDiscordModal" class="close-button">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2"/>
-            </svg>
-          </button>
-        </div>
-        <form @submit.prevent="changeDiscord" class="modal-form">
-          <div class="input-group">
-            <label class="input-label">현재 비밀번호</label>
-            <input 
-              type="password" 
-              v-model="discordForm.password"
-              class="form-input"
-              :class="{ error: discordForm.errors.password }"
-              placeholder="본인 확인을 위해 비밀번호를 입력하세요"
-            >
-            <div v-if="discordForm.errors.password" class="error-message">
-              {{ discordForm.errors.password }}
-            </div>
-          </div>
-          <div class="input-group">
-            <label class="input-label">새 디스코드 아이디</label>
-            <input 
-              type="text" 
-              v-model="discordForm.newDiscord"
-              class="form-input"
-              :class="{ error: discordForm.errors.newDiscord }"
-              placeholder="새 디스코드 아이디를 입력하세요"
-            >
-            <div v-if="discordForm.errors.newDiscord" class="error-message">
-              {{ discordForm.errors.newDiscord }}
-            </div>
-          </div>
-          <div class="modal-actions">
-            <button type="button" @click="closeDiscordModal" class="cancel-button">취소</button>
-            <button type="submit" class="submit-button" :disabled="discordForm.loading">
-              {{ discordForm.loading ? '변경 중...' : '변경하기' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- 과정 변경 모달 -->
-    <div v-if="courseModal" class="modal-overlay" @click="closeCourseModal">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h3>수강 과정 변경</h3>
-          <button @click="closeCourseModal" class="close-button">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2"/>
-            </svg>
-          </button>
-        </div>
-        <form @submit.prevent="changeCourse" class="modal-form">
-          <div class="input-group">
-            <label class="input-label">현재 비밀번호</label>
-            <input 
-              type="password" 
-              v-model="courseForm.password"
-              class="form-input"
-              :class="{ error: courseForm.errors.password }"
-              placeholder="본인 확인을 위해 비밀번호를 입력하세요"
-            >
-            <div v-if="courseForm.errors.password" class="error-message">
-              {{ courseForm.errors.password }}
-            </div>
-          </div>
-          <div class="input-group">
-            <label class="input-label">새 수강 과정</label>
-            <div class="select-container" @click="toggleCourseDropdown" ref="courseDropdownWrapper">
-              <div class="select-input" :class="{ error: courseForm.errors.course, open: courseDropdownOpen }">
-                <span class="select-text" :class="{ placeholder: !courseForm.selectedCourse }">
-                  {{ courseForm.selectedCourse ? 
-                     `${courseForm.selectedCourse.title} ${courseForm.selectedCourse.trprDegr}기` : 
-                     '수강중인 훈련과정을 선택해주세요' }}
-                </span>
-                <div class="select-arrow">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" :class="{ rotated: courseDropdownOpen }">
-                    <polyline points="6,9 12,15 18,9" stroke="currentColor" stroke-width="2"/>
-                  </svg>
-                </div>
-              </div>
-              <div class="select-dropdown" :class="{ show: courseDropdownOpen }">
-                <div class="dropdown-search">
-                  <input 
-                    type="text" 
-                    v-model="courseSearchQuery" 
-                    placeholder="훈련과정 검색..." 
-                    class="search-input"
-                    @click.stop
-                  >
-                </div>
-                <ul class="dropdown-list">
-                  <li
-                    v-for="(course, index) in filteredCourseList"
-                    :key="index"
-                    class="dropdown-item"
-                    :class="{ selected: courseForm.selectedCourse === course }"
-                    @click.stop="selectCourse(course)"
-                  >
-                    <div class="course-info">
-                      <div class="course-title">{{ course.title }}</div>
-                      <div class="course-detail">{{ course.trprDegr }}기</div>
-                    </div>
-                  </li>
-                  <li v-if="filteredCourseList.length === 0" class="no-results">
-                    검색 결과가 없습니다.
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div v-if="courseForm.errors.course" class="error-message">
-              {{ courseForm.errors.course }}
-            </div>
-          </div>
-          <div class="modal-actions">
-            <button type="button" @click="closeCourseModal" class="cancel-button">취소</button>
-            <button type="submit" class="submit-button" :disabled="courseForm.loading">
-              {{ courseForm.loading ? '변경 중...' : '변경하기' }}
             </button>
           </div>
         </form>
@@ -430,6 +375,11 @@ const courseDropdownOpen = ref(false)
 const courseDropdownWrapper = ref(null)
 const courseSearchQuery = ref('')
 const courseList = ref([])
+
+// 비밀번호 표시/숨김 상태 추가
+const showCurrentPassword = ref(false)
+const showNewPassword = ref(false)
+const showConfirmPassword = ref(false)
 
 // 폼 데이터
 const passwordForm = ref({
@@ -556,29 +506,8 @@ async function loadRentalHistory() {
 
 // 과정 목록 가져오기
 async function getCourseList() {
-  // const apiKey = import.meta.env.VITE_WORK24_API_KEY
-  // const today = new Date()
-  // const sixMonthsAgo = new Date()
-  // sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
-
-  // function formatDateToYYYYMMDD(date) {
-  //   const yyyy = date.getFullYear()
-  //   const mm = String(date.getMonth() + 1).padStart(2, '0')
-  //   const dd = String(date.getDate()).padStart(2, '0')
-  //   return `${yyyy}${mm}${dd}`
-  // }
-
-  // const srchTraStDt = formatDateToYYYYMMDD(sixMonthsAgo)
-  // const srchTraEndDt = formatDateToYYYYMMDD(today)
-
-  // const url =
-  //   `https://www.work24.go.kr/cm/openApi/call/hr/callOpenApiSvcInfo310L01.do?authKey=${apiKey}` +
-  //   `&returnType=JSON&outType=1&pageNum=1&pageSize=100` +
-  //   `&srchTraStDt=${srchTraStDt}&srchTraEndDt=${srchTraEndDt}` +
-  //   `&srchTraArea1=11&srchNcs1=20&crseTracseSe=C0104&srchTraGbn=M1001&srchTraOrganNm=플레이데이터평생교육원` +
-  //   `&sort=ASC&sortCol=2`
-
   try {
+    const token = localStorage.getItem('jwtToken')
     const res = await fetch('http://localhost:8080/api/work24/course', {
       method: 'GET',
       headers: {
@@ -705,7 +634,6 @@ async function removeFavorite(seqBook) {
       data: seqBook
     })
 
-    // axios는 response.status로 확인
     if (response.status === 200) {
       favoriteBooks.value = favoriteBooks.value.filter(book => book.seqBook !== seqBook)
     }
@@ -795,6 +723,10 @@ function resetPasswordForm() {
       confirmPassword: ''
     }
   }
+  // 비밀번호 표시/숨김 상태도 리셋
+  showCurrentPassword.value = false
+  showNewPassword.value = false
+  showConfirmPassword.value = false
 }
 
 function resetDiscordForm() {
@@ -819,6 +751,35 @@ function resetCourseForm() {
       course: ''
     }
   }
+}
+
+// 비밀번호 표시/숨김 토글 함수들
+function toggleCurrentPassword() {
+  showCurrentPassword.value = !showCurrentPassword.value
+}
+
+function toggleNewPassword() {
+  showNewPassword.value = !showNewPassword.value
+}
+
+function toggleConfirmPassword() {
+  showConfirmPassword.value = !showConfirmPassword.value
+}
+
+// 입력 내용 삭제 함수들
+function clearCurrentPassword() {
+  passwordForm.value.currentPassword = ''
+  passwordForm.value.errors.currentPassword = ''
+}
+
+function clearNewPassword() {
+  passwordForm.value.newPassword = ''
+  passwordForm.value.errors.newPassword = ''
+}
+
+function clearConfirmPassword() {
+  passwordForm.value.confirmPassword = ''
+  passwordForm.value.errors.confirmPassword = ''
 }
 
 // 과정 드롭다운 관련
@@ -941,109 +902,6 @@ async function changePassword() {
     alert('비밀번호 변경 중 오류가 발생했습니다.')
   } finally {
     passwordForm.value.loading = false
-  }
-}
-
-// 디스코드 아이디 변경
-async function changeDiscord() {
-  // 폼 검증
-  discordForm.value.errors = {
-    password: '',
-    newDiscord: ''
-  }
-
-  if (!discordForm.value.password) {
-    discordForm.value.errors.password = '비밀번호를 입력해주세요.'
-    return
-  }
-
-  if (!discordForm.value.newDiscord) {
-    discordForm.value.errors.newDiscord = '디스코드 아이디를 입력해주세요.'
-    return
-  }
-
-  discordForm.value.loading = true
-
-  try {
-    // 비밀번호 검증
-    const isValid = await validatePassword(discordForm.value.password)
-    if (!isValid) {
-      discordForm.value.errors.password = '비밀번호가 올바르지 않습니다.'
-      discordForm.value.loading = false
-      return
-    }
-
-    // 디스코드 아이디 변경
-    const response = await fetch(`${API_BASE_URL}/users/discord`, {
-      method: 'PUT',
-      headers: getHeaders(),
-      body: JSON.stringify({ newDiscord: discordForm.value.newDiscord })
-    })
-
-    if (response.ok) {
-      userInfo.value.dcUser = discordForm.value.newDiscord
-      alert('디스코드 아이디가 성공적으로 변경되었습니다.')
-      closeDiscordModal()
-    } else {
-      alert('디스코드 아이디 변경에 실패했습니다.')
-    }
-  } catch (error) {
-    console.error('디스코드 아이디 변경 실패:', error)
-    alert('디스코드 아이디 변경 중 오류가 발생했습니다.')
-  } finally {
-    discordForm.value.loading = false
-  }
-}
-
-// 수강 과정 변경
-async function changeCourse() {
-  // 폼 검증
-  courseForm.value.errors = {
-    password: '',
-    course: ''
-  }
-
-  if (!courseForm.value.password) {
-    courseForm.value.errors.password = '비밀번호를 입력해주세요.'
-    return
-  }
-
-  if (!courseForm.value.selectedCourse) {
-    courseForm.value.errors.course = '수강 과정을 선택해주세요.'
-    return
-  }
-
-  courseForm.value.loading = true
-
-  try {
-    // 비밀번호 검증
-    const isValid = await validatePassword(courseForm.value.password)
-    if (!isValid) {
-      courseForm.value.errors.password = '비밀번호가 올바르지 않습니다.'
-      courseForm.value.loading = false
-      return
-    }
-
-    // 수강 과정 변경
-    const response = await fetch(`${API_BASE_URL}/users/course`, {
-      method: 'PUT',
-      headers: getHeaders(),
-      body: JSON.stringify({ newSeqCourse: courseForm.value.selectedCourse.seqCourse })
-    })
-
-    if (response.ok) {
-      userInfo.value.seqCourse = courseForm.value.selectedCourse.seqCourse
-      currentCourse.value = `${courseForm.value.selectedCourse.title} ${courseForm.value.selectedCourse.trprDegr}기`
-      alert('수강 과정이 성공적으로 변경되었습니다.')
-      closeCourseModal()
-    } else {
-      alert('수강 과정 변경에 실패했습니다.')
-    }
-  } catch (error) {
-    console.error('수강 과정 변경 실패:', error)
-    alert('수강 과정 변경 중 오류가 발생했습니다.')
-  } finally {
-    courseForm.value.loading = false
   }
 }
 </script>
@@ -1390,8 +1248,6 @@ async function changeCourse() {
   justify-content: center;
   z-index: 1000;
   padding: 2rem;
-  /* 드롭다운이 모달 영역을 넘어서도 보이도록 설정 */
-  overflow: visible;
 }
 
 .modal-content {
@@ -1402,8 +1258,6 @@ async function changeCourse() {
   max-width: 500px;
   max-height: 80vh;
   overflow-y: auto;
-  /* 드롭다운이 모달 밖으로 나갈 수 있도록 설정 */
-  overflow: visible;
 }
 
 .modal-header {
@@ -1455,16 +1309,24 @@ async function changeCourse() {
   font-size: 0.875rem;
 }
 
+/* 개선된 입력 필드 스타일 */
+.input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .form-input {
+  width: 100%;
   padding: 12px 16px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 1rem;
   transition: all 0.2s;
+  outline: none;
 }
 
 .form-input:focus {
-  outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
@@ -1474,145 +1336,57 @@ async function changeCourse() {
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
-.error-message {
-  font-size: 0.875rem;
-  color: #dc2626;
+.form-input.has-buttons {
+  padding-right: 80px;
 }
 
-.select-container {
-  position: relative;
-}
-
-.select-input {
+.input-buttons {
+  position: absolute;
+  right: 8px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  gap: 4px;
+}
+
+.clear-button {
+  background: none;
+  border: none;
   cursor: pointer;
-  transition: all 0.2s;
-}
-
-.select-input:hover {
-  border-color: #9ca3af;
-}
-
-.select-input.open,
-.select-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.select-input.error {
-  border-color: #dc2626;
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-}
-
-.select-text {
-  flex: 1;
-  font-size: 1rem;
-  color: #1a1a1a;
-}
-
-.select-text.placeholder {
+  padding: 4px;
+  border-radius: 4px;
   color: #9ca3af;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.select-arrow {
+.clear-button:hover {
   color: #6b7280;
-  transition: transform 0.2s;
-}
-
-.select-arrow svg.rotated {
-  transform: rotate(180deg);
-}
-
-.select-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  margin-top: 4px;
-  z-index: 9999; /* 모달보다 높은 z-index 설정 */
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-10px);
-  transition: all 0.2s;
-}
-
-.select-dropdown.show {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-
-.dropdown-search {
-  padding: 12px;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.search-input {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.875rem;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #3b82f6;
-}
-
-.dropdown-list {
-  max-height: 200px;
-  overflow-y: auto;
-  padding: 8px;
-  margin: 0;
-  list-style: none;
-}
-
-.dropdown-item {
-  padding: 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.dropdown-item:hover {
   background: #f3f4f6;
 }
 
-.dropdown-item.selected {
-  background: #3b82f6;
-  color: white;
-}
-
-.course-info {
+.toggle-password-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  color: #9ca3af;
+  transition: all 0.2s;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: center;
 }
 
-.course-title {
-  font-weight: 500;
-}
-
-.course-detail {
-  font-size: 0.875rem;
-  opacity: 0.8;
-}
-
-.no-results {
-  padding: 20px;
-  text-align: center;
+.toggle-password-button:hover {
   color: #6b7280;
+  background: #f3f4f6;
+}
+
+.error-message {
   font-size: 0.875rem;
+  color: #dc2626;
 }
 
 .modal-actions {
