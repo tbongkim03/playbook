@@ -62,9 +62,13 @@ public class AdminDAOImpl implements AdminDAO {
     }
 
     @Override
-    public Optional<Admin> pwValidate(Admin user, String password) {
+    public Optional<Admin> pwValidate(Admin user, String idAdmin, String password) {
         Optional<Admin> optionalAdmin = adminRepository.findByIdAdmin(user.getIdAdmin());
+        Optional<Admin> optionalUser = adminRepository.findByIdAdmin(idAdmin);
         if (optionalAdmin.isEmpty()) return Optional.empty();
+        if (optionalUser.isEmpty()) return Optional.empty();
+        if (!optionalAdmin.get().getIdAdmin().equals(optionalUser.get().getIdAdmin()))
+            return Optional.empty();
         Admin selectedUser = optionalAdmin.get();
         if (BCrypt.checkpw(password, selectedUser.getPwAdmin())) {
             return Optional.of(selectedUser);
@@ -94,8 +98,8 @@ public class AdminDAOImpl implements AdminDAO {
     }
 
     @Override
-    public Optional<Admin> deleteAdmin(Admin user) {
-        Optional<Admin> optionalAdmin = adminRepository.findByIdAdmin(user.getIdAdmin());
+    public Optional<Admin> deleteAdmin(String idAdmin) {
+        Optional<Admin> optionalAdmin = adminRepository.findByIdAdmin(idAdmin);
         if (optionalAdmin.isEmpty()) return Optional.empty();
         Admin selectedAdmin = optionalAdmin.get();
         adminRepository.delete(selectedAdmin);

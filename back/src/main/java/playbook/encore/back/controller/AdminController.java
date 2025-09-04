@@ -71,13 +71,14 @@ public class AdminController {
     @GetMapping("/validate")
     public ResponseEntity<?> getCurrentPassword(
             HttpServletRequest request,
+            @RequestParam("id") String idAdmin,
             @RequestBody String password
     ) throws Exception {
         try {
             Object roleAttr = request.getAttribute("ROLE");
             if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
                 Admin user = (Admin) request.getAttribute("admin");
-                boolean result = adminService.validatePassword(user, password);
+                boolean result = adminService.validatePassword(user, idAdmin, password);
                 return ResponseEntity.status(HttpStatus.OK).body(result);
             }
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
@@ -138,13 +139,13 @@ public class AdminController {
 
     @DeleteMapping
     public ResponseEntity<?> deleteAdmin(
-            HttpServletRequest request
+            HttpServletRequest request,
+            @RequestBody String idAdmin
     ) throws Exception {
         try {
             Object roleAttr = request.getAttribute("ROLE");
             if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-                Admin user = (Admin) request.getAttribute("admin");
-                boolean result = adminService.deleteAdmin(user);
+                boolean result = adminService.deleteAdmin(idAdmin);
                 return ResponseEntity.status(HttpStatus.OK).body(result);
             }
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");

@@ -16,11 +16,11 @@ public interface AdminDAO {
 
     Optional<Admin> changePw(Admin user, String hashedPassword);
 
-    Optional<Admin> pwValidate(Admin user, String password);
+    Optional<Admin> pwValidate(Admin user, String idAdmin, String password);
 
     List<Admin> getAdminList();
 
     Optional<Admin> updateStatus(Admin user, Admin.StatusTypeAdmin status);
 
-    Optional<Admin> deleteAdmin(Admin user);
+    Optional<Admin> deleteAdmin(String idAdmin);
 }

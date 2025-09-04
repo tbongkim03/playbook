@@ -11,7 +11,7 @@ public interface AdminService {
 
     LoginAdminResponseDto loginServiceAdmin(LoginAdminRequestDto loginAdminRequestDto);
 
-    boolean validatePassword(Admin user, String password);
+    boolean validatePassword(Admin user, String idAdmin, String password);
 
     boolean updatePassword(Admin user, String newPassword);
 
@@ -19,5 +19,5 @@ public interface AdminService {
 
     AdminListResponseDto getAdminList();
 
-    boolean deleteAdmin(Admin user);
+    boolean deleteAdmin(String idAdmin);
 }

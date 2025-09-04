@@ -71,8 +71,8 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public boolean validatePassword(Admin user, String password) {
-        boolean isPasswordExist = adminDAO.pwValidate(user, password).isPresent();
+    public boolean validatePassword(Admin user, String idAdmin, String password) {
+        boolean isPasswordExist = adminDAO.pwValidate(user, idAdmin, password).isPresent();
         if (!isPasswordExist) {
             throw new IllegalArgumentException("잘못된 비밀번호입니다. 다시 입력해 주세요");
         }
@@ -108,8 +108,8 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public boolean deleteAdmin(Admin user) {
-        boolean isAdminDeleted = adminDAO.deleteAdmin(user).isPresent();
+    public boolean deleteAdmin(String idAdmin) {
+        boolean isAdminDeleted = adminDAO.deleteAdmin(idAdmin).isPresent();
         if (!isAdminDeleted) {
             throw new IllegalArgumentException("어드민 삭제에 실패하였습니다. 다시 시도해 주세요");
         }
