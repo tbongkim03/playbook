@@ -116,8 +116,8 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
     @Query("SELECT h FROM History h WHERE h.bookDt = :bookDate AND h.returnDt IS NULL")
     List<History> findByBookDtAndReturnDtIsNull(@Param("bookDate") LocalDate bookDate);
 
-    @Query("SELECT h FROM History h WHERE h.bookDt < :overdueDate AND h.returnDt IS NULL")
-    List<History> findOverdueBooks(@Param("overdueDate") LocalDate overdueDate);
+    @Query("SELECT h FROM History h WHERE h.bookDt < :currentDate AND h.returnDt IS NULL")
+    List<History> findOverdueBooks(@Param("currentDate") LocalDate currentDate);
 
-    List<History> findBySeqCourseAndReturnDtIsNull(Course course);
+    List<History> findAllBySeqAdminAndReturnDtIsNull(Admin admin);
 }

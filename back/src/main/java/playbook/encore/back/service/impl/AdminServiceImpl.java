@@ -106,4 +106,13 @@ public class AdminServiceImpl implements AdminService {
         }
         return adminListResponseDto;
     }
+
+    @Override
+    public boolean deleteAdmin(Admin user) {
+        boolean isAdminDeleted = adminDAO.deleteAdmin(user).isPresent();
+        if (!isAdminDeleted) {
+            throw new IllegalArgumentException("어드민 삭제에 실패하였습니다. 다시 시도해 주세요");
+        }
+        return true;
+    }
 }

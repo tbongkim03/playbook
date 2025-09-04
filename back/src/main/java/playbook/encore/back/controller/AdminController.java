@@ -135,4 +135,21 @@ public class AdminController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
         }
     }
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteAdmin(
+            HttpServletRequest request
+    ) throws Exception {
+        try {
+            Object roleAttr = request.getAttribute("ROLE");
+            if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+                Admin user = (Admin) request.getAttribute("admin");
+                boolean result = adminService.deleteAdmin(user);
+                return ResponseEntity.status(HttpStatus.OK).body(result);
+            }
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+        } catch (Exception IllegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        }
+    }
 }

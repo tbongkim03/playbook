@@ -20,6 +20,7 @@ import playbook.encore.back.jwt.jwtUtil;
 import playbook.encore.back.service.BookUserService;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class BookUserServiceImpl implements BookUserService{
@@ -99,14 +100,14 @@ public class BookUserServiceImpl implements BookUserService{
         return true;
     }
 
-    @Override
-    public boolean updateDiscord(BookUser bookUser, String newDiscord) {
-        boolean isDiscordChanged = bookUserDAO.changeDiscord(bookUser, newDiscord).isPresent();
-        if (!isDiscordChanged) {
-            throw new IllegalArgumentException("과정 변경에 실패하였습니다. 다시 시도해 주세요");
-        }
-        return true;
-    }
+//    @Override
+//    public boolean updateDiscord(BookUser bookUser, String newDiscord) {
+//        boolean isDiscordChanged = bookUserDAO.changeDiscord(bookUser, newDiscord).isPresent();
+//        if (!isDiscordChanged) {
+//            throw new IllegalArgumentException("과정 변경에 실패하였습니다. 다시 시도해 주세요");
+//        }
+//        return true;
+//    }
 
     @Override
     public boolean updateCourse(BookUser bookUser, Integer newSeqCourse) {
@@ -117,4 +118,17 @@ public class BookUserServiceImpl implements BookUserService{
         return true;
     }
 
+    @Override
+    public List<Object[]> getBookUserList() {
+        return bookUserDAO.getBookUserList();
+    }
+
+    @Override
+    public boolean deleteUserByAdmin(String idUser) {
+        boolean isUserDeleted = bookUserDAO.deleteUserByAdmin(idUser).isPresent();
+        if (!isUserDeleted) {
+            throw new IllegalArgumentException("유저 삭제에 실패하였습니다. 다시 시도해 주세요");
+        }
+        return true;
+    }
 }

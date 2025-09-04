@@ -21,4 +21,6 @@ public interface AdminDAO {
     List<Admin> getAdminList();
 
     Optional<Admin> updateStatus(Admin user, Admin.StatusTypeAdmin status);
+
+    Optional<Admin> deleteAdmin(Admin user);
 }

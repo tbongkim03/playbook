@@ -91,23 +91,23 @@ public class BookUserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
         }
     }
-    @PutMapping("/discord")
-    public ResponseEntity<?> updateDiscord(
-            HttpServletRequest request,
-            @RequestBody String newDiscord
-    ) throws Exception {
-        try {
-            Object roleAttr = request.getAttribute("ROLE");
-            if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
-                BookUser user = (BookUser) request.getAttribute("user");
-                boolean result = bookUserService.updateDiscord(user, newDiscord);
-                return ResponseEntity.status(HttpStatus.OK).body(result);
-            }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("유저만 접근 가능합니다.");
-        } catch (Exception IllegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
-        }
-    }
+//    @PutMapping("/discord")
+//    public ResponseEntity<?> updateDiscord(
+//            HttpServletRequest request,
+//            @RequestBody String newDiscord
+//    ) throws Exception {
+//        try {
+//            Object roleAttr = request.getAttribute("ROLE");
+//            if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
+//                BookUser user = (BookUser) request.getAttribute("user");
+//                boolean result = bookUserService.updateDiscord(user, newDiscord);
+//                return ResponseEntity.status(HttpStatus.OK).body(result);
+//            }
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("유저만 접근 가능합니다.");
+//        } catch (Exception IllegalArgumentException) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+//        }
+//    }
     @PutMapping("/course")
     public ResponseEntity<?> updateCourse(
             HttpServletRequest request,
@@ -121,6 +121,38 @@ public class BookUserController {
                 return ResponseEntity.status(HttpStatus.OK).body(result);
             }
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("유저만 접근 가능합니다.");
+        } catch (Exception IllegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        }
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<?> getUserList(
+            HttpServletRequest request
+    ) throws Exception {
+        try {
+            Object roleAttr = request.getAttribute("ROLE");
+            if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+                return ResponseEntity.status(HttpStatus.OK).body(bookUserService.getBookUserList());
+            }
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+        } catch (Exception IllegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        }
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteUser(
+            HttpServletRequest request,
+            @RequestBody String idUser
+    ) throws Exception {
+        try {
+            Object roleAttr = request.getAttribute("ROLE");
+            if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+                boolean result = bookUserService.deleteUserByAdmin(idUser);
+                return ResponseEntity.status(HttpStatus.OK).body(result);
+            }
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
         } catch (Exception IllegalArgumentException) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
         }

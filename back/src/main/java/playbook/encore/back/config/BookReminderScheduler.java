@@ -4,11 +4,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import playbook.encore.back.data.entity.History;
+import playbook.encore.back.data.repository.AdminRepository;
+import playbook.encore.back.data.repository.BookUserRepository;
 import playbook.encore.back.data.repository.HistoryRepository;
 import playbook.encore.back.service.impl.DiscordNotificationService;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -20,6 +24,10 @@ public class BookReminderScheduler {
 
     @Autowired
     private DiscordNotificationService discordNotificationService;
+    @Autowired
+    private AdminRepository adminRepository;
+    @Autowired
+    private BookUserRepository bookUserRepository;
 
     // 매일 오전 10시에 알림
     @Scheduled(cron = "0 0 10 * * ?")
@@ -55,7 +63,7 @@ public class BookReminderScheduler {
     }
 
     // 매일 오전 10시에 연체 알림
-    @Scheduled(cron = "0 0 10 * * ?")
+    @Scheduled(cron = "0 01 10 * * ?")
     public void sendOverdueNotification() {
         LocalDate today = LocalDate.now();
 
@@ -85,5 +93,15 @@ public class BookReminderScheduler {
                 );
             }
         }
+    }
+
+    // 매일 오전 9시에 유저, 어드민 상태 업데이트
+    @Scheduled(cron = "0 0 7 * * ?")
+    @Transactional
+    public void updateUserStatus() {
+        LocalDate overdueDate = LocalDate.now().minusDays(7);
+        adminRepository.updateAllAdminStatus(overdueDate);
+        bookUserRepository.updateAllStatusUser(overdueDate);
+        System.out.println("사용자 상태 업데이트 완료: " + LocalDateTime.now());
     }
 }

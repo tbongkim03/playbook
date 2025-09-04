@@ -1,5 +1,6 @@
 package playbook.encore.back.data.dao;
 
+import java.util.List;
 import java.util.Optional;
 
 import playbook.encore.back.data.dto.bookUser.LoginUserResponseDto;
@@ -22,4 +23,8 @@ public interface BookUserDAO {
     Optional<BookUser> changeDiscord(BookUser bookUser, String newDiscord);
 
     Optional<BookUser> updateStatus(BookUser bookUser, BookUser.StatusType status);
+
+    List<Object[]> getBookUserList();
+
+    Optional<BookUser> deleteUserByAdmin(String idUser);
 }

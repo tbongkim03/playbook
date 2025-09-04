@@ -18,4 +18,6 @@ public interface AdminService {
     boolean updateDiscord(Admin user, String newDiscord);
 
     AdminListResponseDto getAdminList();
+
+    boolean deleteAdmin(Admin user);
 }

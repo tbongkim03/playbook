@@ -1,5 +1,6 @@
 package playbook.encore.back.data.dao.impl;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.mindrot.jbcrypt.BCrypt;
@@ -105,6 +106,20 @@ public class BookUserDAOImpl implements BookUserDAO {
         updatedUser = bookUserRepository.save(selectedUser);
 
         return Optional.of(updatedUser);
+    }
+
+    @Override
+    public List<Object[]> getBookUserList() {
+        return bookUserRepository.findAllUsersWithCourseDetails();
+    }
+
+    @Override
+    public Optional<BookUser> deleteUserByAdmin(String idUser) {
+        Optional<BookUser> optionalUser = bookUserRepository.findByIdUser(idUser);
+        if (optionalUser.isEmpty()) return Optional.empty();
+        BookUser selectedUser = optionalUser.get();
+        bookUserRepository.delete(selectedUser);
+        return Optional.of(selectedUser);
     }
 
 }

@@ -92,4 +92,13 @@ public class AdminDAOImpl implements AdminDAO {
         updatedAdmin = adminRepository.save(selectedAdmin);
         return Optional.of(updatedAdmin);
     }
+
+    @Override
+    public Optional<Admin> deleteAdmin(Admin user) {
+        Optional<Admin> optionalAdmin = adminRepository.findByIdAdmin(user.getIdAdmin());
+        if (optionalAdmin.isEmpty()) return Optional.empty();
+        Admin selectedAdmin = optionalAdmin.get();
+        adminRepository.delete(selectedAdmin);
+        return Optional.of(selectedAdmin);
+    }
 }

@@ -213,6 +213,9 @@ public class HistoryServiceImpl implements HistoryService {
                     .orElseThrow(() -> new IllegalArgumentException("반납할 대여 기록이 없습니다."));
         }
 
+        // 반납일 설정 전에 연체 여부 확인
+        boolean isReturnedBookOverdue = isOverdue(history);
+
         LocalDate today = LocalDate.now();
         history.setReturnDt(today);
         historyDAO.bookReturn(history);
@@ -230,15 +233,22 @@ public class HistoryServiceImpl implements HistoryService {
             throw new RuntimeException(e.getMessage());
         }
 
-        // 반납한 도서가 연체인지 먼저 확인
-        boolean isReturnedBookOverdue = isOverdue(history);
-
-        // 상태 업데이트 (연체 여부에 관계없이 한 번만 처리)
+        // 상태 업데이트
         if (isAdmin) {
             Admin admin = (Admin) user;
-            Admin.StatusTypeAdmin status = isReturnedBookOverdue ?
-                    Admin.StatusTypeAdmin.overdue : Admin.StatusTypeAdmin.available;
-            adminDAO.updateStatus(admin, status);
+
+            if (isReturnedBookOverdue) {
+                // 연체 반납 시 정지 상태로 변경
+                adminDAO.updateStatus(admin, Admin.StatusTypeAdmin.stop);
+            } else {
+                // 남은 대여 도서 중 연체가 있는지 확인
+                List<History> remainingHistories = historyRepository.findAllBySeqAdminAndReturnDtIsNull(admin);
+                boolean hasOverdueBooks = remainingHistories.stream().anyMatch(this::isOverdue);
+
+                Admin.StatusTypeAdmin status = hasOverdueBooks ?
+                        Admin.StatusTypeAdmin.overdue : Admin.StatusTypeAdmin.available;
+                adminDAO.updateStatus(admin, status);
+            }
         } else {
             BookUser bookUser = (BookUser) user;
 
@@ -250,7 +260,11 @@ public class HistoryServiceImpl implements HistoryService {
             boolean hasOverdueBooks = remainingHistories.stream().anyMatch(this::isOverdue);
 
             BookUser.StatusType status;
-            if (hasOverdueBooks) {
+
+            if (isReturnedBookOverdue) {
+                // 연체 반납인 경우 정지 상태
+                status = BookUser.StatusType.stop;
+            } else if (hasOverdueBooks) {
                 // 남은 대여 도서 중 연체가 있으면 overdue 상태
                 status = BookUser.StatusType.overdue;
             } else if (remainingBorrowedCount >= 2) {
@@ -266,7 +280,8 @@ public class HistoryServiceImpl implements HistoryService {
 
         // 연체 반납인 경우 예외 발생
         if (isReturnedBookOverdue) {
-            long overdueDays = LocalDate.now().toEpochDay() - history.getBookDt().plusDays(7).toEpochDay();
+            LocalDate dueDate = history.getBookDt().plusDays(7);
+            long overdueDays = today.toEpochDay() - dueDate.toEpochDay();
             throw new IllegalArgumentException("연체 반납되었습니다. 연체일수: " + overdueDays + "일");
         }
     }
@@ -299,7 +314,7 @@ public class HistoryServiceImpl implements HistoryService {
         return new HistoryBookResponseDto(rentalSummaryDto, rentalHistoryDtoList);
     }
 
-    // 연체 인지
+    // 연체 판단 메서드
     private boolean isOverdue(History history) {
         return history.getReturnDt() == null && history.getBookDt().isBefore(LocalDate.now().minusDays(7));
     }
@@ -311,6 +326,7 @@ public class HistoryServiceImpl implements HistoryService {
         }
         return historyDAO.findPopularFirstSortByCourse(courseId);
     }
+
     @Override
     public List<PopularLabelDto> findPopularFirstSortAll() {
         return historyDAO.findPopularFirstSortAll();
@@ -341,5 +357,4 @@ public class HistoryServiceImpl implements HistoryService {
     public List<UserReadingRankDto> findUserReadingRankAll() {
         return historyDAO.findUserReadingRankAll();
     }
-
 }
