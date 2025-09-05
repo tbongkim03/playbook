@@ -427,7 +427,6 @@ const fetchAdminList = async () => {
       alert('관리자 권한이 필요합니다.')
     } else if (error.response?.status === 401) {
       alert('로그인이 필요합니다.')
-      // 로그인 페이지로 리다이렉트 로직 추가 가능
     } else {
       alert('관리자 목록을 불러오는데 실패했습니다.')
     }
