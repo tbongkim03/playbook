@@ -23,7 +23,7 @@ public interface BookUserService {
 
 //    boolean updateDiscord(BookUser user, String newDiscord);
 
-    boolean updateCourse(BookUser user, Integer newSeqCourse);
+//    boolean updateCourse(BookUser user, Integer newSeqCourse);
 
     List<Object[]> getBookUserList();
 

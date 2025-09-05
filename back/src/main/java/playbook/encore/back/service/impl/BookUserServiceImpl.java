@@ -109,14 +109,14 @@ public class BookUserServiceImpl implements BookUserService{
 //        return true;
 //    }
 
-    @Override
-    public boolean updateCourse(BookUser bookUser, Integer newSeqCourse) {
-        boolean isCourseChanged = bookUserDAO.changeCourse(bookUser, newSeqCourse).isPresent();
-        if (!isCourseChanged) {
-            throw new IllegalArgumentException("과정 변경에 실패하였습니다. 다시 시도해 주세요");
-        }
-        return true;
-    }
+//    @Override
+//    public boolean updateCourse(BookUser bookUser, Integer newSeqCourse) {
+//        boolean isCourseChanged = bookUserDAO.changeCourse(bookUser, newSeqCourse).isPresent();
+//        if (!isCourseChanged) {
+//            throw new IllegalArgumentException("과정 변경에 실패하였습니다. 다시 시도해 주세요");
+//        }
+//        return true;
+//    }
 
     @Override
     public List<Object[]> getBookUserList() {

@@ -108,23 +108,23 @@ public class BookUserController {
 //            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
 //        }
 //    }
-    @PutMapping("/course")
-    public ResponseEntity<?> updateCourse(
-            HttpServletRequest request,
-            @RequestBody Integer newSeqCourse
-    ) throws Exception {
-        try {
-            Object roleAttr = request.getAttribute("ROLE");
-            if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
-                BookUser user = (BookUser) request.getAttribute("user");
-                boolean result = bookUserService.updateCourse(user, newSeqCourse);
-                return ResponseEntity.status(HttpStatus.OK).body(result);
-            }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("유저만 접근 가능합니다.");
-        } catch (Exception IllegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
-        }
-    }
+//    @PutMapping("/course")
+//    public ResponseEntity<?> updateCourse(
+//            HttpServletRequest request,
+//            @RequestBody Integer newSeqCourse
+//    ) throws Exception {
+//        try {
+//            Object roleAttr = request.getAttribute("ROLE");
+//            if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
+//                BookUser user = (BookUser) request.getAttribute("user");
+//                boolean result = bookUserService.updateCourse(user, newSeqCourse);
+//                return ResponseEntity.status(HttpStatus.OK).body(result);
+//            }
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("유저만 접근 가능합니다.");
+//        } catch (Exception IllegalArgumentException) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+//        }
+//    }
 
     @GetMapping("/list")
     public ResponseEntity<?> getUserList(
