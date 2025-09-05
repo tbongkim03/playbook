@@ -467,7 +467,7 @@ function blockJavascriptInput(event) {
 }
 
 .password-input {
-  padding-right: 80px; /* 두 개의 버튼을 위한 공간 확보 */
+  padding-right: 80px;
 }
 
 .form-input:focus {
