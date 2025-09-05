@@ -67,22 +67,6 @@ public class BookUserDAOImpl implements BookUserDAO {
     }
 
     @Override
-    public Optional<BookUser> changeCourse(BookUser bookUser, Integer newSeqCourse) {
-        Optional<BookUser> optionalUser = bookUserRepository.findByIdUser(bookUser.getIdUser());
-        if (optionalUser.isEmpty()) return Optional.empty();
-        Optional<Course> optionalCourse = courseRepository.findById(newSeqCourse);
-        if (optionalCourse.isEmpty()) return Optional.empty();
-        BookUser selectedUser = optionalUser.get();
-        Course selectedCourse = optionalCourse.get();
-        BookUser updatedUser;
-
-        selectedUser.setSeqCourse(selectedCourse);
-        updatedUser = bookUserRepository.save(selectedUser);
-
-        return Optional.of(updatedUser);
-    }
-
-    @Override
     public Optional<BookUser> changeDiscord(BookUser bookUser, String newDiscord) {
         Optional<BookUser> optionalUser = bookUserRepository.findByIdUser(bookUser.getIdUser());
         if (optionalUser.isEmpty()) return Optional.empty();
@@ -112,14 +96,4 @@ public class BookUserDAOImpl implements BookUserDAO {
     public List<Object[]> getBookUserList() {
         return bookUserRepository.findAllUsersWithCourseDetails();
     }
-
-    @Override
-    public Optional<BookUser> deleteUserByAdmin(String idUser) {
-        Optional<BookUser> optionalUser = bookUserRepository.findByIdUser(idUser);
-        if (optionalUser.isEmpty()) return Optional.empty();
-        BookUser selectedUser = optionalUser.get();
-        bookUserRepository.delete(selectedUser);
-        return Optional.of(selectedUser);
-    }
-
 }

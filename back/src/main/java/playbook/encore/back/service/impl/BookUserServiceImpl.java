@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import org.springframework.transaction.annotation.Transactional;
 import playbook.encore.back.data.dao.AdminDAO;
 import playbook.encore.back.data.dao.BookUserDAO;
 import playbook.encore.back.data.dto.bookUser.LoginUserRequestDto;
@@ -16,11 +17,14 @@ import playbook.encore.back.data.entity.BookUser;
 import playbook.encore.back.data.entity.Course;
 import playbook.encore.back.data.repository.BookUserRepository;
 import playbook.encore.back.data.repository.CourseRepository;
+import playbook.encore.back.data.repository.FavorRepository;
+import playbook.encore.back.data.repository.HistoryRepository;
 import playbook.encore.back.jwt.jwtUtil;
 import playbook.encore.back.service.BookUserService;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class BookUserServiceImpl implements BookUserService{
@@ -28,13 +32,19 @@ public class BookUserServiceImpl implements BookUserService{
     private final AdminDAO adminDAO;
     private final BookUserDAO bookUserDAO;
     private final CourseRepository courseRepository;
+    private final BookUserRepository bookUserRepository;
+    private final HistoryRepository historyRepository;
     private final jwtUtil jwtUtil;
+    private final FavorRepository favorRepository;
 
     @Autowired
-    public BookUserServiceImpl(AdminDAO adminDAO, BookUserDAO bookUserDAO, CourseRepository courseRepository, jwtUtil jwtUtil) {
+    public BookUserServiceImpl(AdminDAO adminDAO, BookUserDAO bookUserDAO, CourseRepository courseRepository, BookUserRepository bookUserRepository, FavorRepository favorRepository, HistoryRepository historyRepository, jwtUtil jwtUtil) {
         this.adminDAO = adminDAO;
         this.bookUserDAO = bookUserDAO;
         this.courseRepository = courseRepository;
+        this.bookUserRepository = bookUserRepository;
+        this.favorRepository = favorRepository;
+        this.historyRepository = historyRepository;
         this.jwtUtil = jwtUtil;
     }
 
@@ -124,11 +134,33 @@ public class BookUserServiceImpl implements BookUserService{
     }
 
     @Override
+    @Transactional
     public boolean deleteUserByAdmin(String idUser) {
-        boolean isUserDeleted = bookUserDAO.deleteUserByAdmin(idUser).isPresent();
-        if (!isUserDeleted) {
-            throw new IllegalArgumentException("유저 삭제에 실패하였습니다. 다시 시도해 주세요");
+        try {
+            System.out.println("idUser: " + idUser);
+            Optional<BookUser> optionalUser = bookUserDAO.searchBookUserResultExact(idUser);
+            if (optionalUser.isEmpty()) {
+                throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
+            }
+
+            BookUser user = optionalUser.get();
+
+            // 현재 대출 중인 책 확인
+            boolean hasActiveBorrows = historyRepository.existsBySeqUserAndReturnDtIsNull(user);
+            if (hasActiveBorrows) {
+                throw new IllegalArgumentException("대출 중인 책이 있어 삭제할 수 없습니다.");
+            }
+
+            // 찜 기록 삭제
+//            favorRepository.deleteBySeqUser(user);
+//            favorRepository.flush();
+
+            bookUserRepository.deleteById(user.getSeqUser());
+            bookUserRepository.flush();
+
+            return true;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("유저 삭제에 실패하였습니다: " + e.getMessage());
         }
-        return true;
     }
 }

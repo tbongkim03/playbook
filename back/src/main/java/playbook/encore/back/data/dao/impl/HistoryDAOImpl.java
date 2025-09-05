@@ -56,18 +56,32 @@ public class HistoryDAOImpl implements HistoryDAO {
         List<RentalHistoryDto> rentalHistoryDtoList = new ArrayList<>();
 
         for (History history : historyList) {
+            if (history.getSeqBook() == null) {
+                continue; // 책 정보가 없으면 스킵
+            }
+
             String bookTitle = history.getSeqBook().getTitleBook();
             String bookAuthor = history.getSeqBook().getAuthorBook();
             String bookIsbn = history.getSeqBook().getIsbnBook();
 
             // 유저 이름: 일반 유저가 있으면 그 이름, 없으면 관리자 이름
-            String userName = history.getSeqUser() != null
-                    ? history.getSeqUser().getNameUser()
-                    : history.getSeqAdmin().getNameAdmin();
+            String userName;
+            String userId;
+            String courseName = null;
 
-            String userId = history.getSeqUser() != null
-                    ? history.getSeqUser().getIdUser()
-                    : history.getSeqAdmin().getIdAdmin();
+            if (history.getSeqUser() != null) {
+                userName = history.getSeqUser().getNameUser();
+                userId = history.getSeqUser().getIdUser();
+                courseName = history.getSeqUser().getSeqCourse() != null ?
+                        history.getSeqUser().getSeqCourse().getNameCourse() : "종료된 과정";
+            } else if (history.getSeqAdmin() != null) {
+                userName = history.getSeqAdmin().getNameAdmin();
+                userId = history.getSeqAdmin().getIdAdmin();
+            } else {
+                // 둘 다 NULL인 경우
+                userName = "탈퇴 사용자";
+                userId = "unknown";
+            }
 
             LocalDate borrowDate = history.getBookDt();
             LocalDate returnDate = history.getReturnDt();
@@ -90,7 +104,7 @@ public class HistoryDAOImpl implements HistoryDAO {
                     bookIsbn,
                     userName,
                     userId,
-                    history.getSeqUser() != null ? history.getSeqUser().getSeqCourse().getNameCourse() : null,
+                    courseName,
                     borrowDate,
                     returnDate,
                     status.toString()
@@ -113,6 +127,10 @@ public class HistoryDAOImpl implements HistoryDAO {
         List<RentalHistoryDto> rentalHistoryDtoList = new ArrayList<>();
 
         for (History history : historyList) {
+            if (history.getSeqBook() == null) {
+                continue;
+            }
+
             String bookTitle = history.getSeqBook().getTitleBook();
             String bookAuthor = history.getSeqBook().getAuthorBook();
             String bookIsbn = history.getSeqBook().getIsbnBook();
@@ -132,13 +150,16 @@ public class HistoryDAOImpl implements HistoryDAO {
                 status = History.StatusType.booked;
             }
 
+            String courseName = user.getSeqCourse() != null ?
+                    user.getSeqCourse().getNameCourse() : "종료한 과정";
+
             RentalHistoryDto rentalHistoryDto = new RentalHistoryDto(
                     bookTitle,
                     bookAuthor,
                     bookIsbn,
                     user.getNameUser(),
                     user.getIdUser(),
-                    user.getSeqCourse().getNameCourse(),
+                    courseName,
                     borrowDate,
                     returnDate,
                     status.toString()

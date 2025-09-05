@@ -18,13 +18,9 @@ public interface BookUserDAO {
 
     Optional<BookUser> changePw(BookUser bookUser, String hashedPassword);
 
-    Optional<BookUser> changeCourse(BookUser bookUser, Integer newSeqCourse);
-
     Optional<BookUser> changeDiscord(BookUser bookUser, String newDiscord);
 
     Optional<BookUser> updateStatus(BookUser bookUser, BookUser.StatusType status);
 
     List<Object[]> getBookUserList();
-
-    Optional<BookUser> deleteUserByAdmin(String idUser);
 }

@@ -440,7 +440,9 @@ const deleteUser = async () => {
     // 비밀번호가 맞으면 학생 삭제
     const response = await axios.delete('http://localhost:8080/users', {
       headers: getAuthHeaders(),
-      data: deletingUser.value.idUser
+      data: {
+        idUser: deletingUser.value.idUser
+      }
     })
     
     alert('학생 계정이 성공적으로 삭제되었습니다.')

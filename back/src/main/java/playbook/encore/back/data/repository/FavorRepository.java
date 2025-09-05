@@ -22,4 +22,6 @@ public interface FavorRepository extends JpaRepository<Favor, Integer> {
     Optional<Favor> findBySeqUserAndSeqBook(BookUser user, Book book);
 
     void deleteBySeqUserAndSeqBook(BookUser user, Book book);
+
+    void deleteBySeqUser(BookUser user);
 }

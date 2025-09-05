@@ -120,4 +120,6 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
     List<History> findOverdueBooks(@Param("currentDate") LocalDate currentDate);
 
     List<History> findAllBySeqAdminAndReturnDtIsNull(Admin admin);
+
+    boolean existsBySeqUserAndReturnDtIsNull(BookUser bookUser);
 }
