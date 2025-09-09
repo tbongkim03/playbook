@@ -357,96 +357,148 @@ const printAll = async () => {
 
   const printWindow = window.open('', '', 'width=1000,height=600') 
 
-  const emptyCells = Array(startPosition.value).fill('<div class="barcode-cell"></div>')
-
-  const content = [
-    ...emptyCells,
-    ...displayedBooks.value.map(book => {
-      const tempSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
-      JsBarcode(tempSvg, book.barcodeBook, {
-        format: "CODE128",
-        lineColor: "#000",
-        width: 1,
-        height: 40,
-        displayValue: false,
-      })
-
-      return `
-        <div class="barcode-cell">
-          ${tempSvg.outerHTML}
-          <div class="barcode-label">${book.barcodeBook} - ${book.titleBook}</div>
-        </div>
-      `
-    })
-  ].join('')
-
-  
   if (!printWindow) {
     alert("팝업 차단을 해제해 주세요")
     return
   }
 
+  // 13행 × 5열 = 65개의 박스 생성
+  const totalBoxes = 65
+  const boxes = []
+
+  // 시작 위치만큼 빈 박스 추가
+  for (let i = 0; i < startPosition.value; i++) {
+    boxes.push('<div class="barcode-cell"></div>')
+  }
+
+  // 바코드가 들어갈 박스들 추가
+  for (const book of displayedBooks.value) {
+    if (boxes.length >= totalBoxes) break // 65개 초과하면 중단
+
+    const tempSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+    JsBarcode(tempSvg, book.barcodeBook, {
+      format: "CODE128",
+      lineColor: "#000",
+      width: 1,
+      height: 40,
+      displayValue: false,
+    })
+
+    boxes.push(`
+      <div class="barcode-cell">
+        <div class="barcode-content">
+          ${tempSvg.outerHTML}
+          <div class="barcode-label">${book.barcodeBook}</div>
+          <div class="book-title">${book.titleBook}</div>
+        </div>
+      </div>
+    `)
+  }
+
+  // 나머지 빈 박스로 채우기
+  while (boxes.length < totalBoxes) {
+    boxes.push('<div class="barcode-cell"></div>')
+  }
+
+  // 13행으로 나누기
+  const rows = []
+  for (let i = 0; i < 13; i++) {
+    const rowBoxes = boxes.slice(i * 5, (i + 1) * 5)
+    rows.push(`<div class="row">${rowBoxes.join('')}</div>`)
+  }
+
   const doc = printWindow.document
   doc.open()
   doc.write(`
-  <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>바코드 출력</title>
-        <style>
-          @page { size: A4; margin: 0; }
-          body {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }
-
-          .print-area {
-            display: grid;
-            grid-template-columns: repeat(5, 38.1mm);
-            grid-auto-rows: 21.2mm;
-            gap: 0mm 2.5mm;
-            padding: 15mm 6.5mm; /* 상단, 좌우 여백 */
-          }
-
-          .barcode-cell {
-            width: 38.1mm;
-            height: 21.2mm;
-            border: 1px solid #ccc; /* 가이드용으로 보이게 하려면 #ccc */
-            border-radius: 5px;
-            box-sizing: border-box;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-size: 10pt;
-          }
-
-          svg {
-            width: 35mm;
-            /* min-width: 100%; */
-          }
-
-          .barcode-label {
-            font-size: 5px;
-            margin-top: 1mm;
-            text-align: center;
-            word-break: break-word;
-          }
+    <!DOCTYPE html>
+    <html lang="ko">
+    <head>
+      <meta charset="UTF-8">
+      <title>바코드 출력</title>
+      <style>
+        @page {
+          size: A4;
+          margin: 0;
+        }
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: Arial, sans-serif;
+        }
+        .grid {
+          position: relative;
+          width: calc(210mm - 1cm);
+          height: calc(297mm - 1.9cm);
+          margin: 1cm 0.5cm 0.9cm 0.4cm;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+        .row {
+          display: flex;
+          justify-content: space-between;
+        }
+        .barcode-cell {
+          width: 38.1mm;
+          height: 21.2mm;
+          // border: 1px solid #ddd;
+          box-sizing: border-box;
+          margin: 0 0.1335cm;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+        .row .barcode-cell:first-child {
+          margin-left: 0;
+        }
+        .row .barcode-cell:last-child {
+          margin-right: 0;
+        }
+        .barcode-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          height: 100%;
+          padding: 1mm;
+        }
+        svg {
+          width: 32mm;
+          height: auto;
+          margin-bottom: 0.5mm;
+        }
+        .barcode-label {
+          font-size: 6px;
+          font-weight: bold;
+          text-align: center;
+          margin-bottom: 0.5mm;
+          font-family: 'Courier New', monospace;
+        }
+        .book-title {
+          font-size: 4px;
+          text-align: center;
+          line-height: 1.1;
+          word-break: break-word;
+          overflow: hidden;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+        }
       </style>
-      </head>
-      <body>
-        <div class="print-area">
-          ${content}
-        </div>
-        <script>
-          window.onload = function() {
-            window.print();
-          };
-        </` + `script>
-      </body>
+    </head>
+    <body>
+      <div class="grid">
+        ${rows.join('')}
+      </div>
+      <script>
+        window.onload = function() {
+          window.print();
+        };
+      </` + `script>
+    </body>
     </html>
   `)
   doc.close()
