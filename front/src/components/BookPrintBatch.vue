@@ -72,7 +72,7 @@
               시작 위치
             </label>
             <select id="startPosition" v-model="startPosition" class="setting-select">
-              <option v-for="n in 21" :key="n" :value="n - 1">{{ n }}번째</option>
+              <option v-for="n in 65" :key="n" :value="n - 1">{{ n }}번째</option>
             </select>
           </div>
         </div>
