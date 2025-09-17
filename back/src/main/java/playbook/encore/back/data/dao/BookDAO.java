@@ -1,10 +1,7 @@
 package playbook.encore.back.data.dao;
 
-import playbook.encore.back.data.dto.book.BookBarcodeUniqueRequestDto;
-import playbook.encore.back.data.dto.book.BookBarcodeUniqueResponseDto;
 import playbook.encore.back.data.entity.Book;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -12,9 +9,11 @@ import org.springframework.data.domain.Page;
 public interface BookDAO {
     Book insertBook(Book book);
 
-    Page<Book> selectBookListByPage(int page) throws Exception;
+    List<Book> selectBookListAll() throws Exception;
 
-    Book selectBookById(Integer bookId) throws Exception;
+    List<Book> selectAllBooks() throws Exception;
+
+    Book selectBookById(int bookId, String idUser) throws Exception;
 
     Book updateBook(Book book) throws Exception;
 
@@ -30,5 +29,9 @@ public interface BookDAO {
 
     List<Book> findUnprintedBooks() throws Exception;
 
-    boolean checkDuplicates(Integer seqBook, String barcodeBook) throws Exception;
+    boolean checkDuplicates(int seqBook, String barcodeBook) throws Exception;
+
+    Page<Book> selectBookListByPageBySortFirst(int sortFirstId, int page);
+
+    Book bookStatusUpdate(Book book, boolean status) throws Exception;
 }
