@@ -1,18 +1,18 @@
 package playbook.encore.back.data.dao.impl;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import playbook.encore.back.data.dao.BookDAO;
-import playbook.encore.back.data.dto.book.BookBarcodeUniqueRequestDto;
-import playbook.encore.back.data.dto.book.BookBarcodeUniqueResponseDto;
 import playbook.encore.back.data.entity.Book;
 import playbook.encore.back.data.repository.BookRepository;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +20,9 @@ import java.util.Optional;
 public class BookDAOImpl implements BookDAO {
 
     private final BookRepository bookRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     public BookDAOImpl(BookRepository bookRepository) {
@@ -29,20 +32,66 @@ public class BookDAOImpl implements BookDAO {
 
     @Override
     public Book insertBook(Book book) {
-        Book savedBook = bookRepository.save(book);
-        return savedBook;
+        try {
+            Book savedBook = bookRepository.save(book);
+            return savedBook;
+        } catch (DataIntegrityViolationException e) {
+            String errorMessage = e.getCause().getMessage();
+
+            if (errorMessage.contains("Data too long for column")) {
+                // 어느 컬럼에서 문제가 발생했는지 파악
+                if (errorMessage.contains("author_book")) {
+                    throw new IllegalArgumentException("저자명이 너무 깁니다. 최대 길이를 확인해주세요.");
+                } else if (errorMessage.contains("title_book")) {
+                    throw new IllegalArgumentException("책 제목이 너무 깁니다. 최대 길이를 확인해주세요.");
+                }
+                throw new IllegalArgumentException("입력된 데이터가 허용된 길이를 초과했습니다.");
+            }
+
+            throw new IllegalArgumentException("데이터 저장 중 오류가 발생했습니다.");
+        }
     }
 
     @Override
-    public Page<Book> selectBookListByPage(int page) {
-        int pageSize = 10;
+    public List<Book> selectBookListAll() {
+        return bookRepository.findAllWithNonZeroSeqSortSecondAndPrintCheckBookTrue();
+    }
+
+    @Override
+    public List<Book> selectAllBooks() {
+        return bookRepository.findAllWithCategories();
+    }
+
+    @Override
+    public Page<Book> selectBookListByPageBySortFirst(int sortFirstId, int page) {
+        int pageSize = 20;
         PageRequest pageRequest = PageRequest.of(page - 1, pageSize, Sort.by("seqBook").ascending());
-        return bookRepository.findAll(pageRequest);
+
+        String jpql = "SELECT b FROM Book b " +
+                "JOIN b.seqSortSecond ss " +
+                "JOIN ss.seqSortFirst sf " +
+                "WHERE sf.seqSortFirst = :sortFirstId AND ss.seqSortSecond != 0";
+
+        String countJpql = "SELECT COUNT(b) FROM Book b " +
+                "JOIN b.seqSortSecond ss " +
+                "JOIN ss.seqSortFirst sf " +
+                "WHERE sf.seqSortFirst = :sortFirstId AND ss.seqSortSecond != 0";
+
+        List<Book> books = entityManager.createQuery(jpql, Book.class)
+                .setParameter("sortFirstId", sortFirstId)
+                .setFirstResult((int) pageRequest.getOffset())
+                .setMaxResults(pageRequest.getPageSize())
+                .getResultList();
+
+        Long total = entityManager.createQuery(countJpql, Long.class)
+                .setParameter("sortFirstId", sortFirstId)
+                .getSingleResult();
+
+        return new PageImpl<>(books, pageRequest, total);
     }
 
-
     @Override
-    public Book selectBookById(Integer bookId) throws Exception {
+    public Book selectBookById(int bookId, String idUser) throws Exception {
         Optional<Book> optionalBook = bookRepository.findById(bookId);
         if (optionalBook.isPresent()) {
             Book selectedBook = optionalBook.get();
@@ -79,20 +128,23 @@ public class BookDAOImpl implements BookDAO {
         }
     }
 
+    // 연관검색어
     @Override
     public List<Book> searchBooksRelated(String titleBook) throws Exception {
-        List<Book> bookList = bookRepository.findByTitleBookContaining(titleBook);
+        List<Book> bookList = bookRepository.findByTitleBookContainingAndSeqSortSecond_SeqSortSecondNot(titleBook, 0);
         return bookList;
     }
 
+    // 정확한 제목 검색
     @Override
     public List<Book> searchBooksResultExact(String titleBook) throws Exception {
-        return bookRepository.findByTitleBook(titleBook);
+        return bookRepository.findByTitleBookAndSeqSortSecond_SeqSortSecondNot(titleBook, 0);
     }
 
+    // 제목 포함 검색
     @Override
     public List<Book> searchBooksResultContaining(String titleBook) throws Exception {
-        return bookRepository.findByTitleBookContaining(titleBook);
+        return bookRepository.findByTitleBookContainingAndSeqSortSecond_SeqSortSecondNot(titleBook, 0);
     }
 
     @Override
@@ -106,8 +158,15 @@ public class BookDAOImpl implements BookDAO {
     }
 
     @Override
-    public boolean checkDuplicates(Integer seqBook, String barcodeBook) throws Exception {
+    public boolean checkDuplicates(int seqBook, String barcodeBook) throws Exception {
         return bookRepository.existsByBarcodeBookAndSeqBookNot(barcodeBook, seqBook);
     }
 
+    @Override
+    public Book bookStatusUpdate(Book book, boolean status) throws Exception {
+        Book selectedBook = bookRepository.findById(book.getSeqBook())
+                .orElseThrow(() -> new IllegalArgumentException("해당 도서는 존재하지 않습니다."));
+        selectedBook.setBookBorrowed(status);
+        return bookRepository.save(selectedBook);
+    }
 }

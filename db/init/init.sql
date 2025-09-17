@@ -8,22 +8,26 @@ CREATE TABLE tb_book (
     author_book     VARCHAR(20)     NOT NULL,
     publisher_book  VARCHAR(20)     NOT NULL,
     publish_date_book DATE          NOT NULL,
+    img_url_book    VARCHAR(255)    NOT NULL,
     barcode_book    VARCHAR(30)     NULL,
     cnt_book        INT             NULL,
     print_check_book TINYINT(1)     NOT NULL DEFAULT 0,
+    is_book_borrowed TINYINT(1)     NOT NULL DEFAULT 0,
     PRIMARY KEY (seq_book)
 );
 
 CREATE TABLE tb_user (
     seq_user        INT             NOT NULL AUTO_INCREMENT,
-    seq_course      INT             NOT NULL,
+    seq_course      INT             NULL,
     id_user         VARCHAR(30)     NOT NULL UNIQUE,
     pw_user         VARCHAR(255)    NOT NULL,
     name_user       VARCHAR(20)     NOT NULL,
     dc_user         VARCHAR(30)     NOT NULL,
     agree_terms_user TINYINT(1)     NOT NULL DEFAULT 0,
     agree_info_user  TINYINT(1)     NOT NULL DEFAULT 0,
+    agree_discord_alarm_user TINYINT(1) NOT NULL DEFAULT 0,
     status_user     ENUM('stop', 'available', 'overdue') COMMENT 'stop:정지or탈퇴, available:대여, overdue:연체' NOT NULL,
+    created_at      DATE            NOT NULL,
     PRIMARY KEY (seq_user)
 );
 
@@ -35,16 +39,18 @@ CREATE TABLE tb_admin (
     dc_admin          VARCHAR(30)     NOT NULL,
     agree_terms_admin TINYINT(1)      NOT NULL DEFAULT 0,
     agree_info_admin  TINYINT(1)      NOT NULL DEFAULT 0,
+    agree_discord_alarm_admin TINYINT(1) NOT NULL DEFAULT 0,
     status_admin      ENUM('stop', 'available', 'overdue') COMMENT 'stop:정지, available:대여, overdue:연체' NOT NULL,
+    created_at        DATE            NOT NULL,
     PRIMARY KEY (seq_admin)
 );
 
 CREATE TABLE tb_history (
     seq_history     INT             NOT NULL AUTO_INCREMENT,
-    seq_admin       INT             NOT NULL,
-    seq_user        INT             NOT NULL,
-    seq_course      INT             NOT NULL,
-    seq_book        INT             NOT NULL,
+    seq_admin       INT             NULL,
+    seq_user        INT             NULL,
+    seq_course      INT             NULL,
+    seq_book        INT             NULL,
     book_dt         DATE            NOT NULL,
     return_dt       DATE            NULL,
     PRIMARY KEY (seq_history)
@@ -73,6 +79,13 @@ CREATE TABLE tb_sort_second (
     PRIMARY KEY (seq_sort_second)
 );
 
+CREATE TABLE tb_favor (
+    seq_favor    INT               NOT NULL AUTO_INCREMENT,
+    seq_user     INT               NOT NULL,
+    seq_book     INT               NOT NULL,
+    PRIMARY KEY (seq_favor)
+);
+
 -- 외래키
 ALTER TABLE tb_book ADD CONSTRAINT FK_tb_sort_second_TO_tb_book
 FOREIGN KEY (seq_sort_second)
@@ -80,25 +93,32 @@ REFERENCES tb_sort_second (seq_sort_second);
 
 ALTER TABLE tb_user ADD CONSTRAINT FK_tb_course_TO_tb_user
 FOREIGN KEY (seq_course)
-REFERENCES tb_course (seq_course);
+REFERENCES tb_course (seq_course) ON DELETE SET NULL;
 
 ALTER TABLE tb_history ADD CONSTRAINT FK_tb_admin_TO_tb_history
 FOREIGN KEY (seq_admin)
-REFERENCES tb_admin (seq_admin);
+REFERENCES tb_admin (seq_admin) ON DELETE SET NULL;
 
 ALTER TABLE tb_history ADD CONSTRAINT FK_tb_user_TO_tb_history
 FOREIGN KEY (seq_user)
-REFERENCES tb_user (seq_user);
+REFERENCES tb_user (seq_user) ON DELETE SET NULL;
 
 ALTER TABLE tb_history ADD CONSTRAINT FK_tb_book_TO_tb_history
 FOREIGN KEY (seq_book)
-REFERENCES tb_book (seq_book);
+REFERENCES tb_book (seq_book) ON DELETE SET NULL;
 
 ALTER TABLE tb_history ADD CONSTRAINT FK_tb_course_TO_tb_history
 FOREIGN KEY (seq_course)
-REFERENCES tb_course (seq_course);
+REFERENCES tb_course (seq_course) ON DELETE SET NULL;
 
 ALTER TABLE tb_sort_second ADD CONSTRAINT FK_tb_sort_first_TO_tb_sort_second
 FOREIGN KEY (seq_sort_first)
-REFERENCES tb_sort_first(seq_sort_first)
+REFERENCES tb_sort_first(seq_sort_first);
 
+ALTER TABLE tb_favor ADD CONSTRAINT FK_tb_user_TO_tb_favor
+FOREIGN KEY (seq_user)
+REFERENCES tb_user (seq_user) ON DELETE CASCADE;
+
+ALTER TABLE tb_favor ADD CONSTRAINT FK_tb_book_TO_tb_favor
+FOREIGN KEY (seq_book)
+REFERENCES tb_book (seq_book) ON DELETE CASCADE;

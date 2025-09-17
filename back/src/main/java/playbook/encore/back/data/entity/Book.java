@@ -36,6 +36,9 @@ public class Book {
     @Column(name = "publish_date_book", nullable = false)
     private LocalDate publishDateBook;
 
+    @Column(name = "img_url_book", nullable = false)
+    private String imgUrlBook;
+
     @Column(name = "barcode_book")
     private String barcodeBook;
 
@@ -44,5 +47,8 @@ public class Book {
 
     @Column(name = "print_check_book", nullable = false)
     private boolean printCheckBook;
+
+    @Column(name = "is_book_borrowed", nullable = false, columnDefinition = "boolean default false")
+    private boolean isBookBorrowed; // 대여 중인 책인지 여부, true면 대여 중, false면 대여 가능
 }
 

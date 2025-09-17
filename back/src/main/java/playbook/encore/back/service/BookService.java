@@ -9,15 +9,17 @@ import playbook.encore.back.data.dto.book.BookResponseDto;
 import playbook.encore.back.data.dto.book.BookSearchResponseDto;
 import playbook.encore.back.data.dto.book.BookSortAndBarcodeRequestDto;
 import playbook.encore.back.data.dto.book.BookUnprintedResponseDto;
+import playbook.encore.back.data.entity.Book;
 
 import java.util.List;
 
 public interface BookService {
     BookResponseDto insertBook(BookRequestDto bookRequestDto);
-    BookListResponseDto getBookList(int page) throws Exception;
-    BookResponseDto getBookById(Integer bookId) throws Exception;
-    BookResponseDto changeBook(Integer bookId, BookSortAndBarcodeRequestDto bookSortAndBarcodeRequestDto) throws Exception;
-    void deleteBookById(Integer bookId) throws Exception;
+    BookListResponseDto getBookList(String idUser) throws Exception;
+    List<BookResponseDto> getAllBooks() throws Exception;
+    BookResponseDto getBookById(int bookId, String idUser) throws Exception;
+    BookResponseDto changeBook(int bookId, BookSortAndBarcodeRequestDto bookSortAndBarcodeRequestDto) throws Exception;
+    void deleteBookById(int bookId) throws Exception;
     BookCountResponseDto getBookCount(String isbn) throws Exception;
     List<BookSearchResponseDto> searchBookTitles(String titleBook) throws Exception;
     BookListResponseDto searchBooksByExactTitle(String titleBook) throws Exception;
@@ -25,4 +27,6 @@ public interface BookService {
     void markBooksAsPrinted(List<Integer> bookIds) throws Exception;
     List<BookUnprintedResponseDto> findUnprintedBooks() throws Exception;
     BookBarcodeUniqueResponseDto checkDuplicated(BookBarcodeUniqueRequestDto bookBarcodeUniqueRequestDto) throws Exception;
+    BookListResponseDto getBookListBySortFirst(int sortFirstId, int page);
+
 }
