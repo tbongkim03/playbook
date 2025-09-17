@@ -1,5 +1,15 @@
 # 플레이북
 
+<div align="left">
+
+<img alt="Java" src="https://img.shields.io/badge/Java-17%2B-orange?logo=openjdk&logoColor=white" />
+<img alt="Spring Boot" src="https://img.shields.io/badge/Spring%20Boot-3.x-6DB33F?logo=springboot&logoColor=white" />
+<img alt="Vue.js" src="https://img.shields.io/badge/Vue.js-3-42B883?logo=vuedotjs&logoColor=white" />
+<img alt="MySQL" src="https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white" />
+<img alt="Docker" src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" />
+
+</div>
+
 ## 캠퍼스 라운지 도서 관리 시스템
 
 ---
@@ -17,6 +27,7 @@
 - [핵심 설계 포인트](#핵심-설계-포인트)
 - [기술 스택](#기술-스택)
 - [주요 기능](#주요-기능)
+- [기능 체크리스트](#기능-체크리스트)
 - [폴더 구조](#폴더-구조)
 - [빠른 시작](#빠른-시작)
 - [환경 변수](#환경-변수)
@@ -76,6 +87,17 @@ Docker Compose
 - **관리 자동화**: 최초 실행 시 마스터 관리자 계정/설정 초기화 스크립트
 
 ---
+
+### 기능 체크리스트
+- [x] 로그인 및 권한 구분(운영자/사용자)
+- [x] 도서 등록/수정/삭제 (바코드/ISBN)
+- [x] 도서 대여/반납 및 이력 관리
+- [x] 통계 대시보드(Chart.js)
+- [x] 반납 기한/코스 종료 알림(Discord)
+- [x] Docker Compose로 로컬 실행
+- [ ] OpenAPI 문서 자동화
+- [ ] Spring Security 전환 및 RBAC
+- [ ] 테스트 자동화/CI 구축
 
 ### 폴더 구조
 ```
@@ -175,4 +197,9 @@ docker-compose up -d --build
 ### 라이선스
 본 저장소의 코드는 저작권자의 허가 없이 복제, 배포, 수정할 수 없습니다.
 본 코드는 [엔코아] 플레이데이터 캠퍼스 내 사용을 목적으로 작성되었으며, 외부 사용을 금지합니다.
+
+---
+
+### 문의
+프로젝트 관련 문의는 이메일로 연락 주세요: tbongkim03@gmail.com
 
