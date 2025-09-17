@@ -68,8 +68,8 @@
       <div class="main" :style="{ marginTop: mainMarginTop }">
         <div class="content-header" v-if="filteredBookList.length > 0">
           <h2 class="section-title">
-            {{ selectedLargeCategory === '전체' ? '전체 도서' : selectedLargeCategory }}
-            <span class="book-count">({{ totalCount }}권)</span>
+            {{ getSectionTitle() }}
+            <span class="book-count">({{ displayCount }}권)</span>
           </h2>
         </div>
 
@@ -140,7 +140,7 @@
 import BookArea from '@/components/BookArea.vue'
 import BookSearch from '@/components/BookSearch.vue'
 import BorrowReturn from '@/components/BorrowReturn.vue'
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 
 const isModalOpen = ref(true)
 
@@ -154,11 +154,19 @@ const selectedMediumCategoryLargeSeq = ref(null) // 중분류가 속한 대분�
 
 const hoveringWrapper = ref(false)
 const hoveredLargeCategory = ref(null)
-const hoveringMedium = ref(false)
 
 const bookList = ref([])
 const totalCount = ref(0)
 const currentPage = ref(1)
+
+const handleKeydown = (event) => {
+  if (event.key === 'Escape' && isModalOpen.value) {
+    isModalOpen.value = false
+  }
+}
+
+// 검색 상태 추가
+const isSearchMode = ref(false)
 
 const fetchLargeCategories = async () => {
   try {
@@ -187,12 +195,26 @@ const loadBooks = async (page = 1) => {
       url = `http://localhost:8080/books/sortFirst?id=${selectedLargeCategorySeq.value}&page=${page}`
     }
 
-    const res = await fetch(url)
+    const token = localStorage.getItem('jwtToken')
+
+    const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+    })
     const data = await res.json()
 
-    bookList.value = data.content || []
-    totalCount.value = data.totalCount || 0
+    // printCheckBook이 1인 책만 필터링
+    const filteredBooks = (data.content || []).filter(book => book.printCheckBook === true)
+    
+    bookList.value = filteredBooks
+    totalCount.value = filteredBooks.length // 필터링된 책의 개수로 업데이트
     currentPage.value = page
+    
+    // 검색 모드 해제
+    isSearchMode.value = false
   } catch (error) {
     console.error('책 목록 조회 실패:', error)
     bookList.value = []
@@ -206,7 +228,7 @@ const getMediumOptions = (largeCode) => {
   return mediumCategoriesAll.value.filter(m => m.seqSortFirst === large.seqSortFirst)
 }
 
-// 대분류 활성화 상태 판단 함수 추가
+// 대분류 활성화 상태 판단 함수
 const isLargeCategoryActive = (largeCategoryName) => {
   // 직접 선택된 경우
   if (selectedLargeCategory.value === largeCategoryName) {
@@ -247,16 +269,53 @@ const currentLargeForMedium = computed(() => {
 })
 
 const filteredBookList = computed(() => {
-  if (!selectedMediumCategory.value) {
-    return bookList.value
+  let filtered = bookList.value.filter(book => 
+    book.seqSortFirst !== 0 && 
+    book.seqSortSecond !== 0 &&
+    book.printCheckBook === true  // printCheckBook이 1인 책만 표시
+  );
+  
+  if (selectedMediumCategory.value) {
+    filtered = filtered.filter(book => book.seqSortSecond === selectedMediumCategory.value);
   }
-  return bookList.value.filter(book => book.seqSortSecond === selectedMediumCategory.value)
-})
+  
+  return filtered;
+});
+
+const displayCount = computed(() => {
+  return filteredBookList.value.length;
+});
 
 const mainMarginTop = computed(() => {
   const baseMargin = shouldShowMediumDropdown.value ? '180px' : '120px'
   return baseMargin
 })
+
+// 섹션 제목을 동적으로 생성하는 함수
+const getSectionTitle = () => {
+  // 검색 모드인 경우
+  if (isSearchMode.value) {
+    return '검색 결과'
+  }
+  
+  // 중분류가 선택된 경우
+  if (selectedMediumCategory.value && selectedMediumCategoryLargeSeq.value) {
+    const large = largeCategories.value.find(l => l.seqSortFirst === selectedMediumCategoryLargeSeq.value)
+    const medium = mediumCategoriesAll.value.find(m => m.seqSortSecond === selectedMediumCategory.value)
+    
+    if (large && medium) {
+      return `${large.korSortFirst} / ${medium.korSortSecond}`
+    }
+  }
+  
+  // 대분류가 선택된 경우
+  if (selectedLargeCategory.value === '전체') {
+    return '전체 도서'
+  } else {
+    const large = largeCategories.value.find(l => l.nameSortFirst === selectedLargeCategory.value)
+    return large ? large.korSortFirst : selectedLargeCategory.value
+  }
+}
 
 function selectLargeCategory(categoryName, categorySeq = null) {
   selectedLargeCategory.value = categoryName
@@ -290,20 +349,26 @@ const fetchBooks = async (page = 1, query = '', exact = false) => {
     url = new URL(`http://localhost:8080/books/search`);
     url.searchParams.set('q', query.trim());
     url.searchParams.set('exact', exact);
+    
+    // 검색 모드 활성화
+    isSearchMode.value = true
   } else {
     url = new URL(`http://localhost:8080/books`);
     url.searchParams.set('page', page);
+    
+    // 검색 모드 비활성화
+    isSearchMode.value = false
   }
-
-  // console.log('👉 호출 URL:', url.toString());
 
   const res = await fetch(url.toString());
   if (!res.ok) {
-    const errorMessage = await response.text();
-    throw new Error(errorMessage || `서버 오류: ${response.status}`)
+    const errorMessage = await res.text();
+    throw new Error(errorMessage || `서버 오류: ${res.status}`)
   }
 
   const data = await res.json();
+
+  console.log(data)
 
   if (!data.content) {
     alert('서버 응답 데이터 오류: ', data);
@@ -312,8 +377,11 @@ const fetchBooks = async (page = 1, query = '', exact = false) => {
     return;
   }
 
-  totalCount.value = data.totalCount;
-  bookList.value = data.content.map(book => {
+  // 검색 결과에서 printCheckBook이 1인 책만 필터링
+  const filteredBooks = data.content.filter(book => book.printCheckBook === true);
+
+  totalCount.value = filteredBooks.length;
+  bookList.value = filteredBooks.map(book => {
     return {
       ...book
     };
@@ -327,7 +395,13 @@ onMounted(async () => {
   await fetchMediumCategories()
   selectedLargeCategory.value = '전체'
   await loadBooks(1)
+  window.addEventListener('keydown', handleKeydown)
 })
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeydown)
+})
+
 </script>
 
 <style scoped>
@@ -335,7 +409,8 @@ onMounted(async () => {
   position: relative;
   width: 100%;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  /* background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); */
+  background: linear-gradient(135deg, #f5f7fa 0%, #EDEFEF 100%);
 }
 
 .mainpage-area {
@@ -517,7 +592,7 @@ onMounted(async () => {
   display: grid;
   place-items: center;
   width: 100%;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(5, 1fr);
   gap: 32px;
   padding: 0;
   min-height: 400px;

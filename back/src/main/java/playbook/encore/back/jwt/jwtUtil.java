@@ -30,7 +30,7 @@ public class jwtUtil {
 
         return Jwts.builder()
                 .setSubject(idUser)
-                .claim("role", role)
+                .claim("ROLE", role)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -44,7 +44,7 @@ public class jwtUtil {
                 .parseClaimsJws(token)
                 .getBody();
 
-        return claims.get("role", String.class);
+        return claims.get("ROLE", String.class);
     }
 
     public String getIdUserFromToken(String token) {

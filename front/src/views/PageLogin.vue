@@ -44,6 +44,7 @@
                 </div>
 
                 <form @submit.prevent="handleLogin" class="login-form">
+                    <!-- 아이디 입력 필드 -->
                     <div class="input-group">
                         <div class="input-container">
                             <div class="input-icon">
@@ -61,9 +62,24 @@
                                 @keydown="blockJavascriptInput"
                                 required
                             >
+                            <!-- 아이디 지우기 버튼 -->
+                            <button 
+                                v-if="userId" 
+                                type="button" 
+                                class="input-action-btn clear-btn"
+                                @click="clearUserId"
+                                title="아이디 지우기"
+                                tabindex="-1"
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                                  <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                            </button>
                         </div>
                     </div>
 
+                    <!-- 비밀번호 입력 필드 -->
                     <div class="input-group">
                         <div class="input-container">
                             <div class="input-icon">
@@ -74,14 +90,49 @@
                                 </svg>
                             </div>
                             <input 
-                                type="password" 
-                                class="form-input" 
+                                :type="showPassword ? 'text' : 'password'" 
+                                class="form-input password-input" 
                                 :placeholder="isAdminMode ? '관리자 비밀번호를 입력하세요' : '비밀번호를 입력하세요'" 
                                 v-model="password" 
                                 @keydown.space.prevent 
                                 @keydown="blockJavascriptInput"
                                 required
                             >
+                            <!-- 비밀번호 액션 버튼들 -->
+                            <div v-if="password" class="password-actions">
+                                <!-- 비밀번호 지우기 버튼 -->
+                                <button 
+                                    type="button" 
+                                    class="input-action-btn clear-btn"
+                                    @click="clearPassword"
+                                    title="비밀번호 지우기"
+                                    tabindex="-1"
+                                >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                                      <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                </button>
+                                <!-- 비밀번호 보기/숨기기 버튼 -->
+                                <button 
+                                    type="button" 
+                                    class="input-action-btn toggle-password-btn"
+                                    @click="togglePasswordVisibility"
+                                    :title="showPassword ? '비밀번호 숨기기' : '비밀번호 보기'"
+                                    tabindex="-1"
+                                >
+                                    <!-- 눈 보이기 아이콘 -->
+                                    <svg v-if="!showPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/>
+                                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                    <!-- 눈 숨기기 아이콘 -->
+                                    <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2"/>
+                                        <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -161,12 +212,14 @@ const router = useRouter()
 const userId = ref('')
 const password = ref('')
 const isAdminMode = ref(false)
+const showPassword = ref(false)
 
 function setLoginMode(adminMode) {
   isAdminMode.value = adminMode
   // 모드 변경 시 입력 값 초기화
   userId.value = ''
   password.value = ''
+  showPassword.value = false
 }
 
 function goToTerms() {
@@ -174,6 +227,21 @@ function goToTerms() {
     name: 'PageTerm',
     state: { fromLogin: true }
   })
+}
+
+// 아이디 지우기 함수
+function clearUserId() {
+  userId.value = ''
+}
+
+// 비밀번호 지우기 함수
+function clearPassword() {
+  password.value = ''
+}
+
+// 비밀번호 표시/숨기기 토글 함수
+function togglePasswordVisibility() {
+  showPassword.value = !showPassword.value
 }
 
 async function handleLogin() {
@@ -398,6 +466,10 @@ function blockJavascriptInput(event) {
   box-sizing: border-box;
 }
 
+.password-input {
+  padding-right: 80px;
+}
+
 .form-input:focus {
   outline: none;
   border-color: #667eea;
@@ -407,6 +479,64 @@ function blockJavascriptInput(event) {
 
 .form-input:focus ~ .input-icon {
   color: #667eea;
+}
+
+/* 입력 필드 액션 버튼들 스타일 */
+.input-action-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+}
+
+.input-action-btn:hover {
+  color: #64748b;
+  background: rgba(100, 116, 139, 0.1);
+}
+
+.clear-btn {
+  right: 16px;
+}
+
+/* 비밀번호 필드의 액션 버튼들 */
+.password-actions {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 3;
+}
+
+.password-actions .clear-btn {
+  position: relative;
+  right: 0;
+  top: 0;
+  transform: none;
+}
+
+.toggle-password-btn {
+  position: relative;
+  right: 0;
+  top: 0;
+  transform: none;
+}
+
+.toggle-password-btn:hover {
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
 }
 
 .login-button {
@@ -629,6 +759,14 @@ function blockJavascriptInput(event) {
     width: 80%;
     height: 1px;
   }
+  
+  .password-input {
+    padding-right: 76px;
+  }
+  
+  .password-actions {
+    gap: 2px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -642,6 +780,10 @@ function blockJavascriptInput(event) {
   
   .form-input {
     padding: 14px 14px 14px 44px;
+  }
+  
+  .password-input {
+    padding-right: 70px;
   }
   
   .login-button {
@@ -658,6 +800,15 @@ function blockJavascriptInput(event) {
   .toggle-btn svg {
     width: 16px;
     height: 16px;
+  }
+  
+  .input-action-btn {
+    padding: 3px;
+  }
+  
+  .input-action-btn svg {
+    width: 14px;
+    height: 14px;
   }
 }
 </style>

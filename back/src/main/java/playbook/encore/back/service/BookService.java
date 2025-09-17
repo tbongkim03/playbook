@@ -9,13 +9,15 @@ import playbook.encore.back.data.dto.book.BookResponseDto;
 import playbook.encore.back.data.dto.book.BookSearchResponseDto;
 import playbook.encore.back.data.dto.book.BookSortAndBarcodeRequestDto;
 import playbook.encore.back.data.dto.book.BookUnprintedResponseDto;
+import playbook.encore.back.data.entity.Book;
 
 import java.util.List;
 
 public interface BookService {
     BookResponseDto insertBook(BookRequestDto bookRequestDto);
-    BookListResponseDto getBookList(int page) throws Exception;
-    BookResponseDto getBookById(int bookId) throws Exception;
+    BookListResponseDto getBookList(String idUser) throws Exception;
+    List<BookResponseDto> getAllBooks() throws Exception;
+    BookResponseDto getBookById(int bookId, String idUser) throws Exception;
     BookResponseDto changeBook(int bookId, BookSortAndBarcodeRequestDto bookSortAndBarcodeRequestDto) throws Exception;
     void deleteBookById(int bookId) throws Exception;
     BookCountResponseDto getBookCount(String isbn) throws Exception;
@@ -26,4 +28,5 @@ public interface BookService {
     List<BookUnprintedResponseDto> findUnprintedBooks() throws Exception;
     BookBarcodeUniqueResponseDto checkDuplicated(BookBarcodeUniqueRequestDto bookBarcodeUniqueRequestDto) throws Exception;
     BookListResponseDto getBookListBySortFirst(int sortFirstId, int page);
+
 }

@@ -1,23 +1,29 @@
 <template>
   <header class="main-header">
     <div class="header-content">
-      <router-link to="/" custom v-slot="{ navigate }">
-        <div class="logo-container" @click="navigate">
-          <img src="@/assets/playbook_logo.png" alt="Logo" class="logo-img" />
-        </div>
-      </router-link>
+      <div class="logo-container" @click="goHome">
+        <img src="@/assets/playbook_logo-removebg-preview.png" alt="Logo" class="logo-img" />
+      </div>
 
       <div class="user-section">
         <template v-if="isLogin">
-          <div class="user-info">
-            <div class="user-avatar">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
+          <!-- 사용자 정보 클릭시 페이지 이동 -->
+          <router-link 
+            :to="isAdmin ? '/admin' : '/users'" 
+            custom 
+            v-slot="{ navigate }"
+          >
+            <div class="user-info" @click="navigate">
+              <div class="user-avatar">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <span class="username">{{ username }} {{ isAdmin ? '(관리자)' : '님' }}</span>
             </div>
-            <span class="username">{{ username }} 님</span>
-          </div>
+          </router-link>
+
           <router-link to="/logout" custom v-slot="{ navigate }">
             <button type="button" class="logout-btn" @click="navigate">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -54,6 +60,7 @@ import { useRoute, useRouter } from 'vue-router'
 
 const isLogin = ref(false) // 로그인 여부
 const username = ref('')    // 로그인 사용자 이름
+const isAdmin = ref(false)  // 관리자 여부
 
 const route = useRoute()
 const router = useRouter()
@@ -62,9 +69,10 @@ const showLoginButton = computed(() => {
   return !isLogin.value && route.path !== '/login'
 })
 
-const showLogoutButton = computed(() => {
-  return isLogin.value
-})
+function goHome() {
+  window.location.href = '/';
+}
+
 
 // 사용자 정보 가져오기 함수
 async function fetchUserInfo() {
@@ -72,6 +80,7 @@ async function fetchUserInfo() {
   if (!token) {
     isLogin.value = false;
     username.value = '';
+    isAdmin.value = false;
     return;
   }
 
@@ -89,10 +98,12 @@ async function fetchUserInfo() {
       const data = userRes.value.data;
       username.value = data.nameUser || data.idUser || '사용자';
       isLogin.value = true;
+      isAdmin.value = false;
     } else if (adminRes.status === 'fulfilled') {
       const data = adminRes.value.data;
       username.value = data.nameAdmin || data.idAdmin || '관리자';
       isLogin.value = true;
+      isAdmin.value = true;
     } else {
       // 둘 다 실패한 경우
       const userError = userRes.reason?.response?.data || userRes.reason?.message;
@@ -102,15 +113,16 @@ async function fetchUserInfo() {
       localStorage.removeItem('userType');
       isLogin.value = false;
       username.value = '';
+      isAdmin.value = false;
       router.push('/login');
     }
   } catch (error) {
     alert('예기치 못한 오류 발생: ' + (error?.message || error));
     isLogin.value = false;
     username.value = '';
+    isAdmin.value = false;
   }
 }
-
 
 onMounted(() => {
   fetchUserInfo()
@@ -193,6 +205,9 @@ onMounted(() => {
   border-radius: 12px;
   border: 1px solid rgba(102, 126, 234, 0.1);
   transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
 }
 
 .user-info:hover {
@@ -200,6 +215,8 @@ onMounted(() => {
   border-color: rgba(102, 126, 234, 0.2);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  text-decoration: none;
+  color: inherit;
 }
 
 .user-avatar {
@@ -336,11 +353,6 @@ onMounted(() => {
   
   .user-info {
     padding: 8px;
-  }
-  
-  .login-btn span,
-  .logout-btn span {
-    display: none;
   }
 }
 

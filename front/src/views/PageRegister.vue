@@ -49,6 +49,19 @@
                   placeholder="이름을 입력하세요"
                   @keydown="blockJavascriptInput"
                 />
+                <button 
+                  v-if="name" 
+                  type="button" 
+                  class="input-action-btn clear-btn"
+                  @click="clearName"
+                  title="이름 지우기"
+                  tabindex="-1"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </button>
               </div>
             </div>
 
@@ -73,6 +86,19 @@
                   @keydown="blockJavascriptInput"
                   placeholder="아이디를 입력하세요"
                 />
+                <button 
+                  v-if="username" 
+                  type="button" 
+                  class="input-action-btn clear-btn"
+                  @click="clearUsername"
+                  title="아이디 지우기"
+                  tabindex="-1"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </button>
               </div>
               
             </div>
@@ -87,10 +113,10 @@
                   </svg>
                 </div>
                 <input
-                  type="password"
+                  :type="showPassword ? 'text' : 'password'"
                   v-model="password"
                   @blur="validatePassword"
-                  class="form-input"
+                  class="form-input password-input"
                   :class="{ 
                     'error': errors.password,
                     'success': password.length >= 4 && !errors.password
@@ -99,6 +125,40 @@
                   @keydown="blockJavascriptInput"
                   placeholder="비밀번호를 입력하세요"
                 />
+                <div v-if="password" class="password-actions">
+                  <!-- 비밀번호 지우기 버튼 -->
+                  <button 
+                    type="button" 
+                    class="input-action-btn clear-btn"
+                    @click="clearPassword"
+                    title="비밀번호 지우기"
+                    tabindex="-1"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                      <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                  </button>
+                  <!-- 비밀번호 보기/숨기기 버튼 -->
+                  <button 
+                      type="button" 
+                      class="input-action-btn toggle-password-btn"
+                      @click="togglePasswordVisibility"
+                      :title="showPassword ? '비밀번호 숨기기' : '비밀번호 보기'"
+                      tabindex="-1"
+                  >
+                      <!-- 눈 보이기 아이콘 -->
+                      <svg v-if="!showPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/>
+                          <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                      <!-- 눈 숨기기 아이콘 -->
+                      <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2"/>
+                          <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                  </button>
+                </div>
               </div>
             </div>
             <div class="error-message" v-if="errors.name">{{ errors.name }}</div>
@@ -138,6 +198,19 @@
                   }"
                   placeholder="디스코드 아이디를 입력하세요"
                 />
+                <button 
+                  v-if="discord" 
+                  type="button" 
+                  class="input-action-btn clear-btn"
+                  @click="clearDiscord"
+                  title="디스코드 아이디 지우기"
+                  tabindex="-1"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </button>
               </div>
               <div class="input-description">
                 도서 반납 기한 알림을 받기 위해 디스코드 아이디가 필요합니다.
@@ -264,6 +337,7 @@ const dropdownPositionUp = ref(false)
 const courseBoxOpen = ref(false)
 const searchQuery = ref('')
 
+const showPassword = ref(false)
 const name = ref('')
 const username = ref('')
 const password = ref('')
@@ -281,6 +355,8 @@ const courseList = ref([])
 const selectedCourse = ref(null)
 
 const fromTerm = window.history.state?.fromTerm
+
+const token = localStorage.getItem("jwtToken")
 
 if (!fromTerm) {
   alert('잘못된 접근입니다.')
@@ -306,20 +382,41 @@ const filteredCourseList = computed(() => {
   )
 })
 
-// 날짜 계산
-const today = new Date()
-const sixMonthsAgo = new Date()
-sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
-
-function formatDateToYYYYMMDD(date) {
-  const yyyy = date.getFullYear()
-  const mm = String(date.getMonth() + 1).padStart(2, '0')
-  const dd = String(date.getDate()).padStart(2, '0')
-  return `${yyyy}${mm}${dd}`
+function clearName() {
+  name.value = ''
 }
 
-const srchTraStDt = formatDateToYYYYMMDD(sixMonthsAgo)
-const srchTraEndDt = formatDateToYYYYMMDD(today)
+function clearUsername() {
+  username.value = ''
+}
+
+function clearPassword() {
+  password.value = ''
+}
+
+function clearDiscord() {
+  discord.value = ''
+}
+
+// 비밀번호 표시/숨기기 토글 함수
+function togglePasswordVisibility() {
+  showPassword.value = !showPassword.value
+}
+
+// 날짜 계산
+// const today = new Date()
+// const sixMonthsAgo = new Date()
+// sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+
+// function formatDateToYYYYMMDD(date) {
+//   const yyyy = date.getFullYear()
+//   const mm = String(date.getMonth() + 1).padStart(2, '0')
+//   const dd = String(date.getDate()).padStart(2, '0')
+//   return `${yyyy}${mm}${dd}`
+// }
+
+// const srchTraStDt = formatDateToYYYYMMDD(sixMonthsAgo)
+// const srchTraEndDt = formatDateToYYYYMMDD(today)
 
 onMounted(() => {
   getCourseList()
@@ -331,17 +428,23 @@ onBeforeUnmount(() => {
 })
 
 async function getCourseList() {
-  const apiKey = import.meta.env.VITE_WORK24_API_KEY
-  const url =
-    `https://www.work24.go.kr/cm/openApi/call/hr/callOpenApiSvcInfo310L01.do?authKey=${apiKey}` +
-    `&returnType=JSON&outType=1&pageNum=1&pageSize=100` +
-    `&srchTraStDt=${srchTraStDt}&srchTraEndDt=${srchTraEndDt}` +
-    `&srchTraArea1=11&srchNcs1=20&crseTracseSe=C0104&srchTraGbn=M1001&srchTraOrganNm=플레이데이터평생교육원` +
-    `&sort=ASC&sortCol=2`
+  // const apiKey = import.meta.env.VITE_WORK24_API_KEY
+  // const url =
+  //   `https://www.work24.go.kr/cm/openApi/call/hr/callOpenApiSvcInfo310L01.do?authKey=${apiKey}` +
+  //   `&returnType=JSON&outType=1&pageNum=1&pageSize=100` +
+  //   `&srchTraStDt=${srchTraStDt}&srchTraEndDt=${srchTraEndDt}` +
+  //   `&srchTraArea1=11&srchNcs1=20&crseTracseSe=C0104&srchTraGbn=M1001&srchTraOrganNm=플레이데이터평생교육원` +
+  //   `&sort=ASC&sortCol=2`
 
   try {
     // 1. 외부 API에서 데이터 가져오기
-    const res = await fetch(url)
+    // const res = await fetch(url)
+    const res = await fetch('http://localhost:8080/api/work24/course', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
     const data = await res.json()
     const apiCoursesRaw = data?.srchList || []
 
@@ -777,6 +880,27 @@ async function handleSubmit() {
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
+.password-input {
+  padding-right: 80px;
+}
+
+.input-action-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+}
+
 .form-label {
   position: absolute;
   left: 48px;
@@ -795,6 +919,48 @@ async function handleSubmit() {
   color: #64748b;
   margin-top: 0.5rem;
   padding-left: 4px;
+}
+
+.input-action-btn:hover {
+  color: #64748b;
+  background: rgba(100, 116, 139, 0.1);
+}
+
+/* 단일 지우기 버튼 (이름, 아이디, 디스코드) */
+.clear-btn {
+  right: 16px;
+}
+
+/* 비밀번호 필드의 액션 버튼들 컨테이너 */
+.password-actions {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 3;
+}
+
+/* 비밀번호 액션 버튼들 위치 재설정 */
+.password-actions .clear-btn {
+  position: relative;
+  right: 0;
+  top: 0;
+  transform: none;
+}
+
+.toggle-password-btn {
+  position: relative;
+  right: 0;
+  top: 0;
+  transform: none;
+}
+
+.toggle-password-btn:hover {
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
 }
 
 .error-message {
@@ -1191,6 +1357,14 @@ async function handleSubmit() {
   .form-section {
     padding: 1.25rem;
   }
+
+  .password-input {
+    padding-right: 76px;
+  }
+  
+  .password-actions {
+    gap: 2px;
+  }
   
   .section-header {
     flex-wrap: wrap;
@@ -1215,6 +1389,23 @@ async function handleSubmit() {
   
   .form-input {
     padding: 14px 14px 14px 44px;
+  }
+
+  .form-input {
+    padding: 14px 14px 14px 44px;
+  }
+  
+  .password-input {
+    padding-right: 70px;
+  }
+  
+  .input-action-btn {
+    padding: 3px;
+  }
+  
+  .input-action-btn svg {
+    width: 14px;
+    height: 14px;
   }
 }
 </style>

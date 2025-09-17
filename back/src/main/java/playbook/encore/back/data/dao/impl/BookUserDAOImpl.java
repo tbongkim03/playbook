@@ -1,5 +1,6 @@
 package playbook.encore.back.data.dao.impl;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.mindrot.jbcrypt.BCrypt;
@@ -66,22 +67,6 @@ public class BookUserDAOImpl implements BookUserDAO {
     }
 
     @Override
-    public Optional<BookUser> changeCourse(BookUser bookUser, Integer newSeqCourse) {
-        Optional<BookUser> optionalUser = bookUserRepository.findByIdUser(bookUser.getIdUser());
-        if (optionalUser.isEmpty()) return Optional.empty();
-        Optional<Course> optionalCourse = courseRepository.findById(newSeqCourse);
-        if (optionalCourse.isEmpty()) return Optional.empty();
-        BookUser selectedUser = optionalUser.get();
-        Course selectedCourse = optionalCourse.get();
-        BookUser updatedUser;
-
-        selectedUser.setSeqCourse(selectedCourse);
-        updatedUser = bookUserRepository.save(selectedUser);
-
-        return Optional.of(updatedUser);
-    }
-
-    @Override
     public Optional<BookUser> changeDiscord(BookUser bookUser, String newDiscord) {
         Optional<BookUser> optionalUser = bookUserRepository.findByIdUser(bookUser.getIdUser());
         if (optionalUser.isEmpty()) return Optional.empty();
@@ -94,4 +79,21 @@ public class BookUserDAOImpl implements BookUserDAO {
         return Optional.of(updatedUser);
     }
 
+    @Override
+    public Optional<BookUser> updateStatus(BookUser bookUser, BookUser.StatusType status) {
+        Optional<BookUser> optionalUser = bookUserRepository.findByIdUser(bookUser.getIdUser());
+        if (optionalUser.isEmpty()) return Optional.empty();
+        BookUser selectedUser = optionalUser.get();
+        BookUser updatedUser;
+
+        selectedUser.setStatusUser(status);
+        updatedUser = bookUserRepository.save(selectedUser);
+
+        return Optional.of(updatedUser);
+    }
+
+    @Override
+    public List<Object[]> getBookUserList() {
+        return bookUserRepository.findAllUsersWithCourseDetails();
+    }
 }

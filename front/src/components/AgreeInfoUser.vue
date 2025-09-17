@@ -37,7 +37,7 @@
                             </div>
                             <div class="info-item">
                                 <div class="info-label">수집 목적</div>
-                                <div class="info-value">회원 관리 및 도서 대여 서비스 제공</div>
+                                <div class="info-value">회원 관리 및 도서 대출 서비스 제공</div>
                             </div>
                             <div class="info-item">
                                 <div class="info-label">보유 기간</div>
@@ -54,7 +54,7 @@
                     </div>
 
                     <div class="terms-full" v-else>
-                        <h6>본인은 도서 대여 서비스 제공을 위하여 아래와 같은 개인정보를 수집·이용하는 것에 동의합니다.</h6>
+                        <h6>본인은 도서 대출 서비스 제공을 위하여 아래와 같은 개인정보를 수집·이용하는 것에 동의합니다.</h6>
                         
                         <div class="terms-section">
                             <h7>1. 수집 항목</h7>
@@ -75,7 +75,7 @@
                                 </li>
                                 <li>
                                     <span class="purpose-icon">📚</span>
-                                    <span>도서 대여 및 반납 서비스 제공</span>
+                                    <span>도서 대출 및 반납 서비스 제공</span>
                                 </li>
                                 <li class="highlight-purpose">
                                     <span class="purpose-icon">🔔</span>

@@ -9,9 +9,11 @@ import org.springframework.data.domain.Page;
 public interface BookDAO {
     Book insertBook(Book book);
 
-    Page<Book> selectBookListByPage(int page) throws Exception;
+    List<Book> selectBookListAll() throws Exception;
 
-    Book selectBookById(int bookId) throws Exception;
+    List<Book> selectAllBooks() throws Exception;
+
+    Book selectBookById(int bookId, String idUser) throws Exception;
 
     Book updateBook(Book book) throws Exception;
 
@@ -30,4 +32,6 @@ public interface BookDAO {
     boolean checkDuplicates(int seqBook, String barcodeBook) throws Exception;
 
     Page<Book> selectBookListByPageBySortFirst(int sortFirstId, int page);
+
+    Book bookStatusUpdate(Book book, boolean status) throws Exception;
 }

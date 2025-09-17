@@ -8,6 +8,7 @@ import playbook.encore.back.data.entity.Admin;
 import playbook.encore.back.data.entity.BookUser;
 import playbook.encore.back.data.repository.AdminRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -17,7 +18,12 @@ public class AdminDAOImpl implements AdminDAO {
     private final AdminRepository adminRepository;
 
     @Override
-    public Admin createAdmin(Admin admin) { return adminRepository.save(admin);}
+    public Optional<Admin> createAdmin(Admin user, Admin admin) {
+        Optional<Admin> optionalAdmin = adminRepository.findByIdAdmin(user.getIdAdmin());
+        if (optionalAdmin.isEmpty()) return Optional.empty();
+        adminRepository.save(admin);
+        return Optional.of(admin);
+    }
 
     @Override
     public Optional<Admin> searchBookUserResultExact(String idAdmin) {
@@ -29,7 +35,7 @@ public class AdminDAOImpl implements AdminDAO {
         Optional<Admin> optionalAdmin = adminRepository.findByIdAdmin(id);
         if (optionalAdmin.isEmpty()) return Optional.empty();
         Admin admin = optionalAdmin.get();
-        if (!admin.getPwAdmin().equals(pw)) return Optional.empty();
+        if (!BCrypt.checkpw(pw, admin.getPwAdmin())) return Optional.empty();
         return Optional.of(admin);
     }
 
@@ -56,14 +62,45 @@ public class AdminDAOImpl implements AdminDAO {
     }
 
     @Override
-    public Optional<Admin> pwValidate(Admin user, String password) {
+    public Optional<Admin> pwValidate(Admin user, String idAdmin, String password) {
         Optional<Admin> optionalAdmin = adminRepository.findByIdAdmin(user.getIdAdmin());
+        Optional<Admin> optionalUser = adminRepository.findByIdAdmin(idAdmin);
         if (optionalAdmin.isEmpty()) return Optional.empty();
-        Admin selectedUser = optionalAdmin.get();
+        if (optionalUser.isEmpty()) return Optional.empty();
+        Admin selectedUser = optionalUser.get();
         if (BCrypt.checkpw(password, selectedUser.getPwAdmin())) {
             return Optional.of(selectedUser);
         } else {
             return Optional.empty();
         }
+    }
+
+    @Override
+    public List<Admin> getAdminList() {
+        List<Admin> adminList = adminRepository.findAll();
+        if (adminList.isEmpty()) {
+            throw new IllegalArgumentException("등록된 어드민이 없습니다.");
+        }
+        return adminList;
+    }
+
+    @Override
+    public Optional<Admin> updateStatus(Admin user, Admin.StatusTypeAdmin status) {
+        Optional<Admin> optionalAdmin = adminRepository.findByIdAdmin(user.getIdAdmin());
+        if (optionalAdmin.isEmpty()) return Optional.empty();
+        Admin selectedAdmin = optionalAdmin.get();
+        Admin updatedAdmin;
+        selectedAdmin.setStatusAdmin(status);
+        updatedAdmin = adminRepository.save(selectedAdmin);
+        return Optional.of(updatedAdmin);
+    }
+
+    @Override
+    public Optional<Admin> deleteAdmin(String idAdmin) {
+        Optional<Admin> optionalAdmin = adminRepository.findByIdAdmin(idAdmin);
+        if (optionalAdmin.isEmpty()) return Optional.empty();
+        Admin selectedAdmin = optionalAdmin.get();
+        adminRepository.delete(selectedAdmin);
+        return Optional.of(selectedAdmin);
     }
 }

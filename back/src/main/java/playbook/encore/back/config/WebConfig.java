@@ -27,12 +27,31 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginCheckInterceptor)
-                .addPathPatterns("/users/me").addPathPatterns("/admin/me") // 검증해야하는 경우
-                .addPathPatterns("/users/password").addPathPatterns("/admin/password")
-                .addPathPatterns("/users/discord").addPathPatterns("/admin/discord")
+                .addPathPatterns("/history/borrow", "/history/return", "/history/book", "/history/me")
+                .addPathPatterns("/history/popular/first", "/history/popular/first/*")
+                .addPathPatterns("/history/popular/second", "/history/popular/second/*")
+                .addPathPatterns("/history/rank", "/history/rank/*")
+                .addPathPatterns("/users/me", "/admin/me")
+                .addPathPatterns("/users")
+                .addPathPatterns("/admin")
+                .addPathPatterns("/users/password", "/admin/password")
+                .addPathPatterns("/admin/discord")
+                .addPathPatterns("/users/list")
+                .addPathPatterns("/admin/register", "/admin/register/validate")
                 .addPathPatterns("/users/course")
-                .addPathPatterns("/users/validate").addPathPatterns("/admin/validate")
+                .addPathPatterns("/users/validate", "/admin/validate")
+                .addPathPatterns("/admin/list")
+                .addPathPatterns("/api/naver/book-search", "/api/national-library/isbn", "/api/work24/course")
+                .addPathPatterns("/favor")
+                .addPathPatterns("/history/me")
+                // books 관련 관리자 전용 경로들 추가
+                .addPathPatterns("/books") // POST 요청 포함
+                .addPathPatterns("/books/*") // PUT, DELETE 요청 포함
+                .addPathPatterns("/books/all")
+                .addPathPatterns("/books/count")
                 .addPathPatterns("/books/batch/print")
-                .excludePathPatterns("/users/login", "/users/register"); // 검증이 필요 없는 경우
+                .addPathPatterns("/books/unprinted")
+                .addPathPatterns("/books/check/barcode")
+                .excludePathPatterns("/users/login", "/users/register");
     }
 }

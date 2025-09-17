@@ -1,15 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HomePage from '@/views/HomePage.vue';
-import BooksLayout from '@/views/BooksLayout.vue';
-import BookRegister from '@/views/BookRegister.vue';
-import BooksTable from '@/components/BooksTable.vue';
 import PageLogin from '@/views/PageLogin.vue';
 import PageLogout from '@/components/PageLogout.vue';
 import PageTerm from '@/views/PageTerm.vue';
 import PageRegister from '@/views/PageRegister.vue'
 import NotFound from '@/components/NotFound.vue';
-import BookArea from '@/components/BookArea.vue';
 import BookInfo from '@/components/BookInfo.vue';
+import AdminPage from '@/views/AdminPage.vue';
+import BookBorrow from '@/components/BookBorrow.vue';
+import BookReturn from '@/components/BookReturn.vue';
+import TermPage1 from '@/components/TermPage1.vue';
+import TermPage3 from '@/components/TermPage3.vue';
+import TermPage2 from '@/components/TermPage2.vue';
+import MyPage from '@/views/MyPage.vue';
 
 const routes = [
   {
@@ -38,30 +41,44 @@ const routes = [
     component: PageRegister
   },
   {
-    path: '/books',
-    component: BooksLayout,
-    children: [
-      {
-        path: '',
-        name: 'BooksTable',
-        component: BooksTable
-      },
-      {
-        path: 'register',
-        name: 'BookRegister',
-        component: BookRegister
-      },
-      {
-        path: 'article',
-        name: 'BookArticle',
-        component: BookArea
-      },
-      {
-        path: '/books/info/:id',
-        name: 'BookInfo',
-        component: BookInfo
-      }
-    ]
+    path: '/users',
+    name: 'Mypage',
+    component: MyPage
+  },
+  {
+    path: '/admin',
+    name: 'AdminPage',
+    component: AdminPage
+  },
+  {
+    path: '/books/info/:id',
+    name: 'BookInfo',
+    component: BookInfo,
+  },
+  {
+    path: '/borrow',
+    name: 'BookBorrow',
+    component: BookBorrow,
+  },
+  {
+    path: '/return',
+    name: 'BookReturn',
+    component: BookReturn,
+  },
+  {
+    path: '/service/terms',
+    name: 'AgreeTermsUser',
+    component: TermPage1
+  },
+  {
+    path: '/service/info',
+    name: 'AgreeInfoUser',
+    component: TermPage2
+  },
+  {
+    path: '/service/alarm',
+    name: 'AgreeDiscordUser',
+    component: TermPage3
   },
   { 
     path: '/:catchAll(.*)',

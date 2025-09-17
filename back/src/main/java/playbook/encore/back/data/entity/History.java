@@ -38,5 +38,8 @@ public class History {
 
     @Column(name = "return_dt")
     private LocalDate returnDt;
-    
+
+    public enum StatusType {
+        booked , returned, overdue
+    }
 }

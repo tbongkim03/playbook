@@ -2,10 +2,11 @@ package playbook.encore.back.data.dao;
 
 import playbook.encore.back.data.entity.Admin;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface AdminDAO {
-    Admin createAdmin(Admin admin);
+    Optional<Admin> createAdmin(Admin user, Admin admin);
 
     Optional<Admin> searchBookUserResultExact(String idAdmin);
 
@@ -15,5 +16,11 @@ public interface AdminDAO {
 
     Optional<Admin> changePw(Admin user, String hashedPassword);
 
-    Optional<Admin> pwValidate(Admin user, String password);
+    Optional<Admin> pwValidate(Admin user, String idAdmin, String password);
+
+    List<Admin> getAdminList();
+
+    Optional<Admin> updateStatus(Admin user, Admin.StatusTypeAdmin status);
+
+    Optional<Admin> deleteAdmin(String idAdmin);
 }

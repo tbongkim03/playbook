@@ -3,6 +3,8 @@ package playbook.encore.back.data.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+
 @Entity
 @Data
 @Builder
@@ -43,6 +45,9 @@ public class BookUser {
     @Enumerated(EnumType.STRING)
     @Column(name = "status_user", nullable = false)
     private StatusType statusUser;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDate createdAt;
 
     public enum StatusType {
         stop, available, overdue 

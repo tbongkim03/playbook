@@ -42,7 +42,7 @@ public class CourseDAOImpl implements CourseDAO{
         selectedCourse.setSeqCourse(course.getSeqCourse());
         selectedCourse.setNameCourse(course.getNameCourse());
         selectedCourse.setStartDtCourse(course.getStartDtCourse());
-        selectedCourse.setFinistDtCourse(course.getFinistDtCourse());
+        selectedCourse.setFinishDtCourse(course.getFinishDtCourse());
 
         updatedCourse = courseRepository.save(selectedCourse);
         return updatedCourse;

@@ -7,6 +7,8 @@ import playbook.encore.back.data.dto.bookUser.RegisterUserRequestDto;
 import playbook.encore.back.data.dto.bookUser.RegisterUserResponseDto;
 import playbook.encore.back.data.entity.BookUser;
 
+import java.util.List;
+
 public interface BookUserService {
 
     RegisterUserResponseDto createUser(RegisterUserRequestDto registerUserRequestDto);
@@ -19,8 +21,11 @@ public interface BookUserService {
 
     boolean updatePassword(BookUser user, String newPassword);
 
-    boolean updateDiscord(BookUser user, String newDiscord);
+//    boolean updateDiscord(BookUser user, String newDiscord);
 
-    boolean updateCourse(BookUser user, Integer newSeqCourse);
+//    boolean updateCourse(BookUser user, Integer newSeqCourse);
 
+    List<Object[]> getBookUserList();
+
+    boolean deleteUserByAdmin(String idUser);
 }

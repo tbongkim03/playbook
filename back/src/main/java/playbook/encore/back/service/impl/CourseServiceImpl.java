@@ -27,7 +27,7 @@ public class CourseServiceImpl implements CourseService{
     }
 
     private CourseResponseDto convertToDto(Course entity) {
-        return new CourseResponseDto(entity.getSeqCourse(), entity.getNameCourse(), entity.getStartDtCourse(), entity.getFinistDtCourse());
+        return new CourseResponseDto(entity.getSeqCourse(), entity.getNameCourse(), entity.getStartDtCourse(), entity.getFinishDtCourse());
     }
 
     @Override
@@ -49,7 +49,7 @@ public class CourseServiceImpl implements CourseService{
         Course course = Course.builder()
             .nameCourse(courseRequestDto.getNameCourse())
             .startDtCourse(courseRequestDto.getStartDtCourse())
-            .finistDtCourse(courseRequestDto.getFinishDtCourse())
+            .finishDtCourse(courseRequestDto.getFinishDtCourse())
             .build();
         Course savedCourse = courseDAO.insertCourse(course);
         CourseResponseDto courseResponseDto = convertToDto(savedCourse);
@@ -66,7 +66,7 @@ public class CourseServiceImpl implements CourseService{
             .seqCourse(existingCourse.getSeqCourse())
             .nameCourse(courseRequestDto.getNameCourse())
             .startDtCourse(courseRequestDto.getStartDtCourse())
-            .finistDtCourse(courseRequestDto.getFinishDtCourse())
+            .finishDtCourse(courseRequestDto.getFinishDtCourse())
             .build();
 
         Course changedCourse = courseDAO.updateCourse(course);
