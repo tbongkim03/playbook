@@ -75,6 +75,7 @@ Docker Compose
     <img alt="Gradle" src="https://img.shields.io/badge/Build-Gradle-02303A?logo=gradle&logoColor=white&style=flat-square" />
     <img alt="Node.js" src="https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white&style=flat-square" />
   </div>
+  
 - **Backend**: Java, Spring Boot, Spring Web, Spring Scheduler, JPA(Hibernate), JWT
 - **Frontend**: Vue 3, Vue Router, Vite, Chart.js
 - **Database**: MySQL 8
