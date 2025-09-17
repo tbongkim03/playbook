@@ -23,8 +23,6 @@
 <a href="https://nodejs.org/">
   <img alt="Node.js" src="https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white&style=flat-square" />
 </a>
-<img alt="Platform" src="https://img.shields.io/badge/Platform-WSL%20%7C%20Linux-lightgrey?style=flat-square" />
-<img alt="Made with love" src="https://img.shields.io/badge/Made%20with-%E2%9D%A4%EF%B8%8F-ff69b4?style=flat-square" />
 
 </div>
 
@@ -63,11 +61,11 @@
 - **목표**: 라운지 도서의 등록/분류/대여/반납과 연체 알림을 간편하게 운영
 - **역할 분리**: 운영자/일반 사용자 권한 구분, 관리자 대시보드 제공
 - **기간**: 2025-04-07 ~ 진행 중
-- **핵심 포인트**: 실무형 백엔드 아키텍처, Docker 기반 실행, 바코드/Discord 연동
+- **핵심 포인트**: 백엔드 아키텍처, Docker 기반 실행, 바코드/Discord 연동
 
 <br/>
 
----
+
 
 ### 🧱 아키텍처
 ```
@@ -81,7 +79,7 @@ Docker Compose
 
 <br/>
 
----
+
 
 ### 🧩 핵심 설계 포인트
 - **계층형 아키텍처**: `Controller → Service → Repository/DAO`로 관심사 분리 및 테스트 용이성 확보
@@ -92,7 +90,7 @@ Docker Compose
 
 <br/>
 
----
+
 
 ### 🛠️ 기술 스택
 - **Backend**: Java, Spring Boot, Spring Web, Spring Scheduler, JPA(Hibernate), JWT
@@ -102,7 +100,7 @@ Docker Compose
 
 <br/>
 
----
+
 
 ### 📌 주요 기능
 - **인증/인가**: 로그인, 운영자/일반 사용자 권한 구분, 로그인 체크 인터셉터
@@ -114,7 +112,7 @@ Docker Compose
 
 <br/>
 
----
+
 
 ### 기능 체크리스트
 - [x] 로그인 및 권한 구분(운영자/사용자)
@@ -126,6 +124,8 @@ Docker Compose
 - [ ] OpenAPI 문서 자동화
 - [ ] Spring Security 전환 및 RBAC
 - [ ] 테스트 자동화/CI 구축
+
+
 
 ### 🗂️ 폴더 구조
 ```
@@ -139,7 +139,7 @@ playbook/
 
 <br/>
 
----
+
 
 ### ⚡ 빠른 시작
 사전 요구사항: Docker, Docker Compose 설치
@@ -162,7 +162,7 @@ docker compose up -d --build
 
 <br/>
 
----
+
 
 ### 🔑 환경 변수
 `playbook/back/.env`에서 다음 값을 입력합니다. (예시 : DB_USERNAME=tbongkim03 (쉼표 없이 엔터 키로 구분))
@@ -179,7 +179,7 @@ docker compose up -d --build
 
 <br/>
 
----
+
 
 ### 👨‍💻 개발 가이드
 - 백엔드 소스: `back/src/main/java/playbook/encore/back/`
@@ -193,7 +193,7 @@ docker compose up -d --build
 
 <br/>
 
----
+
 
 ### 🧪 테스트와 품질
 - 수동 테스트 진행
@@ -206,7 +206,7 @@ docker compose up -d --build
 
 <br/>
 
----
+
 
 ### 🗄️ DB 스키마 개요
 핵심 테이블
@@ -216,13 +216,13 @@ docker compose up -d --build
 - `tb_sort_first`/`tb_sort_second`: 대분류/소분류 체계
 - `tb_favor`: 관심 도서(찜)
 
----
+
 
 ### 🔒 보안과 권한
 - 현재: 인터셉터 기반 로그인 체크 + JWT 유틸 사용
 - 로드맵: Spring Security + RBAC, `@Valid`/전역 예외 처리, 토큰 만료/리프레시, CORS 정책 정교화
 
----
+
 
 ### 🗺️ 향후 개선 계획
 - Spring Security 전환 및 표준 RBAC 적용
@@ -230,7 +230,7 @@ docker compose up -d --build
 - Micrometer/Actuator 기반 헬스/메트릭/로그 표준화
 - GitHub Actions CI, 멀티스테이지 Docker, 취약점 스캔
 
----
+
 
 ### 📄 라이선스
 본 저장소의 코드는 저작권자의 허가 없이 복제, 배포, 수정할 수 없습니다.
