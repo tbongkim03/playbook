@@ -81,11 +81,6 @@
                 <div class="copyright">
                     <span>Copyright © 2025 플레이데이터 All Rights Reserved.</span>
                 </div>
-                <div class="footer-meta">
-                    <span class="version">Version 2.0</span>
-                    <span class="divider">•</span>
-                    <span class="update">Last updated: {{ currentDate }}</span>
-                </div>
             </div>
         </div>
         
@@ -302,26 +297,6 @@ onMounted(() => {
 .copyright {
     font-size: 0.9rem;
     color: #94a3b8;
-}
-
-.footer-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.8rem;
-    color: #64748b;
-}
-
-.divider {
-    opacity: 0.5;
-}
-
-.version {
-    background: rgba(102, 126, 234, 0.1);
-    color: #667eea;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-weight: 500;
 }
 
 .footer-decoration {
