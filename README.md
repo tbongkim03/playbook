@@ -115,8 +115,8 @@ docker-compose up -d --build
 - `DB_USERNAME`, `DB_PASSWORD`, 
 - `MASTER_ID`, `MASTER_PW`, `MASTER_NAME`, `MASTER_DISCORD`
 - `BASE_KEY`
-- `CLIENT_ID`, `CLIENT_SECRET` (네이버 책검색 API)[https://developers.naver.com/docs/serviceapi/search/book/book.md]
-- `NL_API_KEY`, `WORK24_API_KEY` (국립중앙도서관 API)[https://www.nl.go.kr/NL/contents/N31101030500.do], (고용노동부 고용24 API)[https://m.work24.go.kr/cm/e/a/0110/selectOpenApiSvcInfo.do?apiSvcId=&upprApiSvcId=&fullApiSvcId=000000000000000000000000000004] 
+- `CLIENT_ID`, `CLIENT_SECRET` [네이버 책검색 API](https://developers.naver.com/docs/serviceapi/search/book/book.md)
+- `NL_API_KEY`, `WORK24_API_KEY` [국립중앙도서관 API](https://www.nl.go.kr/NL/contents/N31101030500.do), [고용노동부 고용24 API](https://m.work24.go.kr/cm/e/a/0110/selectOpenApiSvcInfo.do?apiSvcId=&upprApiSvcId=&fullApiSvcId=000000000000000000000000000004) 
 - `DISCORD_BOT_TOKEN`, `DISCORD_CHANNEL_ID` (tbongkim03@gmail.com 으로 email 부탁드립니다)
 
 권장 보안 수칙
