@@ -117,10 +117,10 @@ playbook/
 git clone <this-repo-url>
 cd playbook
 
-# 2) (선택) .env 파일 준비 – 아래 [환경 변수] 참고
+# 2) .env 파일 준비 – 아래 [환경 변수] 참고
 
 # 3) 컨테이너 실행
-docker-compose up -d --build
+docker compose up -d --build
 
 # 4) 접속
 # Front:  http://localhost:5173 (기본 Vite 포트 기준)
