@@ -66,13 +66,15 @@ Docker Compose
 
 
 ### 🛠️ 기술 스택
-  <img alt="Java" src="https://img.shields.io/badge/Java-17%2B-ED8B00?logo=openjdk&logoColor=white&style=flat-square" />
-  <img alt="Spring Boot" src="https://img.shields.io/badge/Spring%20Boot-3.x-6DB33F?logo=springboot&logoColor=white&style=flat-square" />
-  <img alt="Vue.js" src="https://img.shields.io/badge/Vue.js-3-42B883?logo=vuedotjs&logoColor=white&style=flat-square" />
-  <img alt="MySQL" src="https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white&style=flat-square" />
-  <img alt="Docker Compose" src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white&style=flat-square" />
-  <img alt="Gradle" src="https://img.shields.io/badge/Build-Gradle-02303A?logo=gradle&logoColor=white&style=flat-square" />
-  <img alt="Node.js" src="https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white&style=flat-square" />
+  <div align="left">
+    <img alt="Java" src="https://img.shields.io/badge/Java-17%2B-ED8B00?logo=openjdk&logoColor=white&style=flat-square" />
+    <img alt="Spring Boot" src="https://img.shields.io/badge/Spring%20Boot-3.x-6DB33F?logo=springboot&logoColor=white&style=flat-square" />
+    <img alt="Vue.js" src="https://img.shields.io/badge/Vue.js-3-42B883?logo=vuedotjs&logoColor=white&style=flat-square" />
+    <img alt="MySQL" src="https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white&style=flat-square" />
+    <img alt="Docker Compose" src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white&style=flat-square" />
+    <img alt="Gradle" src="https://img.shields.io/badge/Build-Gradle-02303A?logo=gradle&logoColor=white&style=flat-square" />
+    <img alt="Node.js" src="https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white&style=flat-square" />
+  </div>
 - **Backend**: Java, Spring Boot, Spring Web, Spring Scheduler, JPA(Hibernate), JWT
 - **Frontend**: Vue 3, Vue Router, Vite, Chart.js
 - **Database**: MySQL 8
