@@ -69,7 +69,7 @@
             라벨 시작 위치
           </label>
           <select id="startPosition" v-model="startPosition" class="setting-select">
-            <option v-for="n in 21" :key="n" :value="n - 1">{{ n }}번째</option>
+            <option v-for="n in 65" :key="n" :value="n - 1">{{ n }}번째</option>
           </select>
         </div>
       </div>
@@ -154,7 +154,7 @@ const msg = ref('')
 const isD = ref(false)
 const buttonsDisabled = ref(false)
 const showBarcode = ref(false)
-const startPosition = ref(0)  // 시작 위치 (0-20)
+const startPosition = ref(0)  // 시작 위치 (0-64)
 const token = localStorage.getItem('jwtToken')
 
 function close() {
@@ -255,7 +255,7 @@ const saveBook = () => {
   postPrintedBook(false)
 }
 
-// 개별 출력 및 저장 - 폼텍 라벨지 형식으로 수정
+// 개별 출력 및 저장
 const printBarcode = () => {
   if (isD.value === true) {
     alert("🚫 중복된 바코드입니다. 출력할 수 없습니다.")
@@ -273,10 +273,16 @@ const printBarcode = () => {
     return
   }
 
-  // 빈 셀 생성 (시작 위치만큼)
-  const emptyCells = Array(startPosition.value).fill('<div class="barcode-cell"></div>')
+  // 13행 × 5열 = 65개의 박스 생성
+  const totalBoxes = 65
+  const boxes = []
 
-  // 바코드 셀 생성 (1개만)
+  // 시작 위치만큼 빈 박스 추가
+  for (let i = 0; i < startPosition.value; i++) {
+    boxes.push('<div class="barcode-cell"></div>')
+  }
+
+  // 해당 단일 바코드 1개 추가
   const tempSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
   JsBarcode(tempSvg, props.barcodeBook, {
     format: "CODE128",
@@ -286,80 +292,125 @@ const printBarcode = () => {
     displayValue: false,
   })
 
-  const barcodeCell = `
+  boxes.push(`
     <div class="barcode-cell">
-      ${tempSvg.outerHTML}
-      <div class="barcode-label">${props.barcodeBook} - ${props.titleBook}</div>
+      <div class="barcode-content">
+        ${tempSvg.outerHTML}
+        <div class="barcode-label">${props.barcodeBook}</div>
+        <div class="book-title">${props.titleBook || ''}</div>
+      </div>
     </div>
-  `
+  `)
 
-  const content = [...emptyCells, barcodeCell].join('')
+  // 나머지 빈 박스로 채우기
+  while (boxes.length < totalBoxes) {
+    boxes.push('<div class="barcode-cell"></div>')
+  }
+
+  // 13행으로 나누기
+  const rows = []
+  for (let i = 0; i < 13; i++) {
+    const rowBoxes = boxes.slice(i * 5, (i + 1) * 5)
+    rows.push(`<div class="row">${rowBoxes.join('')}</div>`)
+  }
 
   const doc = printWindow.document
   doc.open()
   doc.write(`
     <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>바코드 출력 - ${props.titleBook}</title>
-        <style>
-          @page { size: A4; margin: 0; }
-          body {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }
-
-          .print-area {
-            display: grid;
-            grid-template-columns: repeat(5, 38.1mm);
-            grid-auto-rows: 21.2mm;
-            gap: 0mm 2.5mm;
-            padding: 15mm 6.5mm; /* 상단, 좌우 여백 */
-          }
-
-          .barcode-cell {
-            width: 38.1mm;
-            height: 21.2mm;
-            border: 1px solid #ccc; /* 가이드용으로 보이게 하려면 #ccc */
-            border-radius: 5px;
-            box-sizing: border-box;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-size: 10pt;
-          }
-
-          svg {
-            width: 35mm;
-          }
-
-          .barcode-label {
-            font-size: 5px;
-            margin-top: 1mm;
-            text-align: center;
-            word-break: break-word;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="print-area">
-          ${content}
-        </div>
-        <script>
-          window.onload = function() {
-            window.print();
-          };
-        </` + `script>
-      </body>
+    <html lang="ko">
+    <head>
+      <meta charset="UTF-8">
+      <title>바코드 출력 - ${props.titleBook}</title>
+      <style>
+        @page {
+          size: A4;
+          margin: 0;
+        }
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: Arial, sans-serif;
+        }
+        .grid {
+          position: relative;
+          width: calc(210mm - 1cm);
+          height: calc(297mm - 1.9cm);
+          margin: 1cm 0.5cm 0.9cm 0.4cm;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+        .row {
+          display: flex;
+          justify-content: space-between;
+        }
+        .barcode-cell {
+          width: 38.1mm;
+          height: 21.2mm;
+          // border: 1px solid #ddd;
+          box-sizing: border-box;
+          margin: 0 0.1335cm;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+        .row .barcode-cell:first-child {
+          margin-left: 0;
+        }
+        .row .barcode-cell:last-child {
+          margin-right: 0;
+        }
+        .barcode-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          height: 100%;
+          padding: 1mm;
+        }
+        svg {
+          width: 32mm;
+          height: auto;
+          margin-bottom: 0.5mm;
+        }
+        .barcode-label {
+          font-size: 6px;
+          font-weight: bold;
+          text-align: center;
+          margin-bottom: 0.5mm;
+          font-family: 'Courier New', monospace;
+        }
+        .book-title {
+          font-size: 4px;
+          text-align: center;
+          line-height: 1.1;
+          word-break: break-word;
+          overflow: hidden;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="grid">
+        ${rows.join('')}
+      </div>
+      <script>
+        window.onload = function() {
+          window.print();
+        };
+      </` + `script>
+    </body>
     </html>
   `)
   doc.close()
 
-  postPrintedBook(true)
+  // postPrintedBook(true)
 }
 
 // POST 함수 (printCheckBook을 매개변수로)

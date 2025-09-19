@@ -360,7 +360,6 @@ const validatePassword = async (idAdmin, password) => {
     )
     return response.data
   } catch (error) {
-    console.error('비밀번호 검증 실패:', error)
     throw error
   }
 }
@@ -373,7 +372,6 @@ const fetchCurrentUser = async () => {
     })
     currentUser.value = response.data
   } catch (error) {
-    console.error('현재 사용자 정보 조회 실패:', error)
   }
 }
 
@@ -403,7 +401,6 @@ const validateId = async () => {
     }
 
   } catch (error) {
-    console.error('ID 검증 실패:', error)
     idValidation.value = {
       isValid: false,
       message: 'ID 검증에 실패했습니다.',
@@ -422,7 +419,6 @@ const fetchAdminList = async () => {
     // 백엔드의 AdminListResponseDto 구조에 맞게 수정
     adminList.value = response.data.content || response.data.adminList || response.data
   } catch (error) {
-    console.error('관리자 목록 조회 실패:', error)
     if (error.response?.status === 403) {
       alert('관리자 권한이 필요합니다.')
     } else if (error.response?.status === 401) {
@@ -457,7 +453,6 @@ const addAdmin = async () => {
     closeAddModal()
     await fetchAdminList()
   } catch (error) {
-    console.error('관리자 추가 실패:', error)
     if (error.response?.status === 403) {
       alert('관리자만 접근 가능합니다.')
     } else if (error.response?.status === 401) {
@@ -540,7 +535,6 @@ const deleteAdmin = async (idAdmin) => {
     await fetchAdminList()
     
   } catch (error) {
-    console.error('관리자 삭제 실패:', error)
     if (error.response?.status === 403) {
       alert('관리자 권한이 필요합니다.')
     } else if (error.response?.status === 401) {
