@@ -16,6 +16,7 @@
 - [폴더 구조](#%EF%B8%8F-폴더-구조)
 - [빠른 시작](#-빠른-시작)
 - [환경 변수](#-환경-변수)
+- [바코드 라벨링](#-바코드-라벨링)
 - [개발 가이드](#%E2%80%8D-개발-가이드)
 - [테스트와 품질](#-테스트와-품질)
 - [DB 스키마 개요](#%EF%B8%8F-db-스키마-개요)
@@ -140,6 +141,12 @@ docker compose up -d --build
 **권장 보안 수칙**
 - 비밀 값은 `playbook/back/.env` 파일을 사용하여 커밋에서 분리
 - 로컬/운영 환경 분리(`application-{profile}.properties`)와 최소 권한 DB 계정 사용
+
+<br/>
+
+## 🏷️ 바코드 라벨링
+- [폼텍 3100](https://www.formshop.co.kr/goods/view?no=18) 에 맞춰진 양식.
+- [폼텍 보호용 필름라벨 3102](https://www.formshop.co.kr/goods/view?no=253)
 
 <br/>
 
