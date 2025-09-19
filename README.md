@@ -9,28 +9,27 @@
 
 
 ### 🧭 목차
-- [프로젝트 한눈에 보기](#프로젝트-한눈에-보기)
-- [아키텍처](#아키텍처)
-- [핵심 설계 포인트](#핵심-설계-포인트)
-- [기술 스택](#기술-스택)
-- [주요 기능](#주요-기능)
-- [기능 체크리스트](#기능-체크리스트)
-- [폴더 구조](#폴더-구조)
-- [빠른 시작](#빠른-시작)
-- [환경 변수](#환경-변수)
-- [개발 가이드](#개발-가이드)
-- [테스트와 품질](#테스트와-품질)
-- [DB 스키마 개요](#db-스키마-개요)
-- [보안과 권한](#보안과-권한)
-- [향후 개선 계획](#향후-개선-계획)
-- [참고 자료](#참고-자료)
-- [라이선스](#라이선스)
+- [프로젝트 한눈에 보기](#overview)
+- [아키텍처](#architecture)
+- [핵심 설계 포인트](#design)
+- [기술 스택](#stack)
+- [주요 기능](#features)
+- [기능 체크리스트](#checklist)
+- [폴더 구조](#structure)
+- [빠른 시작](#quickstart)
+- [환경 변수](#env)
+- [개발 가이드](#guide)
+- [테스트와 품질](#quality)
+- [DB 스키마 개요](#schema)
+- [보안과 권한](#security)
+- [향후 개선 계획](#roadmap)
+- [라이선스](#license)
 
 <br/>
 
 ---
 
-### ✨ 프로젝트 한눈에 보기
+### ✨ 프로젝트 한눈에 보기 {#overview}
 - **목표**: 라운지 도서의 등록/분류/대출/반납과 연체 알림을 간편하게 운영
 - **역할 분리**: 운영자/일반 사용자 권한 구분, 관리자 대시보드 제공
 - **기간**: 2025-04-07 ~ 진행 중
@@ -40,7 +39,7 @@
 
 
 
-### 🧱 아키텍처
+### 🧱 아키텍처 {#architecture}
 ```
 Docker Compose
  ├─ front  (Vue.js, Vite, Chart.js)
@@ -54,7 +53,7 @@ Docker Compose
 
 
 
-### 🧩 핵심 설계 포인트
+### 🧩 핵심 설계 포인트 {#design}
 - **계층형 아키텍처**: `Controller → Service → Repository/DAO`로 관심사 분리 및 테스트 용이성 확보
 - **DTO/Entity 분리**: API 스펙과 영속 모델의 결합 최소화
 - **스케줄러 기반 운영 자동화**: 반납 기한/과정 종료에 맞춰 Discord 알림 발송
@@ -65,7 +64,7 @@ Docker Compose
 
 
 
-### 🛠️ 기술 스택
+### 🛠️ 기술 스택 {#stack}
   <div align="left">
     <img alt="Java" src="https://img.shields.io/badge/Java-17%2B-ED8B00?logo=openjdk&logoColor=white&style=flat-square" />
     <img alt="Spring Boot" src="https://img.shields.io/badge/Spring%20Boot-3.x-6DB33F?logo=springboot&logoColor=white&style=flat-square" />
@@ -85,7 +84,7 @@ Docker Compose
 
 
 
-### 📌 주요 기능
+### 📌 주요 기능 {#features}
 - **인증/인가**: 로그인, 운영자/일반 사용자 권한 구분, 로그인 체크 인터셉터
 - **도서 관리**: 등록/수정/삭제, 바코드/ISBN 조회, 분류(대분류/중분류)
 - **대출/반납**: 바코드 스캔 기반 처리, 대출 현황/연체 관리
@@ -97,7 +96,7 @@ Docker Compose
 
 
 
-### 기능 체크리스트
+### 기능 체크리스트 {#checklist}
 - [x] 로그인 및 권한 구분(운영자/사용자)
 - [x] 도서 등록/수정/삭제 (바코드/ISBN)
 - [x] 도서 대출/반납 및 이력 관리
@@ -110,7 +109,7 @@ Docker Compose
 
 
 
-### 🗂️ 폴더 구조
+### 🗂️ 폴더 구조 {#structure}
 ```
 playbook/
  ├─ back/          # Spring Boot 애플리케이션
@@ -124,7 +123,7 @@ playbook/
 
 
 
-### ⚡ 빠른 시작
+### ⚡ 빠른 시작 {#quickstart}
 사전 요구사항: Docker, Docker Compose 설치, api 키 발급
 
 ```bash
@@ -147,7 +146,7 @@ docker compose up -d --build
 
 
 
-### 🔑 환경 변수
+### 🔑 환경 변수 {#env}
 `playbook/back/.env`에서 다음 값을 입력합니다. (예시 : DB_USERNAME=tbongkim03 (쉼표 없이 엔터 키로 구분))
 - `DB_USERNAME`, `DB_PASSWORD`, 
 - `MASTER_ID`, `MASTER_PW`, `MASTER_NAME`, `MASTER_DISCORD`
@@ -164,7 +163,7 @@ docker compose up -d --build
 
 
 
-### 👨‍💻 개발 가이드
+### 👨‍💻 개발 가이드 {#guide}
 - 백엔드 소스: `back/src/main/java/playbook/encore/back/`
   - 계층 구조: `controller` → `service` → `repository`/`dao` → `entity`/`dto`
   - 스케줄러: `config/BookReminderScheduler.java`, `CourseEndReturnReminderScheduler.java`
@@ -178,7 +177,7 @@ docker compose up -d --build
 
 
 
-### 🧪 테스트와 품질
+### 🧪 테스트와 품질 {#quality}
 - 수동 테스트 진행
 - 추후 계획: Controller 통합 테스트, JPA 슬라이스 테스트, Testcontainers 도입.
 
@@ -191,7 +190,7 @@ docker compose up -d --build
 
 
 
-### 🗄️ DB 스키마 개요
+### 🗄️ DB 스키마 개요 {#schema}
 핵심 테이블
 - `tb_book`: 도서 정보(ISBN, 제목, 저자, 분류, 바코드, 수량, 대출 여부)
 - `tb_user`/`tb_admin`: 사용자/운영자 계정, 약관 동의, 상태
@@ -201,13 +200,13 @@ docker compose up -d --build
 
 
 
-### 🔒 보안과 권한
+### 🔒 보안과 권한 {#security}
 - 현재: 인터셉터 기반 로그인 체크 + JWT 유틸 사용
 - 로드맵: Spring Security + RBAC, `@Valid`/전역 예외 처리, 토큰 만료/리프레시, CORS 정책 정교화
 
 
 
-### 🗺️ 향후 개선 계획
+### 🗺️ 향후 개선 계획 {#roadmap}
 - Spring Security 전환 및 표준 RBAC 적용
 - OpenAPI(swagger) 문서 자동화, 예외/검증 응답 표준화
 - Micrometer/Actuator 기반 헬스/메트릭/로그 표준화
@@ -215,7 +214,7 @@ docker compose up -d --build
 
 
 
-### 📄 라이선스
+### 📄 라이선스 {#license}
 본 저장소의 코드는 저작권자의 허가 없이 복제, 배포, 수정할 수 없습니다.
 본 코드는 [엔코아] 플레이데이터 캠퍼스 내 사용을 목적으로 작성되었으며, 외부 사용을 금지합니다.
 
