@@ -266,10 +266,7 @@ async function handleLogin() {
 
     const res = await axios.post(apiUrl, loginData)
     
-    // 로그인 성공 시 jwt 토큰 로컬 스토리지에 저장
     localStorage.setItem('jwtToken', res.data.token)
-    
-    // 관리자와 일반 사용자 구분해서 저장 (필요한 경우)
     localStorage.setItem('userType', isAdminMode.value ? 'admin' : 'user')
 
     // 성공 시 메인 페이지로 이동
@@ -300,7 +297,30 @@ async function handleLogin() {
 }
 
 function blockJavascriptInput(event) {
-  // JavaScript 입력 방지 로직이 있다면 여기에
+  const input = event.target.value;
+  
+  // JavaScript 관련 키워드 패턴
+  const jsPatterns = [
+    /<script[^>]*>.*?<\/script>/gi,
+    /javascript:/gi,
+    /on\w+\s*=/gi, // onclick, onload 등
+    /eval\s*\(/gi,
+    /Function\s*\(/gi,
+    /setTimeout\s*\(/gi,
+    /setInterval\s*\(/gi
+  ];
+  
+  // 패턴 검사
+  for (let pattern of jsPatterns) {
+    if (pattern.test(input)) {
+      event.preventDefault();
+      alert('JavaScript 코드는 입력할 수 없습니다.');
+      
+      // 해당 부분 제거
+      event.target.value = input.replace(pattern, '');
+      return false;
+    }
+  }
 }
 </script>
 

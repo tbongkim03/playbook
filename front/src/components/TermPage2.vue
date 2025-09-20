@@ -21,7 +21,7 @@
                 </p>
                 
                 <div class="last-updated">
-                    최종 업데이트: 2024년 1월 1일
+                    최종 업데이트: 2025년 5월 9일
                 </div>
             </div>
         </div>

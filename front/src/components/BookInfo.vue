@@ -14,7 +14,6 @@
                     :src="book.imageBook && book.imageBook.trim() !== '' ? book.imageBook : noImage" 
                     :alt="book.titleBook"
                     @error="handleImageError"
-                    @load="handleImageLoad"
                 />
                 
                 
@@ -136,16 +135,16 @@
                 </button>
             </div>
 
-            <!-- 대출중일 때 추가 정보 (다른 사람이 대출한 경우에만) -->
+            <!-- 대출 중일 때 추가 정보 (다른 사람이 대출한 경우에만) -->
             <div v-if="book.bookBorrowed && !book.borrowedByMe" class="borrowed-info">
                 <h3>다른 옵션</h3>
                 <ul>
-                    <li>• 유사한 도서를 검색해보세요</li>
+                    <li>• 비슷한 도서를 검색해보세요</li>
                     <li>• 찜하기를 통해 반납 시 디스코드로 알림을 받아보세요</li>
                 </ul>
             </div>
 
-            <!-- 본인이 대출중일 때 추가 정보 -->
+            <!-- 본인이 대출 중일 때 추가 정보 -->
             <div v-if="book.borrowedByMe" class="my-borrowed-info">
                 <h3>반납 안내</h3>
                 <ul>
@@ -178,12 +177,7 @@ const overLay = ref(null)
 const isWishlisted = ref(false) // 찜하기 상태 추가
 
 const handleImageError = (event) => {
-    console.error('이미지 로딩 실패:', event.target.src)
     event.target.src = noImage
-}
-
-const handleImageLoad = () => {
-    console.log('이미지 로딩 성공')
 }
 
 const getStatusText = () => {
@@ -276,8 +270,6 @@ const handleWishlist = async () => {
             isWishlisted.value = !isWishlisted.value
         }
     } catch (error) {
-        console.error('찜하기 요청 실패:', error)
-        
         if (error.response) {
             const status = error.response.status
             const message = error.response.data || '오류가 발생했습니다.'
@@ -324,7 +316,7 @@ const checkWishlistStatus = async () => {
             )
         }
     } catch (error) {
-        console.log('찜하기 상태 확인 실패:', error)
+        alert('찜 목록 확인 실패:', error)
     }
 }
 
@@ -347,7 +339,6 @@ onMounted(async () => {
             error.value = '책 데이터가 없습니다.'
         }
     } catch (err) {
-        console.error('책 정보를 가져오는 중 오류 발생:', err)
         error.value = `오류: ${err.message}`
     } finally {
         loading.value = false

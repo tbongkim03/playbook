@@ -462,7 +462,7 @@ async function loadUserData() {
       }
     }
   } catch (error) {
-    console.error('유저 정보 로드 실패:', error)
+    alert('유저 정보 로드 실패:', error.response?.data)
   }
 }
 
@@ -478,7 +478,7 @@ async function loadFavoriteBooks() {
       favoriteBooks.value = data
     }
   } catch (error) {
-    console.error('찜 목록 로드 실패:', error)
+    alert('찜 목록 로드 실패:', error.response?.data)
   }
 }
 
@@ -500,7 +500,7 @@ async function loadRentalHistory() {
       }
     }
   } catch (error) {
-    console.error('대여 기록 로드 실패:', error)
+    alert('대여 기록 로드 실패:', error.response?.data)
   }
 }
 
@@ -606,7 +606,7 @@ async function getCourseList() {
       .sort((a, b) => a.title.localeCompare(b.title, 'ko'))
 
   } catch (err) {
-    console.error('API 조회 실패:', err)
+    alert('과정 조회 실패:', err.response?.data)
   }
 }
 
@@ -624,7 +624,7 @@ async function removeFavorite(seqBook) {
       return
     }
     
-    console.log('삭제할 seqBook:', seqBook)
+    // console.log('삭제할 seqBook:', seqBook)
 
     const response = await axios.delete('http://localhost:8080/favor', {
       headers: {
@@ -638,7 +638,7 @@ async function removeFavorite(seqBook) {
       favoriteBooks.value = favoriteBooks.value.filter(book => book.seqBook !== seqBook)
     }
   } catch (error) {
-    console.error('찜 해제 실패:', error)
+    // console.error('찜 해제 실패:', error)
     
     if (error.response) {
       const status = error.response.status
@@ -838,7 +838,6 @@ async function validatePassword(password) {
 
     return response.ok
   } catch (error) {
-    console.error('비밀번호 검증 실패:', error)
     return false
   }
 }
@@ -898,7 +897,6 @@ async function changePassword() {
       alert('비밀번호 변경에 실패했습니다.')
     }
   } catch (error) {
-    console.error('비밀번호 변경 실패:', error)
     alert('비밀번호 변경 중 오류가 발생했습니다.')
   } finally {
     passwordForm.value.loading = false

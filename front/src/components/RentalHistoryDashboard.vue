@@ -16,7 +16,7 @@
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ stats.totalRentals }}</div>
-          <div class="stat-label">총 대여 건수</div>
+          <div class="stat-label">총 대출 건수</div>
         </div>
       </div>
 
@@ -75,12 +75,12 @@
         </div>
 
         <div class="filter-group" v-if="filters.period === 'custom'">
-          <label>시작일</label>
+          <label>시작 일</label>
           <input type="date" v-model="filters.startDate" @change="applyFilters">
         </div>
 
         <div class="filter-group" v-if="filters.period === 'custom'">
-          <label>종료일</label>
+          <label>종료 일</label>
           <input type="date" v-model="filters.endDate" @change="applyFilters">
         </div>
 
@@ -140,13 +140,13 @@
         <table class="history-table" v-if="!isLoading">
           <thead>
             <tr>
-              <th>도서명</th>
+              <th>도서 명</th>
               <th>저자</th>
               <th>사용자</th>
-              <th>과정</th>
-              <th>대출일</th>
+              <th>과정 명</th>
+              <th>대출 일</th>
               <th>반납예정일</th>
-              <th>반납일</th>
+              <th>반납 일</th>
               <th>상태</th>
               <th>작업</th>
             </tr>
@@ -166,13 +166,6 @@
                 </span>
               </td>
               <td class="actions">
-                <button 
-                  v-if="rental.status === 'rented'" 
-                  class="return-btn" 
-                  @click="processReturn(rental)"
-                >
-                  반납 처리
-                </button>
                 <button class="detail-btn" @click="showRentalDetail(rental)">
                   상세보기
                 </button>
@@ -271,7 +264,7 @@
                 <span>{{ selectedRental.userId }}</span>
               </div>
               <div class="detail-item">
-                <label>과정명</label>
+                <label>과정 명</label>
                 <span>{{ selectedRental.courseName || '-' }}</span>
               </div>
             </div>
@@ -281,7 +274,7 @@
             <h4>대출 정보</h4>
             <div class="detail-grid">
               <div class="detail-item">
-                <label>대출일</label>
+                <label>대출 일</label>
                 <span>{{ selectedRental.rentalDate }}</span>
               </div>
               <div class="detail-item">
@@ -289,7 +282,7 @@
                 <span>{{ selectedRental.dueDate }}</span>
               </div>
               <div class="detail-item">
-                <label>반납일</label>
+                <label>반납 일</label>
                 <span>{{ selectedRental.returnDate ? selectedRental.returnDate : '미반납' }}</span>
               </div>
               <div class="detail-item">
@@ -456,25 +449,20 @@ const fetchRentalHistory = async () => {
       headers: headers
     })
     
-    console.log('API 응답 성공:', response.data)
-    console.log('응답 데이터 타입:', typeof response.data)
-    console.log('응답 데이터 키들:', Object.keys(response.data || {}))
-    
     // 응답 데이터 구조 확인 및 처리 (HistoryBookResponseDto 기준)
     const responseData = response.data
     
     // 1. 통계 데이터 처리 (RentalSummaryDto)
     if (responseData && responseData.summary) {
-      console.log('통계 데이터:', responseData.summary)
       stats.value = {
         totalRentals: responseData.summary.totalBorrowed || 0,
         activeRentals: responseData.summary.currentlyBorrowed || 0,
         totalReturns: responseData.summary.totalReturned || 0,
         overdueRentals: responseData.summary.overdueCount || 0
       }
-      console.log('설정된 통계:', stats.value)
+      // console.log('설정된 통계:', stats.value)
     } else {
-      console.warn('통계 데이터가 없습니다')
+      // console.warn('통계 데이터가 없습니다')
       stats.value = {
         totalRentals: 0,
         activeRentals: 0,
@@ -488,23 +476,9 @@ const fetchRentalHistory = async () => {
     
     if (responseData && responseData.history && Array.isArray(responseData.history)) {
       historyList = responseData.history
-      console.log('히스토리 데이터 발견:', historyList.length, '개')
-    } else {
-      console.warn('히스토리 데이터가 없거나 잘못된 형식입니다')
-      console.log('응답 데이터 구조:', responseData)
     }
-    
-    console.log('히스토리 리스트:', historyList)
-    console.log('히스토리 리스트 길이:', historyList.length)
-    
-    if (historyList.length > 0) {
-      console.log('첫 번째 히스토리 아이템:', historyList[0])
-    }
-    
     // 3. 데이터 변환 및 설정 (RentalHistoryDto 기준)
-    rentalHistory.value = historyList.map((item, index) => {
-      console.log(`히스토리 아이템 ${index}:`, item)
-      
+    rentalHistory.value = historyList.map((item, index) => {      
       const mappedItem = {
         id: index + 1, // ID 생성
         bookTitle: item.bookTitle || '제목 없음',
@@ -528,14 +502,8 @@ const fetchRentalHistory = async () => {
       return mappedItem
     })
     
-  } catch (error) {
-    console.error('API 요청 실패:', error)
-    console.error('에러 상세:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status
-    })
-    
+  } 
+  catch (error) {  
     if (error.response?.status === 403) {
       alert('관리자만 접근할 수 있습니다.')
       window.history.back()
@@ -580,7 +548,7 @@ const getStatusText = (rental) => {
     case 'overdue':
       return '연체'
     case 'booked':
-      return '대출중'
+      return '대출 중'
     default:
       return '반납완료'
   }
@@ -614,7 +582,7 @@ const changePage = (page) => {
 
 const exportData = () => {
   const csvContent = [
-    ['도서명', '저자', '사용자', '과정', '대출일', '반납예정일', '반납일', '상태'].join(','),
+    ['도서명', '저자', '사용자', '과정', '대출 일', '반납예정일', '반납 일', '상태'].join(','),
     ...rentalHistory.value.map(rental => [
       rental.bookTitle,
       rental.bookAuthor,
@@ -632,11 +600,6 @@ const exportData = () => {
   link.href = URL.createObjectURL(blob)
   link.download = `rental_history_${new Date().toISOString().split('T')[0]}.csv`
   link.click()
-}
-
-const processReturn = (rental) => {
-  // 반납 처리 로직 (필요시 구현)
-  console.log('반납 처리:', rental)
 }
 
 // 컴포넌트 마운트 시 데이터 로드
@@ -937,7 +900,6 @@ onMounted(() => {
   gap: 8px;
 }
 
-.return-btn,
 .detail-btn {
   padding: 8px 14px;
   border: none;
@@ -946,17 +908,6 @@ onMounted(() => {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-}
-
-.return-btn {
-  background: linear-gradient(135deg, #b8e6c1 0%, #d4f1d4 100%);
-  color: #2d3748;
-  box-shadow: 0 2px 8px rgba(184, 230, 193, 0.3);
-}
-
-.return-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(184, 230, 193, 0.4);
 }
 
 .detail-btn {

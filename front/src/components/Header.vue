@@ -117,7 +117,7 @@ async function fetchUserInfo() {
       router.push('/login');
     }
   } catch (error) {
-    alert('예기치 못한 오류 발생: ' + (error?.message || error));
+    alert('예기치 못한 오류 발생: ' + (error.response?.data || error));
     isLogin.value = false;
     username.value = '';
     isAdmin.value = false;

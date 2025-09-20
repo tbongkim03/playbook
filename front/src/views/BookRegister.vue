@@ -232,7 +232,7 @@ function handleFormEnter(e) {
 }
 
 async function searchISBN() {
-  const apiKey = import.meta.env.VITE_NL_API_KEY
+  // const apiKey = import.meta.env.VITE_NL_API_KEY
 
   const token = localStorage.getItem('jwtToken')
   const isbn = String(book.isbn || '').trim()
@@ -258,7 +258,7 @@ async function searchISBN() {
     const data = await res.json()
 
     const doc = data?.docs?.[0] || null
-    console.log('조회된 도서 정보:', doc)
+    // console.log('조회된 도서 정보:', doc)
 
     if (!doc) {
       alert('도서 정보를 찾을 수 없습니다.')
@@ -271,28 +271,25 @@ async function searchISBN() {
     book.publishDate = formatDate(doc['PUBLISH_PREDATE'] || '')
     book.title_url = doc['TITLE_URL'] || ''
     
-    console.log('국립중앙도서관 API에서 가져온 TITLE_URL:', book.title_url)
+    // console.log('국립중앙도서관 API에서 가져온 TITLE_URL:', book.title_url)
     
     // TITLE_URL이 없는 경우 네이버 검색 API로 이미지 검색
     if (!book.title_url || book.title_url.trim() === '') {
-      console.log('TITLE_URL이 비어있어 네이버 API로 이미지를 검색합니다...')
+      // console.log('TITLE_URL이 비어있어 네이버 API로 이미지를 검색합니다...')
       try {
         const naverImageUrl = await searchBookImageFromNaver()
         book.title_url = naverImageUrl
-        console.log('네이버 API에서 가져온 이미지로 설정:', book.title_url)
+        // console.log('네이버 API에서 가져온 이미지로 설정:', book.title_url)
       } catch (error) {
-        console.warn('네이버 API 이미지 검색 실패:', error)
+        // console.warn('네이버 API 이미지 검색 실패:', error)
         // 실패해도 계속 진행 (이미지 없이)
         book.title_url = ''
       }
-    } else {
-      console.log('국립중앙도서관 API에서 이미지를 가져왔습니다:', book.title_url)
     }
     
     hasSearched.value = true // 조회 완료 상태 설정
 
   } catch (err) {
-    console.error('API 조회 실패:', err)
     alert('도서 정보를 조회하는 중 오류가 발생했습니다.')
   } finally {
     isSearching.value = false
@@ -341,7 +338,6 @@ async function submitBook() {
   try {
     isLoading.value = true
     const token = localStorage.getItem('jwtToken')
-    console.log(token || '0')
 
     const response = await fetch('http://localhost:8080/books', {
       method: 'POST',
@@ -374,7 +370,6 @@ async function submitBook() {
     resetForm()
     
   } catch (err) {
-    console.error('도서 등록 실패:', err)
     alert(`등록 실패: ${err.message}`)
   } finally {
     isLoading.value = false
@@ -382,15 +377,10 @@ async function submitBook() {
 }
 
 async function searchBookImageFromNaver() {
-  console.log('백엔드 프록시를 통해 네이버 책 상세 검색 API 호출 (ISBN 기반)')
-
   const token = localStorage.getItem('jwtToken')
   
-  // ISBN이 있으면 ISBN으로 우선 검색
   if (book.isbn && String(book.isbn).trim()) {
     try {
-      console.log('ISBN으로 상세 검색 시도:', book.isbn)
-      
       const response = await fetch('http://localhost:8080/api/naver/book-search', {
         method: 'POST',
         headers: {
@@ -403,24 +393,18 @@ async function searchBookImageFromNaver() {
         })
       })
 
-      console.log("백엔드 API 응답 상태:", response.status)
-
       if (response.ok) {
         const data = await response.json()
-        console.log("ISBN 검색 응답 데이터:", data)
         
         if (data.items && data.items.length > 0) {
           const imageUrl = data.items[0].image
           if (imageUrl) {
-            console.log('ISBN 검색으로 이미지 발견:', imageUrl)
             return imageUrl
           }
         }
-      } else {
-        console.warn('ISBN 검색 실패:', response.status)
       }
     } catch (error) {
-      console.error('ISBN 검색 중 오류:', error)
+      alert('ISBN 검색 중 오류:', error.response?.data)
     }
   }
 }

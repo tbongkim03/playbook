@@ -84,11 +84,11 @@
         <table class="student-table">
           <thead>
             <tr>
-              <th>학생명</th>
+              <th>학생 명</th>
               <th>학생 ID</th>
               <th>상태</th>
-              <th>가입일</th>
-              <th>과정명</th>
+              <th>가입 일</th>
+              <th>과정 명</th>
               <th>과정 기간</th>
               <th>작업</th>
             </tr>
@@ -154,7 +154,7 @@
             <h4>기본 정보</h4>
             <div class="detail-grid">
               <div class="detail-item">
-                <label>학생명</label>
+                <label>학생 명</label>
                 <span>{{ selectedUser.nameUser }}</span>
               </div>
               <div class="detail-item">
@@ -168,7 +168,7 @@
                 </span>
               </div>
               <div class="detail-item">
-                <label>가입일</label>
+                <label>가입 일</label>
                 <span>{{ formatDate(selectedUser.createdAt) }}</span>
               </div>
             </div>
@@ -182,15 +182,15 @@
                 <span>{{ selectedUser.courseName }}</span>
               </div>
               <div class="detail-item">
-                <label>시작일</label>
+                <label>시작 일</label>
                 <span>{{ formatDate(selectedUser.courseStartDt) }}</span>
               </div>
               <div class="detail-item">
-                <label>종료일</label>
+                <label>종료 일</label>
                 <span>{{ formatDate(selectedUser.courseEndDt) }}</span>
               </div>
               <div class="detail-item">
-                <label>진행상태</label>
+                <label>진행 상태</label>
                 <span :class="['period-status', getPeriodStatusClass(selectedUser.courseEndDt)]">
                   {{ getPeriodStatus(selectedUser.courseEndDt) }}
                 </span>
@@ -321,10 +321,8 @@ const fetchUserList = async () => {
     }))
     
     filteredUserList.value = [...userList.value]
-    console.log('학생 목록:', userList.value)
     
   } catch (error) {
-    console.error('학생 목록 조회 실패:', error)
     if (error.response?.status === 403) {
       alert('관리자 권한이 필요합니다.')
     } else if (error.response?.status === 401) {
@@ -437,7 +435,7 @@ const deleteUser = async () => {
   try {
     isLoading.value = true
     
-    // 비밀번호가 맞으면 학생 삭제
+    // 학생 삭제
     const response = await axios.delete('http://localhost:8080/users', {
       headers: getAuthHeaders(),
       data: {
@@ -450,11 +448,10 @@ const deleteUser = async () => {
     await fetchUserList()
     
   } catch (error) {
-    console.error('학생 삭제 실패:', error)
     if (error.response?.status === 403) {
       alert('관리자 권한이 필요합니다.')
     } else if (error.response?.status === 401) {
-      alert('비밀번호가 일치하지 않습니다.')
+      alert(error.response?.data)
     } else {
       alert(error.response?.data || '학생 삭제에 실패했습니다.')
     }

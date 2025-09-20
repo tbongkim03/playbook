@@ -503,31 +503,31 @@ const printAll = async () => {
   `)
   doc.close()
 
-  // try {
-  //   const ids = displayedBooks.value.map(book => book.seqBook)
+  try {
+    const ids = displayedBooks.value.map(book => book.seqBook)
 
-  //   const res = await fetch('http://localhost:8080/books/batch/print', {
-  //     method: 'PUT',
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //       Authorization: `Bearer ${token}`
-  //     },
-  //     body: JSON.stringify(ids)
-  //   })
+    const res = await fetch('http://localhost:8080/books/batch/print', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(ids)
+    })
 
-  //   if (!res.ok) {
-  //     const errorMessage = await res.text()
-  //     throw new Error(errorMessage || `서버 오류: ${res.status}`)
-  //   }
+    if (!res.ok) {
+      const errorMessage = await res.text()
+      throw new Error(errorMessage || `서버 오류: ${res.status}`)
+    }
 
-  //   alert('인쇄 완료 상태로 저장되었습니다.')
+    alert('인쇄 완료 상태로 저장되었습니다.')
 
-  //   // 다시 목록 갱신
-  //   await fetchUnprintedBarcodes()
-  //   generateBarcodes()
-  // } catch (error) {
-  //   alert('저장에 실패했습니다.', error)
-  // }
+    // 다시 목록 갱신
+    await fetchUnprintedBarcodes()
+    generateBarcodes()
+  } catch (error) {
+    alert('저장에 실패했습니다.', error)
+  }
 }
 </script>
 

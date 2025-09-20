@@ -1,134 +1,136 @@
 <template>
-  <BorrowReturn v-if="isModalOpen" @close="isModalOpen = false" />
-  
-  <div class="mainpage-bg-wrapper">
-    <div class="mainpage-area">
-      <div
-        class="dropdown-wrapper"
-        @mouseenter="hoveringWrapper = true"
-        @mouseleave="hoveringWrapper = false"
-        >
-        <!-- 대분류 네비게이션 포함 -->
-        <nav class="nav-bar" style="top: 72px; z-index: 1030;">
-            <!-- 왼쪽: 카테고리 목록 -->
-            <div class="nav-left">
-                <ul class="nav">
-                <li class="nav-item">
-                    <a
-                    class="nav-link"
-                    :class="{ active: selectedLargeCategory === '전체' }"
-                    href="#"
-                    @click.prevent="selectLargeCategory('전체')"
-                    @mouseenter="hoveredLargeCategory = '전체'"
-                    >
-                    전체
-                    </a>
-                </li>
-                <li
-                    class="nav-item"
-                    v-for="(large, index) in largeCategories.filter(l => l.seqSortFirst !== 0)"
-                    :key="index"
-                    @mouseenter="hoveredLargeCategory = large.nameSortFirst"
-                >
-                    <a
-                    class="nav-link"
-                    :class="{ active: isLargeCategoryActive(large.nameSortFirst) }"
-                    href="#"
-                    @click.prevent="selectLargeCategory(large.nameSortFirst, large.seqSortFirst)"
-                    >
-                    {{ large.korSortFirst }}
-                    </a>
-                </li>
-                </ul>
-            </div>
+  <div class="homepage-wrapper">
+    <BorrowReturn v-if="isModalOpen" @close="isModalOpen = false" />
+    
+    <div class="mainpage-bg-wrapper">
+      <div class="mainpage-area">
+        <div
+          class="dropdown-wrapper"
+          @mouseenter="hoveringWrapper = true"
+          @mouseleave="hoveringWrapper = false"
+          >
+          <!-- 대분류 네비게이션 포함 -->
+          <nav class="nav-bar" style="top: 72px; z-index: 1030;">
+              <!-- 왼쪽: 카테고리 목록 -->
+              <div class="nav-left">
+                  <ul class="nav">
+                  <li class="nav-item">
+                      <a
+                      class="nav-link"
+                      :class="{ active: selectedLargeCategory === '전체' }"
+                      href="#"
+                      @click.prevent="selectLargeCategory('전체')"
+                      @mouseenter="hoveredLargeCategory = '전체'"
+                      >
+                      전체
+                      </a>
+                  </li>
+                  <li
+                      class="nav-item"
+                      v-for="(large, index) in largeCategories.filter(l => l.seqSortFirst !== 0)"
+                      :key="index"
+                      @mouseenter="hoveredLargeCategory = large.nameSortFirst"
+                  >
+                      <a
+                      class="nav-link"
+                      :class="{ active: isLargeCategoryActive(large.nameSortFirst) }"
+                      href="#"
+                      @click.prevent="selectLargeCategory(large.nameSortFirst, large.seqSortFirst)"
+                      >
+                      {{ large.korSortFirst }}
+                      </a>
+                  </li>
+                  </ul>
+              </div>
 
-            <!-- 오른쪽: 검색창 -->
-            <div class="nav-right">
-                <BookSearch class="search-component" @search="onSearch" />
-            </div>
-        </nav>
+              <!-- 오른쪽: 검색창 -->
+              <div class="nav-right">
+                  <BookSearch class="search-component" @search="onSearch" />
+              </div>
+          </nav>
 
-        <ul
-            v-if="shouldShowMediumDropdown"
-            class="dropdown-menu-custom"
-        >
-            <li
-            class="dropdown-item-custom"
-            :class="{ active: selectedMediumCategory === medium.seqSortSecond }"
-            v-for="(medium, idx) in getMediumOptions(currentLargeForMedium)"
-            :key="idx"
-            @click="selectMediumCategory(medium.seqSortSecond, medium.seqSortFirst)"
-            >
-            {{ medium.korSortSecond }}
-            </li>
-        </ul>
-      </div>
-
-      <!-- 본문 -->
-      <div class="main" :style="{ marginTop: mainMarginTop }">
-        <div class="content-header" v-if="filteredBookList.length > 0">
-          <h2 class="section-title">
-            {{ getSectionTitle() }}
-            <span class="book-count">({{ displayCount }}권)</span>
-          </h2>
+          <ul
+              v-if="shouldShowMediumDropdown"
+              class="dropdown-menu-custom"
+          >
+              <li
+              class="dropdown-item-custom"
+              :class="{ active: selectedMediumCategory === medium.seqSortSecond }"
+              v-for="(medium, idx) in getMediumOptions(currentLargeForMedium)"
+              :key="idx"
+              @click="selectMediumCategory(medium.seqSortSecond, medium.seqSortFirst)"
+              >
+              {{ medium.korSortSecond }}
+              </li>
+          </ul>
         </div>
 
-        <div class="article-area" v-if="filteredBookList.length > 0">
-          <BookArea 
-            v-for="book in filteredBookList" 
-            :key="book.seqBook"
-            :book="book"
-            class="book-item"
-          />
-        </div>
-
-        <!-- 책이 없을 때 표시할 메시지 -->
-        <div class="no-books-message" v-else>
-          <div class="no-books-content">
-            <div class="no-books-icon">
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="12" cy="12" r="1" fill="currentColor"/>
-                <circle cx="12" cy="8" r="1" fill="currentColor"/>
-                <circle cx="12" cy="16" r="1" fill="currentColor"/>
-              </svg>
-            </div>
-            <h3>해당 카테고리에 등록된 책이 없습니다</h3>
-            <p>다른 카테고리를 선택해 주세요.</p>
+        <!-- 본문 -->
+        <div class="main" :style="{ marginTop: mainMarginTop }">
+          <div class="content-header" v-if="filteredBookList.length > 0">
+            <h2 class="section-title">
+              {{ getSectionTitle() }}
+              <span class="book-count">({{ displayCount }}권)</span>
+            </h2>
           </div>
-        </div>
 
-        <!-- 페이지네이션 -->
-        <div class="pagination-area" v-if="totalCount > 0">
-          <div class="pagination-wrapper">
-            <button 
-              class="pagination-btn prev-btn" 
-              :disabled="currentPage === 1"
-              @click="loadBooks(currentPage - 1)"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              이전
-            </button>
-            
-            <div class="page-info">
-              <span class="current-page">{{ currentPage }}</span>
-              <span class="page-divider">/</span>
-              <span class="total-pages">{{ Math.ceil(totalCount / 10) }}</span>
+          <div class="article-area" v-if="filteredBookList.length > 0">
+            <BookArea 
+              v-for="book in filteredBookList" 
+              :key="book.seqBook"
+              :book="book"
+              class="book-item"
+            />
+          </div>
+
+          <!-- 책이 없을 때 표시할 메시지 -->
+          <div class="no-books-message" v-else>
+            <div class="no-books-content">
+              <div class="no-books-icon">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="12" cy="12" r="1" fill="currentColor"/>
+                  <circle cx="12" cy="8" r="1" fill="currentColor"/>
+                  <circle cx="12" cy="16" r="1" fill="currentColor"/>
+                </svg>
+              </div>
+              <h3>해당 카테고리에 등록된 도서가 없습니다</h3>
+              <p>다른 카테고리를 선택해 주세요.</p>
             </div>
-            
-            <button 
-              class="pagination-btn next-btn"
-              :disabled="currentPage >= Math.ceil(totalCount / 10)"
-              @click="loadBooks(currentPage + 1)"
-            >
-              다음
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
+          </div>
+
+          <!-- 페이지네이션 -->
+          <div class="pagination-area" v-if="totalCount > 0">
+            <div class="pagination-wrapper">
+              <button 
+                class="pagination-btn prev-btn" 
+                :disabled="currentPage === 1"
+                @click="loadBooks(currentPage - 1)"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                이전
+              </button>
+              
+              <div class="page-info">
+                <span class="current-page">{{ currentPage }}</span>
+                <span class="page-divider">/</span>
+                <span class="total-pages">{{ Math.ceil(totalCount / 10) }}</span>
+              </div>
+              
+              <button 
+                class="pagination-btn next-btn"
+                :disabled="currentPage >= Math.ceil(totalCount / 10)"
+                @click="loadBooks(currentPage + 1)"
+              >
+                다음
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -173,7 +175,7 @@ const fetchLargeCategories = async () => {
     const res = await fetch('http://localhost:8080/subjects')
     largeCategories.value = await res.json()
   } catch (error) {
-    console.error('대분류 카테고리 조회 실패:', error)
+    alert('대분류 카테고리 조회 실패:', error.response?.data)
   }
 }
 
@@ -182,7 +184,7 @@ const fetchMediumCategories = async () => {
     const res = await fetch('http://localhost:8080/subtitles')
     mediumCategoriesAll.value = await res.json()
   } catch (error) {
-    console.error('중분류 카테고리 조회 실패:', error)
+    alert('중분류 카테고리 조회 실패:', error.response?.data)
   }
 }
 
@@ -216,7 +218,7 @@ const loadBooks = async (page = 1) => {
     // 검색 모드 해제
     isSearchMode.value = false
   } catch (error) {
-    console.error('책 목록 조회 실패:', error)
+    alert('책 목록 조회 실패:', error.response?.data)
     bookList.value = []
     totalCount.value = 0
   }
@@ -339,7 +341,7 @@ function selectMediumCategory(mediumSeq, largeSeq) {
 }
 
 function onSearch({ query, exact }) {
-  console.log('검색 요청:', query, exact);
+  // console.log('검색 요청:', query, exact);
   fetchBooks(1, query, exact);
 }
 
@@ -368,7 +370,7 @@ const fetchBooks = async (page = 1, query = '', exact = false) => {
 
   const data = await res.json();
 
-  console.log(data)
+  // console.log(data)
 
   if (!data.content) {
     alert('서버 응답 데이터 오류: ', data);

@@ -546,7 +546,7 @@ async function getCourseList() {
       .sort((a, b) => a.title.localeCompare(b.title, 'ko'))
 
   } catch (err) {
-    console.error('API 조회 실패:', err)
+    // console.error('API 조회 실패:', err)
     alert('훈련과정 정보를 조회하는 중 오류가 발생했습니다.')
   }
 }
@@ -617,7 +617,7 @@ async function validateUsername() {
       errors.value.username = ''
     }
   } catch (error) {
-    console.error('아이디 검사 실패:', error)
+    // console.error('아이디 검사 실패:', error)
     errors.value.username = '아이디 확인 중 오류가 발생했습니다.'
   }
 }
@@ -641,7 +641,30 @@ function validateCourse() {
 }
 
 function blockJavascriptInput(event) {
-  // JavaScript 입력 방지 로직이 있다면 여기에
+  const input = event.target.value;
+  
+  // JavaScript 관련 키워드 패턴
+  const jsPatterns = [
+    /<script[^>]*>.*?<\/script>/gi,
+    /javascript:/gi,
+    /on\w+\s*=/gi, // onclick, onload 등
+    /eval\s*\(/gi,
+    /Function\s*\(/gi,
+    /setTimeout\s*\(/gi,
+    /setInterval\s*\(/gi
+  ];
+  
+  // 패턴 검사
+  for (let pattern of jsPatterns) {
+    if (pattern.test(input)) {
+      event.preventDefault();
+      alert('JavaScript 코드는 입력할 수 없습니다.');
+      
+      // 해당 부분 제거
+      event.target.value = input.replace(pattern, '');
+      return false;
+    }
+  }
 }
 
 async function handleSubmit() {
@@ -683,7 +706,6 @@ async function handleSubmit() {
       alert(`회원가입 실패: ${result.message || '알 수 없는 오류'}`)
     }
   } catch (error) {
-    console.error('회원가입 중 오류 발생:', error)
     alert('회원가입 요청 중 오류가 발생했습니다.')
   }
 }

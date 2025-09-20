@@ -66,6 +66,7 @@
                   v-model="filters.searchQuery"
                   placeholder="제목, 저자, 출판사, ISBN으로 검색..."
                   class="search-input"
+                  @keyup.enter="$event.target.blur()"
                 />
                 <button 
                   v-if="filters.searchQuery"
@@ -490,7 +491,7 @@ const selectedCntBook = ref('')
 const isPrint = ref(false)
 const isPrintBatchOpen = ref(false)
 const isRefreshing = ref(false)
-const activeRowId = ref(null) // 마지막으로 클릭한 행 ID 추가
+const activeRowId = ref(null)
 
 // 필터 상태
 const filters = ref({
@@ -503,7 +504,7 @@ const filters = ref({
 
 // 페이지네이션 상태
 const currentPage = ref(1)
-const pageSize = 15 // 줄여서 한 화면에 더 잘 들어가도록
+const pageSize = 15
 
 // 키보드 이벤트 핸들러
 const handleKeydown = (event) => {
@@ -518,17 +519,17 @@ const handleKeydown = (event) => {
 
 // 도서 상태 관련 함수들
 const getBookStatus = (book) => {
-  // 바코드가 출력되지 않았으면 대출불가
+  // 바코드가 출력되지 않았으면 대출 불가
   if (!book.printCheckBook) {
     return 'unavailable'
   }
   
-  // 바코드가 출력되었고 대출 중이면 대출중
+  // 바코드가 출력되었고 대출 중이면 대출 중
   if (book.bookBorrowed) {
     return 'borrowed'
   }
   
-  // 바코드가 출력되었고 대출 중이 아니면 대출가능
+  // 바코드가 출력되었고 대출 중이 아니면 대출 가능
   return 'available'
 }
 
@@ -564,14 +565,12 @@ const getBookStatusClass = (book) => {
 const fetchLargeCategories = async () => {
   const res = await fetch('http://localhost:8080/subjects')
   largeCategories.value = await res.json()
-  console.log('[fetchLargeCategories]', largeCategories.value)
 }
 
 // 중분류 데이터 가져오기
 const fetchMediumCategories = async () => {
   const res = await fetch('http://localhost:8080/subtitles')
   mediumCategoriesAll.value = await res.json()
-  console.log('[fetchMediumCategories]', mediumCategoriesAll.value)
 }
 
 // seqSortSecond(중분류 시퀀스)로 중분류 정보 찾기
@@ -628,14 +627,14 @@ const fetchBooks = async () => {
   if (!res.ok) { 
     const errorText = await res.text()
     alert(`데이터 로드 오류: ${errorText}`)
-    console.error('API Error:', res.status, errorText)
+    // console.error('API Error:', res.status, errorText)
     return
   }
 
   const data = await res.json()
 
   if (!Array.isArray(data)) {
-    console.error('서버 응답 데이터 오류: ', data)
+    // console.error('서버 응답 데이터 오류: ', data)
     allBooks.value = []
     return
   }
@@ -924,7 +923,6 @@ const refreshBooks = async () => {
   try {
     await fetchBooks()
   } catch (error) {
-    console.error('새로고침 실패:', error)
     alert('목록을 새로고침하는 중 오류가 발생했습니다.')
   } finally {
     isRefreshing.value = false

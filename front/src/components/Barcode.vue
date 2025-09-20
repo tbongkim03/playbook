@@ -410,7 +410,7 @@ const printBarcode = () => {
   `)
   doc.close()
 
-  // postPrintedBook(true)
+  postPrintedBook(true)
 }
 
 // POST 함수 (printCheckBook을 매개변수로)
