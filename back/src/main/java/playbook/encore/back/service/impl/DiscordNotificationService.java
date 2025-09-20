@@ -156,6 +156,17 @@ public class DiscordNotificationService {
         sendChannelMessage(message);
     }
 
+    // 관심 도서 대출 가능 알림
+    public void sendFavorNotification(String dcUser, String nameUser, String titleBook) {
+        String message = String.format("""
+            \n📚 **[%s]** 도서가 대출 가능 상태가 되었습니다!\n
+            📢 관심 도서 알림: %s님께서 찜하신 도서입니다.\n
+            🏃‍♂️ 서둘러 대출해 보세요!
+            """, titleBook, nameUser);
+
+        sendDirectMessage(dcUser, nameUser, message);
+    }
+
     // Discord ID가 숫자인지 확인
     private boolean isNumericId(String discordId) {
         if (discordId == null || discordId.isEmpty()) {

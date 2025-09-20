@@ -26,6 +26,7 @@ public class HistoryServiceImpl implements HistoryService {
     private final BookUserRepository bookUserRepository;
     private final BookRepository bookRepository;
     private final HistoryRepository historyRepository;
+    private final FavorRepository favorRepository;
     private final AdminDAO adminDAO;
     private final BookUserDAO bookUserDAO;
     private final CourseRepository courseRepository;
@@ -33,12 +34,13 @@ public class HistoryServiceImpl implements HistoryService {
     private final DiscordNotificationService discordNotificationService;
 
     @Autowired
-    public HistoryServiceImpl(HistoryDAO historyDAO, AdminRepository adminRepository, BookUserRepository bookUserRepository, BookRepository bookRepository, HistoryRepository historyRepository, AdminDAO adminDAO, BookUserDAO bookUserDAO, CourseRepository courseRepository, BookDAO bookDAO, DiscordNotificationService discordNotificationService) {
+    public HistoryServiceImpl(HistoryDAO historyDAO, AdminRepository adminRepository, BookUserRepository bookUserRepository, BookRepository bookRepository, HistoryRepository historyRepository, FavorRepository favorRepository, AdminDAO adminDAO, BookUserDAO bookUserDAO, CourseRepository courseRepository, BookDAO bookDAO, DiscordNotificationService discordNotificationService) {
         this.historyDAO = historyDAO;
         this.adminRepository = adminRepository;
         this.bookUserRepository = bookUserRepository;
         this.bookRepository = bookRepository;
         this.historyRepository = historyRepository;
+        this.favorRepository = favorRepository;
         this.adminDAO = adminDAO;
         this.bookUserDAO = bookUserDAO;
         this.courseRepository = courseRepository;
@@ -276,6 +278,21 @@ public class HistoryServiceImpl implements HistoryService {
             }
 
             bookUserDAO.updateStatus(bookUser, status);
+
+            List<BookUser> favorUsers = favorRepository.findAllBySeqBook(book);
+
+            for (BookUser favorUser : favorUsers) {
+                try {
+                    // 디스코드 알림 함수 호출 (구현 예정인 함수)
+                    discordNotificationService.sendFavorNotification(
+                            favorUser.getDcUser(),
+                            favorUser.getNameUser(),
+                            book.getTitleBook()
+                    );
+                } catch (Exception e) {
+                    System.err.println("즐겨찾기 알림 전송 실패: " + e.getMessage());
+                }
+            }
         }
 
         // 연체 반납인 경우 예외 발생
