@@ -1,5 +1,3 @@
-USE playbookdb;
-
 CREATE TABLE tb_book (
     seq_book        INT             NOT NULL AUTO_INCREMENT,
     seq_sort_second INT             NOT NULL,

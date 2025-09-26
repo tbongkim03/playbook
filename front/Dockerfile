@@ -9,7 +9,6 @@ COPY . .
 
 RUN npm run build
 
-#RUN npm install -g http-server
 RUN npm install -g serve
 
 EXPOSE 8080

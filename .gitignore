@@ -67,6 +67,8 @@ front/*.sw?
 front/*.tsbuildinfo
 front/.vite/*
 #### ENV ###
-back/.env
-db/.env
+back/.env.dev
+back/.env.prod
+db/.env.dev
+db/.env.prod
 front/.env

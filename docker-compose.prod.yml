@@ -3,15 +3,15 @@ services:
     build:
       context: ./back
       dockerfile: Dockerfile
-    container_name: back
+    container_name: back-prod
     env_file:
-      - ./back/.env
+      - ./back/.env.prod
     ports:
       - "8080:8080"
     depends_on:
       - db
     networks:
-      - app-network
+      - prod-network
 
   db:
     build:
@@ -19,30 +19,30 @@ services:
       dockerfile: Dockerfile
     container_name: db
     env_file:
-      - ./db/.env
+      - ./db/.env.prod
     ports:
       - "6603:3306"
     volumes:
       - db-data:/var/lib/mysql
     networks:
-      - app-network
+      - prod-network
 
   front:
     build:
       context: ./front
       dockerfile: Dockerfile
-    container_name: front
-    env_file:
-      - ./front/.env
+    container_name: front-prod
     ports:
       - "8081:8080"
     networks:
-      - app-network
+      - prod-network
 
 volumes:
   db-data:
 
 networks:
-  app-network:
+  prod-network:
     driver: bridge
+
+
 
