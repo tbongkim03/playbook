@@ -340,7 +340,7 @@ const router = useRouter()
 const jwtToken = ref(localStorage.getItem('jwtToken'))
 
 // API 기본 URL
-const API_BASE_URL = 'http://localhost:8080'
+const API_BASE_URL = '/api'
 
 // 유저 정보
 const userInfo = ref({
@@ -508,7 +508,7 @@ async function loadRentalHistory() {
 async function getCourseList() {
   try {
     const token = localStorage.getItem('jwtToken')
-    const res = await fetch('http://localhost:8080/api/work24/course', {
+    const res = await fetch('/api/work24/course', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -626,7 +626,7 @@ async function removeFavorite(seqBook) {
     
     // console.log('삭제할 seqBook:', seqBook)
 
-    const response = await axios.delete('http://localhost:8080/favor', {
+    const response = await axios.delete('/api/favor', {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${jwtToken.value}`

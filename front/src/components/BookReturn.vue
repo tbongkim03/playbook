@@ -232,7 +232,7 @@ const returnBook = async (barcode) => {
   try {
     const response = await axios({
       method: 'put',  // 반납은 PUT 메소드 사용
-      url: 'http://localhost:8080/history/return',
+      url: '/api/history/return',
       data: barcode,
       headers: {
         'Content-Type': 'text/plain',

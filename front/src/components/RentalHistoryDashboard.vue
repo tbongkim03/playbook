@@ -445,7 +445,7 @@ const fetchRentalHistory = async () => {
     const headers = getAuthHeaders()
     if (!headers) return
     
-    const response = await axios.get('http://localhost:8080/history/book', {
+    const response = await axios.get('/api/history/book', {
       headers: headers
     })
     

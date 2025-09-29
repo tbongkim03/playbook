@@ -285,7 +285,7 @@ const displayedBooks = computed(() => {
 // fetch 사용해서 조건에 맞는 바코드 책 리스트 가져오기
 const fetchUnprintedBarcodes = async () => {
   try {
-    const res = await fetch('http://localhost:8080/books/unprinted', { 
+    const res = await fetch('/api/books/unprinted', { 
       headers: { Authorization: `Bearer ${token}` }
     })
     if (!res.ok) {
@@ -506,7 +506,7 @@ const printAll = async () => {
   try {
     const ids = displayedBooks.value.map(book => book.seqBook)
 
-    const res = await fetch('http://localhost:8080/books/batch/print', {
+    const res = await fetch('/api/books/batch/print', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

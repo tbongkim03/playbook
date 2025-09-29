@@ -90,8 +90,8 @@ async function fetchUserInfo() {
     };
 
     const [userRes, adminRes] = await Promise.allSettled([
-      axios.get('http://localhost:8080/users/me', { headers }),
-      axios.get('http://localhost:8080/admin/me', { headers })
+      axios.get('/api/users/me', { headers }),
+      axios.get('/api/admin/me', { headers })
     ]);
 
     if (userRes.status === 'fulfilled') {

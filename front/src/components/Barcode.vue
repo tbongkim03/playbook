@@ -180,7 +180,7 @@ const generateBarcode = () => {
 
 const uniqueTest = async () => {
   try {
-    const response = await fetch(`http://localhost:8080/books/check/barcode`, {
+    const response = await fetch(`/api/books/check/barcode`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -431,7 +431,7 @@ const postPrintedBook = async (printCheckBook) => {
       printCheckBook: printCheckBook
     }
 
-    const response = await fetch(`http://localhost:8080/books/${id}`, {
+    const response = await fetch(`/api/books/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

@@ -248,7 +248,7 @@ const handleWishlist = async () => {
         
         if (isWishlisted.value) {
             // 찜하기 해제 - DELETE 요청
-            response = await axios.delete('http://localhost:8080/favor', {
+            response = await axios.delete('/api/favor', {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
@@ -257,7 +257,7 @@ const handleWishlist = async () => {
             })
         } else {
             // 찜하기 추가 - POST 요청
-            response = await axios.post('http://localhost:8080/favor', book.value.seqBook, {
+            response = await axios.post('/api/favor', book.value.seqBook, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
@@ -302,7 +302,7 @@ const checkWishlistStatus = async () => {
         const token = localStorage.getItem('jwtToken')
         if (!token) return
         
-        const response = await axios.get('http://localhost:8080/favor', {
+        const response = await axios.get('/api/favor', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -328,7 +328,7 @@ onMounted(async () => {
             headers['Authorization'] = `Bearer ${token}`
         }
         
-        const res = await axios.get(`http://localhost:8080/books/${bookId}`, {
+        const res = await axios.get(`/api/books/${bookId}`, {
             headers: headers
         })
         

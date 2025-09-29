@@ -56,7 +56,7 @@ export default {
             }
             try {
                 const response = await fetch(
-                    `http://localhost:8080/books/related?q=${encodeURIComponent(this.query)}`
+                    `/api/books/related?q=${encodeURIComponent(this.query)}`
                 );
                 if (!response.ok) throw new Error('네트워크 오류');
                 const data = await response.json();

@@ -165,7 +165,7 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
 
-const title_url = "http://localhost:8080"
+const title_url = "/api"
 
 // Chart.js 등록
 Chart.register(...registerables)
@@ -209,7 +209,7 @@ async function getCourseList() {
   try {
     const token = localStorage.getItem("jwtToken")
 
-    const res = await fetch('http://localhost:8080/api/work24/course', {
+    const res = await fetch('/api/work24/course', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'

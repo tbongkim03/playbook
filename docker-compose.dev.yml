@@ -30,10 +30,12 @@ services:
   front-dev:
     build:
       context: ./front
-      dockerfile: Dockerfile
+      dockerfile: DevDockerfile
     container_name: front-dev
     ports:
-      - "8081:8080"
+      - "80:80"
+    depends_on:
+      - back-dev
     networks:
       - dev-network
 

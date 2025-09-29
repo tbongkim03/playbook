@@ -31,7 +31,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @RestController
-@RequestMapping("/api")
 public class NLISBNController {
 
     private final AdminRepository adminRepository;

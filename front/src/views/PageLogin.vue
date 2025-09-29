@@ -222,14 +222,14 @@ async function handleLogin() {
         idAdmin: userId.value,
         pwAdmin: password.value
       }
-      apiUrl = 'http://localhost:8080/admin/login'
+      apiUrl = '/api/admin/login'
     } else {
       // 일반 사용자 로그인
       loginData = {
         idUser: userId.value,
         pwUser: password.value
       }
-      apiUrl = 'http://localhost:8080/users/login'
+      apiUrl = '/api/users/login'
     }
 
     const res = await axios.post(apiUrl, loginData)

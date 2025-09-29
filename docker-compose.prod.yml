@@ -30,10 +30,12 @@ services:
   front:
     build:
       context: ./front
-      dockerfile: Dockerfile
+      dockerfile: ProdDockerfile
     container_name: front-prod
     ports:
-      - "8081:8080"
+      - "80:80"
+    depends_on:
+      - back
     networks:
       - prod-network
 

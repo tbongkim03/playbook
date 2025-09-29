@@ -172,7 +172,7 @@ const isSearchMode = ref(false)
 
 const fetchLargeCategories = async () => {
   try {
-    const res = await fetch('http://localhost:8080/subjects')
+    const res = await fetch('/api/subjects')
     largeCategories.value = await res.json()
   } catch (error) {
     alert('대분류 카테고리 조회 실패:', error.response?.data)
@@ -181,7 +181,7 @@ const fetchLargeCategories = async () => {
 
 const fetchMediumCategories = async () => {
   try {
-    const res = await fetch('http://localhost:8080/subtitles')
+    const res = await fetch('/api/subtitles')
     mediumCategoriesAll.value = await res.json()
   } catch (error) {
     alert('중분류 카테고리 조회 실패:', error.response?.data)
@@ -192,9 +192,9 @@ const loadBooks = async (page = 1) => {
   try {
     let url = ''
     if (selectedLargeCategory.value === '전체') {
-      url = `http://localhost:8080/books?page=${page}`
+      url = `/api/books?page=${page}`
     } else {
-      url = `http://localhost:8080/books/sortFirst?id=${selectedLargeCategorySeq.value}&page=${page}`
+      url = `/api/books/sortFirst?id=${selectedLargeCategorySeq.value}&page=${page}`
     }
 
     const token = localStorage.getItem('jwtToken')
@@ -348,14 +348,14 @@ function onSearch({ query, exact }) {
 const fetchBooks = async (page = 1, query = '', exact = false) => {
   let url;
   if (query && query.trim()) {
-    url = new URL(`http://localhost:8080/books/search`);
+    url = new URL(`/api/books/search`);
     url.searchParams.set('q', query.trim());
     url.searchParams.set('exact', exact);
     
     // 검색 모드 활성화
     isSearchMode.value = true
   } else {
-    url = new URL(`http://localhost:8080/books`);
+    url = new URL(`/api/books`);
     url.searchParams.set('page', page);
     
     // 검색 모드 비활성화

@@ -24,16 +24,6 @@
                         <ul>
                             <li><a href="borrow">도서 대출</a></li>
                             <li><a href="return">도서 반납</a></li>
-                            <li><a href="#" @click.prevent>이용 안내</a></li>
-                        </ul>
-                    </div>
-                    
-                    <div class="link-group">
-                        <h4>지원</h4>
-                        <ul>
-                            <li><a href="#" @click.prevent>자주 묻는 질문</a></li>
-                            <li><a href="#" @click.prevent>문의하기</a></li>
-                            <li><a href="#" @click.prevent>피드백</a></li>
                         </ul>
                     </div>
                     

@@ -476,7 +476,7 @@ import PrintBatch from './BookPrintBatch.vue'
 // emit 정의
 defineEmits(['open-register-modal'])
 
-const API_BASE = 'http://localhost:8080'
+const API_BASE = '/api'
 
 // 데이터 상태
 const allBooks = ref([])
@@ -563,13 +563,13 @@ const getBookStatusClass = (book) => {
 
 // 대분류 데이터 가져오기
 const fetchLargeCategories = async () => {
-  const res = await fetch('http://localhost:8080/subjects')
+  const res = await fetch('/api/subjects')
   largeCategories.value = await res.json()
 }
 
 // 중분류 데이터 가져오기
 const fetchMediumCategories = async () => {
-  const res = await fetch('http://localhost:8080/subtitles')
+  const res = await fetch('/api/subtitles')
   mediumCategoriesAll.value = await res.json()
 }
 

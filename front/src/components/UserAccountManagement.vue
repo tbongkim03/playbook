@@ -293,7 +293,7 @@ const getAuthHeaders = () => {
 // 현재 사용자 정보 조회
 const fetchCurrentUser = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/admin/me', {
+    const response = await axios.get('/api/admin/me', {
       headers: getAuthHeaders()
     })
     currentUser.value = response.data
@@ -306,7 +306,7 @@ const fetchCurrentUser = async () => {
 const fetchUserList = async () => {
   try {
     isLoading.value = true
-    const response = await axios.get('http://localhost:8080/users/list', {
+    const response = await axios.get('/api/users/list', {
       headers: getAuthHeaders()
     })
 
@@ -436,7 +436,7 @@ const deleteUser = async () => {
     isLoading.value = true
     
     // 학생 삭제
-    const response = await axios.delete('http://localhost:8080/users', {
+    const response = await axios.delete('/api/users', {
       headers: getAuthHeaders(),
       data: {
         idUser: deletingUser.value.idUser

@@ -31,7 +31,7 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String method = request.getMethod();
-        String uri = request.getRequestURI();
+        final String uri = request.getServletPath();
 
         if (
                 ((uri.equals("/subtitles") && method.equals("POST")) || (uri.startsWith("/subtitles/") && (method.equals("PUT") || method.equals("DELETE"))))

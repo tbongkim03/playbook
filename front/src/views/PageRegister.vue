@@ -439,7 +439,7 @@ async function getCourseList() {
   try {
     // 1. 외부 API에서 데이터 가져오기
     // const res = await fetch(url)
-    const res = await fetch('http://localhost:8080/api/work24/course', {
+    const res = await fetch('/api/work24/course', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -467,14 +467,14 @@ async function getCourseList() {
     })
 
     // 3. DB 데이터 가져오기
-    const dbRes = await fetch('http://localhost:8080/courses')
+    const dbRes = await fetch('/api/courses')
     const dbCourses = await dbRes.json()
 
     // 4. 추가: API에는 있는데 DB에는 없는 과정 → INSERT
     for (const apiItem of apiCourses) {
       const exists = dbCourses.find(dbItem => dbItem.nameCourse === apiItem.nameCourse)
       if (!exists) {
-        await fetch('http://localhost:8080/courses', {
+        await fetch('/api/courses', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -490,7 +490,7 @@ async function getCourseList() {
     for (const dbItem of dbCourses) {
       const exists = apiCourses.find(apiItem => apiItem.nameCourse === dbItem.nameCourse)
       if (!exists) {
-        await fetch(`http://localhost:8080/courses/${dbItem.seqCourse}`, {
+        await fetch(`/api/courses/${dbItem.seqCourse}`, {
           method: 'DELETE'
         })
       }
@@ -505,7 +505,7 @@ async function getCourseList() {
           dbItem.finishDtCourse !== apiItem.finishDtCourse
 
         if (isDifferent) {
-          await fetch(`http://localhost:8080/courses/${dbItem.seqCourse}`, {
+          await fetch(`/api/courses/${dbItem.seqCourse}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -519,7 +519,7 @@ async function getCourseList() {
     }
 
     // 7. 모든 동기화 작업 완료 후 최신 DB 데이터를 다시 가져오기
-    const finalDbRes = await fetch('http://localhost:8080/courses')
+    const finalDbRes = await fetch('/api/courses')
     const finalDbCourses = await finalDbRes.json()
 
     // 8. 드롭다운 표시용 courseList 값 세팅
@@ -605,7 +605,7 @@ async function validateUsername() {
 
   try {
     const response = await fetch(
-      `http://localhost:8080/users/register/validate?id=${encodeURIComponent(trimmedId)}`
+      `/api/users/register/validate?id=${encodeURIComponent(trimmedId)}`
     )
     if (!response.ok) throw new Error('네트워크 오류')
 
@@ -691,7 +691,7 @@ async function handleSubmit() {
   }
 
   try {
-    const response = await fetch('http://localhost:8080/users/register', {
+    const response = await fetch('/api/users/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)

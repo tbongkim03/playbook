@@ -352,7 +352,7 @@ const getAuthHeaders = () => {
 const validatePassword = async (idAdmin, password) => {
   try {
     const response = await axios.post(
-      `http://localhost:8080/admin/validate?id=${idAdmin}`,
+      `/api/admin/validate?id=${idAdmin}`,
       password,
       {
         headers: getAuthHeaders()
@@ -367,7 +367,7 @@ const validatePassword = async (idAdmin, password) => {
 // 현재 사용자 정보 조회
 const fetchCurrentUser = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/admin/me', {
+    const response = await axios.get('/api/admin/me', {
       headers: getAuthHeaders()
     })
     currentUser.value = response.data
@@ -387,7 +387,7 @@ const validateId = async () => {
   }
 
   try {
-    const response = await axios.get(`http://localhost:8080/admin/register/validate`, {
+    const response = await axios.get(`/api/admin/register/validate`, {
       params: { id: newAdmin.value.idAdmin },
       headers: getAuthHeaders()
     })
@@ -413,7 +413,7 @@ const validateId = async () => {
 const fetchAdminList = async () => {
   try {
     isLoading.value = true
-    const response = await axios.get('http://localhost:8080/admin/list', {
+    const response = await axios.get('/api/admin/list', {
       headers: getAuthHeaders()
     })
     // 백엔드의 AdminListResponseDto 구조에 맞게 수정
@@ -445,7 +445,7 @@ const addAdmin = async () => {
 
   try {
     isLoading.value = true
-    const response = await axios.post('http://localhost:8080/admin/register', newAdmin.value, {
+    const response = await axios.post('/api/admin/register', newAdmin.value, {
       headers: getAuthHeaders()
     })
     
@@ -479,7 +479,7 @@ const updateAdmin = async () => {
     await validatePassword(editingAdmin.value.idAdmin, editPassword.value)
     
     // 비밀번호가 맞으면 디스코드 ID 업데이트
-    const response = await axios.put('http://localhost:8080/admin/discord', 
+    const response = await axios.put('/api/admin/discord', 
       editingAdmin.value.dcAdmin, {
       headers: getAuthHeaders()
     })
@@ -525,7 +525,7 @@ const deleteAdmin = async (idAdmin) => {
     await validatePassword(idAdmin, deletePassword.value)
     
     // 비밀번호가 맞으면 관리자 삭제
-    const response = await axios.delete('http://localhost:8080/admin', {
+    const response = await axios.delete('/api/admin', {
       headers: getAuthHeaders(),
       data: deletingAdmin.value.idAdmin
     })
