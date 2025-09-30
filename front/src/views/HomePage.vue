@@ -401,6 +401,9 @@ const goToPage = (page) => {
     const endIndex = startIndex + ITEMS_PER_PAGE;
     bookList.value = allBooks.value.slice(startIndex, endIndex);
   }
+  
+  // 페이지 상단으로 스크롤 이동
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 function onSearch({ query, exact }) {
