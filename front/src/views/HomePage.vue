@@ -106,7 +106,7 @@
               <button 
                 class="pagination-btn prev-btn" 
                 :disabled="currentPage === 1"
-                @click="loadBooks(currentPage - 1)"
+                @click="goToPage(currentPage - 1)"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -117,13 +117,13 @@
               <div class="page-info">
                 <span class="current-page">{{ currentPage }}</span>
                 <span class="page-divider">/</span>
-                <span class="total-pages">{{ Math.ceil(totalCount / 10) }}</span>
+                <span class="total-pages">{{ Math.ceil(totalCount / ITEMS_PER_PAGE) }}</span>
               </div>
               
               <button 
                 class="pagination-btn next-btn"
-                :disabled="currentPage >= Math.ceil(totalCount / 10)"
-                @click="loadBooks(currentPage + 1)"
+                :disabled="currentPage >= Math.ceil(totalCount / ITEMS_PER_PAGE)"
+                @click="goToPage(currentPage + 1)"
               >
                 다음
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -157,6 +157,9 @@ const selectedMediumCategoryLargeSeq = ref(null) // 중분류가 속한 대분�
 const hoveringWrapper = ref(false)
 const hoveredLargeCategory = ref(null)
 
+
+const ITEMS_PER_PAGE = 20
+const allBooks = ref([])
 const bookList = ref([])
 const totalCount = ref(0)
 const currentPage = ref(1)
@@ -175,7 +178,7 @@ const fetchLargeCategories = async () => {
     const res = await fetch('/api/subjects')
     largeCategories.value = await res.json()
   } catch (error) {
-    alert('대분류 카테고리 조회 실패:', error.response?.data)
+    alert('대분류 카테고리 조회 실패:', error.message)
   }
 }
 
@@ -184,17 +187,17 @@ const fetchMediumCategories = async () => {
     const res = await fetch('/api/subtitles')
     mediumCategoriesAll.value = await res.json()
   } catch (error) {
-    alert('중분류 카테고리 조회 실패:', error.response?.data)
+    alert('중분류 카테고리 조회 실패:', error.message)
   }
 }
 
-const loadBooks = async (page = 1) => {
+const loadBooks = async () => {
   try {
     let url = ''
     if (selectedLargeCategory.value === '전체') {
-      url = `/api/books?page=${page}`
+      url = `/api/books`
     } else {
-      url = `/api/books/sortFirst?id=${selectedLargeCategorySeq.value}&page=${page}`
+      url = `/api/books/sortFirst?id=${selectedLargeCategorySeq.value}`
     }
 
     const token = localStorage.getItem('jwtToken')
@@ -210,16 +213,25 @@ const loadBooks = async (page = 1) => {
 
     // printCheckBook이 1인 책만 필터링
     const filteredBooks = (data.content || []).filter(book => book.printCheckBook === true)
-    
-    bookList.value = filteredBooks
+
+    allBooks.value = filteredBooks
     totalCount.value = filteredBooks.length // 필터링된 책의 개수로 업데이트
-    currentPage.value = page
+    currentPage.value = 1 // 첫 페이지로 리셋
     
+    // 현재 페이지에 해당하는 데이터만 추출
+    const startIndex = (currentPage.value - 1) * ITEMS_PER_PAGE
+    const endIndex = startIndex + ITEMS_PER_PAGE
+    bookList.value = filteredBooks.slice(startIndex, endIndex)
+
     // 검색 모드 해제
     isSearchMode.value = false
+    
+    // 페이지 상단으로 스크롤 이동
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   } catch (error) {
-    alert('책 목록 조회 실패:', error.response?.data)
+    alert('책 목록 조회 실패:', error.message)
     bookList.value = []
+    allBooks.value = []
     totalCount.value = 0
   }
 }
@@ -271,21 +283,36 @@ const currentLargeForMedium = computed(() => {
 })
 
 const filteredBookList = computed(() => {
-  let filtered = bookList.value.filter(book => 
-    book.seqSortFirst !== 0 && 
-    book.seqSortSecond !== 0 &&
-    book.printCheckBook === true  // printCheckBook이 1인 책만 표시
-  );
-  
+  // 중분류 필터링이 있는 경우
   if (selectedMediumCategory.value) {
-    filtered = filtered.filter(book => book.seqSortSecond === selectedMediumCategory.value);
+    const mediumFiltered = bookList.value.filter(book => 
+      book.seqSortFirst !== 0 && 
+      book.seqSortSecond !== 0 &&
+      book.printCheckBook === true &&
+      book.seqSortSecond === selectedMediumCategory.value
+    );
+    return mediumFiltered;
   }
   
-  return filtered;
+  // 일반 필터링 (대분류 또는 전체)
+  return bookList.value.filter(book => 
+    book.seqSortFirst !== 0 && 
+    book.seqSortSecond !== 0 &&
+    book.printCheckBook === true
+  );
 });
 
 const displayCount = computed(() => {
-  return filteredBookList.value.length;
+  if (selectedMediumCategory.value) {
+    // 중분류가 선택된 경우 전체 데이터에서 해당 중분류 개수 계산
+    return allBooks.value.filter(book => 
+      book.seqSortFirst !== 0 && 
+      book.seqSortSecond !== 0 &&
+      book.printCheckBook === true &&
+      book.seqSortSecond === selectedMediumCategory.value
+    ).length;
+  }
+  return totalCount.value;
 });
 
 const mainMarginTop = computed(() => {
@@ -325,7 +352,7 @@ function selectLargeCategory(categoryName, categorySeq = null) {
   selectedMediumCategory.value = null
   selectedMediumCategoryLargeSeq.value = null
   currentPage.value = 1
-  loadBooks(1)
+  loadBooks()
 }
 
 function selectMediumCategory(mediumSeq, largeSeq) {
@@ -338,31 +365,67 @@ function selectMediumCategory(mediumSeq, largeSeq) {
     selectedLargeCategory.value = large.nameSortFirst
     selectedLargeCategorySeq.value = large.seqSortFirst
   }
+  
+  // 중분류 선택 시 해당 데이터만 필터링하여 페이지네이션 재구성
+  const mediumFilteredBooks = allBooks.value.filter(book => 
+    book.seqSortSecond === mediumSeq
+  );
+  
+  // 첫 페이지로 리셋하고 필터링된 데이터의 첫 20개만 표시
+  currentPage.value = 1
+  bookList.value = mediumFilteredBooks.slice(0, ITEMS_PER_PAGE)
+  
+  // 페이지 상단으로 스크롤 이동
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+// 페이지 이동 함수 추가
+const goToPage = (page) => {
+  if (page < 1 || page > Math.ceil(totalCount.value / ITEMS_PER_PAGE)) {
+    return;
+  }
+  
+  currentPage.value = page;
+  
+  // 중분류가 선택된 경우
+  if (selectedMediumCategory.value) {
+    const mediumFilteredBooks = allBooks.value.filter(book => 
+      book.seqSortSecond === selectedMediumCategory.value
+    );
+    const startIndex = (page - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    bookList.value = mediumFilteredBooks.slice(startIndex, endIndex);
+  } else {
+    // 일반 페이지네이션
+    const startIndex = (page - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    bookList.value = allBooks.value.slice(startIndex, endIndex);
+  }
 }
 
 function onSearch({ query, exact }) {
   // console.log('검색 요청:', query, exact);
-  fetchBooks(1, query, exact);
+  fetchBooks(query, exact);
 }
 
-const fetchBooks = async (page = 1, query = '', exact = false) => {
+const fetchBooks = async (query = '', exact = false) => {
   let url;
   if (query && query.trim()) {
-    url = new URL(`/api/books/search`);
-    url.searchParams.set('q', query.trim());
-    url.searchParams.set('exact', exact);
+    const params = new URLSearchParams();
+    params.set('q', query.trim());
+    params.set('exact', exact);
+    url = `/api/books/search?${params.toString()}`;
     
     // 검색 모드 활성화
     isSearchMode.value = true
   } else {
-    url = new URL(`/api/books`);
-    url.searchParams.set('page', page);
+    url = '/api/books';
     
     // 검색 모드 비활성화
     isSearchMode.value = false
   }
 
-  const res = await fetch(url.toString());
+  const res = await fetch(url);
   if (!res.ok) {
     const errorMessage = await res.text();
     throw new Error(errorMessage || `서버 오류: ${res.status}`)
@@ -375,6 +438,7 @@ const fetchBooks = async (page = 1, query = '', exact = false) => {
   if (!data.content) {
     alert('서버 응답 데이터 오류: ', data);
     bookList.value = [];
+    allBooks.value = [];
     totalCount.value = 0;
     return;
   }
@@ -382,12 +446,19 @@ const fetchBooks = async (page = 1, query = '', exact = false) => {
   // 검색 결과에서 printCheckBook이 1인 책만 필터링
   const filteredBooks = data.content.filter(book => book.printCheckBook === true);
 
+  allBooks.value = filteredBooks;
   totalCount.value = filteredBooks.length;
-  bookList.value = filteredBooks.map(book => {
+
+  currentPage.value = 1
+
+  bookList.value = filteredBooks.slice(0, ITEMS_PER_PAGE).map(book => {
     return {
       ...book
     };
   });
+
+  // 페이지 상단으로 스크롤 이동
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 
   // console.log('✅ books.value 업데이트 완료:', books.value);
 };
@@ -396,7 +467,7 @@ onMounted(async () => {
   await fetchLargeCategories()
   await fetchMediumCategories()
   selectedLargeCategory.value = '전체'
-  await loadBooks(1)
+  await loadBooks()
   window.addEventListener('keydown', handleKeydown)
 })
 

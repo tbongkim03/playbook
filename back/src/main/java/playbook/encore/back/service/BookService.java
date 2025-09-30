@@ -27,6 +27,6 @@ public interface BookService {
     void markBooksAsPrinted(List<Integer> bookIds) throws Exception;
     List<BookUnprintedResponseDto> findUnprintedBooks() throws Exception;
     BookBarcodeUniqueResponseDto checkDuplicated(BookBarcodeUniqueRequestDto bookBarcodeUniqueRequestDto) throws Exception;
-    BookListResponseDto getBookListBySortFirst(int sortFirstId, int page);
+    BookListResponseDto getBookListBySortFirst(int sortFirstId);
 
 }

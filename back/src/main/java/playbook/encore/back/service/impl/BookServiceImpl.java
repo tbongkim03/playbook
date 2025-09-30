@@ -133,14 +133,14 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookListResponseDto getBookListBySortFirst(int sortFirstId, int page) {
-        Page<Book> bookPage = bookDAO.selectBookListByPageBySortFirst(sortFirstId, page);
+    public BookListResponseDto getBookListBySortFirst(int sortFirstId) {
+        List<Book> books = bookDAO.selectBookListBySortFirst(sortFirstId);
 
-        List<BookResponseDto> content = bookPage.getContent().stream()
+        List<BookResponseDto> content = books.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
 
-        int totalCount = (int) bookPage.getTotalElements();
+        int totalCount = content.size();
         BookListResponseDto bookListResponseDto = new BookListResponseDto(content, totalCount);
         return bookListResponseDto;
     }

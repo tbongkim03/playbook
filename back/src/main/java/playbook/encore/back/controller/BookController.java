@@ -113,10 +113,9 @@ public class BookController {
 
     @GetMapping("/sortFirst")
     public ResponseEntity<BookListResponseDto> getBooksBySortFirstId(
-            @RequestParam("id") int sortFirstId,
-            @RequestParam("page") int page
+            @RequestParam("id") int sortFirstId
     ) throws Exception {
-        BookListResponseDto bookListResponseDto = bookService.getBookListBySortFirst(sortFirstId, page);
+        BookListResponseDto bookListResponseDto = bookService.getBookListBySortFirst(sortFirstId);
         return ResponseEntity.status(HttpStatus.OK).body(bookListResponseDto);
     }
 

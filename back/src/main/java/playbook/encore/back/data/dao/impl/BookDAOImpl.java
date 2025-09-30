@@ -91,6 +91,19 @@ public class BookDAOImpl implements BookDAO {
     }
 
     @Override
+    public List<Book> selectBookListBySortFirst(int sortFirstId) {
+        String jpql = "SELECT b FROM Book b " +
+                "JOIN b.seqSortSecond ss " +
+                "JOIN ss.seqSortFirst sf " +
+                "WHERE sf.seqSortFirst = :sortFirstId AND ss.seqSortSecond != 0 " +
+                "ORDER BY b.seqBook ASC";
+
+        return entityManager.createQuery(jpql, Book.class)
+                .setParameter("sortFirstId", sortFirstId)
+                .getResultList();
+    }
+
+    @Override
     public Book selectBookById(int bookId, String idUser) throws Exception {
         Optional<Book> optionalBook = bookRepository.findById(bookId);
         if (optionalBook.isPresent()) {
