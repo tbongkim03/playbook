@@ -22,6 +22,7 @@
 - [DB 스키마 개요](#%EF%B8%8F-db-스키마-개요)
 - [보안과 권한](#-보안과-권한)
 - [향후 개선 계획](#%EF%B8%8F-향후-개선-계획)
+- [프로젝트 문서](#-프로젝트-문서)
 - [라이선스](#-라이선스)
 
 <br/>
@@ -92,6 +93,7 @@ Docker Compose
 - [x] 통계 대시보드(Chart.js)
 - [x] 반납 기한/코스 종료 알림(Discord)
 - [x] Docker Compose로 로컬 실행
+- [x] 개발/운영 환경 분리 (docker-compose.dev.yml, docker-compose.prod.yml)
 - [ ] OpenAPI 문서 자동화
 - [ ] Spring Security 전환 및 RBAC
 - [ ] 테스트 자동화/CI 구축
@@ -99,10 +101,12 @@ Docker Compose
 ## 🗂️ 폴더 구조
 ```
 playbook/
- ├─ back/          # Spring Boot 애플리케이션
- ├─ front/         # Vue.js 프론트엔드
- ├─ db/            # MySQL 설정 및 초기 스크립트
- ├─ docker-compose.yml
+ ├─ back/                    # Spring Boot 애플리케이션
+ ├─ front/                   # Vue.js 프론트엔드
+ ├─ db/                      # MySQL 설정 및 초기 스크립트
+ ├─ document/                # 프로젝트 문서 (ERD, 아키텍처, 기획서)
+ ├─ docker-compose.dev.yml   # 개발 환경 설정
+ ├─ docker-compose.prod.yml  # 운영 환경 설정
  └─ README.md
 ```
 
@@ -111,26 +115,43 @@ playbook/
 ## ⚡ 빠른 시작
 사전 요구사항: Docker, Docker Compose 설치, api 키 발급
 
+### 개발 환경 실행
 ```bash
 # 1) 레포지토리 클론
 git clone <this-repo-url>
 cd playbook
 
-# 2) .env 파일 준비 – 아래 [환경 변수] 참고
+# 2) 환경 변수 파일 준비 – 아래 [환경 변수] 참고
+# back/.env.dev, db/.env.dev 파일 생성
 
-# 3) 컨테이너 실행
-docker compose up -d --build
+# 3) 개발 환경 컨테이너 실행
+docker compose -f docker-compose.dev.yml up -d --build
 
 # 4) 접속
-# Front:  http://localhost:5173 (기본 Vite 포트 기준)
+# Front:  http://localhost:80
 # Back:   http://localhost:8080
-# MySQL:  localhost:3306
+# MySQL:  localhost:6603
+```
+
+### 운영 환경 실행
+```bash
+# 1) 환경 변수 파일 준비
+# back/.env.prod, db/.env.prod 파일 생성
+
+# 2) 운영 환경 컨테이너 실행
+docker compose -f docker-compose.prod.yml up -d --build
 ```
 
 <br/>
 
 ## 🔑 환경 변수
-`playbook/back/.env`에서 다음 값을 입력합니다. (예시 : DB_USERNAME=tbongkim03 (쉼표 없이 엔터 키로 구분))
+
+### 개발 환경 (`back/.env.dev`, `db/.env.dev`)
+### 운영 환경 (`back/.env.prod`, `db/.env.prod`)
+
+다음 값을 각 환경별로 입력합니다. (예시 : DB_USERNAME=tbongkim03 (쉼표 없이 엔터 키로 구분))
+
+**백엔드 환경 변수 (back/.env.dev 또는 back/.env.prod)**
 - `DB_USERNAME`, `DB_PASSWORD`, 
 - `MASTER_ID`, `MASTER_PW`, `MASTER_NAME`, `MASTER_DISCORD`
 - `BASE_KEY`
@@ -138,9 +159,12 @@ docker compose up -d --build
 - `NL_API_KEY`, `WORK24_API_KEY` [국립중앙도서관 API](https://www.nl.go.kr/NL/contents/N31101030500.do), [고용노동부 고용24 API](https://m.work24.go.kr/cm/e/a/0110/selectOpenApiSvcInfo.do?apiSvcId=&upprApiSvcId=&fullApiSvcId=000000000000000000000000000004) 
 - `DISCORD_BOT_TOKEN`, `DISCORD_CHANNEL_ID` (tbongkim03@gmail.com 으로 email 부탁드립니다)
 
+**데이터베이스 환경 변수 (db/.env.dev 또는 db/.env.prod)**
+- `MYSQL_ROOT_PASSWORD`, `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD`
+
 **권장 보안 수칙**
-- 비밀 값은 `playbook/back/.env` 파일을 사용하여 커밋에서 분리
-- 로컬/운영 환경 분리(`application-{profile}.properties`)와 최소 권한 DB 계정 사용
+- 비밀 값은 환경별 `.env` 파일을 사용하여 커밋에서 분리
+- 개발/운영 환경 분리와 최소 권한 DB 계정 사용
 
 <br/>
 
@@ -190,6 +214,13 @@ docker compose up -d --build
 - OpenAPI(swagger) 문서 자동화, 예외/검증 응답 표준화
 - Micrometer/Actuator 기반 헬스/메트릭/로그 표준화
 - GitHub Actions CI, 멀티스테이지 Docker, 취약점 스캔
+
+## 📋 프로젝트 문서
+`document/` 폴더에 다음 문서들이 포함되어 있습니다:
+- **[플레이북] 도서 관리 프로그램 ERD.png**: 데이터베이스 ERD 다이어그램
+- **[플레이북] 도서 관리 프로그램 아키텍처.png**: 시스템 아키텍처 다이어그램  
+- **[플레이북] 도서 관리 프로그램 요구사항정의서.pdf**: 상세 요구사항 정의서
+- **[플레이북] 도서 관리 프로그램 프로젝트 기획서.pdf**: 프로젝트 기획서
 
 ## 📄 라이선스
 본 저장소의 코드는 저작권자의 허가 없이 복제, 배포, 수정할 수 없습니다.
