@@ -15,9 +15,6 @@
     <PrintBatch 
       v-if="isPrintBatchOpen" 
       :books="booksToPrint" 
-      :filters="filters"
-      :largeCategories="largeCategories"
-      :mediumCategories="mediumCategoriesAll"
       @close="isPrintBatchOpen = false"
     />
 
@@ -755,9 +752,9 @@ const visiblePages = computed(() => {
   return pages
 })
 
-// 프린트할 도서 목록
+// 프린트할 도서 목록 - 현재 페이지의 도서 중 미출력 도서만
 const booksToPrint = computed(() => {
-  return filteredBooks.value.filter(book =>
+  return paginatedBooks.value.filter(book =>
     book.printCheckBook === false &&
     book.categoryLarge !== 0 &&
     book.categoryMedium !== 0 &&

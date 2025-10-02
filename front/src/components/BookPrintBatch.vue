@@ -15,7 +15,7 @@
           <div class="header-text">
             <h2 class="modal-title">바코드 출력</h2>
             <p class="modal-subtitle">
-              {{ hasActiveFilters ? '필터링된' : '전체' }} 미출력 도서의 바코드를 출력합니다
+              미출력 도서의 바코드를 출력합니다
             </p>
           </div>
         </div>
@@ -26,25 +26,6 @@
           </svg>
         </button>
       </div>
-
-      <!-- 필터 정보 표시 -->
-      <div v-if="hasActiveFilters" class="filter-info">
-        <div class="filter-badge-container">
-          <span class="filter-label">적용된 필터:</span>
-          <div class="filter-badges">
-            <span v-if="filters.searchQuery" class="filter-badge search">
-              검색: "{{ filters.searchQuery }}"
-            </span>
-            <span v-if="filters.categoryLarge" class="filter-badge category">
-              대분류: {{ getLargeCategoryName(filters.categoryLarge) }}
-            </span>
-            <span v-if="filters.categoryMedium" class="filter-badge category">
-              중분류: {{ getMediumCategoryName(filters.categoryMedium) }}
-            </span>
-          </div>
-        </div>
-      </div>
-
       <!-- 설정 영역 -->
       <div class="settings-section">
         <div class="settings-grid">
@@ -81,11 +62,11 @@
         <div class="stats-info">
           <div class="stat-item">
             <span class="stat-label">전체 미출력</span>
-            <span class="stat-value">{{ allUnprintedBooks.length }}개</span>
+            <span class="stat-value">{{ props.books.length }}개</span>
           </div>
           <div class="stat-item">
             <span class="stat-label">필터링 후</span>
-            <span class="stat-value">{{ filteredBooks.length }}개</span>
+            <span class="stat-value">{{ props.books.length }}개</span>
           </div>
           <div class="stat-item">
             <span class="stat-label">출력 예정</span>
@@ -134,10 +115,7 @@
             </svg>
             <h4>출력할 바코드가 없습니다</h4>
             <p>
-              {{ hasActiveFilters 
-                ? '적용된 필터 조건에 맞는 미출력 도서가 없습니다.' 
-                : '미출력 도서가 없습니다.' 
-              }}
+              미출력 도서가 없습니다.
             </p>
           </div>
         </div>
@@ -177,135 +155,29 @@ const props = defineProps({
   books: {
     type: Array,
     default: () => []
-  },
-  filters: {
-    type: Object,
-    default: () => ({})
-  },
-  largeCategories: {
-    type: Array,
-    default: () => []
-  },
-  mediumCategories: {
-    type: Array,
-    default: () => []
   }
 })
 
 const startPosition = ref(0)
-const token = localStorage.getItem('jwtToken')
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'refresh'])
 function close() {
   emit('close')
 }
-
-// 전체 미출력 도서 데이터
-const allUnprintedBooks = ref([])
 
 // 출력 시 사용자가 선택하는 바코드 수
 const options = ref([])
 const selectedCountPerPage = ref(1)
 
-// 필터가 적용되었는지 확인
-const hasActiveFilters = computed(() => {
-  return !!(
-    props.filters.searchQuery ||
-    props.filters.categoryLarge ||
-    props.filters.categoryMedium
-  )
-})
-
-// 한글 문자열 비교를 위한 함수
-const compareKorean = (a, b) => {
-  return a.localeCompare(b, 'ko-KR')
-}
-
-// 대분류 이름 가져오기
-const getLargeCategoryName = (seqSortFirst) => {
-  const category = props.largeCategories.find(cat => cat.seqSortFirst === seqSortFirst)
-  return category ? category.korSortFirst : ''
-}
-
-// 중분류 이름 가져오기
-const getMediumCategoryName = (seqSortSecond) => {
-  const category = props.mediumCategories.find(cat => cat.seqSortSecond === seqSortSecond)
-  return category ? category.korSortSecond : ''
-}
-
-// seqSortSecond로부터 대분류 코드 찾기
-const findLargeCodeFromSeqSecond = (seqSecond) => {
-  const medium = props.mediumCategories.find(m => m.seqSortSecond === seqSecond)
-  if (!medium) return ''
-  
-  const large = props.largeCategories.find(l => l.seqSortFirst === medium.seqSortFirst)
-  return large?.nameSortFirst || ''
-}
-
-// 필터링된 도서 목록
-const filteredBooks = computed(() => {
-  let result = [...allUnprintedBooks.value]
-
-  // 검색 필터 적용
-  if (props.filters.searchQuery?.trim()) {
-    const query = props.filters.searchQuery.trim().toLowerCase()
-    result = result.filter(book => 
-      book.titleBook?.toLowerCase().includes(query) ||
-      book.authorBook?.toLowerCase().includes(query) ||
-      book.publisherBook?.toLowerCase().includes(query) ||
-      book.isbnBook?.toLowerCase().includes(query)
-    )
-  }
-
-  // 대분류 필터 적용
-  if (props.filters.categoryLarge !== '' && props.filters.categoryLarge !== undefined) {
-    result = result.filter(book => {
-      const bookLargeCode = findLargeCodeFromSeqSecond(book.seqSortSecond)
-      const large = props.largeCategories.find(l => l.seqSortFirst === props.filters.categoryLarge)
-      return large && bookLargeCode === large.nameSortFirst
-    })
-  }
-
-  // 중분류 필터 적용
-  if (props.filters.categoryMedium !== '' && props.filters.categoryMedium !== undefined) {
-    result = result.filter(book => book.seqSortSecond === props.filters.categoryMedium)
-  }
-
-  // 정렬 (제목 가나다순)
-  result.sort((a, b) => compareKorean(a.titleBook || '', b.titleBook || ''))
-
-  return result
-})
-
-// 보여줄 책 슬라이스
+// 보여줄 책 슬라이스 - props.books에서 직접 슬라이스
 const displayedBooks = computed(() => {
-  return filteredBooks.value.slice(0, selectedCountPerPage.value)
+  return props.books.slice(0, selectedCountPerPage.value)
 })
-
-// fetch 사용해서 조건에 맞는 바코드 책 리스트 가져오기
-const fetchUnprintedBarcodes = async () => {
-  try {
-    const res = await fetch('/api/books/unprinted', { 
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    if (!res.ok) {
-      const errorMessage = await res.text()
-      throw new Error(errorMessage || `서버 오류: ${res.status}`)
-    }  
-    const data = await res.json()
-    allUnprintedBooks.value = data
-
-    // 옵션 초기화 (1 ~ filteredBooks.length)
-    updateOptions()
-  } catch (error) {
-    alert(error)
-  }
-}
 
 // 옵션 업데이트 함수
 const updateOptions = () => {
   options.value = []
-  const maxCount = filteredBooks.value.length
+  const maxCount = props.books.length
   for (let i = 1; i <= maxCount; i++) {
     options.value.push(i)
   }
@@ -331,20 +203,19 @@ const generateBarcodes = () => {
   })
 }
 
-// 필터링된 결과가 변경되면 옵션 업데이트
-watch(filteredBooks, () => {
+// props.books가 변경되면 옵션 업데이트
+watch(() => props.books, () => {
   updateOptions()
   generateBarcodes()
-})
+}, { immediate: true })
 
 // 데이터가 변경되거나 선택 수가 바뀌면 바코드 다시 생성
 watch([() => selectedCountPerPage.value], () => {
   generateBarcodes()
 })
 
-// 컴포넌트 마운트 시 데이터 불러오기 및 바코드 생성
-onMounted(async () => {
-  await fetchUnprintedBarcodes()
+// 컴포넌트 마운트 시 바코드 생성
+onMounted(() => {
   generateBarcodes()
 })
 
@@ -354,6 +225,8 @@ const printAll = async () => {
     alert('출력할 바코드가 없습니다.')
     return
   }
+
+  const token = localStorage.getItem('jwtToken')
 
   const printWindow = window.open('', '', 'width=1000,height=600') 
 
@@ -522,8 +395,10 @@ const printAll = async () => {
 
     alert('인쇄 완료 상태로 저장되었습니다.')
 
-    // 다시 목록 갱신
-    await fetchUnprintedBarcodes()
+    // 부모 컴포넌트에 새로고침 이벤트 발생
+    emit('refresh')
+
+    // 바코드 다시 생성
     generateBarcodes()
   } catch (error) {
     alert('저장에 실패했습니다.', error)
