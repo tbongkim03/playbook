@@ -63,6 +63,7 @@ public class HistoryDAOImpl implements HistoryDAO {
             String bookTitle = history.getSeqBook().getTitleBook();
             String bookAuthor = history.getSeqBook().getAuthorBook();
             String bookIsbn = history.getSeqBook().getIsbnBook();
+            String barcodeBook = history.getSeqBook().getBarcodeBook();
 
             // 유저 이름: 일반 유저가 있으면 그 이름, 없으면 관리자 이름
             String userName;
@@ -102,6 +103,7 @@ public class HistoryDAOImpl implements HistoryDAO {
                     bookTitle,
                     bookAuthor,
                     bookIsbn,
+                    barcodeBook,
                     userName,
                     userId,
                     courseName,
@@ -134,6 +136,7 @@ public class HistoryDAOImpl implements HistoryDAO {
             String bookTitle = history.getSeqBook().getTitleBook();
             String bookAuthor = history.getSeqBook().getAuthorBook();
             String bookIsbn = history.getSeqBook().getIsbnBook();
+            String barcodeBook = history.getSeqBook().getBarcodeBook();
 
             LocalDate borrowDate = history.getBookDt();
             LocalDate returnDate = history.getReturnDt();
@@ -157,6 +160,7 @@ public class HistoryDAOImpl implements HistoryDAO {
                     bookTitle,
                     bookAuthor,
                     bookIsbn,
+                    barcodeBook,
                     user.getNameUser(),
                     user.getIdUser(),
                     courseName,

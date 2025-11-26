@@ -67,41 +67,57 @@
 
         <!-- 본문 -->
         <div class="main" :style="{ marginTop: mainMarginTop }">
-          <div class="content-header" v-if="filteredBookList.length > 0">
-            <h2 class="section-title">
-              {{ getSectionTitle() }}
-              <span class="book-count">({{ displayCount }}권)</span>
-            </h2>
-          </div>
-
-          <div class="article-area" v-if="filteredBookList.length > 0">
-            <BookArea 
-              v-for="book in filteredBookList" 
-              :key="book.seqBook"
-              :book="book"
-              class="book-item"
-            />
-          </div>
-
-          <!-- 책이 없을 때 표시할 메시지 -->
-          <div class="no-books-message" v-else>
-            <div class="no-books-content">
-              <div class="no-books-icon">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <circle cx="12" cy="12" r="1" fill="currentColor"/>
-                  <circle cx="12" cy="8" r="1" fill="currentColor"/>
-                  <circle cx="12" cy="16" r="1" fill="currentColor"/>
-                </svg>
+          <!-- 로딩 상태 -->
+          <div class="loading-container" v-if="isLoading">
+            <div class="loading-content">
+              <div class="loading-spinner">
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
               </div>
-              <h3>해당 카테고리에 등록된 도서가 없습니다</h3>
-              <p>다른 카테고리를 선택해 주세요.</p>
+              <p class="loading-text">도서를 불러오는 중...</p>
             </div>
           </div>
 
+          <!-- 로딩이 아닐 때만 컨텐츠 표시 -->
+          <template v-else>
+            <div class="content-header" v-if="filteredBookList.length > 0">
+              <h2 class="section-title">
+                {{ getSectionTitle() }}
+                <span class="book-count">({{ displayCount }}권)</span>
+              </h2>
+            </div>
+
+            <div class="article-area" v-if="filteredBookList.length > 0">
+              <BookArea 
+                v-for="book in filteredBookList" 
+                :key="book.seqBook"
+                :book="book"
+                class="book-item"
+              />
+            </div>
+
+            <!-- 책이 없을 때 표시할 메시지 -->
+            <div class="no-books-message" v-else>
+              <div class="no-books-content">
+                <div class="no-books-icon">
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="12" cy="12" r="1" fill="currentColor"/>
+                    <circle cx="12" cy="8" r="1" fill="currentColor"/>
+                    <circle cx="12" cy="16" r="1" fill="currentColor"/>
+                  </svg>
+                </div>
+                <h3>해당 카테고리에 등록된 도서가 없습니다</h3>
+                <p>다른 카테고리를 선택해 주세요.</p>
+              </div>
+            </div>
+          </template>
+
           <!-- 페이지네이션 -->
-          <div class="pagination-area" v-if="totalCount > 0">
+          <div class="pagination-area" v-if="!isLoading && totalCount > 0">
             <div class="pagination-wrapper">
               <button 
                 class="pagination-btn prev-btn" 
@@ -173,6 +189,9 @@ const handleKeydown = (event) => {
 // 검색 상태 추가
 const isSearchMode = ref(false)
 
+// 로딩 상태 추가
+const isLoading = ref(false)
+
 const fetchLargeCategories = async () => {
   try {
     const res = await fetch('/api/subjects')
@@ -193,6 +212,8 @@ const fetchMediumCategories = async () => {
 
 const loadBooks = async () => {
   try {
+    isLoading.value = true
+    
     let url = ''
     if (selectedLargeCategory.value === '전체') {
       url = `/api/books`
@@ -233,6 +254,8 @@ const loadBooks = async () => {
     bookList.value = []
     allBooks.value = []
     totalCount.value = 0
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -412,58 +435,69 @@ function onSearch({ query, exact }) {
 }
 
 const fetchBooks = async (query = '', exact = false) => {
-  let url;
-  if (query && query.trim()) {
-    const params = new URLSearchParams();
-    params.set('q', query.trim());
-    params.set('exact', exact);
-    url = `/api/books/search?${params.toString()}`;
+  try {
+    isLoading.value = true
     
-    // 검색 모드 활성화
-    isSearchMode.value = true
-  } else {
-    url = '/api/books';
-    
-    // 검색 모드 비활성화
-    isSearchMode.value = false
+    let url;
+    if (query && query.trim()) {
+      const params = new URLSearchParams();
+      params.set('q', query.trim());
+      params.set('exact', exact);
+      url = `/api/books/search?${params.toString()}`;
+      
+      // 검색 모드 활성화
+      isSearchMode.value = true
+    } else {
+      url = '/api/books';
+      
+      // 검색 모드 비활성화
+      isSearchMode.value = false
+    }
+
+    const res = await fetch(url);
+    if (!res.ok) {
+      const errorMessage = await res.text();
+      throw new Error(errorMessage || `서버 오류: ${res.status}`)
+    }
+
+    const data = await res.json();
+
+    // console.log(data)
+
+    if (!data.content) {
+      alert('서버 응답 데이터 오류: ', data);
+      bookList.value = [];
+      allBooks.value = [];
+      totalCount.value = 0;
+      return;
+    }
+
+    // 검색 결과에서 printCheckBook이 1인 책만 필터링
+    const filteredBooks = data.content.filter(book => book.printCheckBook === true);
+
+    allBooks.value = filteredBooks;
+    totalCount.value = filteredBooks.length;
+
+    currentPage.value = 1
+
+    bookList.value = filteredBooks.slice(0, ITEMS_PER_PAGE).map(book => {
+      return {
+        ...book
+      };
+    });
+
+    // 페이지 상단으로 스크롤 이동
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+
+    // console.log('✅ books.value 업데이트 완료:', books.value);
+  } catch (error) {
+    alert('도서 검색 실패:', error.message)
+    bookList.value = []
+    allBooks.value = []
+    totalCount.value = 0
+  } finally {
+    isLoading.value = false
   }
-
-  const res = await fetch(url);
-  if (!res.ok) {
-    const errorMessage = await res.text();
-    throw new Error(errorMessage || `서버 오류: ${res.status}`)
-  }
-
-  const data = await res.json();
-
-  // console.log(data)
-
-  if (!data.content) {
-    alert('서버 응답 데이터 오류: ', data);
-    bookList.value = [];
-    allBooks.value = [];
-    totalCount.value = 0;
-    return;
-  }
-
-  // 검색 결과에서 printCheckBook이 1인 책만 필터링
-  const filteredBooks = data.content.filter(book => book.printCheckBook === true);
-
-  allBooks.value = filteredBooks;
-  totalCount.value = filteredBooks.length;
-
-  currentPage.value = 1
-
-  bookList.value = filteredBooks.slice(0, ITEMS_PER_PAGE).map(book => {
-    return {
-      ...book
-    };
-  });
-
-  // 페이지 상단으로 스크롤 이동
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-
-  // console.log('✅ books.value 업데이트 완료:', books.value);
 };
 
 onMounted(async () => {
@@ -792,6 +826,100 @@ onBeforeUnmount(() => {
 .total-pages {
   font-size: 1rem;
   color: #64748b;
+}
+
+/* 로딩 스타일 */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 500px;
+  width: 100%;
+  padding: 4rem 2rem;
+}
+
+.loading-content {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 4rem 3rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.loading-spinner {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+}
+
+.spinner-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 4px solid transparent;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+.spinner-ring:nth-child(1) {
+  animation-delay: -0.45s;
+  border-top-color: #667eea;
+}
+
+.spinner-ring:nth-child(2) {
+  animation-delay: -0.3s;
+  border-top-color: #764ba2;
+  width: 70%;
+  height: 70%;
+  top: 15%;
+  left: 15%;
+}
+
+.spinner-ring:nth-child(3) {
+  animation-delay: -0.15s;
+  border-top-color: #11998e;
+  width: 50%;
+  height: 50%;
+  top: 25%;
+  left: 25%;
+}
+
+.spinner-ring:nth-child(4) {
+  border-top-color: #38ef7d;
+  width: 30%;
+  height: 30%;
+  top: 35%;
+  left: 35%;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #475569;
+  margin: 0;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
 /* 반응형 디자인 */

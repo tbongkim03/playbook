@@ -219,6 +219,13 @@ public class HistoryServiceImpl implements HistoryService {
         boolean isReturnedBookOverdue = isOverdue(history);
 
         LocalDate today = LocalDate.now();
+        
+        // 과정 종료 여부 확인 (BookUser인 경우에만)
+        boolean isCourseFinished = false;
+        if (!isAdmin) {
+            BookUser bookUser = (BookUser) user;
+            isCourseFinished = bookUser.getSeqCourse().getFinishDtCourse().isBefore(today);
+        }
         history.setReturnDt(today);
         historyDAO.bookReturn(history);
 
@@ -254,30 +261,35 @@ public class HistoryServiceImpl implements HistoryService {
         } else {
             BookUser bookUser = (BookUser) user;
 
-            // 반납 후 현재 대여 중인 도서 수 확인
-            int remainingBorrowedCount = historyRepository.countBySeqUserAndReturnDtIsNull(bookUser);
-
-            // 나머지 대여 중인 도서들 중 연체된 것이 있는지 확인
-            List<History> remainingHistories = historyRepository.findAllBySeqUserAndReturnDtIsNull(bookUser);
-            boolean hasOverdueBooks = remainingHistories.stream().anyMatch(this::isOverdue);
-
-            BookUser.StatusType status;
-
-            if (isReturnedBookOverdue) {
-                // 연체 반납인 경우 정지 상태
-                status = BookUser.StatusType.stop;
-            } else if (hasOverdueBooks) {
-                // 남은 대여 도서 중 연체가 있으면 overdue 상태
-                status = BookUser.StatusType.overdue;
-            } else if (remainingBorrowedCount >= 2) {
-                // 연체는 없지만 2권 이상 대여 중이면 stop 상태
-                status = BookUser.StatusType.stop;
+            // 과정이 종료된 경우 stop 상태 유지
+            if (isCourseFinished) {
+                bookUserDAO.updateStatus(bookUser, BookUser.StatusType.stop);
             } else {
-                // 연체도 없고 대여 권수도 2권 미만이면 available 상태
-                status = BookUser.StatusType.available;
-            }
+                // 반납 후 현재 대여 중인 도서 수 확인
+                int remainingBorrowedCount = historyRepository.countBySeqUserAndReturnDtIsNull(bookUser);
 
-            bookUserDAO.updateStatus(bookUser, status);
+                // 나머지 대여 중인 도서들 중 연체된 것이 있는지 확인
+                List<History> remainingHistories = historyRepository.findAllBySeqUserAndReturnDtIsNull(bookUser);
+                boolean hasOverdueBooks = remainingHistories.stream().anyMatch(this::isOverdue);
+
+                BookUser.StatusType status;
+
+                if (isReturnedBookOverdue) {
+                    // 연체 반납인 경우 정지 상태
+                    status = BookUser.StatusType.stop;
+                } else if (hasOverdueBooks) {
+                    // 남은 대여 도서 중 연체가 있으면 overdue 상태
+                    status = BookUser.StatusType.overdue;
+                } else if (remainingBorrowedCount >= 2) {
+                    // 연체는 없지만 2권 이상 대여 중이면 stop 상태
+                    status = BookUser.StatusType.stop;
+                } else {
+                    // 연체도 없고 대여 권수도 2권 미만이면 available 상태
+                    status = BookUser.StatusType.available;
+                }
+
+                bookUserDAO.updateStatus(bookUser, status);
+            }
 
             List<BookUser> favorUsers = favorRepository.findAllBySeqBook(book);
 
@@ -295,11 +307,20 @@ public class HistoryServiceImpl implements HistoryService {
             }
         }
 
-        // 연체 반납인 경우 예외 발생
+        // 연체 반납인 경우 예외 발생 (단, 과정이 종료된 학생의 경우 예외 발생하지 않음)
         if (isReturnedBookOverdue) {
-            LocalDate dueDate = history.getBookDt().plusDays(7);
-            long overdueDays = today.toEpochDay() - dueDate.toEpochDay();
-            throw new IllegalArgumentException("연체 반납되었습니다. 연체일수: " + overdueDays + "일");
+            if (isAdmin) {
+                // Admin의 경우 연체 반납 시 예외 발생
+                LocalDate dueDate = history.getBookDt().plusDays(7);
+                long overdueDays = today.toEpochDay() - dueDate.toEpochDay();
+                throw new IllegalArgumentException("연체 반납되었습니다. 연체일수: " + overdueDays + "일");
+            } else if (!isCourseFinished) {
+                // 과정이 종료되지 않은 학생의 경우에만 예외 발생
+                LocalDate dueDate = history.getBookDt().plusDays(7);
+                long overdueDays = today.toEpochDay() - dueDate.toEpochDay();
+                throw new IllegalArgumentException("연체 반납되었습니다. 연체일수: " + overdueDays + "일");
+            }
+            // 과정이 종료된 학생의 경우 예외 발생하지 않음 (stop 상태 유지)
         }
     }
 

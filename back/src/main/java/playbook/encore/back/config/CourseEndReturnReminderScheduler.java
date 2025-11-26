@@ -21,8 +21,8 @@ public class CourseEndReturnReminderScheduler {
     @Autowired
     private DiscordNotificationService discordNotificationService;
 
-    // 매일 오전 10시에 한 번만 실행하여 모든 날짜 체크
-    @Scheduled(cron = "0 0 10 * * ?")
+    // 매일 오전 10시에 한 번만 실행하여 모든 날짜 체크 (한국 시간 기준)
+    @Scheduled(cron = "0 0 10 * * ?", zone = "Asia/Seoul")
     public void dailyCourseEndCheck() {
         if (!discordNotificationService.isBotOnline()) {
             System.out.println("Discord 봇이 비활성화되어 있어 과정 종료 알림을 건너뜁니다.");

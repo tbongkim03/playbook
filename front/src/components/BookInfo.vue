@@ -126,13 +126,6 @@
                     </svg>
                     {{ isWishlisted ? '찜 해제' : '찜하기' }}
                 </button>
-
-                <button class="btn btn-tertiary" @click="handleShare">
-                    <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-                    </svg>
-                    공유하기
-                </button>
             </div>
 
             <!-- 대출 중일 때 추가 정보 (다른 사람이 대출한 경우에만) -->
@@ -315,12 +308,35 @@ const checkWishlistStatus = async () => {
                 favor.authorBook === book.value.authorBook
             )
         }
+
+        if (response.status === 403 && response.data === '즐겨찾기 목록이 비어 있습니다.') {
+            isWishlisted.value = false
+        }
     } catch (error) {
-        alert('찜 목록 확인 실패:', error)
+        // 403 에러인 경우 메시지에 따라 처리
+        if (error.response && error.response.status === 403) {
+            const errorMessage = error.response.data
+            // 특정 메시지는 alert 없이 처리
+            if (errorMessage === '사용자 정보가 없습니다.' || 
+                errorMessage === '즐겨찾기 목록이 비어 있습니다.') {
+                if (errorMessage === '즐겨찾기 목록이 비어 있습니다.') {
+                    isWishlisted.value = false
+                }
+                return
+            }
+            // 나머지 403 에러는 alert 표시
+            alert(`오류: ${errorMessage}`)
+        } else {
+            // 403이 아닌 다른 에러는 alert 표시
+            alert(`찜 목록 확인 실패: ${error.message || error}`)
+        }
     }
 }
 
 onMounted(async () => {
+    // 페이지 진입 시 스크롤을 맨 위로 초기화
+    window.scrollTo(0, 0)
+    
     try {
         const token = localStorage.getItem('jwtToken')
         const headers = {}

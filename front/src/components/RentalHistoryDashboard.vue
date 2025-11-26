@@ -142,6 +142,7 @@
             <tr>
               <th>도서 명</th>
               <th>저자</th>
+              <th>바코드</th>
               <th>사용자</th>
               <th>과정 명</th>
               <th>대출 일</th>
@@ -155,6 +156,7 @@
             <tr v-for="rental in filteredRentals" :key="rental.id" class="history-row">
               <td class="book-title">{{ rental.bookTitle }}</td>
               <td class="book-author">{{ rental.bookAuthor }}</td>
+              <td class="barcode">{{ rental.barcodeBook || '-' }}</td>
               <td class="user-name">{{ rental.userName }}</td>
               <td class="course-name">{{ rental.courseDisplay }}</td>
               <td class="rental-date">{{ formatDate(rental.rentalDate) }}</td>
@@ -249,12 +251,16 @@
                 <label>ISBN</label>
                 <span>{{ selectedRental.bookIsbn || '-' }}</span>
               </div>
+              <div class="detail-item">
+                <label>바코드</label>
+                <span>{{ selectedRental.barcodeBook || '-' }}</span>
+              </div>
             </div>
           </div>
 
           <div class="detail-section">
             <h4>사용자 정보</h4>
-            <div class="detail-grid">
+            <div class="detail-grid user-info-grid">
               <div class="detail-item">
                 <label>이름</label>
                 <span>{{ selectedRental.userName }}</span>
@@ -484,6 +490,7 @@ const fetchRentalHistory = async () => {
         bookTitle: item.bookTitle || '제목 없음',
         bookAuthor: item.bookAuthor || '저자 정보 없음',
         bookIsbn: item.bookIsbn || '',
+        barcodeBook: item.barcodeBook || null, // 바코드 데이터
         userName: item.userName || '사용자 정보 없음',
         userId: item.userId || '사용자 정보 없음',
         courseName: item.courseName || null, // 원본 과정명 저장
@@ -582,10 +589,11 @@ const changePage = (page) => {
 
 const exportData = () => {
   const csvContent = [
-    ['도서명', '저자', '사용자', '과정', '대출 일', '반납예정일', '반납 일', '상태'].join(','),
+    ['도서명', '저자', '바코드', '사용자', '과정', '대출 일', '반납예정일', '반납 일', '상태'].join(','),
     ...rentalHistory.value.map(rental => [
       rental.bookTitle,
       rental.bookAuthor,
+      rental.barcodeBook || '',
       rental.userName,
       rental.courseDisplay,
       formatDate(rental.rentalDate),
@@ -767,7 +775,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px;
+  padding: 18px 20px;
   border-bottom: 1px solid #f1f5f9;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
@@ -789,10 +797,10 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 18px;
+  padding: 8px 14px;
   border: none;
-  border-radius: 12px;
-  font-size: 0.9rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -832,20 +840,20 @@ onMounted(() => {
 
 .history-table th {
   text-align: left;
-  padding: 18px 24px;
+  padding: 12px 16px;
   background: #fafafa;
   color: #2d3748;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   border-bottom: 1px solid #e2e8f0;
   white-space: nowrap;
 }
 
 .history-table td {
-  padding: 18px 24px;
+  padding: 12px 16px;
   border-bottom: 1px solid #f7fafc;
   color: #4a5568;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .history-row:hover {
@@ -854,30 +862,65 @@ onMounted(() => {
 
 .book-title {
   font-weight: 500;
-  max-width: 200px;
+  max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: #2d3748;
 }
 
-.course-name {
+.book-author {
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #4a5568;
   font-size: 0.8rem;
+}
+
+.barcode {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #4a5568;
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+}
+
+.user-name {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+
+.course-name {
+  font-size: 0.75rem;
   color: #6b7280;
   font-weight: 500;
-  max-width: 150px;
+  max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.status-badge {
-  padding: 6px 14px;
-  border-radius: 20px;
+.rental-date,
+.due-date,
+.return-date {
+  white-space: nowrap;
+  min-width: 90px;
   font-size: 0.8rem;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .status-rented {
@@ -901,10 +944,10 @@ onMounted(() => {
 }
 
 .detail-btn {
-  padding: 8px 14px;
+  padding: 6px 12px;
   border: none;
-  border-radius: 10px;
-  font-size: 0.8rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -1012,15 +1055,15 @@ onMounted(() => {
 /* 모달 스타일 */
 .modal-overlay {
   position: fixed;
-  top: 0;
+  top: 72px;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: calc(100% - 72px);
   background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 1050;
   backdrop-filter: blur(8px);
 }
 
@@ -1029,8 +1072,8 @@ onMounted(() => {
   border-radius: 20px;
   width: 90%;
   max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
+  max-height: calc(100vh - 192px);
+  overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
@@ -1075,6 +1118,9 @@ onMounted(() => {
 
 .detail-content {
   padding: 0 24px 24px 24px;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
 }
 
 .detail-section {
@@ -1094,6 +1140,10 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 16px;
+}
+
+.user-info-grid {
+  grid-template-columns: repeat(3, 1fr) !important;
 }
 
 .detail-item {
@@ -1170,8 +1220,8 @@ onMounted(() => {
   
   .history-table th,
   .history-table td {
-    padding: 14px 16px;
-    font-size: 0.8rem;
+    padding: 10px 12px;
+    font-size: 0.75rem;
   }
   
   .actions {
@@ -1182,7 +1232,7 @@ onMounted(() => {
   .return-btn,
   .detail-btn {
     font-size: 0.7rem;
-    padding: 6px 10px;
+    padding: 5px 8px;
   }
   
   .pagination {
@@ -1206,11 +1256,31 @@ onMounted(() => {
   }
   
   .book-title {
-    max-width: 120px;
+    max-width: 100px;
+  }
+  
+  .barcode {
+    max-width: 70px;
+    font-size: 0.65rem;
   }
   
   .course-name {
+    max-width: 80px;
+  }
+  
+  .book-author {
     max-width: 100px;
+  }
+  
+  .user-name {
+    max-width: 80px;
+  }
+  
+  .rental-date,
+  .due-date,
+  .return-date {
+    min-width: 70px;
+    font-size: 0.7rem;
   }
   
   .modal-content {

@@ -14,4 +14,7 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
 
     @Query("SELECT c FROM Course c WHERE DATE(c.finishDtCourse) = DATE(:targetDate)")
     List<Course> findCoursesEndingInDays(@Param("targetDate") LocalDate targetDate);
+
+    @Query("SELECT c FROM Course c WHERE c.finishDtCourse < :currentDate")
+    List<Course> findCoursesFinishedBefore(@Param("currentDate") LocalDate currentDate);
 }

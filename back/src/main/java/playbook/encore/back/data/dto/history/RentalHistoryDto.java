@@ -10,6 +10,7 @@ public class RentalHistoryDto {
     private String bookTitle;
     private String bookAuthor;
     private String bookIsbn;
+    private String barcodeBook;
     private String userName;
     private String userId;
     private String courseName;
