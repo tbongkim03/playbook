@@ -1,10 +1,14 @@
 package playbook.encore.back.config;
 
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import playbook.encore.back.data.entity.Course;
 import playbook.encore.back.data.entity.History;
 import playbook.encore.back.data.repository.AdminRepository;
@@ -13,17 +17,27 @@ import playbook.encore.back.data.repository.CourseRepository;
 import playbook.encore.back.data.repository.HistoryRepository;
 import playbook.encore.back.service.impl.DiscordNotificationService;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
 @EnableScheduling
+@Slf4j
 public class BookReminderScheduler {
+    private static final String RETURN_NOTIFICATION_FILE = "return_notification_last_run.txt";
+    private static final String OVERDUE_NOTIFICATION_FILE = "overdue_notification_last_run.txt";
+    private static final String STATUS_UPDATE_FILE = "status_update_last_run.txt";
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     @Autowired
     private HistoryRepository historyRepository;
-
     @Autowired
     private DiscordNotificationService discordNotificationService;
     @Autowired
@@ -33,9 +47,57 @@ public class BookReminderScheduler {
     @Autowired
     private CourseRepository courseRepository;
 
-    // 매일 오전 10시에 알림 (한국 시간 기준)
+    private boolean isNotificationAlreadySentToday(String notificationFile) {
+        File file = new File(notificationFile);
+        if (!file.exists()) {
+            return false;
+        }
+
+        try {
+            String lastRunDate = Files.readString(file.toPath()).trim();
+            return lastRunDate.equals(LocalDate.now().toString());
+        } catch (IOException e) {
+            log.error("알림 이력 파일 읽기 실패: {}", notificationFile, e);
+            return false;
+        }
+    }
+
+    private void recordTodayNotification(String notificationFile) {
+        try {
+            Files.writeString(Path.of(notificationFile),
+                    LocalDate.now().toString());
+        } catch (IOException e) {
+            log.error("알림 이력 파일 쓰기 실패: {}", notificationFile, e);
+        }
+    }
+
+
+    // 서버 시작 시 상태 업데이트 실행
+    @PostConstruct
+    public void initializeUserStatuses() {
+        // 이력 체크 없이 무조건 실행
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+        transactionTemplate.execute(status -> {
+            try {
+                updateStatusForFinishedCourses();
+                log.info("서버 시작 시 과정 종료된 학생들의 상태 업데이트 완료");
+            } catch (Exception e) {
+                log.error("서버 시작 시 상태 업데이트 중 오류 발생: {}", e.getMessage());
+                status.setRollbackOnly();
+            }
+            return null;
+        });
+
+    }
+
+    // 매일 오전 10시에 반납 알림
     @Scheduled(cron = "0 0 10 * * ?", zone = "Asia/Seoul")
     public void sendReturnReminder() {
+        if (isNotificationAlreadySentToday(RETURN_NOTIFICATION_FILE)) {
+            log.info("오늘 이미 반납 알림을 보냈습니다.");
+            return;
+        }
+
         LocalDate tomorrow = LocalDate.now().plusDays(1);
 
         // 내일이 반납일인 도서들 조회
@@ -64,11 +126,19 @@ public class BookReminderScheduler {
                 );
             }
         }
+
+        recordTodayNotification(RETURN_NOTIFICATION_FILE);
+        log.info("반납 알림 발송 완료");
     }
 
-    // 매일 오전 10시에 연체 알림 (한국 시간 기준)
-    @Scheduled(cron = "0 01 10 * * ?", zone = "Asia/Seoul")
+    // 매일 오전 10시 1분에 연체 알림
+    @Scheduled(cron = "0 1 10 * * ?", zone = "Asia/Seoul")
     public void sendOverdueNotification() {
+        if (isNotificationAlreadySentToday(OVERDUE_NOTIFICATION_FILE)) {
+            log.info("오늘 이미 연체 알림을 보냈습니다.");
+            return;
+        }
+
         LocalDate today = LocalDate.now();
 
         // 연체된 도서들 조회
@@ -97,39 +167,35 @@ public class BookReminderScheduler {
                 );
             }
         }
+
+        recordTodayNotification(OVERDUE_NOTIFICATION_FILE);
+        log.info("연체 알림 발송 완료");
     }
 
-    // 매일 오전 7시에 유저, 어드민 상태 업데이트 (한국 시간 기준)
-    @Scheduled(cron = "0 0 7 * * ?", zone = "Asia/Seoul")
-    @Transactional
-    public void updateUserStatus() {
-        LocalDate overdueDate = LocalDate.now().minusDays(7);
-        adminRepository.updateAllAdminStatus(overdueDate);
-        bookUserRepository.updateAllStatusUser(overdueDate);
-        System.out.println("사용자 상태 업데이트 완료: " + LocalDateTime.now());
-    }
-
-    // 매일 오전 8시에 과정 종료된 학생들의 상태를 stop으로 변경 (연체 중인 학생 제외)
-    // 테스트용: 오후 9시 30분에 실행 (한국 시간 기준)
-    @Scheduled(cron = "0 40 21 * * ?", zone = "Asia/Seoul")
+    // 과정 종료된 학생들의 상태 업데이트 (09:30 실행)
+    @Scheduled(cron = "0 30 09 * * ?", zone = "Asia/Seoul")
     @Transactional
     public void updateStatusForFinishedCourses() {
         LocalDate today = LocalDate.now();
         LocalDate overdueDate = today.minusDays(7);
-        
-        // finishDtCourse가 현재 날짜보다 지난 Course 조회
-        List<Course> finishedCourses = courseRepository.findCoursesFinishedBefore(today);
-        
-        for (Course course : finishedCourses) {
-            // 해당 Course를 수강하는 학생들의 상태를 stop으로 변경 (연체 중인 학생 제외)
-            bookUserRepository.updateStatusByCourse(course, overdueDate);
+
+        try {
+            // 기존 로직 유지
+            List<Course> finishedCourses = courseRepository.findCoursesFinishedBefore(today);
+
+            for (Course course : finishedCourses) {
+                bookUserRepository.updateStatusByCourse(course, overdueDate);
+            }
+
+            bookUserRepository.updateStatusForNonExistentCourses(overdueDate);
+
+            if (!finishedCourses.isEmpty()) {
+                log.info("과정 종료로 인한 학생 상태 업데이트 완료: {}개 과정", finishedCourses.size());
+            }
+        } catch (Exception e) {
+            log.error("과정 종료된 학생들의 상태 업데이트 중 오류 발생: {}", e.getMessage());
+            throw e;
         }
-        
-        // Course 테이블에 존재하지 않는 과정을 참조하는 학생들의 상태도 stop으로 변경 (연체 중인 학생 제외)
-        bookUserRepository.updateStatusForNonExistentCourses(overdueDate);
-        
-        if (!finishedCourses.isEmpty()) {
-            System.out.println("과정 종료로 인한 학생 상태 업데이트 완료: " + finishedCourses.size() + "개 과정, " + LocalDateTime.now());
-        }
+
     }
 }
