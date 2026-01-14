@@ -122,4 +122,7 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
     List<History> findAllBySeqAdminAndReturnDtIsNull(Admin admin);
 
     boolean existsBySeqUserAndReturnDtIsNull(BookUser bookUser);
+
+    // 도서별 대출 횟수 조회
+    int countBySeqBook(Book book);
 }

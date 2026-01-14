@@ -23,4 +23,6 @@ public class BookResponseDto {
     private boolean bookBorrowed;
     @Builder.Default
     private boolean isBorrowedByMe = false;
+    @Builder.Default
+    private int borrowCount = 0;  // 대출 횟수
 }

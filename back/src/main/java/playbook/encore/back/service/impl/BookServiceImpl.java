@@ -34,17 +34,20 @@ public class BookServiceImpl implements BookService {
     private final SortSecondRepository sortSecondRepository;
     private final HistoryDAO historyDAO;
     private final BookUserRepository bookUserRepository;
+    private final playbook.encore.back.data.repository.HistoryRepository historyRepository;
 
     @Autowired
-    public BookServiceImpl(BookDAO bookDAO, BookRepository bookRepository, SortSecondRepository sortSecondRepository, HistoryDAO historyDAO, BookUserRepository bookUserRepository) {
+    public BookServiceImpl(BookDAO bookDAO, BookRepository bookRepository, SortSecondRepository sortSecondRepository, HistoryDAO historyDAO, BookUserRepository bookUserRepository, playbook.encore.back.data.repository.HistoryRepository historyRepository) {
         this.bookDAO = bookDAO;
         this.bookRepository = bookRepository;
         this.sortSecondRepository = sortSecondRepository;
         this.historyDAO = historyDAO;
         this.bookUserRepository = bookUserRepository;
+        this.historyRepository = historyRepository;
     }
 
     private BookResponseDto convertToDto(Book entity) {
+        int borrowCount = historyRepository.countBySeqBook(entity);
         return BookResponseDto.builder()
                 .seqBook(entity.getSeqBook())
                 .seqSortSecond(entity.getSeqSortSecond().getSeqSortSecond())
@@ -59,6 +62,7 @@ public class BookServiceImpl implements BookService {
                 .printCheckBook(entity.isPrintCheckBook())
                 .bookBorrowed(entity.isBookBorrowed())
                 .isBorrowedByMe(false)
+                .borrowCount(borrowCount)
                 .build();
     }
 
