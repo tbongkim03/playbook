@@ -89,25 +89,30 @@ async function fetchUserInfo() {
       Authorization: `Bearer ${token}`
     };
 
+    // validateStatus를 사용하여 모든 상태 코드를 성공으로 간주 (콘솔 에러 방지)
+    const axiosConfig = {
+      headers,
+      validateStatus: () => true  // 모든 HTTP 상태 코드를 성공으로 처리
+    };
+
     const [userRes, adminRes] = await Promise.allSettled([
-      axios.get('/api/users/me', { headers }),
-      axios.get('/api/admin/me', { headers })
+      axios.get('/api/users/me', axiosConfig),
+      axios.get('/api/admin/me', axiosConfig)
     ]);
 
-    if (userRes.status === 'fulfilled') {
+    // validateStatus로 인해 모든 응답이 fulfilled로 오므로 status 코드 확인 필요
+    if (userRes.status === 'fulfilled' && userRes.value.status === 200) {
       const data = userRes.value.data;
       username.value = data.nameUser || data.idUser || '사용자';
       isLogin.value = true;
       isAdmin.value = false;
-    } else if (adminRes.status === 'fulfilled') {
+    } else if (adminRes.status === 'fulfilled' && adminRes.value.status === 200) {
       const data = adminRes.value.data;
       username.value = data.nameAdmin || data.idAdmin || '관리자';
       isLogin.value = true;
       isAdmin.value = true;
     } else {
       // 둘 다 실패한 경우
-      const userError = userRes.reason?.response?.data || userRes.reason?.message;
-      const adminError = adminRes.reason?.response?.data || adminRes.reason?.message;
       alert("사용자 정보 불러오기 실패");
       localStorage.removeItem('jwtToken');
       localStorage.removeItem('userType');

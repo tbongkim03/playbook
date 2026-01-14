@@ -83,10 +83,22 @@
           <!-- 로딩이 아닐 때만 컨텐츠 표시 -->
           <template v-else>
             <div class="content-header" v-if="filteredBookList.length > 0">
-              <h2 class="section-title">
-                {{ getSectionTitle() }}
-                <span class="book-count">({{ displayCount }}권)</span>
-              </h2>
+              <div class="header-top">
+                <h2 class="section-title">
+                  {{ getSectionTitle() }}
+                  <span class="book-count">({{ displayCount }}권)</span>
+                </h2>
+
+                <!-- 정렬 드롭다운 -->
+                <div class="sort-dropdown">
+                  <select v-model="selectedSort" @change="onSortChange" class="sort-select">
+                    <option value="latest">최신 등록순</option>
+                    <option value="title">제목순 (가나다)</option>
+                    <option value="author">저자순 (가나다)</option>
+                    <option value="popular">인기순</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
             <div class="article-area" v-if="filteredBookList.length > 0">
@@ -192,6 +204,9 @@ const isSearchMode = ref(false)
 // 로딩 상태 추가
 const isLoading = ref(false)
 
+// 정렬 상태 추가
+const selectedSort = ref('latest')
+
 const fetchLargeCategories = async () => {
   try {
     const res = await fetch('/api/subjects')
@@ -235,14 +250,17 @@ const loadBooks = async () => {
     // printCheckBook이 1인 책만 필터링
     const filteredBooks = (data.content || []).filter(book => book.printCheckBook === true)
 
-    allBooks.value = filteredBooks
-    totalCount.value = filteredBooks.length // 필터링된 책의 개수로 업데이트
+    // 정렬 적용
+    const sortedBooks = sortBooks(filteredBooks)
+
+    allBooks.value = sortedBooks
+    totalCount.value = sortedBooks.length // 필터링된 책의 개수로 업데이트
     currentPage.value = 1 // 첫 페이지로 리셋
-    
+
     // 현재 페이지에 해당하는 데이터만 추출
     const startIndex = (currentPage.value - 1) * ITEMS_PER_PAGE
     const endIndex = startIndex + ITEMS_PER_PAGE
-    bookList.value = filteredBooks.slice(startIndex, endIndex)
+    bookList.value = sortedBooks.slice(startIndex, endIndex)
 
     // 검색 모드 해제
     isSearchMode.value = false
@@ -434,6 +452,62 @@ function onSearch({ query, exact }) {
   fetchBooks(query, exact);
 }
 
+// 정렬 함수
+const sortBooks = (books) => {
+  if (!books || books.length === 0) return books;
+
+  const sortedBooks = [...books];
+
+  switch (selectedSort.value) {
+    case 'latest':
+      // 최신 등록순 (seqBook 내림차순)
+      return sortedBooks.sort((a, b) => b.seqBook - a.seqBook);
+
+    case 'title':
+      // 제목순 (가나다순)
+      return sortedBooks.sort((a, b) => {
+        const titleA = a.titleBook || '';
+        const titleB = b.titleBook || '';
+        return titleA.localeCompare(titleB, 'ko-KR');
+      });
+
+    case 'author':
+      // 저자순 (가나다순)
+      return sortedBooks.sort((a, b) => {
+        const authorA = a.authorBook || '';
+        const authorB = b.authorBook || '';
+        return authorA.localeCompare(authorB, 'ko-KR');
+      });
+
+    case 'popular':
+      // 인기순 (대출 횟수 내림차순)
+      return sortedBooks.sort((a, b) => {
+        const countA = a.borrowCount || 0;
+        const countB = b.borrowCount || 0;
+        return countB - countA;
+      });
+
+    default:
+      return sortedBooks;
+  }
+};
+
+// 정렬 변경 핸들러
+const onSortChange = () => {
+  currentPage.value = 1;
+
+  // 정렬 적용
+  allBooks.value = sortBooks(allBooks.value);
+
+  // 현재 페이지에 해당하는 데이터 추출
+  const startIndex = (currentPage.value - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  bookList.value = allBooks.value.slice(startIndex, endIndex);
+
+  // 페이지 상단으로 스크롤
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
 const fetchBooks = async (query = '', exact = false) => {
   try {
     isLoading.value = true
@@ -475,12 +549,15 @@ const fetchBooks = async (query = '', exact = false) => {
     // 검색 결과에서 printCheckBook이 1인 책만 필터링
     const filteredBooks = data.content.filter(book => book.printCheckBook === true);
 
-    allBooks.value = filteredBooks;
-    totalCount.value = filteredBooks.length;
+    // 정렬 적용
+    const sortedBooks = sortBooks(filteredBooks);
+
+    allBooks.value = sortedBooks;
+    totalCount.value = sortedBooks.length;
 
     currentPage.value = 1
 
-    bookList.value = filteredBooks.slice(0, ITEMS_PER_PAGE).map(book => {
+    bookList.value = sortedBooks.slice(0, ITEMS_PER_PAGE).map(book => {
       return {
         ...book
       };
@@ -524,15 +601,22 @@ onBeforeUnmount(() => {
 }
 
 .mainpage-area {
-  min-width: 1450px;
+  width: 100%;
   min-height: 98%;
-  overflow-x: inherit;
+  overflow-x: hidden;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
+}
+
+/* 데스크톱에서는 최소 너비 유지 */
+@media (min-width: 769px) {
+  .mainpage-area {
+    min-width: 1450px;
+  }
 }
 
 .nav-bar {
@@ -678,6 +762,17 @@ onBeforeUnmount(() => {
   text-align: center;
 }
 
+.header-top {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 16px;
+  gap: 24px;
+  position: relative;
+}
+
 .section-title {
   font-size: 2rem;
   font-weight: 700;
@@ -687,6 +782,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   gap: 12px;
+  flex: 0 0 auto;
 }
 
 .book-count {
@@ -696,6 +792,43 @@ onBeforeUnmount(() => {
   background: rgba(100, 116, 139, 0.1);
   padding: 4px 12px;
   border-radius: 20px;
+}
+
+.sort-dropdown {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: absolute;
+  right: 16px;
+}
+
+.sort-select {
+  padding: 10px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  min-width: 150px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.sort-select:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.sort-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.sort-select option {
+  padding: 8px;
 }
 
 .article-area {
@@ -931,48 +1064,179 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 768px) {
+  body {
+    overflow-x: hidden !important;
+  }
+
+  .mainpage-bg-wrapper {
+    overflow-x: hidden !important;
+  }
+
+  .mainpage-area {
+    /* overflow-x: hidden !important;
+    max-width: 100vw !important; */
+    max-width: 100%;
+  }
+
   .nav-bar {
     padding: 12px 16px;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
+    align-items: stretch;
+    max-width: 100vw;
+    box-sizing: border-box;
   }
-  
+
   .nav-left {
     width: 100%;
+    max-width: 100%;
     overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
-  
+
+  .nav-left::-webkit-scrollbar {
+    display: none;
+  }
+
   .nav {
-    flex-wrap: nowrap;
+    flex-wrap: nowrap !important;
     white-space: nowrap;
+    gap: 8px;
+    display: flex !important;
+    flex-direction: row !important;
+    width: max-content;
+    min-width: 100%;
   }
-  
+
+  .nav-item {
+    flex-shrink: 0;
+  }
+
+  .nav-link {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    border-radius: 20px;
+  }
+
+  .nav-link:hover {
+    transform: translateY(5px);
+  }
+
   .nav-right {
     width: 100%;
     min-width: auto;
+    max-width: 100%;
   }
-  
+
   .search-component {
     width: 100%;
+    max-width: 100%;
   }
-  
+
+  /* 중분류 드롭다운 가로 스크롤 */
+  ul.dropdown-menu-custom {
+    position: fixed !important;
+    top: 214px !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 12px 16px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.1) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(10px) !important;
+    flex-wrap: nowrap !important;
+    z-index: 1029 !important;
+    display: flex !important;
+    margin: 0 !important;
+    list-style: none !important;
+    gap: 12px !important;
+  }
+
+  .dropdown-menu-custom::-webkit-scrollbar {
+    display: none;
+  }
+
+  .dropdown-item-custom {
+    flex-shrink: 0 !important;
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    border-radius: 16px;
+    white-space: nowrap;
+  }
+
+  /* 메인 컨텐츠 여백 조정 */
+  .main {
+    margin-top: 200px !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 헤더 섹션 */
+  .header-top {
+    flex-direction: column;
+    gap: 12px;
+    padding: 0;
+  }
+
+  .section-title {
+    font-size: 1.3rem;
+    justify-content: center;
+  }
+
+  .book-count {
+    font-size: 0.9rem;
+    padding: 3px 10px;
+  }
+
+  .sort-dropdown {
+    position: static;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .sort-select {
+    width: 100%;
+    max-width: 250px;
+    min-width: auto;
+    font-size: 0.9rem;
+    padding: 10px 14px;
+  }
+
+  /* 도서 그리드 */
   .article-area {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
-  
+
   .main {
     padding: 16px;
   }
-  
+
+  /* 페이지네이션 */
   .pagination-wrapper {
-    padding: 12px 20px;
-    gap: 16px;
+    padding: 12px 16px;
+    gap: 12px;
   }
-  
+
   .pagination-btn {
-    padding: 10px 16px;
-    min-width: 70px;
+    padding: 8px 14px;
+    min-width: 60px;
+    font-size: 0.85rem;
+  }
+
+  .page-info {
+    font-size: 0.9rem;
   }
 }
 </style>

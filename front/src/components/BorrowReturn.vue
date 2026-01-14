@@ -242,23 +242,28 @@ const navigateTo = (r) => {
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
+  .modal-content {
+    width: calc(100vw - 32px);
+    margin: 0 16px;
+  }
+
   .modal-container {
     padding: 24px;
   }
-  
+
   .function-area {
     grid-template-columns: 1fr;
     gap: 24px;
   }
-  
+
   .function-card {
     padding: 40px 24px;
   }
-  
+
   .card-title {
     font-size: 1.25rem;
   }
-  
+
   .modal-header {
     margin-bottom: 32px;
   }
@@ -266,10 +271,11 @@ const navigateTo = (r) => {
 
 @media (max-width: 480px) {
   .modal-content {
-    width: 95vw;
+    width: calc(100vw - 32px);
+    margin: 0 16px;
     border-radius: 16px;
   }
-  
+
   .function-card {
     padding: 32px 20px;
   }
