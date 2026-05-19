@@ -5,14 +5,15 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.session.FindByIndexNameSessionRepository;
+import org.springframework.session.data.redis.RedisIndexedSessionRepository;
 import org.springframework.web.bind.annotation.*;
 import playbook.encore.back.admin.dto.*;
 import playbook.encore.back.bookUser.dto.*;
-import playbook.encore.back.admin.entity.Admin;
+import playbook.encore.back.admin.entity.Admin;
 import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.admin.service.AdminService;
 
-import java.util.List;
 
 
 @RestController
@@ -20,10 +21,13 @@ import java.util.List;
 public class AdminController {
 
     private final AdminService adminService;
+    private final RedisIndexedSessionRepository sessionRepository;
 
     @Autowired
-    public AdminController(AdminService adminService) {
+    public AdminController(AdminService adminService,
+                           RedisIndexedSessionRepository sessionRepository) {
         this.adminService = adminService;
+        this.sessionRepository = sessionRepository;
     }
 
     // 회원가입 관련 부분
@@ -54,9 +58,16 @@ public class AdminController {
             @RequestBody LoginAdminRequestDto loginAdminRequestDto) throws Exception {
         try {
             String adminId = adminService.loginServiceAdmin(loginAdminRequestDto);
+
+            // 기존 세션 만료 (중복 로그인 방지)
+            sessionRepository.findByIndexNameAndIndexValue(
+                    FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME, adminId)
+                    .keySet().forEach(sessionRepository::deleteById);
+
             HttpSession session = request.getSession(true);
             session.setAttribute("userId", adminId);
             session.setAttribute("role", "admin");
+            session.setAttribute(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME, adminId);
             session.setMaxInactiveInterval(3600);
             return ResponseEntity.status(HttpStatus.OK).body("로그인 성공");
         } catch (IllegalArgumentException e) {
@@ -82,7 +93,7 @@ public class AdminController {
         if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             Admin user = (Admin) request.getAttribute("admin");
             LoginAdminDataResponseDto loginAdminDataResponseDto = new LoginAdminDataResponseDto(
-                user.getSeqCampus(),  // Campus 엔티티 전체 전달 (null 가능)
+                user.getSeqCampus(),
                 user.getIdAdmin(),
                 user.getNameAdmin(),
                 user.getDcAdmin()
@@ -91,6 +102,7 @@ public class AdminController {
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
     }
+
     @PostMapping("/validate")
     public ResponseEntity<?> getCurrentPassword(
             HttpServletRequest request,
@@ -111,6 +123,7 @@ public class AdminController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
         }
     }
+
     @PutMapping("/password")
     public ResponseEntity<?> updatePassword(
             HttpServletRequest request,
@@ -130,6 +143,7 @@ public class AdminController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
         }
     }
+
     @PutMapping("/discord")
     public ResponseEntity<?> updateDiscord(
             HttpServletRequest request,
@@ -178,14 +192,10 @@ public class AdminController {
         try {
             Object roleAttr = request.getAttribute("ROLE");
             if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-                // 쿼리 파라미터로 전달된 campusId가 있으면 우선 사용
                 Integer campusId = requestCampusId;
-                
-                // 쿼리 파라미터가 없으면 interceptor에서 설정한 campusId 사용
                 if (campusId == null) {
                     campusId = (Integer) request.getAttribute("campusId");
                 }
-                
                 AdminListResponseDto adminListResponseDto = adminService.getAdminList(campusId);
                 return ResponseEntity.status(HttpStatus.OK).body(adminListResponseDto);
             }
