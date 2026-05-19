@@ -1,5 +1,6 @@
 package playbook.encore.back.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class SortFirstServiceImpl implements SortFirstService {
 
@@ -33,6 +35,7 @@ public class SortFirstServiceImpl implements SortFirstService {
     @Override
     @Transactional
     public SortFirstResponseDto insertSortFirst(SortFirstRequestDto sortFirstRequestDto) {
+        log.info("[SortFirstService] 대분류 등록 - name: {}", sortFirstRequestDto.getNameSortFirst());
         SortFirst sortFirst = new SortFirst();
         sortFirst.setKorSortFirst(sortFirstRequestDto.getKorSortFirst());
         sortFirst.setNameSortFirst(sortFirstRequestDto.getNameSortFirst());
@@ -46,6 +49,7 @@ public class SortFirstServiceImpl implements SortFirstService {
 
     @Override
     public List<SortFirstResponseDto> getAllSortFirst() throws Exception {
+        log.info("[SortFirstService] 전체 대분류 조회");
         List<SortFirst> sortFirstList = sortFirstDAO.selectAllSortFirst();
         List<SortFirstResponseDto> responseList = new ArrayList<>();
 
@@ -61,6 +65,7 @@ public class SortFirstServiceImpl implements SortFirstService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SortFirstResponseDto changeSortFirst(Integer sortFirstId, SortFirstRequestDto sortFirstRequestDto) throws Exception {
+        log.info("[SortFirstService] 대분류 수정 - sortFirstId: {}", sortFirstId);
         Optional<SortFirst> optionalSortFirst = sortFirstRepository.findById(sortFirstId);
         if (optionalSortFirst.isPresent()) {
             SortFirst changedSortFirst = sortFirstDAO.updateSortFirst(
@@ -79,6 +84,7 @@ public class SortFirstServiceImpl implements SortFirstService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteSortFirstById(Integer sortFirstId) throws Exception {
+        log.info("[SortFirstService] 대분류 삭제 - sortFirstId: {}", sortFirstId);
         Optional<SortFirst> optionalSortFirst = sortFirstRepository.findById(sortFirstId);
         if (optionalSortFirst.isPresent()) {
             sortFirstRepository.deleteById(optionalSortFirst.get().getSeqSortFirst());

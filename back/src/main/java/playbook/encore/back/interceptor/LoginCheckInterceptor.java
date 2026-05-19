@@ -54,6 +54,7 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
                 || ((uri.equals("/admin/password") && method.equals("PUT")))
                 || ((uri.equals("/users/password") && method.equals("PUT")))
                 || ((uri.equals("/admin/discord") && method.equals("PUT")))
+                || ((uri.equals("/admin/update") && method.equals("PUT")))
                 || ((uri.equals("/admin/list") && method.equals("GET")))
                 || ((uri.equals("/history/borrow") && method.equals("POST")))
                 || ((uri.equals("/history/return") && method.equals("PUT")))
@@ -68,6 +69,9 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
                 || ((uri.startsWith("/history/popular/second/") && method.equals("GET")))
                 || ((uri.equals("/history/rank") && method.equals("GET")))
                 || ((uri.startsWith("/history/rank/") && method.equals("GET")))
+                || ((uri.equals("/campus/all") && method.equals("GET"))) // 모든 캠퍼스 조회
+                || ((uri.equals("/campus") && method.equals("POST"))) // 캠퍼스 생성
+                || ((uri.startsWith("/campus/") && (method.equals("GET") || method.equals("PUT") || method.equals("DELETE")))) // 캠퍼스 상세, 수정, 삭제
         ) {
             // 로그인 검증 로직
             if (!isLoggedIn(request, response, handler)) {
@@ -113,7 +117,7 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
 
         if ("admin".equalsIgnoreCase(role)) {
             System.out.println("관리자 역할 확인됨");
-            Optional<Admin> adminOpt = adminRepository.findByIdAdmin(userId);
+            Optional<Admin> adminOpt = adminRepository.findByIdAdminWithCampus(userId);
             if (adminOpt.isEmpty()) {
 //                System.out.println("관리자가 DB에서 찾아지지 않음");
                 setUtf8Response(response);
@@ -122,19 +126,36 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
                 return false;
             }
 //            System.out.println("관리자 정보 확인됨, ROLE 속성 설정");
-            request.setAttribute("admin", adminOpt.get());
+            Admin admin = adminOpt.get();
+            request.setAttribute("admin", admin);
             request.setAttribute("ROLE", RoleType.ADMIN);
+
+            // 캠퍼스 정보 설정
+            if (admin.getSeqCampus() != null) {
+                request.setAttribute("campusId", admin.getSeqCampus().getSeqCampus());
+            } else {
+                request.setAttribute("campusId", null); // 전체 관리자
+            }
 //            System.out.println("설정된 ROLE: " + request.getAttribute("ROLE"));
         } else if ("user".equalsIgnoreCase(role)) {
-            Optional<BookUser> userOpt = bookUserRepository.findByIdUser(userId);
+            Optional<BookUser> userOpt =
+                    bookUserRepository.findByIdUserWithCourseAndCampus(userId);
             if (userOpt.isEmpty()) {
                 setUtf8Response(response);
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("해당 사용자가 존재하지 않습니다.");
                 return false;
             }
-            request.setAttribute("user", userOpt.get());
+            BookUser user = userOpt.get();
+            request.setAttribute("user", user);
             request.setAttribute("ROLE", RoleType.USER);
+
+            // 캠퍼스 정보 설정 (Course를 통해, null 체크)
+            Integer campusId = null;
+            if (user.getSeqCourse() != null && user.getSeqCourse().getSeqCampus() != null) {
+                campusId = user.getSeqCourse().getSeqCampus().getSeqCampus();
+            }
+            request.setAttribute("campusId", campusId);
         } else {
 //            System.out.println("올바르지 않은 역할: " + role);
             setUtf8Response(response);

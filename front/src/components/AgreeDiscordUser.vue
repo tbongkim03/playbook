@@ -55,6 +55,10 @@
                                     <span class="notif-icon">⏰</span>
                                     <span>반납 예정일 안내</span>
                                 </div>
+                                <div class="notification-item">
+                                    <span class="notif-icon">✅</span>
+                                    <span>반납 완료 안내</span>
+                                </div>
                                 <div class="notification-item highlight">
                                     <span class="notif-icon">⚠️</span>
                                     <span>연체 발생 알림</span>
@@ -83,6 +87,10 @@
                                         <div class="list-item">
                                             <span class="item-icon">📅</span>
                                             <span>반납 예정일 안내</span>
+                                        </div>
+                                        <div class="list-item">
+                                            <span class="item-icon">✅</span>
+                                            <span>반납 완료 안내</span>
                                         </div>
                                         <div class="list-item highlight">
                                             <span class="item-icon">🚨</span>

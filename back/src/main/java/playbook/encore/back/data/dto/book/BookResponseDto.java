@@ -10,6 +10,8 @@ import java.time.LocalDate;
 @Builder
 public class BookResponseDto {
     private int seqBook;
+    private int seqCampus;
+    private String campusName;  // 캠퍼스 이름
     private int seqSortSecond;
     private String isbnBook;
     private String titleBook;

@@ -109,6 +109,21 @@
             </svg>
           </div>
         </div>
+        
+        <!-- 캠퍼스 필터 (전체 관리자만 표시) -->
+        <div v-if="showCampusFilter" class="filter-group">
+          <label>캠퍼스</label>
+          <select v-model="selectedCampus" @change="onCampusChange" class="filter-select">
+            <option value="">전체 캠퍼스</option>
+            <option
+              v-for="campus in campuses"
+              :key="campus.seqCampus"
+              :value="campus.seqCampus"
+            >
+              {{ campus.nameCampus }}
+            </option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -315,6 +330,12 @@ const isLoading = ref(false)
 const showDetailModal = ref(false)
 const selectedRental = ref(null)
 
+// 캠퍼스 필터 관련
+const campuses = ref([])
+const selectedCampus = ref('')
+const showCampusFilter = ref(false)
+const currentUserCampusId = ref(null)
+
 // 통계 데이터
 const stats = ref({
   totalRentals: 0,    // totalBorrowed
@@ -443,6 +464,52 @@ const visiblePages = computed(() => {
   return pages
 })
 
+// 캠퍼스 목록 가져오기
+const fetchCampuses = async () => {
+  try {
+    const res = await axios.get('/api/campus')
+    campuses.value = res.data || []
+  } catch (error) {
+    console.error('캠퍼스 목록 조회 실패:', error)
+  }
+}
+
+// 사용자 타입 확인 및 캠퍼스 필터 설정
+const checkUserType = async () => {
+  try {
+    const token = localStorage.getItem('jwtToken')
+    if (!token) return
+    
+    const response = await axios.get('/api/admin/me', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      validateStatus: () => true
+    })
+    
+    if (response.status === 200) {
+      const data = response.data
+      if (!data.seqCampus) {
+        // 전체 관리자
+        showCampusFilter.value = true
+        currentUserCampusId.value = null
+      } else {
+        // 특정 캠퍼스 관리자
+        showCampusFilter.value = false
+        currentUserCampusId.value = data.seqCampus.seqCampus || data.seqCampus
+        selectedCampus.value = String(currentUserCampusId.value) // 기본값 설정
+      }
+    }
+  } catch (error) {
+    console.error('사용자 타입 확인 실패:', error)
+  }
+}
+
+// 캠퍼스 변경 핸들러
+const onCampusChange = () => {
+  applyFilters()
+}
+
 // 메서드
 const fetchRentalHistory = async () => {
   try {
@@ -451,7 +518,10 @@ const fetchRentalHistory = async () => {
     const headers = getAuthHeaders()
     if (!headers) return
     
-    const response = await axios.get('/api/history/book', {
+    // 캠퍼스 필터가 선택된 경우 쿼리 파라미터로 전달
+    const campusParam = (showCampusFilter.value && selectedCampus.value) ? `?campusId=${selectedCampus.value}` : ''
+    
+    const response = await axios.get(`/api/history/book${campusParam}`, {
       headers: headers
     })
     
@@ -611,8 +681,10 @@ const exportData = () => {
 }
 
 // 컴포넌트 마운트 시 데이터 로드
-onMounted(() => {
-  fetchRentalHistory()
+onMounted(async () => {
+  await fetchCampuses()
+  await checkUserType()
+  await fetchRentalHistory()
 })
 </script>
 

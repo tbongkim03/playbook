@@ -53,7 +53,7 @@
               시작 위치
             </label>
             <select id="startPosition" v-model="startPosition" class="setting-select">
-              <option v-for="n in 65" :key="n" :value="n - 1">{{ n }}번째</option>
+              <option v-for="n in 65" :key="n" :value="n">{{ n }}번째</option>
             </select>
           </div>
         </div>
@@ -158,7 +158,7 @@ const props = defineProps({
   }
 })
 
-const startPosition = ref(0)
+const startPosition = ref(1)
 
 const emit = defineEmits(['close', 'refresh'])
 function close() {
@@ -169,15 +169,16 @@ function close() {
 const options = ref([])
 const selectedCountPerPage = ref(1)
 
-// 보여줄 책 슬라이스 - props.books에서 직접 슬라이스
+// 보여줄 책 슬라이스 - props.books에서 직접 슬라이스 (최대 65개)
 const displayedBooks = computed(() => {
-  return props.books.slice(0, selectedCountPerPage.value)
+  const maxCount = Math.min(selectedCountPerPage.value, 65)
+  return props.books.slice(0, maxCount)
 })
 
 // 옵션 업데이트 함수
 const updateOptions = () => {
   options.value = []
-  const maxCount = props.books.length
+  const maxCount = Math.min(props.books.length, 65) // 최대 65개
   for (let i = 1; i <= maxCount; i++) {
     options.value.push(i)
   }
@@ -219,6 +220,38 @@ onMounted(() => {
   generateBarcodes()
 })
 
+// 바코드 SVG 생성 헬퍼 함수
+function createBarcodeSVG(book) {
+  const tempSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+  JsBarcode(tempSvg, book.barcodeBook, {
+    format: "CODE128",
+    lineColor: "#000",
+    width: 1,
+    height: 40,
+    displayValue: false,
+  })
+  
+  return `
+    <div class="barcode-cell">
+      <div class="barcode-content">
+        ${tempSvg.outerHTML}
+        <div class="barcode-label">${book.barcodeBook}</div>
+        <div class="book-title">${book.titleBook}</div>
+      </div>
+    </div>
+  `
+}
+
+// 한 페이지의 박스들을 행으로 나누는 함수
+function createPageRows(boxes) {
+  const rows = []
+  for (let i = 0; i < 13; i++) {
+    const rowBoxes = boxes.slice(i * 5, (i + 1) * 5)
+    rows.push(`<div class="row">${rowBoxes.join('')}</div>`)
+  }
+  return rows.join('')
+}
+
 // 출력 함수
 const printAll = async () => {
   if (!displayedBooks.value.length) {
@@ -235,50 +268,59 @@ const printAll = async () => {
     return
   }
 
-  // 13행 × 5열 = 65개의 박스 생성
-  const totalBoxes = 65
-  const boxes = []
+  // 13행 × 5열 = 65개의 박스
+  const totalBoxesPerPage = 65
+  const pages = []
+  
+  let startPos = startPosition.value // 1~65 (1~65번째 위치)
+  let bookIndex = 0
+  const totalBooks = displayedBooks.value.length
 
-  // 시작 위치만큼 빈 박스 추가
-  for (let i = 0; i < startPosition.value; i++) {
-    boxes.push('<div class="barcode-cell"></div>')
+  // 현재 페이지의 박스들
+  let currentPageBoxes = []
+
+  // 첫 페이지에 시작 위치 전까지 빈 박스 추가 (1번째부터 시작하므로 startPos - 1개)
+  for (let i = 0; i < startPos - 1; i++) {
+    currentPageBoxes.push('<div class="barcode-cell"></div>')
   }
 
-  // 바코드가 들어갈 박스들 추가
-  for (const book of displayedBooks.value) {
-    if (boxes.length >= totalBoxes) break // 65개 초과하면 중단
+  // 바코드 추가
+  while (bookIndex < totalBooks) {
+    // 현재 페이지가 가득 찼으면 새 페이지 시작
+    if (currentPageBoxes.length >= totalBoxesPerPage) {
+      // 현재 페이지를 완성하고 저장
+      while (currentPageBoxes.length < totalBoxesPerPage) {
+        currentPageBoxes.push('<div class="barcode-cell"></div>')
+      }
+      pages.push([...currentPageBoxes])
+      currentPageBoxes = []
+    }
 
-    const tempSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
-    JsBarcode(tempSvg, book.barcodeBook, {
-      format: "CODE128",
-      lineColor: "#000",
-      width: 1,
-      height: 40,
-      displayValue: false,
-    })
+    // 바코드 추가
+    const book = displayedBooks.value[bookIndex]
+    currentPageBoxes.push(createBarcodeSVG(book))
+    bookIndex++
+  }
 
-    boxes.push(`
-      <div class="barcode-cell">
-        <div class="barcode-content">
-          ${tempSvg.outerHTML}
-          <div class="barcode-label">${book.barcodeBook}</div>
-          <div class="book-title">${book.titleBook}</div>
+  // 마지막 페이지 완성
+  if (currentPageBoxes.length > 0) {
+    while (currentPageBoxes.length < totalBoxesPerPage) {
+      currentPageBoxes.push('<div class="barcode-cell"></div>')
+    }
+    pages.push(currentPageBoxes)
+  }
+
+  // 페이지 HTML 생성
+  const pageHTMLs = pages.map((pageBoxes, index) => {
+    const rows = createPageRows(pageBoxes)
+    return `
+      <div class="page-break">
+        <div class="grid">
+          ${rows}
         </div>
       </div>
-    `)
-  }
-
-  // 나머지 빈 박스로 채우기
-  while (boxes.length < totalBoxes) {
-    boxes.push('<div class="barcode-cell"></div>')
-  }
-
-  // 13행으로 나누기
-  const rows = []
-  for (let i = 0; i < 13; i++) {
-    const rowBoxes = boxes.slice(i * 5, (i + 1) * 5)
-    rows.push(`<div class="row">${rowBoxes.join('')}</div>`)
-  }
+    `
+  })
 
   const doc = printWindow.document
   doc.open()
@@ -297,6 +339,12 @@ const printAll = async () => {
           margin: 0;
           padding: 0;
           font-family: Arial, sans-serif;
+        }
+        .page-break {
+          page-break-after: always;
+        }
+        .page-break:last-child {
+          page-break-after: auto;
         }
         .grid {
           position: relative;
@@ -363,9 +411,7 @@ const printAll = async () => {
       </style>
     </head>
     <body>
-      <div class="grid">
-        ${rows.join('')}
-      </div>
+      ${pageHTMLs.join('')}
       <script>
         window.onload = function() {
           window.print();

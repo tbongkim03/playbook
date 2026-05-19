@@ -82,21 +82,39 @@
 
           <!-- 로딩이 아닐 때만 컨텐츠 표시 -->
           <template v-else>
-            <div class="content-header" v-if="filteredBookList.length > 0">
+            <div class="content-header" v-if="filteredBookList.length > 0 || showCampusFilter">
               <div class="header-top">
                 <h2 class="section-title">
                   {{ getSectionTitle() }}
                   <span class="book-count">({{ displayCount }}권)</span>
                 </h2>
 
-                <!-- 정렬 드롭다운 -->
-                <div class="sort-dropdown">
-                  <select v-model="selectedSort" @change="onSortChange" class="sort-select">
-                    <option value="latest">최신 등록순</option>
-                    <option value="title">제목순 (가나다)</option>
-                    <option value="author">저자순 (가나다)</option>
-                    <option value="popular">인기순</option>
-                  </select>
+                <!-- 필터 영역 -->
+                <div class="filter-area">
+                  <!-- 캠퍼스 필터 (전체 관리자/비회원만 표시) -->
+                  <div v-if="showCampusFilter" class="campus-filter">
+                    <label class="filter-label">캠퍼스:</label>
+                    <select v-model="selectedCampus" @change="onCampusChange" class="campus-select">
+                      <option value="">전체 캠퍼스</option>
+                      <option
+                        v-for="campus in campuses"
+                        :key="campus.seqCampus"
+                        :value="campus.seqCampus"
+                      >
+                        {{ campus.nameCampus }}
+                      </option>
+                    </select>
+                  </div>
+                  
+                  <!-- 정렬 드롭다운 -->
+                  <div class="sort-dropdown">
+                    <select v-model="selectedSort" @change="onSortChange" class="sort-select">
+                      <option value="latest">최신 등록순</option>
+                      <option value="title">제목순 (가나다)</option>
+                      <option value="author">저자순 (가나다)</option>
+                      <option value="popular">인기순</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
@@ -167,6 +185,7 @@
 </template>
 
 <script setup>
+import axios from 'axios'
 import BookArea from '@/components/BookArea.vue'
 import BookSearch from '@/components/BookSearch.vue'
 import BorrowReturn from '@/components/BorrowReturn.vue'
@@ -187,10 +206,16 @@ const hoveredLargeCategory = ref(null)
 
 
 const ITEMS_PER_PAGE = 20
-const allBooks = ref([])
 const bookList = ref([])
 const totalCount = ref(0)
 const currentPage = ref(1)
+
+// 캠퍼스 필터 관련
+const campuses = ref([])
+const selectedCampus = ref('')
+const showCampusFilter = ref(false)
+const isFullAdmin = ref(false)
+const isGuest = ref(false)
 
 const handleKeydown = (event) => {
   if (event.key === 'Escape' && isModalOpen.value) {
@@ -209,8 +234,8 @@ const selectedSort = ref('latest')
 
 const fetchLargeCategories = async () => {
   try {
-    const res = await fetch('/api/subjects')
-    largeCategories.value = await res.json()
+    const res = await axios.get('/api/subjects')
+    largeCategories.value = res.data
   } catch (error) {
     alert('대분류 카테고리 조회 실패:', error.message)
   }
@@ -218,49 +243,45 @@ const fetchLargeCategories = async () => {
 
 const fetchMediumCategories = async () => {
   try {
-    const res = await fetch('/api/subtitles')
-    mediumCategoriesAll.value = await res.json()
+    const res = await axios.get('/api/subtitles')
+    mediumCategoriesAll.value = res.data
   } catch (error) {
     alert('중분류 카테고리 조회 실패:', error.message)
   }
 }
 
-const loadBooks = async () => {
+const loadBooks = async (page = 1) => {
   try {
     isLoading.value = true
     
+    // 정렬 필드 매핑
+    const sortFieldMap = {
+      'latest': 'seqBook',
+      'title': 'titleBook',
+      'author': 'authorBook',
+      'popular': 'borrowCount'
+    }
+    
+    const sortBy = sortFieldMap[selectedSort.value] || 'seqBook'
+    const sortDir = selectedSort.value === 'popular' ? 'desc' : (selectedSort.value === 'latest' ? 'desc' : 'asc')
+    
     let url = ''
+    // 캠퍼스 필터가 선택된 경우 쿼리 파라미터로 전달
+    const campusParam = (selectedCampus.value && showCampusFilter.value) ? `&campusId=${selectedCampus.value}` : ''
+    
     if (selectedLargeCategory.value === '전체') {
-      url = `/api/books`
+      url = `/api/books?page=${page}&size=${ITEMS_PER_PAGE}&sortBy=${sortBy}&sortDir=${sortDir}${campusParam}`
     } else {
-      url = `/api/books/sortFirst?id=${selectedLargeCategorySeq.value}`
+      url = `/api/books/sortFirst?id=${selectedLargeCategorySeq.value}&page=${page}&size=${ITEMS_PER_PAGE}&sortBy=${sortBy}&sortDir=${sortDir}${campusParam}`
     }
 
-    const token = localStorage.getItem('jwtToken')
+    const res = await axios.get(url)
+    const data = res.data
 
-    const res = await fetch(url, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` })
-        }
-    })
-    const data = await res.json()
-
-    // printCheckBook이 1인 책만 필터링
-    const filteredBooks = (data.content || []).filter(book => book.printCheckBook === true)
-
-    // 정렬 적용
-    const sortedBooks = sortBooks(filteredBooks)
-
-    allBooks.value = sortedBooks
-    totalCount.value = sortedBooks.length // 필터링된 책의 개수로 업데이트
-    currentPage.value = 1 // 첫 페이지로 리셋
-
-    // 현재 페이지에 해당하는 데이터만 추출
-    const startIndex = (currentPage.value - 1) * ITEMS_PER_PAGE
-    const endIndex = startIndex + ITEMS_PER_PAGE
-    bookList.value = sortedBooks.slice(startIndex, endIndex)
+    // 서버에서 이미 필터링된 데이터를 받음
+    bookList.value = data.content || []
+    totalCount.value = data.totalCount || 0
+    currentPage.value = page
 
     // 검색 모드 해제
     isSearchMode.value = false
@@ -270,7 +291,6 @@ const loadBooks = async () => {
   } catch (error) {
     alert('책 목록 조회 실패:', error.message)
     bookList.value = []
-    allBooks.value = []
     totalCount.value = 0
   } finally {
     isLoading.value = false
@@ -324,32 +344,21 @@ const currentLargeForMedium = computed(() => {
 })
 
 const filteredBookList = computed(() => {
-  // 중분류 필터링이 있는 경우
+  // 서버에서 이미 필터링된 데이터를 받으므로 추가 필터링은 중분류만
   if (selectedMediumCategory.value) {
-    const mediumFiltered = bookList.value.filter(book => 
-      book.seqSortFirst !== 0 && 
-      book.seqSortSecond !== 0 &&
-      book.printCheckBook === true &&
+    return bookList.value.filter(book => 
       book.seqSortSecond === selectedMediumCategory.value
     );
-    return mediumFiltered;
   }
   
-  // 일반 필터링 (대분류 또는 전체)
-  return bookList.value.filter(book => 
-    book.seqSortFirst !== 0 && 
-    book.seqSortSecond !== 0 &&
-    book.printCheckBook === true
-  );
+  // 일반 필터링 (서버에서 이미 처리됨)
+  return bookList.value;
 });
 
 const displayCount = computed(() => {
   if (selectedMediumCategory.value) {
-    // 중분류가 선택된 경우 전체 데이터에서 해당 중분류 개수 계산
-    return allBooks.value.filter(book => 
-      book.seqSortFirst !== 0 && 
-      book.seqSortSecond !== 0 &&
-      book.printCheckBook === true &&
+    // 중분류가 선택된 경우 현재 표시된 책의 개수 반환
+    return bookList.value.filter(book => 
       book.seqSortSecond === selectedMediumCategory.value
     ).length;
   }
@@ -393,7 +402,7 @@ function selectLargeCategory(categoryName, categorySeq = null) {
   selectedMediumCategory.value = null
   selectedMediumCategoryLargeSeq.value = null
   currentPage.value = 1
-  loadBooks()
+  loadBooks(1)
 }
 
 function selectMediumCategory(mediumSeq, largeSeq) {
@@ -407,40 +416,39 @@ function selectMediumCategory(mediumSeq, largeSeq) {
     selectedLargeCategorySeq.value = large.seqSortFirst
   }
   
-  // 중분류 선택 시 해당 데이터만 필터링하여 페이지네이션 재구성
-  const mediumFilteredBooks = allBooks.value.filter(book => 
-    book.seqSortSecond === mediumSeq
-  );
-  
-  // 첫 페이지로 리셋하고 필터링된 데이터의 첫 20개만 표시
+  // 중분류 선택 시 첫 페이지로 리셋하고 서버에서 데이터 요청
   currentPage.value = 1
-  bookList.value = mediumFilteredBooks.slice(0, ITEMS_PER_PAGE)
+  loadBooks(1).then(() => {
+    // 중분류 필터링 적용 (클라이언트 사이드)
+    const mediumFilteredBooks = bookList.value.filter(book => 
+      book.seqSortSecond === mediumSeq
+    );
+    bookList.value = mediumFilteredBooks
+  })
   
   // 페이지 상단으로 스크롤 이동
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 // 페이지 이동 함수 추가
-const goToPage = (page) => {
+const goToPage = async (page) => {
   if (page < 1 || page > Math.ceil(totalCount.value / ITEMS_PER_PAGE)) {
     return;
   }
   
-  currentPage.value = page;
-  
-  // 중분류가 선택된 경우
+  // 중분류가 선택된 경우는 클라이언트 사이드 필터링 유지
   if (selectedMediumCategory.value) {
-    const mediumFilteredBooks = allBooks.value.filter(book => 
+    // 중분류 필터링은 클라이언트 사이드에서 처리 (기존 로직 유지)
+    // 하지만 서버에서 받은 데이터가 이미 필터링되어 있으므로 재요청 필요
+    await loadBooks(page);
+    // 중분류 필터링 적용
+    const mediumFilteredBooks = bookList.value.filter(book => 
       book.seqSortSecond === selectedMediumCategory.value
     );
-    const startIndex = (page - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    bookList.value = mediumFilteredBooks.slice(startIndex, endIndex);
+    bookList.value = mediumFilteredBooks;
   } else {
-    // 일반 페이지네이션
-    const startIndex = (page - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    bookList.value = allBooks.value.slice(startIndex, endIndex);
+    // 서버에서 해당 페이지 데이터 요청
+    await loadBooks(page);
   }
   
   // 페이지 상단으로 스크롤 이동
@@ -493,19 +501,10 @@ const sortBooks = (books) => {
 };
 
 // 정렬 변경 핸들러
-const onSortChange = () => {
+const onSortChange = async () => {
   currentPage.value = 1;
-
-  // 정렬 적용
-  allBooks.value = sortBooks(allBooks.value);
-
-  // 현재 페이지에 해당하는 데이터 추출
-  const startIndex = (currentPage.value - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  bookList.value = allBooks.value.slice(startIndex, endIndex);
-
-  // 페이지 상단으로 스크롤
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  // 서버에서 정렬된 첫 페이지 데이터 요청
+  await loadBooks(1);
 };
 
 const fetchBooks = async (query = '', exact = false) => {
@@ -522,66 +521,108 @@ const fetchBooks = async (query = '', exact = false) => {
       // 검색 모드 활성화
       isSearchMode.value = true
     } else {
-      url = '/api/books';
-      
-      // 검색 모드 비활성화
+      // 검색어가 없으면 일반 목록으로 이동
       isSearchMode.value = false
+      await loadBooks(1);
+      return;
     }
 
-    const res = await fetch(url);
-    if (!res.ok) {
-      const errorMessage = await res.text();
-      throw new Error(errorMessage || `서버 오류: ${res.status}`)
-    }
-
-    const data = await res.json();
-
-    // console.log(data)
+    const res = await axios.get(url);
+    const data = res.data;
 
     if (!data.content) {
       alert('서버 응답 데이터 오류: ', data);
       bookList.value = [];
-      allBooks.value = [];
       totalCount.value = 0;
       return;
     }
 
-    // 검색 결과에서 printCheckBook이 1인 책만 필터링
+    // 검색 결과는 서버에서 이미 필터링된 데이터
+    // 검색 결과는 페이지네이션 없이 전체 표시 (기존 동작 유지)
     const filteredBooks = data.content.filter(book => book.printCheckBook === true);
-
-    // 정렬 적용
     const sortedBooks = sortBooks(filteredBooks);
 
-    allBooks.value = sortedBooks;
+    bookList.value = sortedBooks;
     totalCount.value = sortedBooks.length;
-
     currentPage.value = 1
-
-    bookList.value = sortedBooks.slice(0, ITEMS_PER_PAGE).map(book => {
-      return {
-        ...book
-      };
-    });
 
     // 페이지 상단으로 스크롤 이동
     window.scrollTo({ top: 0, behavior: 'smooth' })
-
-    // console.log('✅ books.value 업데이트 완료:', books.value);
   } catch (error) {
     alert('도서 검색 실패:', error.message)
     bookList.value = []
-    allBooks.value = []
     totalCount.value = 0
   } finally {
     isLoading.value = false
   }
 };
 
+// 캠퍼스 목록 가져오기
+const fetchCampuses = async () => {
+  try {
+    const res = await axios.get('/api/campus')
+    campuses.value = res.data || []
+  } catch (error) {
+    console.error('캠퍼스 목록 조회 실패:', error)
+  }
+}
+
+// 전체 관리자/비회원 확인
+const checkUserType = async () => {
+  const token = localStorage.getItem('jwtToken')
+  
+  if (!token) {
+    // 비회원
+    isGuest.value = true
+    isFullAdmin.value = false
+    showCampusFilter.value = true
+    return
+  }
+  
+  const userType = localStorage.getItem('userType')
+  if (userType === 'admin') {
+    try {
+      const response = await axios.get('/api/admin/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        validateStatus: () => true
+      })
+      
+      if (response.status === 200) {
+        // seqCampus가 null이면 전체 관리자
+        if (!response.data.seqCampus) {
+          isFullAdmin.value = true
+          showCampusFilter.value = true
+        } else {
+          isFullAdmin.value = false
+          showCampusFilter.value = false
+        }
+      }
+    } catch (error) {
+      isFullAdmin.value = false
+      showCampusFilter.value = false
+    }
+  } else {
+    // 일반 사용자
+    isFullAdmin.value = false
+    showCampusFilter.value = false
+  }
+}
+
+// 캠퍼스 변경 핸들러
+const onCampusChange = () => {
+  currentPage.value = 1
+  loadBooks(1)
+}
+
 onMounted(async () => {
   await fetchLargeCategories()
   await fetchMediumCategories()
+  await fetchCampuses()
+  await checkUserType()
   selectedLargeCategory.value = '전체'
-  await loadBooks()
+  await loadBooks(1)
   window.addEventListener('keydown', handleKeydown)
 })
 
@@ -773,6 +814,52 @@ onBeforeUnmount(() => {
   position: relative;
 }
 
+.filter-area {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: absolute;
+  right: 16px;
+}
+
+.campus-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-label {
+  font-weight: 500;
+  color: #475569;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.campus-select {
+  padding: 10px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  min-width: 150px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.campus-select:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.campus-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
 .section-title {
   font-size: 2rem;
   font-weight: 700;
@@ -798,8 +885,6 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  position: absolute;
-  right: 16px;
 }
 
 .sort-select {
@@ -1199,10 +1284,25 @@ onBeforeUnmount(() => {
     padding: 3px 10px;
   }
 
-  .sort-dropdown {
+  .filter-area {
     position: static;
     width: 100%;
-    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .sort-dropdown {
+    width: 100%;
+  }
+  
+  .campus-filter {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .campus-select {
+    flex: 1;
+    min-width: auto;
   }
 
   .sort-select {

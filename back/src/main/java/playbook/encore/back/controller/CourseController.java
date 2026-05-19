@@ -2,11 +2,11 @@ package playbook.encore.back.controller;
 
 import java.util.List;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import playbook.encore.back.data.dao.CourseDAO;
 import playbook.encore.back.data.dto.course.CourseRequestDto;
 import playbook.encore.back.data.dto.course.CourseResponseDto;
 import playbook.encore.back.service.CourseService;
@@ -21,8 +21,19 @@ public class CourseController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CourseResponseDto>> getCourseALll() throws Exception{
-        List<CourseResponseDto> courseResponseDto = courseService.getAllCourse();
+    public ResponseEntity<List<CourseResponseDto>> getCourseALll(
+            HttpServletRequest request,
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId
+    ) throws Exception{
+        // 쿼리 파라미터로 전달된 campusId가 있으면 우선 사용
+        Integer campusId = requestCampusId;
+        
+        // 쿼리 파라미터가 없으면 interceptor에서 설정한 campusId 사용
+        if (campusId == null) {
+            campusId = (Integer) request.getAttribute("campusId");
+        }
+        
+        List<CourseResponseDto> courseResponseDto = courseService.getAllCourse(campusId);
         return ResponseEntity.status(HttpStatus.OK).body(courseResponseDto);
     }
 

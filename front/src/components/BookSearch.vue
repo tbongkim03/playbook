@@ -55,11 +55,11 @@ export default {
                 return;
             }
             try {
-                const response = await fetch(
+                const axios = (await import('axios')).default;
+                const response = await axios.get(
                     `/api/books/related?q=${encodeURIComponent(this.query)}`
                 );
-                if (!response.ok) throw new Error('네트워크 오류');
-                const data = await response.json();
+                const data = response.data;
 
                 // printCheckBook이 true인 항목들만 필터링
                 const availableBooks = data.filter(item => item.printCheckBook === true);

@@ -29,18 +29,22 @@ public class HistoryController {
     // 히스토리 조회
     @GetMapping("/book")
     public ResponseEntity<?> getHistoryBook(
-            HttpServletRequest request
+            HttpServletRequest request,
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId
     ) throws Exception {
         try {
             Object roleAttr = request.getAttribute("ROLE");
             if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-                Admin user = (Admin) request.getAttribute("admin");
-                HistoryBookResponseDto result = historyService.getHistoryBooks();
+                // 쿼리 파라미터로 전달된 campusId가 있으면 우선 사용 (전체 관리자가 캠퍼스를 선택한 경우)
+                Integer campusId = requestCampusId != null ? requestCampusId : (Integer) request.getAttribute("campusId");
+                HistoryBookResponseDto result = historyService.getHistoryBooks(campusId);
                 return ResponseEntity.status(HttpStatus.OK).body(result);
             }
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
-        } catch (Exception IllegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
         }
     }
 
@@ -57,8 +61,10 @@ public class HistoryController {
                 return ResponseEntity.status(HttpStatus.OK).body("도서 대여 기록이 삭제되었습니다.");
             }
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
-        } catch (Exception IllegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
         }
     }
 
@@ -86,11 +92,16 @@ public class HistoryController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 정보가 없습니다.");
         }
 
+        // 캠퍼스 ID 가져오기
+        Integer campusId = (Integer) request.getAttribute("campusId");
+
         try {
-            historyService.handleBookBorrow(user, barcodeBook);
+            historyService.handleBookBorrow(user, barcodeBook, campusId);
             return ResponseEntity.status(HttpStatus.OK).body("도서 대출이 완료되었습니다.");
-        } catch (Exception IllegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
         }
     }
 
@@ -118,8 +129,11 @@ public class HistoryController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 정보가 없습니다.");
         }
 
+        // 캠퍼스 ID 가져오기
+        Integer campusId = (Integer) request.getAttribute("campusId");
+
         try {
-            historyService.handleBookReturn(user, barcodeBook);
+            historyService.handleBookReturn(user, barcodeBook, campusId);
             return ResponseEntity.status(HttpStatus.OK).body("도서 반납이 완료되었습니다.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.OK).body(e.getMessage());  // 상태는 OK, 메시지만 연체 or 잘못된 형식
@@ -145,8 +159,10 @@ public class HistoryController {
         try {
             HistoryBookResponseDto result = historyService.getMyHistory(user);
             return ResponseEntity.status(HttpStatus.OK).body(result);
-        } catch (Exception IllegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
         }
     }
 
@@ -163,8 +179,10 @@ public class HistoryController {
         try {
             List<PopularLabelDto> result = historyService.findPopularFirstSortByCourse(courseId);
             return ResponseEntity.status(HttpStatus.OK).body(result);
-        } catch (Exception IllegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
         }
     }
 
@@ -177,10 +195,13 @@ public class HistoryController {
         if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
         try {
-            List<PopularLabelDto> result = historyService.findPopularFirstSortAll();
+            Integer campusId = (Integer) request.getAttribute("campusId");
+            List<PopularLabelDto> result = historyService.findPopularFirstSortAll(campusId);
             return ResponseEntity.status(HttpStatus.OK).body(result);
-        } catch (Exception IllegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
         }
     }
 
@@ -196,24 +217,31 @@ public class HistoryController {
         try {
             List<PopularLabelDto> result = historyService.findPopularSecondSortByCourse(courseId);
             return ResponseEntity.status(HttpStatus.OK).body(result);
-        } catch (Exception IllegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
         }
     }
 
     // 인기 중분류 전체 조회
     @GetMapping("/popular/second")
     public ResponseEntity<?> getPopularSecondSortAll(
-            HttpServletRequest request
+            HttpServletRequest request,
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId
     ) throws Exception {
         Object roleAttr = request.getAttribute("ROLE");
         if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
         try {
-            List<PopularLabelDto> result = historyService.findPopularSecondSortAll();
+            // 쿼리 파라미터로 전달된 campusId가 있으면 우선 사용 (전체 관리자가 캠퍼스를 선택한 경우)
+            Integer campusId = requestCampusId != null ? requestCampusId : (Integer) request.getAttribute("campusId");
+            List<PopularLabelDto> result = historyService.findPopularSecondSortAll(campusId);
             return ResponseEntity.status(HttpStatus.OK).body(result);
-        } catch (Exception IllegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
         }
     }
 
@@ -229,24 +257,31 @@ public class HistoryController {
         try {
             List<UserReadingRankDto> result = historyService.findUserReadingRankByCourse(courseId);
             return ResponseEntity.status(HttpStatus.OK).body(result);
-        } catch (Exception IllegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
         }
     }
 
     // 전체 사용자 독서 랭킹 조회
     @GetMapping("/rank")
     public ResponseEntity<?> getUserReadingRankAll(
-            HttpServletRequest request
+            HttpServletRequest request,
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId
     ) throws Exception {
         Object roleAttr = request.getAttribute("ROLE");
         if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
         try {
-            List<UserReadingRankDto> result = historyService.findUserReadingRankAll();
+            // 쿼리 파라미터로 전달된 campusId가 있으면 우선 사용 (전체 관리자가 캠퍼스를 선택한 경우)
+            Integer campusId = requestCampusId != null ? requestCampusId : (Integer) request.getAttribute("campusId");
+            List<UserReadingRankDto> result = historyService.findUserReadingRankAll(campusId);
             return ResponseEntity.status(HttpStatus.OK).body(result);
-        } catch (Exception IllegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
         }
     }
 }

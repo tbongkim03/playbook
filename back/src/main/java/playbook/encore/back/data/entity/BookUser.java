@@ -18,7 +18,7 @@ public class BookUser {
     private Integer seqUser;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "seq_course", nullable = false)
+    @JoinColumn(name = "seq_course", nullable = true)
     private Course seqCourse;
 
     @Column(name = "id_user", nullable = false)

@@ -20,7 +20,7 @@
                   <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </div>
-              <span class="username">{{ username }} {{ isAdmin ? '(관리자)' : '님' }}</span>
+              <span class="username">{{ username }}({{ campusName || '정보 없음' }})</span>
             </div>
           </router-link>
 
@@ -61,6 +61,7 @@ import { useRoute, useRouter } from 'vue-router'
 const isLogin = ref(false) // 로그인 여부
 const username = ref('')    // 로그인 사용자 이름
 const isAdmin = ref(false)  // 관리자 여부
+const campusName = ref('')  // 캠퍼스 이름
 
 const route = useRoute()
 const router = useRouter()
@@ -100,26 +101,37 @@ async function fetchUserInfo() {
       axios.get('/api/admin/me', axiosConfig)
     ]);
 
-    // validateStatus로 인해 모든 응답이 fulfilled로 오므로 status 코드 확인 필요
     if (userRes.status === 'fulfilled' && userRes.value.status === 200) {
       const data = userRes.value.data;
+      if (data.seqCampus) {
+        localStorage.setItem('campusId', data.seqCampus);
+        campusName.value = data.campusName || '정보 없음';
+      } else {
+        localStorage.removeItem('campusId');
+        campusName.value = '정보 없음';
+      }
       username.value = data.nameUser || data.idUser || '사용자';
       isLogin.value = true;
       isAdmin.value = false;
     } else if (adminRes.status === 'fulfilled' && adminRes.value.status === 200) {
       const data = adminRes.value.data;
+      if (data.seqCampus?.seqCampus) {
+        localStorage.setItem('campusId', data.seqCampus?.seqCampus);
+        campusName.value = data.seqCampus?.nameCampus || '정보 없음';
+      } else {
+        // 전체 관리자
+        campusName.value = '전체';
+      }
       username.value = data.nameAdmin || data.idAdmin || '관리자';
       isLogin.value = true;
       isAdmin.value = true;
     } else {
       // 둘 다 실패한 경우
-      alert("사용자 정보 불러오기 실패");
-      localStorage.removeItem('jwtToken');
-      localStorage.removeItem('userType');
-      isLogin.value = false;
-      username.value = '';
-      isAdmin.value = false;
-      router.push('/login');
+       localStorage.removeItem('jwtToken')
+       isLogin.value = false
+       username.value = ''
+       isAdmin.value = false
+       campusName.value = ''
     }
   } catch (error) {
     alert('예기치 못한 오류 발생: ' + (error.response?.data || error));

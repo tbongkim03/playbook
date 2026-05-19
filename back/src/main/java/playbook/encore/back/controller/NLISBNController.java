@@ -59,7 +59,7 @@ public class NLISBNController {
             if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
                 Admin user = (Admin) request.getAttribute("admin");
                 if (adminRepository.findByIdAdmin(user.getIdAdmin()).isEmpty()) {
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("관리자 정보가 없습니다.");
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("관리자 정보가 없습니다.");
                 }
                 // ISBN으로 상세 검색 API 호출 (XML)
                 String url = String.format(
@@ -105,7 +105,7 @@ public class NLISBNController {
                 if (adminRepository.findByIdAdmin(user.getIdAdmin()).isEmpty()) {
                     Map<String, String> errorResponse = new HashMap<>();
                     errorResponse.put("error", "관리자 정보가 없습니다.");
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                             .contentType(MediaType.APPLICATION_JSON)
                             .body(errorResponse);
                 }

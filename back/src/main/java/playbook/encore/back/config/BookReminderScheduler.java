@@ -9,10 +9,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+import playbook.encore.back.data.entity.Campus;
 import playbook.encore.back.data.entity.Course;
 import playbook.encore.back.data.entity.History;
 import playbook.encore.back.data.repository.AdminRepository;
 import playbook.encore.back.data.repository.BookUserRepository;
+import playbook.encore.back.data.repository.CampusRepository;
 import playbook.encore.back.data.repository.CourseRepository;
 import playbook.encore.back.data.repository.HistoryRepository;
 import playbook.encore.back.service.impl.DiscordNotificationService;
@@ -46,6 +48,8 @@ public class BookReminderScheduler {
     private BookUserRepository bookUserRepository;
     @Autowired
     private CourseRepository courseRepository;
+    @Autowired
+    private CampusRepository campusRepository;
 
     private boolean isNotificationAlreadySentToday(String notificationFile) {
         File file = new File(notificationFile);
@@ -90,8 +94,8 @@ public class BookReminderScheduler {
 
     }
 
-    // 매일 오전 10시에 반납 알림
-    @Scheduled(cron = "0 0 10 * * ?", zone = "Asia/Seoul")
+    // 매일 오전 8시에 반납 알림
+    @Scheduled(cron = "0 0 08 * * ?", zone = "Asia/Seoul")
     public void sendReturnReminder() {
         if (isNotificationAlreadySentToday(RETURN_NOTIFICATION_FILE)) {
             log.info("오늘 이미 반납 알림을 보냈습니다.");
@@ -100,39 +104,52 @@ public class BookReminderScheduler {
 
         LocalDate tomorrow = LocalDate.now().plusDays(1);
 
-        // 내일이 반납일인 도서들 조회
-        List<History> dueTomorrow = historyRepository.findByBookDtAndReturnDtIsNull(
-                tomorrow.minusDays(7)
-        );
+        // 모든 활성 캠퍼스에 대해 반복
+        List<Campus> activeCampuses = campusRepository.findByIsActiveTrue();
 
-        for (History history : dueTomorrow) {
-            String discordId = null;
-            String userName = null;
+        int totalSent = 0;
+        for (Campus campus : activeCampuses) {
+            log.info("캠퍼스 '{}' 반납 알림 처리 시작", campus.getNameCampus());
 
-            if (history.getSeqUser() != null) {
-                discordId = history.getSeqUser().getDcUser();
-                userName = history.getSeqUser().getNameUser();
-            } else if (history.getSeqAdmin() != null) {
-                discordId = history.getSeqAdmin().getDcAdmin();
-                userName = history.getSeqAdmin().getNameAdmin();
+            // 캠퍼스별 내일이 반납일인 도서들 조회
+            List<History> dueTomorrow = historyRepository
+                    .findByBookDtAndReturnDtIsNullAndSeqCampus_SeqCampus(
+                            tomorrow.minusDays(7),
+                            campus.getSeqCampus()
+                    );
+
+            for (History history : dueTomorrow) {
+                String discordId = null;
+                String userName = null;
+
+                if (history.getSeqUser() != null) {
+                    discordId = history.getSeqUser().getDcUser();
+                    userName = history.getSeqUser().getNameUser();
+                } else if (history.getSeqAdmin() != null) {
+                    discordId = history.getSeqAdmin().getDcAdmin();
+                    userName = history.getSeqAdmin().getNameAdmin();
+                }
+
+                if (discordId != null) {
+                    discordNotificationService.sendReturnReminderNotification(
+                            discordId,
+                            userName,
+                            history.getSeqBook().getTitleBook(),
+                            tomorrow.toString()
+                    );
+                }
             }
 
-            if (discordId != null) {
-                discordNotificationService.sendReturnReminderNotification(
-                        discordId,
-                        userName,
-                        history.getSeqBook().getTitleBook(),
-                        tomorrow.toString()
-                );
-            }
+            totalSent += dueTomorrow.size();
+            log.info("캠퍼스 '{}' 반납 알림 완료: {}건", campus.getNameCampus(), dueTomorrow.size());
         }
 
         recordTodayNotification(RETURN_NOTIFICATION_FILE);
-        log.info("반납 알림 발송 완료");
+        log.info("전체 반납 알림 발송 완료: 총 {}건", totalSent);
     }
 
     // 매일 오전 10시 1분에 연체 알림
-    @Scheduled(cron = "0 1 10 * * ?", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 01 08 * * ?", zone = "Asia/Seoul")
     public void sendOverdueNotification() {
         if (isNotificationAlreadySentToday(OVERDUE_NOTIFICATION_FILE)) {
             log.info("오늘 이미 연체 알림을 보냈습니다.");
@@ -141,39 +158,53 @@ public class BookReminderScheduler {
 
         LocalDate today = LocalDate.now();
 
-        // 연체된 도서들 조회
-        List<History> overdueBooks = historyRepository.findOverdueBooks(today.minusDays(7));
+        // 모든 활성 캠퍼스에 대해 반복
+        List<Campus> activeCampuses = campusRepository.findByIsActiveTrue();
 
-        for (History history : overdueBooks) {
-            String discordId = null;
-            String userName = null;
+        int totalSent = 0;
+        for (Campus campus : activeCampuses) {
+            log.info("캠퍼스 '{}' 연체 알림 처리 시작", campus.getNameCampus());
 
-            if (history.getSeqUser() != null) {
-                discordId = history.getSeqUser().getDcUser();
-                userName = history.getSeqUser().getNameUser();
-            } else if (history.getSeqAdmin() != null) {
-                discordId = history.getSeqAdmin().getDcAdmin();
-                userName = history.getSeqAdmin().getNameAdmin();
+            // 캠퍼스별 연체된 도서들 조회
+            List<History> overdueBooks = historyRepository.findOverdueBooksByCampus(
+                    today.minusDays(7),
+                    campus.getSeqCampus()
+            );
+
+            for (History history : overdueBooks) {
+                String discordId = null;
+                String userName = null;
+
+                if (history.getSeqUser() != null) {
+                    discordId = history.getSeqUser().getDcUser();
+                    userName = history.getSeqUser().getNameUser();
+                } else if (history.getSeqAdmin() != null) {
+                    discordId = history.getSeqAdmin().getDcAdmin();
+                    userName = history.getSeqAdmin().getNameAdmin();
+                }
+
+                if (discordId != null) {
+                    long overdueDays = today.toEpochDay() - history.getBookDt().plusDays(7).toEpochDay();
+                    discordNotificationService.sendOverdueNotification(
+                            discordId,
+                            userName,
+                            history.getSeqBook().getTitleBook(),
+                            history.getBookDt().plusDays(7).toString(),
+                            overdueDays
+                    );
+                }
             }
 
-            if (discordId != null) {
-                long overdueDays = today.toEpochDay() - history.getBookDt().plusDays(7).toEpochDay();
-                discordNotificationService.sendOverdueNotification(
-                        discordId,
-                        userName,
-                        history.getSeqBook().getTitleBook(),
-                        history.getBookDt().plusDays(7).toString(),
-                        overdueDays
-                );
-            }
+            totalSent += overdueBooks.size();
+            log.info("캠퍼스 '{}' 연체 알림 완료: {}건", campus.getNameCampus(), overdueBooks.size());
         }
 
         recordTodayNotification(OVERDUE_NOTIFICATION_FILE);
-        log.info("연체 알림 발송 완료");
+        log.info("전체 연체 알림 발송 완료: 총 {}건", totalSent);
     }
 
-    // 과정 종료된 학생들의 상태 업데이트 (09:30 실행)
-    @Scheduled(cron = "0 30 09 * * ?", zone = "Asia/Seoul")
+    // 과정 종료된 학생들의 상태 업데이트 (08:02 실행)
+    @Scheduled(cron = "0 02 08 * * ?", zone = "Asia/Seoul")
     @Transactional
     public void updateStatusForFinishedCourses() {
         LocalDate today = LocalDate.now();

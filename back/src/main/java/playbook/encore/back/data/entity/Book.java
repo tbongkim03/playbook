@@ -18,6 +18,10 @@ public class Book {
     private Integer seqBook;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seq_campus", nullable = false)
+    private Campus seqCampus;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seq_sort_second", nullable = false)
     private SortSecond seqSortSecond;
 

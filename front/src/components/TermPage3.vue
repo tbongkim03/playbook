@@ -86,9 +86,20 @@
                                             <div class="type-icon">📅</div>
                                             <div class="type-content">
                                                 <strong>반납 예정일 안내</strong>
-                                                <p>반납 예정일 1-2일 전에 미리 알려주는 사전 알림</p>
+                                                <p>반납 예정일 1일 전(매일 오전 8시)에 미리 알려주는 사전 알림</p>
                                                 <div class="example-message">
                                                     "⏰ 대출하신 도서의 반납 예정일이 내일입니다. (2024.01.15)"
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="notification-type">
+                                            <div class="type-icon">✅</div>
+                                            <div class="type-content">
+                                                <strong>반납 완료 안내</strong>
+                                                <p>도서 반납이 완료되었을 때 발송되는 알림</p>
+                                                <div class="example-message">
+                                                    "📚 도서 반납이 완료되었습니다. 반납해 주셔서 감사합니다!"
                                                 </div>
                                             </div>
                                         </div>
@@ -97,7 +108,7 @@
                                             <div class="type-icon">🚨</div>
                                             <div class="type-content">
                                                 <strong>연체 발생 알림</strong>
-                                                <p>반납 기한을 초과하여 연체가 발생했을 때 즉시 발송되는 알림</p>
+                                                <p>반납 기한을 초과하여 연체가 발생했을 때 매일 오전 8시 1분에 발송되는 알림</p>
                                                 <div class="example-message critical">
                                                     "🚨 도서 연체가 발생했습니다. 즉시 반납해 주세요. (연체일: 3일, 대출정지: 6일)"
                                                 </div>
@@ -258,6 +269,17 @@
                                     ⏰ <strong>[클린 코드]</strong> 반납 예정일이 내일입니다.<br>
                                     📅 반납일: 2025년 1월 15일<br>
                                     🏃‍♂️ 연체되지 않도록 미리 준비해 주세요!
+                                </div>
+                            </div>
+                            
+                            <div class="example-message return">
+                                <div class="message-header">
+                                    <span class="message-type">반납 완료</span>
+                                    <span class="message-time">방금 전</span>
+                                </div>
+                                <div class="message-content">
+                                    📚 <strong>[클린 코드]</strong> 도서 반납이 완료되었습니다.<br>
+                                    ✅ 반납해 주셔서 감사합니다!
                                 </div>
                             </div>
                             
@@ -937,6 +959,10 @@ function goBack() {
 
 .example-message.reminder {
     border-left: 4px solid #f59e0b;
+}
+
+.example-message.return {
+    border-left: 4px solid #10b981;
 }
 
 .example-message.overdue {

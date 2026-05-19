@@ -125,4 +125,132 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
 
     // 도서별 대출 횟수 조회
     int countBySeqBook(Book book);
+
+    // ========== 캠퍼스 필터링 메서드 (추가) ==========
+
+    /**
+     * 캠퍼스별 인기 대분류 (특정 과정)
+     */
+    @Query("""
+        SELECT new playbook.encore.back.data.dto.history.PopularLabelDto(sf.korSortFirst, COUNT(h))
+        FROM History h
+        JOIN h.seqBook b
+        JOIN b.seqSortSecond ss
+        JOIN ss.seqSortFirst sf
+        WHERE h.seqCourse.seqCourse = :courseId
+          AND h.seqCampus.seqCampus = :campusId
+        GROUP BY sf.seqSortFirst, sf.nameSortFirst
+        ORDER BY COUNT(h.seqHistory) DESC
+    """)
+    List<PopularLabelDto> findPopularFirstSortByCourseAndCampus(
+        @Param("courseId") int courseId,
+        @Param("campusId") int campusId);
+
+    /**
+     * 캠퍼스별 인기 대분류 (전체 과정)
+     */
+    @Query("""
+        SELECT new playbook.encore.back.data.dto.history.PopularLabelDto(sf.korSortFirst, COUNT(h.seqHistory))
+        FROM History h
+        JOIN h.seqBook b
+        JOIN b.seqSortSecond ss
+        JOIN ss.seqSortFirst sf
+        WHERE h.seqCampus.seqCampus = :campusId
+        GROUP BY sf.seqSortFirst, sf.nameSortFirst
+        ORDER BY COUNT(h.seqHistory) DESC
+    """)
+    List<PopularLabelDto> findPopularFirstSortAllByCampus(@Param("campusId") int campusId);
+
+    /**
+     * 캠퍼스별 인기 중분류 (특정 과정)
+     */
+    @Query("""
+        SELECT new playbook.encore.back.data.dto.history.PopularLabelDto(ss.korSortSecond, COUNT(h.seqHistory))
+        FROM History h
+        JOIN h.seqBook b
+        JOIN b.seqSortSecond ss
+        WHERE h.seqCourse.seqCourse = :courseId
+          AND h.seqCampus.seqCampus = :campusId
+        GROUP BY ss.seqSortSecond, ss.nameSortSecond
+        ORDER BY COUNT(h.seqHistory) DESC
+    """)
+    List<PopularLabelDto> findPopularSecondSortByCourseAndCampus(
+        @Param("courseId") int courseId,
+        @Param("campusId") int campusId);
+
+    /**
+     * 캠퍼스별 인기 중분류 (전체 과정)
+     */
+    @Query("""
+        SELECT new playbook.encore.back.data.dto.history.PopularLabelDto(ss.korSortSecond, COUNT(h.seqHistory))
+        FROM History h
+        JOIN h.seqBook b
+        JOIN b.seqSortSecond ss
+        WHERE h.seqCampus.seqCampus = :campusId
+        GROUP BY ss.seqSortSecond, ss.nameSortSecond
+        ORDER BY COUNT(h.seqHistory) DESC
+    """)
+    List<PopularLabelDto> findPopularSecondSortAllByCampus(@Param("campusId") int campusId);
+
+    /**
+     * 캠퍼스별 다독 순위 (특정 과정)
+     */
+    @Query("""
+        SELECT new playbook.encore.back.data.dto.history.UserReadingRankDto(u.nameUser, COUNT(h.seqHistory))
+        FROM History h
+        JOIN h.seqUser u
+        WHERE h.seqCourse.seqCourse = :courseId
+          AND h.returnDt IS NOT NULL
+          AND h.seqCampus.seqCampus = :campusId
+        GROUP BY u.seqUser, u.nameUser
+        ORDER BY COUNT(h.seqHistory) DESC
+    """)
+    List<UserReadingRankDto> findUserReadingRankByCourseAndCampus(
+        @Param("courseId") int courseId,
+        @Param("campusId") int campusId);
+
+    /**
+     * 캠퍼스별 다독 순위 (전체 과정)
+     */
+    @Query("""
+        SELECT new playbook.encore.back.data.dto.history.UserReadingRankDto(u.nameUser, COUNT(h.seqHistory))
+        FROM History h
+        JOIN h.seqUser u
+        WHERE h.returnDt IS NOT NULL
+          AND h.seqCampus.seqCampus = :campusId
+        GROUP BY u.seqUser, u.nameUser
+        ORDER BY COUNT(h.seqHistory) DESC
+    """)
+    List<UserReadingRankDto> findUserReadingRankAllByCampus(@Param("campusId") int campusId);
+
+    /**
+     * 캠퍼스별 반납 예정 도서 (스케줄러용)
+     */
+    @Query("SELECT h FROM History h WHERE h.bookDt = :bookDate " +
+           "AND h.returnDt IS NULL AND h.seqCampus.seqCampus = :campusId")
+    List<History> findByBookDtAndReturnDtIsNullAndSeqCampus_SeqCampus(
+        @Param("bookDate") LocalDate bookDate,
+        @Param("campusId") Integer campusId);
+
+    /**
+     * 캠퍼스별 연체 도서 (스케줄러용)
+     */
+    @Query("SELECT h FROM History h WHERE h.bookDt < :currentDate " +
+           "AND h.returnDt IS NULL AND h.seqCampus.seqCampus = :campusId")
+    List<History> findOverdueBooksByCampus(
+        @Param("currentDate") LocalDate currentDate,
+        @Param("campusId") Integer campusId);
+
+    /**
+     * 캠퍼스별 대시보드 통계
+     */
+    int countByBookDtIsNotNullAndSeqCampus_SeqCampus(Integer campusId);
+    int countByBookDtIsNotNullAndReturnDtIsNotNullAndSeqCampus_SeqCampus(Integer campusId);
+    int countByBookDtIsNotNullAndReturnDtIsNullAndSeqCampus_SeqCampus(Integer campusId);
+    int countByReturnDtIsNullAndBookDtBeforeAndSeqCampus_SeqCampus(LocalDate localDate, Integer campusId);
+
+    /**
+     * 캠퍼스별 히스토리 조회
+     */
+    List<History> findBySeqCampus_SeqCampus(Integer campusId);
 }

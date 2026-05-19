@@ -248,9 +248,37 @@ async function handleLogin() {
     }
 
     const res = await axios.post(apiUrl, loginData)
-    
+
     localStorage.setItem('jwtToken', res.data.token)
     localStorage.setItem('userType', isAdminMode.value ? 'admin' : 'user')
+
+    // 사용자 정보 조회하여 캠퍼스 저장
+    try {
+      const userInfoUrl = isAdminMode.value ? '/api/admin/me' : '/api/users/me'
+      const userInfo = await axios.get(userInfoUrl, {
+        headers: { 'Authorization': `Bearer ${res.data.token}` }
+      })
+
+      // 캠퍼스 정보가 있으면 저장
+      if (userInfo.data) {
+        if (isAdminMode.value && userInfo.data.seqCampus) {
+          // 관리자의 경우
+          const campus = userInfo.data.seqCampus
+          if (campus) {
+            localStorage.setItem('campusId', campus.seqCampus)
+          }
+        } else if (!isAdminMode.value && userInfo.data.seqCampus) {
+          // 일반 사용자의 경우
+          localStorage.setItem('campusId', userInfo.data.seqCampus)
+        } else {
+          // 캠퍼스 정보가 없는 경우 (과정 종료 등)
+          localStorage.removeItem('campusId')
+        }
+      }
+    } catch (infoError) {
+      console.error('캠퍼스 정보 조회 실패:', infoError)
+      // 캠퍼스 정보 조회 실패해도 로그인은 진행
+    }
 
     // 성공 시 메인 페이지로 이동
     router.push('/')

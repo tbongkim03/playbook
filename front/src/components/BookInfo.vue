@@ -81,9 +81,9 @@
                     <span class="label">ISBN:</span>
                     <span class="value">{{ book.isbnBook }}</span>
                 </div>
-                <div class="info-item">
-                    <span class="label">바코드:</span>
-                    <span class="value">{{ book.barcodeBook }}</span>
+                <div v-if="showCampusInfo && book.campusName" class="info-item">
+                    <span class="label">캠퍼스:</span>
+                    <span class="value campus-value">{{ book.campusName }}</span>
                 </div>
                 <div class="info-item">
                     <span class="label">대출 상태:</span>
@@ -114,6 +114,7 @@
                 </button>
                 
                 <button 
+                    v-if="!isAdmin"
                     class="btn"
                     :class="isWishlisted ? 'btn-wishlisted' : 'btn-secondary'"
                     @click="handleWishlist"
@@ -168,6 +169,10 @@ const error = ref(null)
 const bookImg = ref(null)
 const overLay = ref(null)
 const isWishlisted = ref(false) // 찜하기 상태 추가
+const isAdmin = ref(false) // 운영자 여부
+const isFullAdmin = ref(false) // 전체 관리자 여부 (캠퍼스가 없는 관리자)
+const isGuest = ref(false) // 비회원 여부
+const showCampusInfo = ref(false) // 캠퍼스 정보 표시 여부
 
 const handleImageError = (event) => {
     event.target.src = noImage
@@ -214,6 +219,14 @@ const getButtonClass = () => {
 }
 
 const handleBorrowOrReturn = () => {
+    // 로그인 체크
+    const token = localStorage.getItem('jwtToken')
+    if (!token) {
+        alert('로그인이 필요합니다.')
+        router.push('/login')
+        return
+    }
+    
     if (book.value.borrowedByMe) {
         // 내가 대출한 경우 - 반납 페이지로 이동
         router.push('/return')
@@ -291,6 +304,9 @@ const handleShare = () => {
 
 // 찜하기 상태 확인 함수
 const checkWishlistStatus = async () => {
+    // 운영자인 경우 찜하기 상태 확인하지 않음
+    if (isAdmin.value) return
+    
     try {
         const token = localStorage.getItem('jwtToken')
         if (!token) return
@@ -333,9 +349,90 @@ const checkWishlistStatus = async () => {
     }
 }
 
+// 운영자 여부 확인 함수
+const checkAdminStatus = async () => {
+    const token = localStorage.getItem('jwtToken')
+    
+    // 비회원 확인
+    if (!token) {
+        isGuest.value = true
+        isAdmin.value = false
+        isFullAdmin.value = false
+        showCampusInfo.value = true // 비회원은 캠퍼스 정보 표시
+        return
+    }
+    
+    const userType = localStorage.getItem('userType')
+    if (userType === 'admin') {
+        isAdmin.value = true
+        // 전체 관리자인지 확인
+        try {
+            const response = await axios.get('/api/admin/me', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                validateStatus: () => true
+            })
+            
+            if (response.status === 200) {
+                // seqCampus가 null이면 전체 관리자
+                if (!response.data.seqCampus) {
+                    isFullAdmin.value = true
+                    showCampusInfo.value = true // 전체 관리자는 캠퍼스 정보 표시
+                } else {
+                    isFullAdmin.value = false
+                    showCampusInfo.value = false // 특정 캠퍼스 관리자는 표시하지 않음
+                }
+            } else {
+                isAdmin.value = false
+                isFullAdmin.value = false
+                showCampusInfo.value = false
+            }
+        } catch (error) {
+            isAdmin.value = false
+            isFullAdmin.value = false
+            showCampusInfo.value = false
+        }
+        return
+    }
+    
+    // userType이 없거나 'user'인 경우, API로 확인
+    try {
+        const response = await axios.get('/api/admin/me', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            validateStatus: () => true // 모든 상태 코드를 성공으로 처리
+        })
+        
+        if (response.status === 200) {
+            isAdmin.value = true
+            // seqCampus가 null이면 전체 관리자
+            if (!response.data.seqCampus) {
+                isFullAdmin.value = true
+                showCampusInfo.value = true
+            } else {
+                isFullAdmin.value = false
+                showCampusInfo.value = false
+            }
+        } else {
+            isAdmin.value = false
+            isFullAdmin.value = false
+            showCampusInfo.value = false
+        }
+    } catch (error) {
+        isAdmin.value = false
+        isFullAdmin.value = false
+        showCampusInfo.value = false
+    }
+}
+
 onMounted(async () => {
     // 페이지 진입 시 스크롤을 맨 위로 초기화
     window.scrollTo(0, 0)
+    
+    // 운영자 여부 확인
+    await checkAdminStatus()
     
     try {
         const token = localStorage.getItem('jwtToken')
@@ -350,7 +447,10 @@ onMounted(async () => {
         
         if (res.data) {
             book.value = res.data
-            await checkWishlistStatus()
+            // 운영자가 아닌 경우에만 찜하기 상태 확인
+            if (!isAdmin.value) {
+                await checkWishlistStatus()
+            }
         } else {
             error.value = '책 데이터가 없습니다.'
         }
@@ -635,6 +735,13 @@ onMounted(async () => {
     padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
     font-size: 0.9rem;
+}
+
+.campus-value {
+    font-family: inherit;
+    color: #3b82f6;
+    background-color: #eff6ff;
+    font-weight: 600;
 }
 
 .status-borrowed {

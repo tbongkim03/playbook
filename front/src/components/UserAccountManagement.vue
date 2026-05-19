@@ -69,6 +69,21 @@
           <option value="overdue">연체</option>
         </select>
       </div>
+      
+      <!-- 캠퍼스 필터 (전체 관리자만 표시) -->
+      <div v-if="showCampusFilter" class="filter-group">
+        <label class="filter-label">캠퍼스</label>
+        <select v-model="selectedCampus" @change="onCampusChange" class="status-filter">
+          <option value="">전체 캠퍼스</option>
+          <option
+            v-for="campus in campuses"
+            :key="campus.seqCampus"
+            :value="campus.seqCampus"
+          >
+            {{ campus.nameCampus }}
+          </option>
+        </select>
+      </div>
     </div>
 
     <!-- 학생 목록 테이블 -->
@@ -215,10 +230,8 @@
         </div>
         <div class="delete-warning">
           <div class="warning-icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 9V13" stroke="currentColor" stroke-width="2"/>
-              <path d="M12 17.02L12.01 16.991" stroke="currentColor" stroke-width="2"/>
-              <path d="M10.29 3.86L1.82 18C1.64466 18.3024 1.55685 18.6453 1.56455 18.9928C1.57225 19.3403 1.67516 19.6792 1.86244 19.9757C2.04973 20.2723 2.31561 20.5157 2.6289 20.6812C2.9422 20.8467 3.29427 20.9286 3.65 20.92H20.35C20.7057 20.9286 21.0578 20.8467 21.3711 20.6812C21.6844 20.5157 21.9503 20.2723 22.1376 19.9757C22.3248 19.6792 22.4278 19.3403 22.4355 18.9928C22.4432 18.6453 22.3553 18.3024 22.18 18L13.71 3.86C13.5317 3.56611 13.2807 3.32312 12.9812 3.15446C12.6817 2.98581 12.3438 2.89725 12 2.89725C11.6562 2.89725 11.3183 2.98581 11.0188 3.15446C10.7193 3.32312 10.4683 3.56611 10.29 3.86Z" stroke="currentColor" stroke-width="2"/>
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 8V12M12 16H12.01M10.29 3.86L1.82 18C1.64466 18.3024 1.55685 18.6453 1.56455 18.9928C1.57225 19.3403 1.67516 19.6792 1.86244 19.9757C2.04973 20.2723 2.31561 20.5157 2.6289 20.6812C2.9422 20.8467 3.29427 20.9286 3.65 20.92H20.35C20.7057 20.9286 21.0578 20.8467 21.3711 20.6812C21.6844 20.5157 21.9503 20.2723 22.1376 19.9757C22.3248 19.6792 22.4278 19.3403 22.4355 18.9928C22.4432 18.6453 22.3553 18.3024 22.18 18L13.71 3.86C13.5317 3.56611 13.2807 3.32312 12.9812 3.15446C12.6817 2.98581 12.3438 2.89725 12 2.89725C11.6562 2.89725 11.3183 2.98581 11.0188 3.15446C10.7193 3.32312 10.4683 3.56611 10.29 3.86Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
           <div class="warning-content">
@@ -256,6 +269,12 @@ const filteredUserList = ref([])
 const isLoading = ref(false)
 const searchQuery = ref('')
 const selectedStatus = ref('')
+
+// 캠퍼스 필터 관련
+const campuses = ref([])
+const selectedCampus = ref('')
+const showCampusFilter = ref(false)
+const currentUserCampusId = ref(null)
 
 // 모달 상태
 const showDetailModal = ref(false)
@@ -297,16 +316,45 @@ const fetchCurrentUser = async () => {
       headers: getAuthHeaders()
     })
     currentUser.value = response.data
+    
+    // 캠퍼스 필터 설정
+    if (!response.data.seqCampus) {
+      // 전체 관리자
+      showCampusFilter.value = true
+      currentUserCampusId.value = null
+      selectedCampus.value = '' // 기본값: 전체
+    } else {
+      // 특정 캠퍼스 관리자
+      showCampusFilter.value = true
+      currentUserCampusId.value = response.data.seqCampus.seqCampus || response.data.seqCampus
+      selectedCampus.value = String(currentUserCampusId.value) // 기본값: 본인 캠퍼스
+    }
   } catch (error) {
     console.error('현재 사용자 정보 조회 실패:', error)
   }
+}
+
+// 캠퍼스 목록 가져오기
+const fetchCampuses = async () => {
+  try {
+    const res = await axios.get('/api/campus')
+    campuses.value = res.data || []
+  } catch (error) {
+    console.error('캠퍼스 목록 조회 실패:', error)
+  }
+}
+
+// 캠퍼스 변경 핸들러
+const onCampusChange = () => {
+  fetchUserList()
 }
 
 // 학생 목록 조회
 const fetchUserList = async () => {
   try {
     isLoading.value = true
-    const response = await axios.get('/api/users/list', {
+    const campusParam = (showCampusFilter.value && selectedCampus.value) ? `?campusId=${selectedCampus.value}` : ''
+    const response = await axios.get(`/api/users/list${campusParam}`, {
       headers: getAuthHeaders()
     })
 
@@ -482,6 +530,7 @@ const formatDate = (dateString) => {
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(async () => {
   await fetchCurrentUser()
+  await fetchCampuses()
   await fetchUserList()
   window.addEventListener('keydown', handleKeydown)
 })
@@ -597,6 +646,14 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 12px;
   align-items: center;
+  flex-direction: column;
+}
+
+.filter-label {
+  font-weight: 500;
+  color: #4a5568;
+  font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 .status-filter {
@@ -905,13 +962,22 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 24px 24px 24px;
+  padding: 24px 24px 32px 24px;
   text-align: center;
 }
 
 .warning-icon {
   color: #f56565;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.warning-icon svg {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
 }
 
 .warning-content h4 {

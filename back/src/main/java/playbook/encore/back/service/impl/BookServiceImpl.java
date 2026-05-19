@@ -1,5 +1,6 @@
 package playbook.encore.back.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -17,15 +18,18 @@ import playbook.encore.back.data.dto.book.BookSortAndBarcodeRequestDto;
 import playbook.encore.back.data.dto.book.BookUnprintedResponseDto;
 import playbook.encore.back.data.entity.Book;
 import playbook.encore.back.data.entity.BookUser;
+import playbook.encore.back.data.entity.Campus;
 import playbook.encore.back.data.entity.SortSecond;
 import playbook.encore.back.data.repository.BookRepository;
 import playbook.encore.back.data.repository.BookUserRepository;
+import playbook.encore.back.data.repository.CampusRepository;
 import playbook.encore.back.data.repository.SortSecondRepository;
 import playbook.encore.back.service.BookService;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class BookServiceImpl implements BookService {
 
@@ -35,21 +39,25 @@ public class BookServiceImpl implements BookService {
     private final HistoryDAO historyDAO;
     private final BookUserRepository bookUserRepository;
     private final playbook.encore.back.data.repository.HistoryRepository historyRepository;
+    private final CampusRepository campusRepository;
 
     @Autowired
-    public BookServiceImpl(BookDAO bookDAO, BookRepository bookRepository, SortSecondRepository sortSecondRepository, HistoryDAO historyDAO, BookUserRepository bookUserRepository, playbook.encore.back.data.repository.HistoryRepository historyRepository) {
+    public BookServiceImpl(BookDAO bookDAO, BookRepository bookRepository, SortSecondRepository sortSecondRepository, HistoryDAO historyDAO, BookUserRepository bookUserRepository, playbook.encore.back.data.repository.HistoryRepository historyRepository, CampusRepository campusRepository) {
         this.bookDAO = bookDAO;
         this.bookRepository = bookRepository;
         this.sortSecondRepository = sortSecondRepository;
         this.historyDAO = historyDAO;
         this.bookUserRepository = bookUserRepository;
         this.historyRepository = historyRepository;
+        this.campusRepository = campusRepository;
     }
 
     private BookResponseDto convertToDto(Book entity) {
         int borrowCount = historyRepository.countBySeqBook(entity);
         return BookResponseDto.builder()
                 .seqBook(entity.getSeqBook())
+                .seqCampus(entity.getSeqCampus().getSeqCampus())
+                .campusName(entity.getSeqCampus().getNameCampus())  // 캠퍼스 이름 추가
                 .seqSortSecond(entity.getSeqSortSecond().getSeqSortSecond())
                 .isbnBook(entity.getIsbnBook())
                 .titleBook(entity.getTitleBook())
@@ -69,11 +77,15 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional
     public BookResponseDto insertBook(BookRequestDto bookRequestDto) {
+        log.info("[BookService] 도서 등록 - title: {}", bookRequestDto.getTitleBook());
+        Campus campus = campusRepository.findById(bookRequestDto.getSeqCampus())
+                .orElseThrow(() -> new IllegalArgumentException("해당 캠퍼스는 존재하지 않습니다"));
+
         SortSecond sortSecond = sortSecondRepository.findById(bookRequestDto.getSeqSortSecond())
                 .orElseThrow(() -> new IllegalArgumentException("해당 분류가 존재하지 않습니다"));
-        // SortFirst sortFirst = sortSecond.getSeqSortFirst();
 
         Book book = Book.builder()
+                .seqCampus(campus)  // 캠퍼스 설정
                 .seqSortSecond(sortSecond)
                 .isbnBook(bookRequestDto.getIsbnBook())
                 .titleBook(bookRequestDto.getTitleBook())
@@ -93,8 +105,16 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookListResponseDto getBookList(String idUser) throws Exception {
-        List<Book> bookList = bookDAO.selectBookListAll();
+    @Transactional(readOnly = true)
+    public BookListResponseDto getBookList(String idUser, Integer campusId) throws Exception {
+        log.info("[BookService] 도서 목록 조회 - idUser: {}, campusId: {}", idUser, campusId);
+        // 캠퍼스별 도서 목록 조회
+        List<Book> bookList;
+        if (campusId != null) {
+            bookList = bookRepository.findAllWithCategoriesByCampus(campusId);
+        } else {
+            bookList = bookDAO.selectBookListAll();  // 전체 관리자용
+        }
 
         Integer userSeq = null;
         if (idUser != null) {
@@ -128,8 +148,14 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional
-    public List<BookResponseDto> getAllBooks() throws Exception {
-        List<Book> books = bookDAO.selectAllBooks();
+    public List<BookResponseDto> getAllBooks(Integer campusId) throws Exception {
+        log.info("[BookService] 전체 도서 조회 - campusId: {}", campusId);
+        List<Book> books;
+        if (campusId != null) {
+            books = bookRepository.findAllWithCategoriesByCampus(campusId);
+        } else {
+            books = bookDAO.selectAllBooks();  // 전체 관리자용
+        }
         List<BookResponseDto> booksDto = books.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
@@ -137,8 +163,18 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookListResponseDto getBookListBySortFirst(int sortFirstId) {
-        List<Book> books = bookDAO.selectBookListBySortFirst(sortFirstId);
+    @Transactional(readOnly = true)
+    public BookListResponseDto getBookListBySortFirst(int sortFirstId, Integer campusId) {
+        log.info("[BookService] 대분류별 도서 목록 조회 - sortFirstId: {}, campusId: {}", sortFirstId, campusId);
+        List<Book> books;
+
+        if (campusId == null) {
+            // 비로그인 사용자: 모든 캠퍼스 도서
+            books = bookDAO.selectBookListBySortFirst(sortFirstId);
+        } else {
+            // 특정 캠퍼스 사용자: 해당 캠퍼스 도서만
+            books = bookDAO.selectBookListBySortFirstAndCampus(sortFirstId, campusId);
+        }
 
         List<BookResponseDto> content = books.stream()
                 .map(this::convertToDto)
@@ -150,7 +186,79 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public BookListResponseDto getBookListWithPagination(String idUser, Integer campusId, int page, int size, String sortBy, String sortDir) throws Exception {
+        log.info("[BookService] 도서 페이징 조회 - campusId: {}, page: {}, size: {}, sortBy: {}", campusId, page, size, sortBy);
+        Page<Book> bookPage;
+        
+        if (campusId != null) {
+            bookPage = bookDAO.selectBookListAllWithPaginationByCampus(campusId, page, size, sortBy, sortDir);
+        } else {
+            bookPage = bookDAO.selectBookListAllWithPagination(page, size, sortBy, sortDir);
+        }
+
+        Integer userSeq = null;
+        if (idUser != null) {
+            userSeq = bookUserRepository.findByIdUser(idUser)
+                    .map(BookUser::getSeqUser)
+                    .orElse(null);
+        }
+
+        final Integer finalUserSeq = userSeq;
+
+        List<BookResponseDto> content = bookPage.getContent().stream()
+                .map(book -> {
+                    BookResponseDto bookResponseDto = convertToDto(book);
+
+                    if (finalUserSeq != null) {
+                        boolean isBorrowedByMe = checkIfBookBorrowedByUser(book.getSeqBook(), finalUserSeq);
+                        bookResponseDto.setBorrowedByMe(isBorrowedByMe);
+                    } else {
+                        bookResponseDto.setBorrowedByMe(false);
+                    }
+
+                    return bookResponseDto;
+                })
+                .collect(Collectors.toList());
+
+        // 인기순 정렬의 경우 borrowCount로 재정렬 필요
+        if ("borrowCount".equals(sortBy)) {
+            content.sort((a, b) -> {
+                int compare = Integer.compare(b.getBorrowCount(), a.getBorrowCount());
+                return sortDir.equalsIgnoreCase("desc") ? compare : -compare;
+            });
+        }
+
+        int totalCount = (int) bookPage.getTotalElements();
+        return new BookListResponseDto(content, totalCount);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BookListResponseDto getBookListBySortFirstWithPagination(int sortFirstId, Integer campusId, int page, int size, String sortBy, String sortDir) {
+        log.info("[BookService] 대분류별 도서 페이징 조회 - sortFirstId: {}, campusId: {}, page: {}", sortFirstId, campusId, page);
+        Page<Book> bookPage = bookDAO.selectBookListBySortFirstWithPagination(sortFirstId, campusId, page, size, sortBy, sortDir);
+
+        List<BookResponseDto> content = bookPage.getContent().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+
+        // 인기순 정렬의 경우 borrowCount로 재정렬 필요
+        if ("borrowCount".equals(sortBy)) {
+            content.sort((a, b) -> {
+                int compare = Integer.compare(b.getBorrowCount(), a.getBorrowCount());
+                return sortDir.equalsIgnoreCase("desc") ? compare : -compare;
+            });
+        }
+
+        int totalCount = (int) bookPage.getTotalElements();
+        return new BookListResponseDto(content, totalCount);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public BookResponseDto getBookById(int bookId, String idUser) throws Exception {
+        log.info("[BookService] 도서 단건 조회 - bookId: {}", bookId);
         Book selectedBook = bookDAO.selectBookById(bookId, idUser);
         BookResponseDto bookResponseDto = convertToDto(selectedBook);
 
@@ -181,6 +289,7 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public BookResponseDto changeBook(int bookId, BookSortAndBarcodeRequestDto bookSortAndBarcodeRequestDto) throws Exception {
+        log.info("[BookService] 도서 수정 - bookId: {}", bookId);
         Book existingBook = bookRepository.findById(bookId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 책이 존재하지 않습니다."));
 
@@ -210,6 +319,7 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteBookById(int bookId) throws Exception {
+        log.info("[BookService] 도서 삭제 - bookId: {}", bookId);
         Book selectedBook = bookRepository.findById(bookId)
                 .orElseThrow(() -> new IllegalArgumentException("삭제에 실패했습니다. 해당 도서는 존재하지 않습니다."));
 
@@ -219,14 +329,24 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional
     public BookCountResponseDto getBookCount(String isbn) throws Exception {
+        log.info("[BookService] ISBN별 도서 수 조회 - isbn: {}", isbn);
         Integer counts = bookRepository.countByIsbnBook(isbn);
         return new BookCountResponseDto(isbn, counts);
     }
 
     // 연관검색어
     @Override
-    public List<BookSearchResponseDto> searchBookTitles(String titleBook) throws Exception {
-        List<Book> bookList = bookDAO.searchBooksRelated(titleBook);
+    public List<BookSearchResponseDto> searchBookTitles(String titleBook, Integer campusId) throws Exception {
+        log.info("[BookService] 도서 연관 검색 - query: {}, campusId: {}", titleBook, campusId);
+        List<Book> bookList;
+
+        if (campusId == null) {
+            // 비로그인 사용자 또는 전체 관리자: 모든 캠퍼스 도서 검색
+            bookList = bookDAO.searchBooksRelated(titleBook);
+        } else {
+            // 특정 캠퍼스 사용자/관리자: 해당 캠퍼스 도서만 검색
+            bookList = bookDAO.searchBooksRelatedByCampus(titleBook, campusId);
+        }
 
         List<BookSearchResponseDto> responseList = new java.util.ArrayList<>();
         for (Book book : bookList) {
@@ -242,8 +362,18 @@ public class BookServiceImpl implements BookService {
 
     // 정확한 제목 검색
     @Override
-    public BookListResponseDto searchBooksByExactTitle(String titleBook) throws Exception {
-        List<Book> books = bookDAO.searchBooksResultExact(titleBook);
+    @Transactional(readOnly = true)
+    public BookListResponseDto searchBooksByExactTitle(String titleBook, Integer campusId) throws Exception {
+        log.info("[BookService] 도서 정확한 제목 검색 - title: {}", titleBook);
+        List<Book> books;
+
+        if (campusId == null) {
+            // 비로그인 사용자 또는 전체 관리자: 모든 캠퍼스 도서 검색
+            books = bookDAO.searchBooksResultExact(titleBook);
+        } else {
+            // 특정 캠퍼스 사용자/관리자: 해당 캠퍼스 도서만 검색
+            books = bookDAO.searchBooksResultExactByCampus(titleBook, campusId);
+        }
 
         List<BookResponseDto> content = books.stream()
             .map(this::convertToDto)
@@ -255,8 +385,18 @@ public class BookServiceImpl implements BookService {
 
     // 제목 포함 검색
     @Override
-    public BookListResponseDto searchBooksByTitleContaining(String titleBook) throws Exception {
-        List<Book> books = bookDAO.searchBooksResultContaining(titleBook);
+    @Transactional(readOnly = true)
+    public BookListResponseDto searchBooksByTitleContaining(String titleBook, Integer campusId) throws Exception {
+        log.info("[BookService] 도서 제목 포함 검색 - title: {}", titleBook);
+        List<Book> books;
+
+        if (campusId == null) {
+            // 비로그인 사용자 또는 전체 관리자: 모든 캠퍼스 도서 검색
+            books = bookDAO.searchBooksResultContaining(titleBook);
+        } else {
+            // 특정 캠퍼스 사용자/관리자: 해당 캠퍼스 도서만 검색
+            books = bookDAO.searchBooksResultContainingByCampus(titleBook, campusId);
+        }
 
         List<BookResponseDto> content = books.stream()
             .map(this::convertToDto)
@@ -269,12 +409,13 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional
     public void markBooksAsPrinted(List<Integer> bookIds) throws Exception {
+        log.info("[BookService] 도서 인쇄 처리 - count: {}", bookIds.size());
         bookDAO.printPost(bookIds);
     }
 
     @Override
     public List<BookUnprintedResponseDto> findUnprintedBooks() throws Exception {
-                
+        log.info("[BookService] 미인쇄 도서 조회");
         return bookDAO.findUnprintedBooks().stream()
             .map(book -> new BookUnprintedResponseDto(
                 book.getSeqBook(),
@@ -287,6 +428,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookBarcodeUniqueResponseDto checkDuplicated(BookBarcodeUniqueRequestDto bookBarcodeUniqueRequestDto) throws Exception {
+        log.info("[BookService] 바코드 중복 확인 - barcode: {}", bookBarcodeUniqueRequestDto.getBarcodeBook());
         Integer seqBook = bookBarcodeUniqueRequestDto.getSeqBook();
         String barcodeBook = bookBarcodeUniqueRequestDto.getBarcodeBook();
         

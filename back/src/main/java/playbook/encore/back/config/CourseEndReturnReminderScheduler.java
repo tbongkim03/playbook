@@ -52,7 +52,7 @@ public class CourseEndReturnReminderScheduler {
         }
     }
 
-    @Scheduled(cron = "0 0 10 * * ?", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 03 08 * * ?", zone = "Asia/Seoul")
     public void dailyCourseEndCheck() {
         if (!discordNotificationService.isBotOnline()) {
             log.warn("Discord 봇이 비활성화되어 있어 과정 종료 알림을 건너뜁니다.");
@@ -101,10 +101,14 @@ public class CourseEndReturnReminderScheduler {
 
     private void sendCourseEndNotification(Course course, int daysRemaining) {
         try {
+            // 과정의 캠퍼스 ID 가져오기
+            Integer campusId = course.getSeqCampus() != null ? course.getSeqCampus().getSeqCampus() : null;
+
             discordNotificationService.sendCourseEndReturnReminder(
                     course.getNameCourse(),
                     course.getFinishDtCourse().toString(),
-                    daysRemaining
+                    daysRemaining,
+                    campusId  // 캠퍼스 ID 전달
             );
 
             String periodDesc = switch (daysRemaining) {
@@ -114,7 +118,8 @@ public class CourseEndReturnReminderScheduler {
                 default -> daysRemaining + "일 전";
             };
 
-            log.info("과정 종료 {} 알림 전송 완료: {}", periodDesc, course.getNameCourse());
+            String campusName = course.getSeqCampus() != null ? course.getSeqCampus().getNameCampus() : "미지정";
+            log.info("과정 종료 {} 알림 전송 완료: {} (캠퍼스: {})", periodDesc, course.getNameCourse(), campusName);
 
         } catch (Exception e) {
             log.error("과정 알림 전송 실패 [{}]: {}", course.getNameCourse(), e.getMessage());

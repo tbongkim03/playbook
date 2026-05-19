@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Component;
 import playbook.encore.back.data.dao.AdminDAO;
+import playbook.encore.back.data.dto.admin.AdminListResponseDto;
+import playbook.encore.back.data.dto.admin.AdminResponseDto;
 import playbook.encore.back.data.entity.Admin;
 import playbook.encore.back.data.entity.BookUser;
 import playbook.encore.back.data.repository.AdminRepository;
@@ -62,6 +64,26 @@ public class AdminDAOImpl implements AdminDAO {
     }
 
     @Override
+    public Optional<Admin> changeDiscordById(String targetIdAdmin, String newDiscord) {
+        Optional<Admin> optionalAdmin = adminRepository.findByIdAdmin(targetIdAdmin);
+        if (optionalAdmin.isEmpty()) return Optional.empty();
+        Admin selectedAdmin = optionalAdmin.get();
+        selectedAdmin.setDcAdmin(newDiscord);
+        Admin updatedAdmin = adminRepository.save(selectedAdmin);
+        return Optional.of(updatedAdmin);
+    }
+
+    @Override
+    public Optional<Admin> changePwById(String targetIdAdmin, String hashedPassword) {
+        Optional<Admin> optionalAdmin = adminRepository.findByIdAdmin(targetIdAdmin);
+        if (optionalAdmin.isEmpty()) return Optional.empty();
+        Admin selectedAdmin = optionalAdmin.get();
+        selectedAdmin.setPwAdmin(hashedPassword);
+        Admin updatedAdmin = adminRepository.save(selectedAdmin);
+        return Optional.of(updatedAdmin);
+    }
+
+    @Override
     public Optional<Admin> pwValidate(Admin user, String idAdmin, String password) {
         Optional<Admin> optionalAdmin = adminRepository.findByIdAdmin(user.getIdAdmin());
         Optional<Admin> optionalUser = adminRepository.findByIdAdmin(idAdmin);
@@ -76,12 +98,26 @@ public class AdminDAOImpl implements AdminDAO {
     }
 
     @Override
-    public List<Admin> getAdminList() {
-        List<Admin> adminList = adminRepository.findAll();
-        if (adminList.isEmpty()) {
-            throw new IllegalArgumentException("등록된 어드민이 없습니다.");
+    public AdminListResponseDto getAdminList(Integer campusId) {
+        List<Admin> adminList;
+        if (campusId != null) {
+            adminList = adminRepository.findAllWithCampusByCampusId(campusId);
+        } else {
+            adminList = adminRepository.findAllWithCampus();
         }
-        return adminList;
+        List<AdminResponseDto> content = adminList.stream()
+                .map(admin -> new AdminResponseDto(
+                        admin.getSeqAdmin(),
+                        admin.getIdAdmin(),
+                        admin.getNameAdmin(),
+                        admin.getDcAdmin(),
+                        admin.getStatusAdmin().name(),
+                        admin.getCreatedAt(),
+                        admin.getSeqCampus() != null ? admin.getSeqCampus().getSeqCampus() : null,
+                        admin.getSeqCampus() != null ? admin.getSeqCampus().getNameCampus() : null  // campusName 추가
+                ))
+                .toList();
+        return new AdminListResponseDto(content);
     }
 
     @Override

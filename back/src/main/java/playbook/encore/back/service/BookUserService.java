@@ -25,7 +25,9 @@ public interface BookUserService {
 
 //    boolean updateCourse(BookUser user, Integer newSeqCourse);
 
-    List<Object[]> getBookUserList();
+    List<Object[]> getBookUserList(Integer campusId);
 
     boolean deleteUserByAdmin(String idUser);
+
+    boolean deleteUserBySelf(BookUser user);
 }

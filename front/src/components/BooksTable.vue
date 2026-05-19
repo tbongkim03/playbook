@@ -133,6 +133,21 @@
                 <option value="date_asc">출판일 오래된순</option>
               </select>
             </div>
+            
+            <!-- 캠퍼스 필터 (전체 관리자만 표시) -->
+            <div v-if="showCampusFilter" class="filter-group">
+              <label class="filter-label">캠퍼스</label>
+              <select v-model="filters.campus" @change="applyFilters" class="filter-select">
+                <option value="">전체 캠퍼스</option>
+                <option
+                  v-for="campus in campuses"
+                  :key="campus.seqCampus"
+                  :value="campus.seqCampus"
+                >
+                  {{ campus.nameCampus }}
+                </option>
+              </select>
+            </div>
           </div>
           
           <!-- 두 번째 줄: 액션 버튼들 -->
@@ -160,11 +175,16 @@
                 </label>
               </div>
               
+              <div v-if="isPrint" class="print-selection-info">
+                <span class="selection-count">
+                  선택: <strong>{{ selectedBooks.size }}</strong> / {{ MAX_SELECTION }}개
+                </span>
+              </div>
               <button 
                 v-if="isPrint" 
                 @click="printBarcodes" 
                 class="batch-print-btn"
-                :disabled="booksToPrint.length === 0"
+                :disabled="selectedBooks.size === 0"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <polyline points="6,9 6,2 18,2 18,9" stroke="currentColor" stroke-width="2"/>
@@ -172,7 +192,7 @@
                   <rect x="6" y="14" width="12" height="8" stroke="currentColor" stroke-width="2"/>
                 </svg>
                 일괄 출력
-                <span class="count-badge">{{ booksToPrint.length }}</span>
+                <span class="count-badge">{{ selectedBooks.size }}</span>
               </button>
             </div>
           </div>
@@ -299,6 +319,16 @@
           <table class="books-table">
             <thead>
               <tr>
+                <th v-if="isPrint" class="col-checkbox">
+                  <input 
+                    type="checkbox" 
+                    :checked="isAllSelectedOnCurrentPage"
+                    :indeterminate="isSomeSelectedOnCurrentPage && !isAllSelectedOnCurrentPage"
+                    @change="toggleAllOnCurrentPage"
+                    @click.stop
+                    class="checkbox-input"
+                  />
+                </th>
                 <th class="col-title">제목</th>
                 <th class="col-isbn">ISBN</th>
                 <th class="col-author">저자</th>
@@ -318,10 +348,28 @@
                 :key="book.seqBook" 
                 :class="[
                   'book-row', 
-                  { 'active-row': activeRowId === book.seqBook }
+                  { 
+                    'active-row': activeRowId === book.seqBook,
+                    'selected-row': isPrint && selectedBooks.has(book.seqBook),
+                    'selectable-row': isPrint && canSelectBook(book)
+                  }
                 ]"
-                @click="setActiveRow(book.seqBook)"
+                @click="isPrint ? handleRowClick(book, $event) : setActiveRow(book.seqBook)"
+                @mousedown="isPrint ? handleMouseDown(book, $event) : null"
+                @mouseenter="isPrint ? handleMouseEnter(book, $event) : null"
+                @mouseup="isPrint ? handleMouseUp() : null"
+                @mouseleave="isPrint && isDragging ? null : null"
               >
+                <td v-if="isPrint" class="col-checkbox" @click.stop>
+                  <input 
+                    type="checkbox" 
+                    :checked="selectedBooks.has(book.seqBook)"
+                    :disabled="!canSelectBook(book)"
+                    @change="toggleBookSelection(book)"
+                    @click.stop
+                    class="checkbox-input"
+                  />
+                </td>
                 <td class="book-title col-title">
                   <div class="title-content">
                     <span class="title-text" :title="book.titleBook">{{ book.titleBook }}</span>
@@ -467,6 +515,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watchEffect } from 'vue'
+import axios from 'axios'
 import Barcode from './Barcode.vue'
 import PrintBatch from './BookPrintBatch.vue'
 
@@ -490,14 +539,26 @@ const isPrintBatchOpen = ref(false)
 const isRefreshing = ref(false)
 const activeRowId = ref(null)
 
+// 프린트 모드 선택 상태
+const selectedBooks = ref(new Set()) // seqBook을 저장
+const isDragging = ref(false)
+const dragStartBook = ref(null)
+const MAX_SELECTION = 65
+
 // 필터 상태
 const filters = ref({
   searchQuery: '',
   categoryLarge: '',
   categoryMedium: '',
   borrowStatus: '',
-  sortBy: 'title_asc'
+  sortBy: 'title_asc',
+  campus: '' // 캠퍼스 필터
 })
+
+// 캠퍼스 필터 관련
+const campuses = ref([])
+const showCampusFilter = ref(false)
+const currentUserCampusId = ref(null)
 
 // 페이지네이션 상태
 const currentPage = ref(1)
@@ -568,6 +629,47 @@ const fetchLargeCategories = async () => {
 const fetchMediumCategories = async () => {
   const res = await fetch('/api/subtitles')
   mediumCategoriesAll.value = await res.json()
+}
+
+// 캠퍼스 목록 가져오기
+const fetchCampuses = async () => {
+  try {
+    const res = await axios.get('/api/campus')
+    campuses.value = res.data || []
+  } catch (error) {
+    console.error('캠퍼스 목록 조회 실패:', error)
+  }
+}
+
+// 사용자 타입 확인 및 캠퍼스 필터 설정
+const checkUserType = async () => {
+  try {
+    const token = localStorage.getItem('jwtToken')
+    if (!token) return
+    
+    const response = await axios.get('/api/admin/me', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      validateStatus: () => true
+    })
+    
+    if (response.status === 200) {
+      const data = response.data
+      if (!data.seqCampus) {
+        // 전체 관리자
+        showCampusFilter.value = true
+        currentUserCampusId.value = null
+      } else {
+        // 특정 캠퍼스 관리자
+        showCampusFilter.value = false
+        currentUserCampusId.value = data.seqCampus.seqCampus || data.seqCampus
+        filters.value.campus = String(currentUserCampusId.value) // 기본값 설정
+      }
+    }
+  } catch (error) {
+    console.error('사용자 타입 확인 실패:', error)
+  }
 }
 
 // seqSortSecond(중분류 시퀀스)로 중분류 정보 찾기
@@ -687,6 +789,11 @@ const filteredBooks = computed(() => {
     result = result.filter(book => getBookStatus(book) === filters.value.borrowStatus)
   }
 
+  // 캠퍼스 필터 (전체 관리자가 다른 캠퍼스를 선택한 경우)
+  if (showCampusFilter.value && filters.value.campus) {
+    result = result.filter(book => book.seqCampus === parseInt(filters.value.campus))
+  }
+
   // 프린트 모드 필터
   if (isPrint.value) {
     result = result.filter(book => book.printCheckBook === false)
@@ -752,15 +859,33 @@ const visiblePages = computed(() => {
   return pages
 })
 
-// 프린트할 도서 목록 - 현재 페이지의 도서 중 미출력 도서만
-const booksToPrint = computed(() => {
-  return paginatedBooks.value.filter(book =>
-    book.printCheckBook === false &&
+// 선택 가능한 도서인지 확인 (미출력이고 분류가 완료된 도서)
+const canSelectBook = (book) => {
+  return book.printCheckBook === false &&
     book.categoryLarge !== 0 &&
     book.categoryMedium !== 0 &&
     book.barcodeBook &&
     book.barcodeBook.trim() !== ''
+}
+
+// 프린트할 도서 목록 - 선택된 도서들만
+const booksToPrint = computed(() => {
+  return filteredBooks.value.filter(book => 
+    selectedBooks.value.has(book.seqBook) && canSelectBook(book)
   )
+})
+
+// 현재 페이지의 모든 도서가 선택되었는지
+const isAllSelectedOnCurrentPage = computed(() => {
+  const selectableBooks = paginatedBooks.value.filter(canSelectBook)
+  if (selectableBooks.length === 0) return false
+  return selectableBooks.every(book => selectedBooks.value.has(book.seqBook))
+})
+
+// 현재 페이지의 일부 도서가 선택되었는지
+const isSomeSelectedOnCurrentPage = computed(() => {
+  const selectableBooks = paginatedBooks.value.filter(canSelectBook)
+  return selectableBooks.some(book => selectedBooks.value.has(book.seqBook))
 })
 
 // 필터 초기화
@@ -770,6 +895,7 @@ const resetFilters = () => {
     categoryLarge: '',
     categoryMedium: '',
     borrowStatus: '',
+    campus: showCampusFilter.value ? '' : (currentUserCampusId.value ? String(currentUserCampusId.value) : ''),
     sortBy: 'title_asc'
   }
   currentPage.value = 1
@@ -849,12 +975,17 @@ watchEffect(() => {
 onMounted(async () => {
   await fetchLargeCategories()
   await fetchMediumCategories()
+  await fetchCampuses()
+  await checkUserType()
   await fetchBooks()
   window.addEventListener('keydown', handleKeydown)
+  // 드래그 중 마우스가 테이블 밖으로 나갔을 때 처리
+  window.addEventListener('mouseup', handleMouseUp)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeydown)
+  window.removeEventListener('mouseup', handleMouseUp)
 })
 
 // 활성 행 설정
@@ -902,8 +1033,145 @@ function barcodeCreate(book) {
   isOpen.value = true
 }
 
+// 도서 선택 토글
+function toggleBookSelection(book) {
+  if (!canSelectBook(book)) return
+  
+  if (selectedBooks.value.has(book.seqBook)) {
+    selectedBooks.value.delete(book.seqBook)
+  } else {
+    if (selectedBooks.value.size >= MAX_SELECTION) {
+      alert(`최대 ${MAX_SELECTION}개까지 선택할 수 있습니다.`)
+      return
+    }
+    selectedBooks.value.add(book.seqBook)
+  }
+}
+
+// 현재 페이지의 모든 선택 가능한 도서 선택/해제
+function toggleAllOnCurrentPage() {
+  const selectableBooks = paginatedBooks.value.filter(canSelectBook)
+  
+  if (isAllSelectedOnCurrentPage.value) {
+    // 모두 해제
+    selectableBooks.forEach(book => selectedBooks.value.delete(book.seqBook))
+  } else {
+    // 선택 가능한 개수 확인
+    const remainingSlots = MAX_SELECTION - selectedBooks.value.size
+    if (remainingSlots < selectableBooks.length) {
+      alert(`최대 ${MAX_SELECTION}개까지 선택할 수 있습니다. 현재 ${selectedBooks.value.size}개 선택됨.`)
+      return
+    }
+    // 모두 선택
+    selectableBooks.forEach(book => {
+      if (!selectedBooks.value.has(book.seqBook)) {
+        selectedBooks.value.add(book.seqBook)
+      }
+    })
+  }
+}
+
+// 드래그 선택 관련
+let lastDraggedBook = null
+
+function handleMouseDown(book, event) {
+  if (!canSelectBook(book)) return
+  if (event.button !== 0) return // 왼쪽 버튼만
+  
+  // 체크박스나 입력 요소를 클릭한 경우는 드래그 시작하지 않음
+  if (event.target.type === 'checkbox' || 
+      event.target.tagName === 'INPUT' || 
+      event.target.tagName === 'SELECT' ||
+      event.target.closest('input') ||
+      event.target.closest('select') ||
+      event.target.closest('button')) {
+    return
+  }
+  
+  isDragging.value = true
+  dragStartBook.value = book
+  lastDraggedBook = book
+  event.preventDefault() // 텍스트 선택 방지
+  
+  // 드래그 시작 도서 선택 상태 토글
+  toggleBookSelection(book)
+}
+
+function handleMouseEnter(book, event) {
+  if (!isDragging.value || !dragStartBook.value) return
+  if (!canSelectBook(book)) return
+  if (lastDraggedBook?.seqBook === book.seqBook) return // 같은 행이면 무시
+  
+  lastDraggedBook = book
+  
+  // 드래그 시작 도서와 현재 도서 사이의 모든 도서 선택
+  const startIndex = paginatedBooks.value.findIndex(b => b.seqBook === dragStartBook.value.seqBook)
+  const endIndex = paginatedBooks.value.findIndex(b => b.seqBook === book.seqBook)
+  
+  if (startIndex === -1 || endIndex === -1) return
+  
+  const start = Math.min(startIndex, endIndex)
+  const end = Math.max(startIndex, endIndex)
+  
+  const booksToSelect = paginatedBooks.value.slice(start, end + 1).filter(canSelectBook)
+  
+  // 드래그 시작 도서의 선택 상태에 따라 선택 또는 해제
+  const shouldSelect = selectedBooks.value.has(dragStartBook.value.seqBook)
+  
+  booksToSelect.forEach(b => {
+    if (shouldSelect) {
+      if (selectedBooks.value.size < MAX_SELECTION) {
+        selectedBooks.value.add(b.seqBook)
+      }
+    } else {
+      selectedBooks.value.delete(b.seqBook)
+    }
+  })
+}
+
+function handleMouseUp() {
+  if (isDragging.value) {
+    isDragging.value = false
+    dragStartBook.value = null
+    lastDraggedBook = null
+  }
+}
+
+// 행 클릭 처리 (프린트 모드일 때)
+function handleRowClick(book, event) {
+  // 체크박스, 입력 요소, 선택 요소를 클릭한 경우는 무시
+  if (event.target.type === 'checkbox' || 
+      event.target.tagName === 'INPUT' || 
+      event.target.tagName === 'SELECT' ||
+      event.target.closest('input') ||
+      event.target.closest('select') ||
+      event.target.closest('button')) {
+    return
+  }
+  
+  // 드래그가 아닌 단순 클릭인 경우에만 선택 토글
+  if (!isDragging.value && canSelectBook(book)) {
+    toggleBookSelection(book)
+  }
+}
+
+// 프린트 모드 토글 시 선택 초기화
+watchEffect(() => {
+  if (!isPrint.value) {
+    selectedBooks.value.clear()
+  }
+})
+
 // 일괄 프린트
 function printBarcodes() {
+  if (selectedBooks.value.size === 0) {
+    alert('출력할 도서를 선택해주세요.')
+    return
+  }
+  if (selectedBooks.value.size > MAX_SELECTION) {
+    alert(`최대 ${MAX_SELECTION}개까지 선택할 수 있습니다.`)
+    return
+  }
   isPrintBatchOpen.value = true
 }
 
@@ -1418,6 +1686,7 @@ const refreshBooks = async () => {
 }
 
 /* 컬럼별 너비 설정 - 화면에 맞게 최적화 */
+.col-checkbox { width: 40px; text-align: center; }
 .col-title { width: 180px; }
 .col-isbn { width: 85px; }
 .col-author { width: 80px; }
@@ -1440,6 +1709,51 @@ const refreshBooks = async () => {
 
 .book-row.active-row:hover {
   background: linear-gradient(135deg, #e6f3ff 0%, #f0f8ff 100%);
+}
+
+/* 프린트 모드 선택 관련 스타일 */
+.book-row.selectable-row {
+  cursor: pointer;
+}
+
+.book-row.selected-row {
+  background: linear-gradient(135deg, #dbeafe 0%, #e0f2fe 100%);
+  border-left: 3px solid #3b82f6;
+}
+
+.book-row.selected-row:hover {
+  background: linear-gradient(135deg, #bfdbfe 0%, #cfe2ff 100%);
+}
+
+.checkbox-input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #3b82f6;
+}
+
+.checkbox-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.print-selection-info {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #4a5568;
+}
+
+.selection-count {
+  font-weight: 500;
+}
+
+.selection-count strong {
+  color: #3b82f6;
+  font-weight: 700;
 }
 
 .book-title .title-text {

@@ -35,7 +35,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/users")
                 .addPathPatterns("/admin")
                 .addPathPatterns("/users/password", "/admin/password")
-                .addPathPatterns("/admin/discord")
+                .addPathPatterns("/admin/discord", "/admin/update")
                 .addPathPatterns("/users/list")
                 .addPathPatterns("/admin/register", "/admin/register/validate")
                 .addPathPatterns("/users/course")
@@ -52,6 +52,10 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/books/batch/print")
                 .addPathPatterns("/books/unprinted")
                 .addPathPatterns("/books/check/barcode")
+                // campus 관련 관리자 전용 경로 추가
+                .addPathPatterns("/campus/all") // 모든 캠퍼스 조회 (관리자 전용)
+                .addPathPatterns("/campus/*") // 캠퍼스 상세, 수정, 삭제 (관리자 전용)
+                .addPathPatterns("/campus") // POST 요청 (캠퍼스 생성, 관리자 전용)
                 .excludePathPatterns("/users/login", "/users/register");
     }
 }

@@ -9,5 +9,5 @@ import lombok.*;
 @Data
 @AllArgsConstructor
 public class AdminListResponseDto {
-    private List<Admin> content;
+    private List<AdminResponseDto> content;
 }

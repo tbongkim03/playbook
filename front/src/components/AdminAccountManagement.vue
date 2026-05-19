@@ -34,6 +34,23 @@
       </button>
     </div>
 
+    <!-- 필터 영역 -->
+    <div class="filter-section" v-if="showCampusFilter">
+      <div class="filter-group">
+        <label class="filter-label">캠퍼스</label>
+        <select v-model="selectedCampus" @change="onCampusChange" class="filter-select">
+          <option value="">전체 캠퍼스</option>
+          <option
+            v-for="campus in campusList"
+            :key="campus.seqCampus"
+            :value="campus.seqCampus"
+          >
+            {{ campus.nameCampus }}
+          </option>
+        </select>
+      </div>
+    </div>
+
     <!-- 관리자 목록 테이블 -->
     <div class="admin-table-container">
       <div class="table-header">
@@ -46,6 +63,7 @@
             <tr>
               <th>ID</th>
               <th>이름</th>
+              <th>캠퍼스</th>
               <th>디스코드 ID</th>
               <th>생성일</th>
               <th>작업</th>
@@ -55,10 +73,15 @@
             <tr v-for="admin in adminList" :key="admin.idAdmin" class="admin-row">
               <td class="admin-id">{{ admin.idAdmin }}</td>
               <td class="admin-name">{{ admin.nameAdmin }}</td>
+              <td class="admin-campus">{{ admin.campusName || '전체' }}</td>
               <td class="admin-discord">{{ admin.dcAdmin || '-' }}</td>
               <td class="admin-date">{{ formatDate(admin.createdAt) }}</td>
               <td class="admin-actions">
-                <button class="edit-btn" @click="openEditModal(admin)">
+                <button 
+                  v-if="canEditAdmin(admin)" 
+                  class="edit-btn" 
+                  @click="openEditModal(admin)"
+                >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2"/>
                     <path d="M18.5 2.5C18.8978 2.10217 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.10217 21.5 2.5C21.8978 2.89782 22.1213 3.43739 22.1213 4C22.1213 4.56261 21.8978 5.10217 21.5 5.5L12 15L8 16L9 12L18.5 2.5Z" stroke="currentColor" stroke-width="2"/>
@@ -118,13 +141,26 @@
           </div>
           <div class="form-group">
             <label for="newAdminName">관리자 이름</label>
-            <input 
-              type="text" 
-              id="newAdminName" 
-              v-model="newAdmin.nameAdmin" 
-              required 
+            <input
+              type="text"
+              id="newAdminName"
+              v-model="newAdmin.nameAdmin"
+              required
               placeholder="관리자 이름을 입력하세요"
             />
+          </div>
+          <div class="form-group">
+            <label for="newAdminCampus">캠퍼스</label>
+            <select
+              id="newAdminCampus"
+              v-model="newAdmin.seqCampus"
+              class="form-select"
+            >
+              <option :value="null">전체 관리자</option>
+              <option v-for="campus in campusList" :key="campus.seqCampus" :value="campus.seqCampus">
+                {{ campus.nameCampus }}
+              </option>
+            </select>
           </div>
           <div class="form-group">
             <label for="newAdminPassword">비밀번호</label>
@@ -163,7 +199,7 @@
     <div v-if="showEditModal" class="modal-overlay" @click="closeEditModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
-          <h3>디스코드 ID 수정</h3>
+          <h3>관리자 계정 수정</h3>
           <button class="modal-close" @click="closeEditModal">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
@@ -191,7 +227,7 @@
             />
           </div>
           <div class="form-group">
-            <label for="editPassword">현재 비밀번호 확인</label>
+            <label for="editPassword">현재 비밀번호 확인 <span class="required-mark">*</span></label>
             <input 
               type="password" 
               id="editPassword" 
@@ -206,8 +242,18 @@
               type="text" 
               id="editAdminDiscord" 
               v-model="editingAdmin.dcAdmin" 
-              placeholder="디스코드 ID를 입력하세요"
+              placeholder="디스코드 ID를 입력하세요 (변경하지 않으려면 비워두세요)"
             />
+          </div>
+          <div class="form-group">
+            <label for="editNewPassword">새 비밀번호</label>
+            <input 
+              type="password" 
+              id="editNewPassword" 
+              v-model="editNewPassword" 
+              placeholder="새 비밀번호를 입력하세요 (변경하지 않으려면 비워두세요)"
+            />
+            <div class="form-hint">비밀번호를 변경하지 않으려면 비워두세요.</div>
           </div>
           <div class="modal-actions">
             <button type="button" class="cancel-btn" @click="closeEditModal">취소</button>
@@ -233,10 +279,8 @@
         </div>
         <div class="delete-warning">
           <div class="warning-icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 9V13" stroke="currentColor" stroke-width="2"/>
-              <path d="M12 17.02L12.01 16.991" stroke="currentColor" stroke-width="2"/>
-              <path d="M10.29 3.86L1.82 18C1.64466 18.3024 1.55685 18.6453 1.56455 18.9928C1.57225 19.3403 1.67516 19.6792 1.86244 19.9757C2.04973 20.2723 2.31561 20.5157 2.6289 20.6812C2.9422 20.8467 3.29427 20.9286 3.65 20.92H20.35C20.7057 20.9286 21.0578 20.8467 21.3711 20.6812C21.6844 20.5157 21.9503 20.2723 22.1376 19.9757C22.3248 19.6792 22.4278 19.3403 22.4355 18.9928C22.4432 18.6453 22.3553 18.3024 22.18 18L13.71 3.86C13.5317 3.56611 13.2807 3.32312 12.9812 3.15446C12.6817 2.98581 12.3438 2.89725 12 2.89725C11.6562 2.89725 11.3183 2.98581 11.0188 3.15446C10.7193 3.32312 10.4683 3.56611 10.29 3.86Z" stroke="currentColor" stroke-width="2"/>
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 8V12M12 16H12.01M10.29 3.86L1.82 18C1.64466 18.3024 1.55685 18.6453 1.56455 18.9928C1.57225 19.3403 1.67516 19.6792 1.86244 19.9757C2.04973 20.2723 2.31561 20.5157 2.6289 20.6812C2.9422 20.8467 3.29427 20.9286 3.65 20.92H20.35C20.7057 20.9286 21.0578 20.8467 21.3711 20.6812C21.6844 20.5157 21.9503 20.2723 22.1376 19.9757C22.3248 19.6792 22.4278 19.3403 22.4355 18.9928C22.4432 18.6453 22.3553 18.3024 22.18 18L13.71 3.86C13.5317 3.56611 13.2807 3.32312 12.9812 3.15446C12.6817 2.98581 12.3438 2.89725 12 2.89725C11.6562 2.89725 11.3183 2.98581 11.0188 3.15446C10.7193 3.32312 10.4683 3.56611 10.29 3.86Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
           <div class="warning-content">
@@ -280,7 +324,13 @@ import axios from 'axios'
 
 // 반응형 데이터
 const adminList = ref([])
+const campusList = ref([])
 const isLoading = ref(false)
+
+// 캠퍼스 필터 관련
+const selectedCampus = ref('')
+const showCampusFilter = ref(false)
+const currentUserCampusId = ref(null)
 
 // 모달 상태
 const showAddModal = ref(false)
@@ -289,13 +339,15 @@ const showDeleteModal = ref(false)
 
 // 비밀번호 입력 필드
 const editPassword = ref('')
+const editNewPassword = ref('')
 const deletePassword = ref('')
 
 // 현재 사용자 정보
 const currentUser = ref({
   idAdmin: '',
   nameAdmin: '',
-  dcAdmin: ''
+  dcAdmin: '',
+  seqCampus: null
 })
 
 // ID 검증 상태
@@ -324,10 +376,17 @@ const newAdmin = ref({
   idAdmin: '',
   pwAdmin: '',
   nameAdmin: '',
-  dcAdmin: ''
+  dcAdmin: '',
+  seqCampus: null
 })
 
 const editingAdmin = ref({
+  idAdmin: '',
+  nameAdmin: '',
+  dcAdmin: ''
+})
+
+const originalAdmin = ref({
   idAdmin: '',
   nameAdmin: '',
   dcAdmin: ''
@@ -370,9 +429,43 @@ const fetchCurrentUser = async () => {
     const response = await axios.get('/api/admin/me', {
       headers: getAuthHeaders()
     })
-    currentUser.value = response.data
+    currentUser.value = {
+      idAdmin: response.data.idAdmin,
+      nameAdmin: response.data.nameAdmin,
+      dcAdmin: response.data.dcAdmin || '',
+      seqCampus: response.data.seqCampus
+    }
+    
+    // 캠퍼스 필터 설정
+    if (!response.data.seqCampus) {
+      // 전체 관리자
+      showCampusFilter.value = true
+      currentUserCampusId.value = null
+      selectedCampus.value = '' // 기본값: 전체
+    } else {
+      // 특정 캠퍼스 관리자
+      showCampusFilter.value = true
+      currentUserCampusId.value = response.data.seqCampus.seqCampus || response.data.seqCampus
+      selectedCampus.value = String(currentUserCampusId.value) // 기본값: 본인 캠퍼스
+    }
   } catch (error) {
+    console.error('현재 사용자 정보 조회 실패:', error)
   }
+}
+
+// 캠퍼스 변경 핸들러
+const onCampusChange = () => {
+  fetchAdminList()
+}
+
+// 관리자 수정 권한 체크
+const canEditAdmin = (admin) => {
+  // 전체 관리자 (seqCampus가 null)는 모든 계정 수정 가능
+  if (currentUser.value.seqCampus === null) {
+    return true
+  }
+  // 일반 관리자는 본인 계정만 수정 가능
+  return currentUser.value.idAdmin === admin.idAdmin
 }
 
 // ID 중복 확인
@@ -409,14 +502,26 @@ const validateId = async () => {
   }
 }
 
+// 캠퍼스 목록 조회
+const fetchCampusList = async () => {
+  try {
+    const response = await axios.get('/api/campus', {
+      headers: getAuthHeaders()
+    })
+    campusList.value = response.data
+  } catch (error) {
+    console.error('캠퍼스 목록 로드 실패:', error)
+  }
+}
+
 // 관리자 목록 조회
 const fetchAdminList = async () => {
   try {
     isLoading.value = true
-    const response = await axios.get('/api/admin/list', {
+    const campusParam = (showCampusFilter.value && selectedCampus.value) ? `?campusId=${selectedCampus.value}` : ''
+    const response = await axios.get(`/api/admin/list${campusParam}`, {
       headers: getAuthHeaders()
     })
-    // 백엔드의 AdminListResponseDto 구조에 맞게 수정
     adminList.value = response.data.content || response.data.adminList || response.data
   } catch (error) {
     if (error.response?.status === 403) {
@@ -465,34 +570,56 @@ const addAdmin = async () => {
   }
 }
 
-// 관리자 디스코드 ID 수정 (비밀번호 검증 포함)
+// 관리자 계정 수정 (디스코드 ID 및 비밀번호 수정, 비밀번호 검증 포함)
 const updateAdmin = async () => {
   if (!editPassword.value) {
     alert('현재 비밀번호를 입력해주세요.')
     return
   }
 
+  // 변경된 값 확인
+  const newDiscordValue = editingAdmin.value.dcAdmin ? editingAdmin.value.dcAdmin.trim() : ''
+  const originalDiscordValue = originalAdmin.value.dcAdmin || ''
+  const discordChanged = newDiscordValue !== originalDiscordValue
+  const passwordChanged = editNewPassword.value && editNewPassword.value.trim() !== ''
+
+  // 디스코드 ID와 비밀번호 둘 다 변경하지 않는 경우
+  if (!discordChanged && !passwordChanged) {
+    alert('디스코드 ID 또는 비밀번호 중 하나는 변경해야 합니다.')
+    return
+  }
+
   try {
     isLoading.value = true
     
-    // 먼저 비밀번호 검증
-    await validatePassword(editingAdmin.value.idAdmin, editPassword.value)
+    // 통합 수정 API 호출
+    const updateData = {
+      idAdmin: editingAdmin.value.idAdmin,
+      currentPassword: editPassword.value,
+      newPassword: passwordChanged ? editNewPassword.value.trim() : null,
+      newDiscord: discordChanged ? newDiscordValue : null
+    }
     
-    // 비밀번호가 맞으면 디스코드 ID 업데이트
-    const response = await axios.put('/api/admin/discord', 
-      editingAdmin.value.dcAdmin, {
+    const response = await axios.put('/api/admin/update', updateData, {
       headers: getAuthHeaders()
     })
     
-    alert('디스코드 ID가 성공적으로 수정되었습니다.')
+    const updatedFields = []
+    if (updateData.newDiscord !== null) updatedFields.push('디스코드 ID')
+    if (updateData.newPassword !== null) updatedFields.push('비밀번호')
+    
+    alert(`${updatedFields.join(' 및 ')}가 성공적으로 수정되었습니다.`)
     closeEditModal()
     await fetchAdminList()
   } catch (error) {
     console.error('관리자 수정 실패:', error)
+    console.error('에러 응답:', error.response)
     if (error.response?.status === 403) {
       alert('관리자만 접근 가능합니다.')
     } else if (error.response?.status === 401) {
       alert('비밀번호가 일치하지 않습니다.')
+    } else if (error.response?.status === 400) {
+      alert(error.response?.data || '입력 정보를 확인해주세요.')
     } else {
       alert(error.response?.data || '관리자 수정에 실패했습니다.')
     }
@@ -554,7 +681,8 @@ const closeAddModal = () => {
     idAdmin: '',
     pwAdmin: '',
     nameAdmin: '',
-    dcAdmin: ''
+    dcAdmin: '',
+    seqCampus: null
   }
   idValidation.value = {
     isValid: false,
@@ -569,13 +697,25 @@ const openEditModal = (admin) => {
     nameAdmin: admin.nameAdmin,
     dcAdmin: admin.dcAdmin || ''
   }
+  // 원본 값 저장 (변경 여부 확인용)
+  originalAdmin.value = {
+    idAdmin: admin.idAdmin,
+    nameAdmin: admin.nameAdmin,
+    dcAdmin: admin.dcAdmin || ''
+  }
   showEditModal.value = true
 }
 
 const closeEditModal = () => {
   showEditModal.value = false
   editPassword.value = ''
+  editNewPassword.value = ''
   editingAdmin.value = {
+    idAdmin: '',
+    nameAdmin: '',
+    dcAdmin: ''
+  }
+  originalAdmin.value = {
     idAdmin: '',
     nameAdmin: '',
     dcAdmin: ''
@@ -602,6 +742,7 @@ const formatDate = (dateString) => {
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(async () => {
   await fetchCurrentUser()
+  await fetchCampusList()
   await fetchAdminList()
   window.addEventListener('keydown', handleKeydown)
 })
@@ -631,6 +772,44 @@ onBeforeUnmount(() => {
   font-size: 1rem;
   color: #718096;
   margin: 0;
+}
+
+.filter-section {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-label {
+  font-weight: 500;
+  color: #4a5568;
+  font-size: 0.9rem;
+}
+
+.filter-select {
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  background: #fafafa;
+  cursor: pointer;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #a8dadc;
+  box-shadow: 0 0 0 3px rgba(168, 218, 220, 0.15);
+  background: white;
 }
 
 .stats-grid {
@@ -871,7 +1050,8 @@ onBeforeUnmount(() => {
   color: #2d3748;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   width: 100%;
   padding: 14px 18px;
   border: 2px solid #e2e8f0;
@@ -882,11 +1062,16 @@ onBeforeUnmount(() => {
   background: #fafafa;
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group select:focus {
   outline: none;
   border-color: #a8dadc;
   box-shadow: 0 0 0 3px rgba(168, 218, 220, 0.15);
   background: white;
+}
+
+.form-select {
+  cursor: pointer;
 }
 
 .disabled-input {
@@ -941,6 +1126,18 @@ onBeforeUnmount(() => {
   color: #dc3545;
 }
 
+.required-mark {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.form-hint {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: #718096;
+  font-style: italic;
+}
+
 .modal-actions {
   display: flex;
   gap: 12px;
@@ -989,13 +1186,22 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 24px 24px 24px;
+  padding: 24px 24px 32px 24px;
   text-align: center;
 }
 
 .warning-icon {
   color: #f56565;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.warning-icon svg {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
 }
 
 .warning-content h4 {

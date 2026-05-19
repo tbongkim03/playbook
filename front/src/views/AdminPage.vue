@@ -88,6 +88,20 @@
                 통계 대시보드
               </button>
             </li>
+            <li>
+              <button 
+                class="nav-item" 
+                :class="{ active: activeTab === 'course-management' }"
+                @click="setActiveTab('course-management')"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                과정 관리
+              </button>
+            </li>
           </ul>
         </div>
       </nav>
@@ -116,6 +130,10 @@
         <!-- 통계 대시보드 -->
         <div v-if="activeTab === 'statistics'" class="content-section">
           <StatisticsDashboard />
+        </div>
+        <!-- 과정 관리 -->
+        <div v-if="activeTab === 'course-management'" class="content-section">
+          <CourseManagement />
         </div>
       </main>
     </div>
@@ -156,6 +174,7 @@ import StatisticsDashboard from '@/components/StatisticsDashboard.vue'
 import BooksTable from '@/components/BooksTable.vue'
 import BookRegister from './BookRegister.vue'
 import UserAccountManagement from '@/components/UserAccountManagement.vue'
+import CourseManagement from '@/components/CourseManagement.vue'
 
 const router = useRouter()
 const activeTab = ref('admin-accounts')

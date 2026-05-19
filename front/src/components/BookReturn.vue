@@ -285,7 +285,22 @@ const goBack = () => {
   router.push('/')
 }
 
+// 사용자 인증 확인
+const checkAuth = () => {
+  const token = localStorage.getItem('jwtToken')
+  if (!token) {
+    alert('로그인이 필요합니다.')
+    router.push('/login')
+    return false
+  }
+  return true
+}
+
 onMounted(() => {
+  if (!checkAuth()) {
+    return
+  }
+  
   axios.defaults.withCredentials = false
   
   // 컴포넌트 마운트 시 입력 필드에 포커스

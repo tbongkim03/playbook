@@ -17,6 +17,10 @@ public class Course {
     @Column(name = "seq_course", nullable = false)
     private Integer seqCourse;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seq_campus", nullable = true)
+    private Campus seqCampus;
+
     @Column(name = "name_course", nullable = false)
     private String nameCourse;
 

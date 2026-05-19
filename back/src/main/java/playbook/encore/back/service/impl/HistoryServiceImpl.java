@@ -1,5 +1,6 @@
 package playbook.encore.back.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +12,7 @@ import playbook.encore.back.data.dto.history.*;
 import playbook.encore.back.data.entity.Admin;
 import playbook.encore.back.data.entity.Book;
 import playbook.encore.back.data.entity.BookUser;
+import playbook.encore.back.data.entity.Campus;
 import playbook.encore.back.data.entity.History;
 import playbook.encore.back.data.repository.*;
 import playbook.encore.back.service.HistoryService;
@@ -18,6 +20,7 @@ import playbook.encore.back.service.HistoryService;
 import java.time.LocalDate;
 import java.util.List;
 
+@Slf4j
 @Service
 public class HistoryServiceImpl implements HistoryService {
 
@@ -32,9 +35,10 @@ public class HistoryServiceImpl implements HistoryService {
     private final CourseRepository courseRepository;
     private final BookDAO bookDAO;
     private final DiscordNotificationService discordNotificationService;
+    private final CampusRepository campusRepository;
 
     @Autowired
-    public HistoryServiceImpl(HistoryDAO historyDAO, AdminRepository adminRepository, BookUserRepository bookUserRepository, BookRepository bookRepository, HistoryRepository historyRepository, FavorRepository favorRepository, AdminDAO adminDAO, BookUserDAO bookUserDAO, CourseRepository courseRepository, BookDAO bookDAO, DiscordNotificationService discordNotificationService) {
+    public HistoryServiceImpl(HistoryDAO historyDAO, AdminRepository adminRepository, BookUserRepository bookUserRepository, BookRepository bookRepository, HistoryRepository historyRepository, FavorRepository favorRepository, AdminDAO adminDAO, BookUserDAO bookUserDAO, CourseRepository courseRepository, BookDAO bookDAO, DiscordNotificationService discordNotificationService, CampusRepository campusRepository) {
         this.historyDAO = historyDAO;
         this.adminRepository = adminRepository;
         this.bookUserRepository = bookUserRepository;
@@ -46,11 +50,17 @@ public class HistoryServiceImpl implements HistoryService {
         this.courseRepository = courseRepository;
         this.bookDAO = bookDAO;
         this.discordNotificationService = discordNotificationService;
+        this.campusRepository = campusRepository;
     }
 
     @Override
     @Transactional
-    public void handleBookBorrow(Object human, String barcodeBook) {
+    public void handleBookBorrow(Object human, String barcodeBook, Integer campusId) {
+        log.info("[HistoryService] 도서 대출 처리 - barcode: {}, campusId: {}", barcodeBook, campusId);
+        // 캠퍼스 검증
+        if (campusId == null) {
+            throw new IllegalArgumentException("캠퍼스 정보가 필요합니다.");
+        }
         Object user;
         String userName;
         String discordId;
@@ -86,8 +96,9 @@ public class HistoryServiceImpl implements HistoryService {
             }
         }
 
-        Book book = bookRepository.findByBarcodeBook(barcodeBook)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 바코드입니다."));
+        // 도서 조회 시 캠퍼스 필터
+        Book book = bookRepository.findByBarcodeBookAndSeqCampus_SeqCampus(barcodeBook, campusId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 캠퍼스에 존재하지 않는 도서입니다."));
 
         boolean bookAlreadyBorrowed = historyRepository.existsBySeqBookAndReturnDtIsNull(book);
         if (bookAlreadyBorrowed) {
@@ -122,9 +133,14 @@ public class HistoryServiceImpl implements HistoryService {
             }
         }
 
+        // Campus 엔티티 조회
+        Campus campus = campusRepository.findById(campusId)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 캠퍼스입니다."));
+
         // 대여 기록 생성
         History.HistoryBuilder historyBuilder = History.builder()
                 .seqBook(book)
+                .seqCampus(campus)  // 캠퍼스 설정
                 .bookDt(LocalDate.now())
                 .returnDt(null); // 반납 전 null
 
@@ -177,7 +193,12 @@ public class HistoryServiceImpl implements HistoryService {
 
     @Override
     @Transactional
-    public void handleBookReturn(Object human, String barcodeBook) {
+    public void handleBookReturn(Object human, String barcodeBook, Integer campusId) {
+        log.info("[HistoryService] 도서 반납 처리 - barcode: {}, campusId: {}", barcodeBook, campusId);
+        // 캠퍼스 검증
+        if (campusId == null) {
+            throw new IllegalArgumentException("캠퍼스 정보가 필요합니다.");
+        }
         Object user;
         boolean isAdmin = false;
         String userName;
@@ -198,8 +219,9 @@ public class HistoryServiceImpl implements HistoryService {
             throw new IllegalArgumentException("잘못된 사용자 타입입니다.");
         }
 
-        Book book = bookRepository.findByBarcodeBook(barcodeBook)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 바코드입니다."));
+        // 도서 조회 시 캠퍼스 필터
+        Book book = bookRepository.findByBarcodeBookAndSeqCampus_SeqCampus(barcodeBook, campusId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 캠퍼스에 존재하지 않는 도서입니다."));
 
         History history;
 
@@ -290,20 +312,19 @@ public class HistoryServiceImpl implements HistoryService {
 
                 bookUserDAO.updateStatus(bookUser, status);
             }
+        }
 
-            List<BookUser> favorUsers = favorRepository.findAllBySeqBook(book);
-
-            for (BookUser favorUser : favorUsers) {
-                try {
-                    // 디스코드 알림 함수 호출 (구현 예정인 함수)
-                    discordNotificationService.sendFavorNotification(
-                            favorUser.getDcUser(),
-                            favorUser.getNameUser(),
-                            book.getTitleBook()
-                    );
-                } catch (Exception e) {
-                    System.err.println("즐겨찾기 알림 전송 실패: " + e.getMessage());
-                }
+        // 즐겨찾기 알림
+        List<BookUser> favorUsers = favorRepository.findAllBySeqBook(book);
+        for (BookUser favorUser : favorUsers) {
+            try {
+                discordNotificationService.sendFavorNotification(
+                        favorUser.getDcUser(),
+                        favorUser.getNameUser(),
+                        book.getTitleBook()
+                );
+            } catch (Exception e) {
+                System.err.println("즐겨찾기 알림 전송 실패: " + e.getMessage());
             }
         }
 
@@ -326,15 +347,35 @@ public class HistoryServiceImpl implements HistoryService {
 
     @Override
     @Transactional(readOnly = true)
-    public HistoryBookResponseDto getHistoryBooks() {
-        RentalSummaryDto rentalSummaryDto = historyDAO.getRentalSummay();
-        List<RentalHistoryDto> rentalHistoryDtoList = historyDAO.getRentalHistoryList();
+    public HistoryBookResponseDto getHistoryBooks(Integer campusId) {
+        log.info("[HistoryService] 대출/반납 내역 조회 - campusId: {}", campusId);
+        RentalSummaryDto rentalSummaryDto;
+        List<RentalHistoryDto> rentalHistoryDtoList;
+
+        if (campusId == null) {
+            // 전체 관리자: 모든 캠퍼스 히스토리
+            rentalSummaryDto = historyDAO.getRentalSummay();
+            rentalHistoryDtoList = historyDAO.getRentalHistoryList();
+        } else {
+            // 특정 캠퍼스 관리자: 해당 캠퍼스만
+            // 캠퍼스별 통계를 직접 계산
+            int totalRentals = historyRepository.countByBookDtIsNotNullAndSeqCampus_SeqCampus(campusId);
+            int totalReturned = historyRepository.countByBookDtIsNotNullAndReturnDtIsNotNullAndSeqCampus_SeqCampus(campusId);
+            int currentlyBorrowed = historyRepository.countByBookDtIsNotNullAndReturnDtIsNullAndSeqCampus_SeqCampus(campusId);
+            int overdue = historyRepository.countByReturnDtIsNullAndBookDtBeforeAndSeqCampus_SeqCampus(LocalDate.now().minusDays(7), campusId);
+
+            rentalSummaryDto = new RentalSummaryDto(totalRentals, totalReturned, currentlyBorrowed, overdue);
+
+            // 캠퍼스별 대여 내역 조회
+            rentalHistoryDtoList = historyDAO.getRentalHistoryListByCampus(campusId);
+        }
 
         return new HistoryBookResponseDto(rentalSummaryDto, rentalHistoryDtoList);
     }
 
     @Override
     public void deleteHistoryBook(int historyId) {
+        log.info("[HistoryService] 대출 기록 삭제 - historyId: {}", historyId);
         History history = historyRepository.findById(historyId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 대여 기록입니다."));
         historyDAO.deleteHistory(history);
@@ -343,6 +384,7 @@ public class HistoryServiceImpl implements HistoryService {
     @Override
     @Transactional(readOnly = true)
     public HistoryBookResponseDto getMyHistory(BookUser user) {
+        log.info("[HistoryService] 내 대출 내역 조회 - userId: {}", user.getIdUser());
         List<RentalHistoryDto> rentalHistoryDtoList = historyDAO.getMyRentalHistoryList(user);
         if (rentalHistoryDtoList.isEmpty()) {
             throw new IllegalArgumentException("대여 기록이 없습니다.");
@@ -359,6 +401,7 @@ public class HistoryServiceImpl implements HistoryService {
 
     @Override
     public List<PopularLabelDto> findPopularFirstSortByCourse(int courseId) {
+        log.info("[HistoryService] 과정별 대분류 인기 통계 - courseId: {}", courseId);
         if (!courseRepository.existsById(courseId)) {
             throw new IllegalArgumentException("유효하지 않은 과정 ID입니다.");
         }
@@ -366,12 +409,20 @@ public class HistoryServiceImpl implements HistoryService {
     }
 
     @Override
-    public List<PopularLabelDto> findPopularFirstSortAll() {
-        return historyDAO.findPopularFirstSortAll();
+    public List<PopularLabelDto> findPopularFirstSortAll(Integer campusId) {
+        log.info("[HistoryService] 전체 대분류 인기 통계 - campusId: {}", campusId);
+        if (campusId == null) {
+            // 전체 관리자: 모든 캠퍼스 통계
+            return historyDAO.findPopularFirstSortAll();
+        } else {
+            // 특정 캠퍼스 관리자: 해당 캠퍼스만
+            return historyRepository.findPopularFirstSortAllByCampus(campusId);
+        }
     }
 
     @Override
     public List<PopularLabelDto> findPopularSecondSortByCourse(int courseId) {
+        log.info("[HistoryService] 과정별 소분류 인기 통계 - courseId: {}", courseId);
         if (!courseRepository.existsById(courseId)) {
             throw new IllegalArgumentException("유효하지 않은 과정 ID입니다.");
         }
@@ -379,12 +430,20 @@ public class HistoryServiceImpl implements HistoryService {
     }
 
     @Override
-    public List<PopularLabelDto> findPopularSecondSortAll() {
-        return historyDAO.findPopularSecondSortAll();
+    public List<PopularLabelDto> findPopularSecondSortAll(Integer campusId) {
+        log.info("[HistoryService] 전체 소분류 인기 통계 - campusId: {}", campusId);
+        if (campusId == null) {
+            // 전체 관리자: 모든 캠퍼스 통계
+            return historyDAO.findPopularSecondSortAll();
+        } else {
+            // 특정 캠퍼스 관리자: 해당 캠퍼스만
+            return historyRepository.findPopularSecondSortAllByCampus(campusId);
+        }
     }
 
     @Override
     public List<UserReadingRankDto> findUserReadingRankByCourse(int courseId) {
+        log.info("[HistoryService] 과정별 독서량 순위 - courseId: {}", courseId);
         if (!courseRepository.existsById(courseId)) {
             throw new IllegalArgumentException("유효하지 않은 과정 ID입니다.");
         }
@@ -392,7 +451,14 @@ public class HistoryServiceImpl implements HistoryService {
     }
 
     @Override
-    public List<UserReadingRankDto> findUserReadingRankAll() {
-        return historyDAO.findUserReadingRankAll();
+    public List<UserReadingRankDto> findUserReadingRankAll(Integer campusId) {
+        log.info("[HistoryService] 전체 독서량 순위 - campusId: {}", campusId);
+        if (campusId == null) {
+            // 전체 관리자: 모든 캠퍼스 통계
+            return historyDAO.findUserReadingRankAll();
+        } else {
+            // 특정 캠퍼스 관리자: 해당 캠퍼스만
+            return historyRepository.findUserReadingRankAllByCampus(campusId);
+        }
     }
 }

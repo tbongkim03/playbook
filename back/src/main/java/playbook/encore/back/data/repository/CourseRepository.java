@@ -12,6 +12,12 @@ import java.util.List;
 
 public interface CourseRepository extends JpaRepository<Course, Integer> {
 
+    @Query("SELECT c FROM Course c LEFT JOIN FETCH c.seqCampus")
+    List<Course> findAllWithCampus();
+
+    @Query("SELECT c FROM Course c LEFT JOIN FETCH c.seqCampus WHERE c.seqCampus.seqCampus = :campusId")
+    List<Course> findAllWithCampusByCampusId(@Param("campusId") Integer campusId);
+
     @Query("SELECT c FROM Course c WHERE DATE(c.finishDtCourse) = DATE(:targetDate)")
     List<Course> findCoursesEndingInDays(@Param("targetDate") LocalDate targetDate);
 

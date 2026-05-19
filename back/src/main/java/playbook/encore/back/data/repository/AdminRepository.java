@@ -7,12 +7,33 @@ import org.springframework.data.repository.query.Param;
 import playbook.encore.back.data.entity.Admin;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface AdminRepository extends JpaRepository<Admin, Integer> {
     Optional<Admin> findByIdAdmin(String idAdmin);
 
     Optional<Admin> findByDcAdmin(String discordUsername);
+
+    @Query("""
+        select a from Admin a
+        left join fetch a.seqCampus
+        where a.idAdmin = :userId
+    """)
+    Optional<Admin> findByIdAdminWithCampus(String userId);
+
+    @Query("""
+        select a from Admin a
+        left join fetch a.seqCampus
+    """)
+    List<Admin> findAllWithCampus();
+
+    @Query("""
+        select a from Admin a
+        left join fetch a.seqCampus
+        where a.seqCampus.seqCampus = :campusId
+    """)
+    List<Admin> findAllWithCampusByCampusId(@Param("campusId") Integer campusId);
 
     // 대출가능, 대출불가, 연체중 상태 일괄 변경
     @Modifying

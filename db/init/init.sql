@@ -1,5 +1,14 @@
+CREATE TABLE tb_campus (
+    seq_campus       INT             NOT NULL AUTO_INCREMENT,
+    name_campus      VARCHAR(50)     NOT NULL UNIQUE,
+    location_campus  VARCHAR(100)    NULL,
+    is_active        TINYINT(1)      NOT NULL DEFAULT 1,
+    PRIMARY KEY (seq_campus)
+);
+
 CREATE TABLE tb_book (
     seq_book        INT             NOT NULL AUTO_INCREMENT,
+    seq_campus      INT             NOT NULL,
     seq_sort_second INT             NOT NULL,
     isbn_book       VARCHAR(20)     NOT NULL,
     title_book      VARCHAR(255)    NOT NULL,
@@ -31,6 +40,7 @@ CREATE TABLE tb_user (
 
 CREATE TABLE tb_admin (
     seq_admin         INT             NOT NULL AUTO_INCREMENT,
+    seq_campus        INT             NULL,
     id_admin          VARCHAR(30)     NOT NULL UNIQUE,
     pw_admin          VARCHAR(255)    NOT NULL,
     name_admin        VARCHAR(20)     NOT NULL,
@@ -45,6 +55,7 @@ CREATE TABLE tb_admin (
 
 CREATE TABLE tb_history (
     seq_history     INT             NOT NULL AUTO_INCREMENT,
+    seq_campus      INT             NOT NULL,
     seq_admin       INT             NULL,
     seq_user        INT             NULL,
     seq_course      INT             NULL,
@@ -56,6 +67,7 @@ CREATE TABLE tb_history (
 
 CREATE TABLE tb_course (
     seq_course      INT             NOT NULL AUTO_INCREMENT,
+    seq_campus      INT             NOT NULL,
     name_course     VARCHAR(30)     NOT NULL UNIQUE,
     start_dt_course DATE            NOT NULL,
     finish_dt_course DATE           NOT NULL,
@@ -85,13 +97,29 @@ CREATE TABLE tb_favor (
 );
 
 -- 외래키
+ALTER TABLE tb_book ADD CONSTRAINT FK_tb_campus_TO_tb_book
+FOREIGN KEY (seq_campus)
+REFERENCES tb_campus (seq_campus);
+
 ALTER TABLE tb_book ADD CONSTRAINT FK_tb_sort_second_TO_tb_book
 FOREIGN KEY (seq_sort_second)
 REFERENCES tb_sort_second (seq_sort_second);
 
+ALTER TABLE tb_course ADD CONSTRAINT FK_tb_campus_TO_tb_course
+FOREIGN KEY (seq_campus)
+REFERENCES tb_campus (seq_campus);
+
 ALTER TABLE tb_user ADD CONSTRAINT FK_tb_course_TO_tb_user
 FOREIGN KEY (seq_course)
 REFERENCES tb_course (seq_course) ON DELETE SET NULL;
+
+ALTER TABLE tb_admin ADD CONSTRAINT FK_tb_campus_TO_tb_admin
+FOREIGN KEY (seq_campus)
+REFERENCES tb_campus (seq_campus);
+
+ALTER TABLE tb_history ADD CONSTRAINT FK_tb_campus_TO_tb_history
+FOREIGN KEY (seq_campus)
+REFERENCES tb_campus (seq_campus);
 
 ALTER TABLE tb_history ADD CONSTRAINT FK_tb_admin_TO_tb_history
 FOREIGN KEY (seq_admin)

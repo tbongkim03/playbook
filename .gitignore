@@ -37,6 +37,7 @@ back/.nb-gradle/
 back/.vscode/
 
 # Logs
+back/logs/
 front/logs
 *.log
 front/npm-debug.log*
@@ -72,3 +73,18 @@ back/.env.prod
 db/.env.dev
 db/.env.prod
 front/.env
+
+# Claude Code 관련 파일
+MEMORY.md
+responsehandlerExample.md
+
+# 스크립트 디렉터리
+scripts/
+
+# 리팩토링 문서
+리팩토링.md
+리팩토링_계획서.md
+요청사항.txt
+
+# DB 마이그레이션
+db/migration/

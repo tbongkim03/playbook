@@ -15,18 +15,20 @@ import java.util.List;
 
 public interface BookService {
     BookResponseDto insertBook(BookRequestDto bookRequestDto);
-    BookListResponseDto getBookList(String idUser) throws Exception;
-    List<BookResponseDto> getAllBooks() throws Exception;
+    BookListResponseDto getBookList(String idUser, Integer campusId) throws Exception;
+    BookListResponseDto getBookListWithPagination(String idUser, Integer campusId, int page, int size, String sortBy, String sortDir) throws Exception;
+    List<BookResponseDto> getAllBooks(Integer campusId) throws Exception;
     BookResponseDto getBookById(int bookId, String idUser) throws Exception;
     BookResponseDto changeBook(int bookId, BookSortAndBarcodeRequestDto bookSortAndBarcodeRequestDto) throws Exception;
     void deleteBookById(int bookId) throws Exception;
     BookCountResponseDto getBookCount(String isbn) throws Exception;
-    List<BookSearchResponseDto> searchBookTitles(String titleBook) throws Exception;
-    BookListResponseDto searchBooksByExactTitle(String titleBook) throws Exception;
-    BookListResponseDto searchBooksByTitleContaining(String titleBook) throws Exception;
+    List<BookSearchResponseDto> searchBookTitles(String titleBook, Integer campusId) throws Exception;
+    BookListResponseDto searchBooksByExactTitle(String titleBook, Integer campusId) throws Exception;
+    BookListResponseDto searchBooksByTitleContaining(String titleBook, Integer campusId) throws Exception;
     void markBooksAsPrinted(List<Integer> bookIds) throws Exception;
     List<BookUnprintedResponseDto> findUnprintedBooks() throws Exception;
     BookBarcodeUniqueResponseDto checkDuplicated(BookBarcodeUniqueRequestDto bookBarcodeUniqueRequestDto) throws Exception;
-    BookListResponseDto getBookListBySortFirst(int sortFirstId);
+    BookListResponseDto getBookListBySortFirst(int sortFirstId, Integer campusId);
+    BookListResponseDto getBookListBySortFirstWithPagination(int sortFirstId, Integer campusId, int page, int size, String sortBy, String sortDir);
 
 }
