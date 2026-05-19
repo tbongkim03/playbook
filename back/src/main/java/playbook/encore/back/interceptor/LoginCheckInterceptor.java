@@ -5,10 +5,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-import playbook.encore.back.data.entity.Admin;
-import playbook.encore.back.data.entity.BookUser;
-import playbook.encore.back.data.repository.AdminRepository;
-import playbook.encore.back.data.repository.BookUserRepository;
+import playbook.encore.back.admin.entity.Admin;
+import playbook.encore.back.bookUser.entity.BookUser;
+import playbook.encore.back.admin.dao.AdminRepository;
+import playbook.encore.back.bookUser.dao.BookUserRepository;
 import playbook.encore.back.jwt.jwtUtil;
 
 import java.io.IOException;

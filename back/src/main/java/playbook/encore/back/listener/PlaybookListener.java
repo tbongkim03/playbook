@@ -4,10 +4,10 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import playbook.encore.back.data.dao.AdminDAO;
-import playbook.encore.back.data.dao.BookUserDAO;
-import playbook.encore.back.data.repository.AdminRepository;
-import playbook.encore.back.data.repository.BookUserRepository;
+import playbook.encore.back.admin.dao.AdminDAO;
+import playbook.encore.back.bookUser.dao.BookUserDAO;
+import playbook.encore.back.admin.dao.AdminRepository;
+import playbook.encore.back.bookUser.dao.BookUserRepository;
 
 @Component
 public class PlaybookListener extends ListenerAdapter {
