@@ -12,7 +12,6 @@ import playbook.encore.back.bookUser.dto.RegisterIdValidateResponseDto;
 import playbook.encore.back.admin.entity.Admin;
 import playbook.encore.back.campus.entity.Campus;
 import playbook.encore.back.campus.dao.CampusRepository;
-import playbook.encore.back.jwt.jwtUtil;
 import playbook.encore.back.admin.service.AdminService;
 
 import java.time.LocalDate;
@@ -24,14 +23,12 @@ public class AdminServiceImpl implements AdminService {
 
     private final AdminDAO adminDAO;
     private final BookUserDAO bookUserDAO;
-    private final jwtUtil jwtUtil;
     private final CampusRepository campusRepository;
 
     @Autowired
-    public AdminServiceImpl(AdminDAO adminDAO, BookUserDAO bookUserDAO, jwtUtil jwtUtil, CampusRepository campusRepository) {
+    public AdminServiceImpl(AdminDAO adminDAO, BookUserDAO bookUserDAO, CampusRepository campusRepository) {
         this.adminDAO = adminDAO;
         this.bookUserDAO = bookUserDAO;
-        this.jwtUtil = jwtUtil;
         this.campusRepository = campusRepository;
     }
 
@@ -76,7 +73,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public LoginAdminResponseDto loginServiceAdmin(LoginAdminRequestDto loginAdminRequestDto) {
+    public String loginServiceAdmin(LoginAdminRequestDto loginAdminRequestDto) {
         log.info("[AdminService] 관리자 로그인 시도 - id: {}", loginAdminRequestDto.getIdAdmin());
         String id = loginAdminRequestDto.getIdAdmin();
         String pw = loginAdminRequestDto.getPwAdmin();
@@ -84,7 +81,7 @@ public class AdminServiceImpl implements AdminService {
         if (!isLoginSuccess) {
             throw new IllegalArgumentException("로그인에 실패하였습니다. 아이디와 비밀번호를 확인해 주세요.");
         }
-        return new LoginAdminResponseDto(jwtUtil.generateToken(id, "admin"));
+        return id;
     }
 
     @Override

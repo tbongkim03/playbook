@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import playbook.encore.back.admin.dao.AdminDAO;
 import playbook.encore.back.bookUser.dao.BookUserDAO;
 import playbook.encore.back.bookUser.dto.LoginUserRequestDto;
-import playbook.encore.back.bookUser.dto.LoginUserResponseDto;
 import playbook.encore.back.bookUser.dto.RegisterIdValidateResponseDto;
 import playbook.encore.back.bookUser.dto.RegisterUserRequestDto;
 import playbook.encore.back.bookUser.dto.RegisterUserResponseDto;
@@ -20,7 +19,6 @@ import playbook.encore.back.bookUser.dao.BookUserRepository;
 import playbook.encore.back.course.dao.CourseRepository;
 import playbook.encore.back.history.dao.HistoryRepository;
 import playbook.encore.back.history.entity.History;
-import playbook.encore.back.jwt.jwtUtil;
 import playbook.encore.back.bookUser.service.BookUserService;
 
 import java.time.LocalDate;
@@ -36,16 +34,14 @@ public class BookUserServiceImpl implements BookUserService{
     private final CourseRepository courseRepository;
     private final BookUserRepository bookUserRepository;
     private final HistoryRepository historyRepository;
-    private final jwtUtil jwtUtil;
 
     @Autowired
-    public BookUserServiceImpl(AdminDAO adminDAO, BookUserDAO bookUserDAO, CourseRepository courseRepository, BookUserRepository bookUserRepository, HistoryRepository historyRepository, jwtUtil jwtUtil) {
+    public BookUserServiceImpl(AdminDAO adminDAO, BookUserDAO bookUserDAO, CourseRepository courseRepository, BookUserRepository bookUserRepository, HistoryRepository historyRepository) {
         this.adminDAO = adminDAO;
         this.bookUserDAO = bookUserDAO;
         this.courseRepository = courseRepository;
         this.bookUserRepository = bookUserRepository;
         this.historyRepository = historyRepository;
-        this.jwtUtil = jwtUtil;
     }
 
     @Override
@@ -83,15 +79,15 @@ public class BookUserServiceImpl implements BookUserService{
     }
 
     @Override
-    public LoginUserResponseDto loginServiceUser(LoginUserRequestDto loginUserRequestDto) {
+    public String loginServiceUser(LoginUserRequestDto loginUserRequestDto) {
         log.info("[BookUserService] 사용자 로그인 시도 - id: {}", loginUserRequestDto.getIdUser());
         String id = loginUserRequestDto.getIdUser();
         String pw = loginUserRequestDto.getPwUser();
         boolean isLoginSuccess = bookUserDAO.loginIdPwCheck(id, pw).isPresent();
         if (!isLoginSuccess) {
             throw new IllegalArgumentException("로그인에 실패하였습니다. 아이디와 비밀번호를 확인해 주세요.");
-        } 
-        return new LoginUserResponseDto(jwtUtil.generateToken(id, "user"));
+        }
+        return id;
     }
 
     @Override

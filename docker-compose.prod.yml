@@ -10,6 +10,7 @@ services:
       - "8080:8080"
     depends_on:
       - db
+      - redis
     networks:
       - prod-network
 
@@ -24,6 +25,12 @@ services:
       - "6603:3306"
     volumes:
       - db-data:/var/lib/mysql
+    networks:
+      - prod-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-prod
     networks:
       - prod-network
 

@@ -1,6 +1,7 @@
 package playbook.encore.back.admin.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,15 +49,30 @@ public class AdminController {
 
     // 로그인 관련 부분
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody LoginAdminRequestDto loginAdminRequestDto) throws Exception {
+    public ResponseEntity<?> loginUser(
+            HttpServletRequest request,
+            @RequestBody LoginAdminRequestDto loginAdminRequestDto) throws Exception {
         try {
-            LoginAdminResponseDto loginAdminResponseDto = adminService.loginServiceAdmin(loginAdminRequestDto);
-            return ResponseEntity.status(HttpStatus.OK).body(loginAdminResponseDto);
+            String adminId = adminService.loginServiceAdmin(loginAdminRequestDto);
+            HttpSession session = request.getSession(true);
+            session.setAttribute("userId", adminId);
+            session.setAttribute("role", "admin");
+            session.setMaxInactiveInterval(3600);
+            return ResponseEntity.status(HttpStatus.OK).body("로그인 성공");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
         }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logoutAdmin(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        return ResponseEntity.status(HttpStatus.OK).body("로그아웃 성공");
     }
 
     // 회원정보 관련 부분

@@ -1,6 +1,7 @@
 package playbook.encore.back.bookUser.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,15 +37,30 @@ public class BookUserController {
 
     // 로그인 관련 부분
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody LoginUserRequestDto loginUserRequestDto) throws Exception {
+    public ResponseEntity<?> loginUser(
+            HttpServletRequest request,
+            @RequestBody LoginUserRequestDto loginUserRequestDto) throws Exception {
         try {
-            LoginUserResponseDto loginUserResponseDto = bookUserService.loginServiceUser(loginUserRequestDto);
-            return ResponseEntity.status(HttpStatus.OK).body(loginUserResponseDto);
+            String userId = bookUserService.loginServiceUser(loginUserRequestDto);
+            HttpSession session = request.getSession(true);
+            session.setAttribute("userId", userId);
+            session.setAttribute("role", "user");
+            session.setMaxInactiveInterval(3600);
+            return ResponseEntity.status(HttpStatus.OK).body("로그인 성공");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
-        }    
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logoutUser(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        return ResponseEntity.status(HttpStatus.OK).body("로그아웃 성공");
     }
 
     // 회원정보 관련 부분

@@ -3,7 +3,6 @@ package playbook.encore.back.bookUser.dao;
 import java.util.List;
 import java.util.Optional;
 
-import playbook.encore.back.bookUser.dto.LoginUserResponseDto;
 import playbook.encore.back.bookUser.entity.BookUser;
 
 public interface BookUserDAO {

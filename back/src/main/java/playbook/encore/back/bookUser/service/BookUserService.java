@@ -1,7 +1,6 @@
 package playbook.encore.back.bookUser.service;
 
 import playbook.encore.back.bookUser.dto.LoginUserRequestDto;
-import playbook.encore.back.bookUser.dto.LoginUserResponseDto;
 import playbook.encore.back.bookUser.dto.RegisterIdValidateResponseDto;
 import playbook.encore.back.bookUser.dto.RegisterUserRequestDto;
 import playbook.encore.back.bookUser.dto.RegisterUserResponseDto;
@@ -15,7 +14,7 @@ public interface BookUserService {
 
     RegisterIdValidateResponseDto checkUserId(String idUser);
 
-    LoginUserResponseDto loginServiceUser(LoginUserRequestDto loginUserRequestDto);
+    String loginServiceUser(LoginUserRequestDto loginUserRequestDto);
 
     boolean validatePassword(BookUser user, String password);
 

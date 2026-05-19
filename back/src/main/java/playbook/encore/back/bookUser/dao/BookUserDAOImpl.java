@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 import playbook.encore.back.bookUser.dao.BookUserDAO;
-import playbook.encore.back.bookUser.dto.LoginUserResponseDto;
 import playbook.encore.back.bookUser.entity.BookUser;
 import playbook.encore.back.course.entity.Course;
 import playbook.encore.back.bookUser.dao.BookUserRepository;

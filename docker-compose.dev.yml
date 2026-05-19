@@ -10,6 +10,7 @@ services:
       - "8080:8080"
     depends_on:
       - db-dev
+      - redis-dev
     networks:
       - dev-network
 
@@ -24,6 +25,14 @@ services:
       - "6603:3306"
     volumes:
       - db-dev-data:/var/lib/mysql
+    networks:
+      - dev-network
+
+  redis-dev:
+    image: redis:7-alpine
+    container_name: redis-dev
+    ports:
+      - "6379:6379"
     networks:
       - dev-network
 
