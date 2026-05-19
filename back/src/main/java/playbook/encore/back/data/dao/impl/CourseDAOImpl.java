@@ -22,7 +22,7 @@ public class CourseDAOImpl implements CourseDAO{
 
     @Override
     public List<Course> selectAllCourse() {
-        List<Course> courseList = courseRepository.findAll();
+        List<Course> courseList = courseRepository.findAllWithCampus();
 
         return courseList;
     }
@@ -40,6 +40,7 @@ public class CourseDAOImpl implements CourseDAO{
 
         Course updatedCourse;
         selectedCourse.setSeqCourse(course.getSeqCourse());
+        selectedCourse.setSeqCampus(course.getSeqCampus());
         selectedCourse.setNameCourse(course.getNameCourse());
         selectedCourse.setStartDtCourse(course.getStartDtCourse());
         selectedCourse.setFinishDtCourse(course.getFinishDtCourse());

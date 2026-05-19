@@ -22,8 +22,15 @@ public interface BookDAO {
     List<Book> searchBooksRelated(String titleBook) throws Exception;
 
     List<Book> searchBooksResultExact(String titleBook) throws Exception;
-    
+
     List<Book> searchBooksResultContaining(String titleBook) throws Exception;
+
+    // 캠퍼스별 검색 메서드 추가
+    List<Book> searchBooksRelatedByCampus(String titleBook, Integer campusId) throws Exception;
+
+    List<Book> searchBooksResultExactByCampus(String titleBook, Integer campusId) throws Exception;
+
+    List<Book> searchBooksResultContainingByCampus(String titleBook, Integer campusId) throws Exception;
 
     void printPost(List<Integer> bookIds) throws Exception;
 
@@ -32,6 +39,17 @@ public interface BookDAO {
     boolean checkDuplicates(int seqBook, String barcodeBook) throws Exception;
 
     Page<Book> selectBookListByPageBySortFirst(int sortFirstId, int page);
+
+    List<Book> selectBookListBySortFirst(int sortFirstId);
+
+    List<Book> selectBookListBySortFirstAndCampus(int sortFirstId, Integer campusId);
+
+    // 페이지네이션 메서드 추가
+    Page<Book> selectBookListAllWithPagination(int page, int size, String sortBy, String sortDir);
+    
+    Page<Book> selectBookListAllWithPaginationByCampus(Integer campusId, int page, int size, String sortBy, String sortDir);
+    
+    Page<Book> selectBookListBySortFirstWithPagination(int sortFirstId, Integer campusId, int page, int size, String sortBy, String sortDir);
 
     Book bookStatusUpdate(Book book, boolean status) throws Exception;
 }

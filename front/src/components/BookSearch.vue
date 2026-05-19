@@ -55,11 +55,11 @@ export default {
                 return;
             }
             try {
-                const response = await fetch(
-                    `http://localhost:8080/books/related?q=${encodeURIComponent(this.query)}`
+                const axios = (await import('axios')).default;
+                const response = await axios.get(
+                    `/api/books/related?q=${encodeURIComponent(this.query)}`
                 );
-                if (!response.ok) throw new Error('네트워크 오류');
-                const data = await response.json();
+                const data = response.data;
 
                 // printCheckBook이 true인 항목들만 필터링
                 const availableBooks = data.filter(item => item.printCheckBook === true);
@@ -111,14 +111,12 @@ export default {
                     event.stopPropagation();
                     this.selectedIndex = Math.min(this.selectedIndex + 1, this.suggestions.length - 1);
                     this.scrollToSelected();
-                    console.log('ArrowDown - selectedIndex:', this.selectedIndex);
                     break;
                 case 'ArrowUp':
                     event.preventDefault();
                     event.stopPropagation();
                     this.selectedIndex = Math.max(this.selectedIndex - 1, -1);
                     this.scrollToSelected();
-                    console.log('ArrowUp - selectedIndex:', this.selectedIndex);
                     break;
                 case 'Enter':
                     if (this.selectedIndex >= 0) {
@@ -126,7 +124,6 @@ export default {
                         event.stopPropagation();
                         // 선택된 항목이 있으면 해당 항목을 선택
                         this.selectSuggestion(this.suggestions[this.selectedIndex]);
-                        console.log('Enter - selected item:', this.suggestions[this.selectedIndex]);
                     }
                     // selectedIndex가 -1이면 기본 폼 제출 동작 허용
                     break;
@@ -142,7 +139,6 @@ export default {
         },
         onMouseEnter(index) {
             this.selectedIndex = index;
-            console.log('Mouse enter - selectedIndex:', this.selectedIndex);
         },
         scrollToSelected() {
             if (this.selectedIndex >= 0) {
@@ -159,7 +155,6 @@ export default {
             }
         },
         async onSubmit() {
-            console.log('검색어 제출:', this.query);
             this.suggestions = [];
             this.selectedIndex = -1;
             this.isFocused = false;

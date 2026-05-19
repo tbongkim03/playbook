@@ -7,7 +7,7 @@ import playbook.encore.back.data.dto.course.CourseResponseDto;
 
 public interface CourseService {
 
-    List<CourseResponseDto> getAllCourse();
+    List<CourseResponseDto> getAllCourse(Integer campusId);
 
     CourseResponseDto insertCourse(CourseRequestDto courseRequestDto);
 

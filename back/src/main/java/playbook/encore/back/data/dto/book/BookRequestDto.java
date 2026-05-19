@@ -7,6 +7,7 @@ import java.time.LocalDate;
 @Data
 public class BookRequestDto {
 
+    private Integer seqCampus;
     private Integer seqSortSecond;
     private String isbnBook;
     private String titleBook;

@@ -11,21 +11,56 @@ import playbook.encore.back.service.impl.DiscordNotificationService;
 import java.time.LocalDate;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 @Component
 @EnableScheduling
+@Slf4j
 public class CourseEndReturnReminderScheduler {
-
+    private static final String COURSE_END_NOTIFICATION_FILE = "course_end_notification_last_run.txt";
+    
     @Autowired
     private CourseRepository courseRepository;
-
     @Autowired
     private DiscordNotificationService discordNotificationService;
 
-    // 매일 오전 10시에 한 번만 실행하여 모든 날짜 체크
-    @Scheduled(cron = "0 0 10 * * ?")
+    private boolean isNotificationAlreadySentToday() {
+        File file = new File(COURSE_END_NOTIFICATION_FILE);
+        if (!file.exists()) {
+            return false;
+        }
+        
+        try {
+            String lastRunDate = Files.readString(file.toPath()).trim();
+            return lastRunDate.equals(LocalDate.now().toString());
+        } catch (IOException e) {
+            log.error("알림 이력 파일 읽기 실패: {}", COURSE_END_NOTIFICATION_FILE, e);
+            return false;
+        }
+    }
+    
+    private void recordTodayNotification() {
+        try {
+            Files.writeString(Path.of(COURSE_END_NOTIFICATION_FILE), 
+                    LocalDate.now().toString());
+        } catch (IOException e) {
+            log.error("알림 이력 파일 쓰기 실패: {}", COURSE_END_NOTIFICATION_FILE, e);
+        }
+    }
+
+    @Scheduled(cron = "0 03 08 * * ?", zone = "Asia/Seoul")
     public void dailyCourseEndCheck() {
         if (!discordNotificationService.isBotOnline()) {
-            System.out.println("Discord 봇이 비활성화되어 있어 과정 종료 알림을 건너뜁니다.");
+            log.warn("Discord 봇이 비활성화되어 있어 과정 종료 알림을 건너뜁니다.");
+            return;
+        }
+
+        if (isNotificationAlreadySentToday()) {
+            log.info("오늘 이미 과정 종료 알림을 보냈습니다.");
             return;
         }
 
@@ -39,38 +74,41 @@ public class CourseEndReturnReminderScheduler {
 
         // 1일 후 종료되는 과정 체크
         checkSpecificDateReminder(today.plusDays(1), 1);
+
+        recordTodayNotification();
+        log.info("과정 종료 알림 전송 완료");
     }
 
-    // 특정 날짜에 종료되는 과정이 있는지 체크하고 알림 전송
     private void checkSpecificDateReminder(LocalDate targetDate, int daysRemaining) {
         try {
             List<Course> endingCourses = courseRepository.findCoursesEndingInDays(targetDate);
 
             if (endingCourses.isEmpty()) {
-                // 종료 예정 과정이 없으면 로그만 남기고 넘어감
-                System.out.println("과정 종료 " + daysRemaining + "일 전 체크: 해당 날짜에 종료되는 과정 없음");
+                log.debug("과정 종료 {}일 전 체크: 해당 날짜에 종료되는 과정 없음", daysRemaining);
                 return;
             }
 
-            // 해당 날짜에 종료되는 과정이 있으면 알림 전송
-            System.out.println("과정 종료 " + daysRemaining + "일 전 알림: " + endingCourses.size() + "개 과정 발견");
+            log.info("과정 종료 {}일 전 알림: {}개 과정 발견", daysRemaining, endingCourses.size());
 
             for (Course course : endingCourses) {
                 sendCourseEndNotification(course, daysRemaining);
             }
 
         } catch (Exception e) {
-            System.err.println("과정 종료 " + daysRemaining + "일 전 알림 처리 중 오류 발생: " + e.getMessage());
+            log.error("과정 종료 {}일 전 알림 처리 중 오류 발생: {}", daysRemaining, e.getMessage());
         }
     }
 
-    // 개별 과정 알림 전송
     private void sendCourseEndNotification(Course course, int daysRemaining) {
         try {
+            // 과정의 캠퍼스 ID 가져오기
+            Integer campusId = course.getSeqCampus() != null ? course.getSeqCampus().getSeqCampus() : null;
+
             discordNotificationService.sendCourseEndReturnReminder(
                     course.getNameCourse(),
                     course.getFinishDtCourse().toString(),
-                    daysRemaining
+                    daysRemaining,
+                    campusId  // 캠퍼스 ID 전달
             );
 
             String periodDesc = switch (daysRemaining) {
@@ -80,25 +118,11 @@ public class CourseEndReturnReminderScheduler {
                 default -> daysRemaining + "일 전";
             };
 
-            System.out.println("과정 종료 " + periodDesc + " 알림 전송 완료: " + course.getNameCourse());
+            String campusName = course.getSeqCampus() != null ? course.getSeqCampus().getNameCampus() : "미지정";
+            log.info("과정 종료 {} 알림 전송 완료: {} (캠퍼스: {})", periodDesc, course.getNameCourse(), campusName);
 
         } catch (Exception e) {
-            System.err.println("과정 알림 전송 실패 [" + course.getNameCourse() + "]: " + e.getMessage());
+            log.error("과정 알림 전송 실패 [{}]: {}", course.getNameCourse(), e.getMessage());
         }
     }
-
-    // 수동 테스트용 메서드
-//    public void testCourseEndReminder() {
-//        System.out.println("=== 과정 종료 알림 테스트 시작 ===");
-//        dailyCourseEndCheck();
-//        System.out.println("=== 과정 종료 알림 테스트 완료 ===");
-//    }
-//
-//    // 특정 날짜의 과정 종료 알림만 테스트 (개발용)
-//    public void testSpecificDayReminder(int daysFromNow) {
-//        LocalDate targetDate = LocalDate.now().plusDays(daysFromNow);
-//        System.out.println("=== " + daysFromNow + "일 후 과정 종료 알림 테스트 ===");
-//        checkSpecificDateReminder(targetDate, daysFromNow);
-//        System.out.println("=== 테스트 완료 ===");
-//    }
 }

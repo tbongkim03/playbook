@@ -18,6 +18,10 @@ public class History {
     private Integer seqHistory;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seq_campus", nullable = false)
+    private Campus seqCampus;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seq_admin")
     private Admin seqAdmin;
     

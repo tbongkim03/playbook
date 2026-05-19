@@ -21,7 +21,7 @@
                 </p>
                 
                 <div class="last-updated">
-                    최종 업데이트: 2024년 1월 1일
+                    최종 업데이트: 2025년 5월 9일
                 </div>
             </div>
         </div>
@@ -38,10 +38,12 @@
                         <a href="#terms-changes" class="toc-link">제3조 약관의 게시 및 변경</a>
                         <a href="#membership" class="toc-link">제4조 회원가입</a>
                         <a href="#member-duties" class="toc-link">제5조 회원의 의무</a>
+                        <a href="#user-status" class="toc-link">제6조 회원의 상태 및 서비스 이용 제한</a>
                         <a href="#rental-period" class="toc-link">제7조 대출 기간 및 반납 의무</a>
                         <a href="#overdue-penalty" class="toc-link">제8조 연체에 대한 제재</a>
                         <a href="#loss-damage" class="toc-link">제9조 도서의 분실 및 훼손</a>
                         <a href="#other-provisions" class="toc-link">제10조~12조 기타 조항</a>
+                        <a href="#withdrawal" class="toc-link">제13조 회원 탈퇴</a>
                     </nav>
                 </div>
 
@@ -163,7 +165,14 @@
                                 </div>
                                 <div class="clause-item">
                                     <span class="clause-number">②</span>
-                                    <p>대여 기간은 서비스 화면 또는 별도의 안내를 통해 공지합니다.</p>
+                                    <p>대출 기간은 대출일로부터 7일입니다.</p>
+                                    <div class="example-box">
+                                        <strong>📌 예시:</strong> 2025년 1월 1일 대출 시 → 반납 예정일: 2025년 1월 8일
+                                    </div>
+                                </div>
+                                <div class="clause-item">
+                                    <span class="clause-number">③</span>
+                                    <p>회원은 최대 2권까지 동시에 대출할 수 있습니다.</p>
                                 </div>
                             </div>
                         </div>
@@ -204,6 +213,31 @@
                         </div>
                     </article>
 
+                    <article id="user-status" class="terms-article">
+                        <h3>제6조 (회원의 상태 및 서비스 이용 제한)</h3>
+                        <div class="article-content">
+                            <div class="clause-list">
+                                <div class="clause-item">
+                                    <span class="clause-number">①</span>
+                                    <p>회원의 상태는 다음과 같이 구분됩니다:</p>
+                                    <div class="sub-clause-list">
+                                        <div class="sub-clause-item">• <strong>정상(available):</strong> 도서 대출 및 반납이 가능한 상태</div>
+                                        <div class="sub-clause-item">• <strong>연체(overdue):</strong> 반납 기한을 초과한 도서가 있는 상태 (대출 불가)</div>
+                                        <div class="sub-clause-item">• <strong>정지(stop):</strong> 연체 반납, 과정 종료, 또는 2권 이상 대출 중인 상태 (대출 및 반납 불가)</div>
+                                    </div>
+                                </div>
+                                <div class="clause-item">
+                                    <span class="clause-number">②</span>
+                                    <p>정지 상태의 회원도 로그인은 가능하나, 도서 대출 및 반납 기능은 이용할 수 없습니다.</p>
+                                </div>
+                                <div class="clause-item">
+                                    <span class="clause-number">③</span>
+                                    <p>회원의 상태는 연체 반납, 과정 종료, 대출 권수 등에 따라 자동으로 변경됩니다.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
                     <article id="other-provisions" class="terms-article">
                         <h3>제10조 ~ 제12조 (기타 조항)</h3>
                         <div class="article-content">
@@ -219,6 +253,34 @@
                                 <div class="clause-item">
                                     <span class="clause-number">③</span>
                                     <p><strong>준거법 및 관할:</strong> 본 약관과 관련된 분쟁은 대한민국 법령에 따라 해결하며, 관할 법원은 회사의 소재지를 관할하는 법원으로 합니다.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article id="withdrawal" class="terms-article">
+                        <h3>제13조 (회원 탈퇴)</h3>
+                        <div class="article-content">
+                            <div class="clause-list">
+                                <div class="clause-item">
+                                    <span class="clause-number">①</span>
+                                    <p>회원은 언제든지 회원 탈퇴를 요청할 수 있으며, 회사는 즉시 회원 탈퇴를 처리합니다.</p>
+                                </div>
+                                <div class="clause-item">
+                                    <span class="clause-number">②</span>
+                                    <p>다음 각 호에 해당하는 경우 회원 탈퇴가 제한될 수 있습니다:</p>
+                                    <div class="sub-clause-list">
+                                        <div class="sub-clause-item">• 대출 중인 도서가 있는 경우</div>
+                                        <div class="sub-clause-item">• 연체 중인 도서가 있는 경우</div>
+                                    </div>
+                                </div>
+                                <div class="clause-item">
+                                    <span class="clause-number">③</span>
+                                    <p>회원 탈퇴 시 모든 개인정보, 찜 목록, 대출 기록 등 관련 데이터가 즉시 삭제되며 복구할 수 없습니다.</p>
+                                </div>
+                                <div class="clause-item">
+                                    <span class="clause-number">④</span>
+                                    <p>회원 탈퇴 후 재가입 시 이전 데이터는 복구되지 않습니다.</p>
                                 </div>
                             </div>
                         </div>

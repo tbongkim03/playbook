@@ -1,5 +1,7 @@
 package playbook.encore.back.data.dao;
 
+import playbook.encore.back.data.dto.admin.AdminListResponseDto;
+import playbook.encore.back.data.dto.admin.AdminResponseDto;
 import playbook.encore.back.data.entity.Admin;
 
 import java.util.List;
@@ -16,9 +18,13 @@ public interface AdminDAO {
 
     Optional<Admin> changePw(Admin user, String hashedPassword);
 
+    Optional<Admin> changeDiscordById(String targetIdAdmin, String newDiscord);
+
+    Optional<Admin> changePwById(String targetIdAdmin, String hashedPassword);
+
     Optional<Admin> pwValidate(Admin user, String idAdmin, String password);
 
-    List<Admin> getAdminList();
+    AdminListResponseDto getAdminList(Integer campusId);
 
     Optional<Admin> updateStatus(Admin user, Admin.StatusTypeAdmin status);
 

@@ -27,6 +27,22 @@
           </option>
         </select>
       </div>
+      
+      <!-- 캠퍼스 필터 (전체 관리자만 표시) -->
+      <div v-if="showCampusFilter" class="filter-group">
+        <label for="campusSelect">캠퍼스 선택:</label>
+        <select id="campusSelect" v-model="selectedCampus" @change="fetchData" class="filter-select">
+          <option value="">전체 캠퍼스</option>
+          <option
+            v-for="campus in campuses"
+            :key="campus.seqCampus"
+            :value="campus.seqCampus"
+          >
+            {{ campus.nameCampus }}
+          </option>
+        </select>
+      </div>
+      
       <button @click="refreshData" class="refresh-btn" :disabled="loading">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M1 4V10H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -164,8 +180,9 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
+import axios from 'axios'
 
-const title_url = "http://localhost:8080"
+const title_url = "/api"
 
 // Chart.js 등록
 Chart.register(...registerables)
@@ -174,6 +191,12 @@ Chart.register(...registerables)
 const loading = ref(false)
 const error = ref(null)
 const selectedCourse = ref('')
+
+// 캠퍼스 필터 관련
+const campuses = ref([])
+const selectedCampus = ref('')
+const showCampusFilter = ref(false)
+const currentUserCampusId = ref(null)
 
 // 통계 데이터
 const popularFirstSort = ref([])
@@ -207,15 +230,8 @@ async function getCourseList() {
   //   `&sort=ASC&sortCol=2`
 
   try {
-    const token = localStorage.getItem("jwtToken")
-
-    const res = await fetch('http://localhost:8080/api/work24/course', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    const data = await res.json()
+    const res = await axios.get('/api/work24/course')
+    const data = res.data
     const apiCoursesRaw = data?.srchList || []
 
     if (apiCoursesRaw.length === 0) return
@@ -232,20 +248,16 @@ async function getCourseList() {
       }
     })
 
-    const dbRes = await fetch(`${title_url}/courses`)
-    const dbCourses = await dbRes.json()
+    const dbRes = await axios.get(`${title_url}/courses`)
+    const dbCourses = dbRes.data
 
     for (const apiItem of apiCourses) {
       const exists = dbCourses.find(dbItem => dbItem.nameCourse === apiItem.nameCourse)
       if (!exists) {
-        await fetch(`${title_url}/courses`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nameCourse: apiItem.nameCourse,
-            startDtCourse: apiItem.startDtCourse,
-            finishDtCourse: apiItem.finishDtCourse
-          })
+        await axios.post(`${title_url}/courses`, {
+          nameCourse: apiItem.nameCourse,
+          startDtCourse: apiItem.startDtCourse,
+          finishDtCourse: apiItem.finishDtCourse
         })
       }
     }
@@ -253,9 +265,7 @@ async function getCourseList() {
     for (const dbItem of dbCourses) {
       const exists = apiCourses.find(apiItem => apiItem.nameCourse === dbItem.nameCourse)
       if (!exists) {
-        await fetch(`${title_url}/courses/${dbItem.seqCourse}`, {
-          method: 'DELETE'
-        })
+        await axios.delete(`${title_url}/courses/${dbItem.seqCourse}`)
       }
     }
 
@@ -267,21 +277,17 @@ async function getCourseList() {
           dbItem.finishDtCourse !== apiItem.finishDtCourse
 
         if (isDifferent) {
-          await fetch(`${title_url}/courses/${dbItem.seqCourse}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              nameCourse: apiItem.nameCourse,
-              startDtCourse: apiItem.startDtCourse,
-              finishDtCourse: apiItem.finishDtCourse
-            })
+          await axios.put(`${title_url}/courses/${dbItem.seqCourse}`, {
+            nameCourse: apiItem.nameCourse,
+            startDtCourse: apiItem.startDtCourse,
+            finishDtCourse: apiItem.finishDtCourse
           })
         }
       }
     }
 
-    const finalDbRes = await fetch(`${title_url}/courses`)
-    const finalDbCourses = await finalDbRes.json()
+    const finalDbRes = await axios.get(`${title_url}/courses`)
+    const finalDbCourses = finalDbRes.data
 
     courses.value = finalDbCourses
       .map(item => {
@@ -328,24 +334,17 @@ let userRankChartInstance = null
 // API 호출 함수들
 const fetchPopularFirstSort = async () => {
   try {
-    const token = localStorage.getItem('jwtToken')
-    const url = selectedCourse.value 
+    let url = selectedCourse.value
       ? `${title_url}/history/popular/first/${selectedCourse.value}`
       : `${title_url}/history/popular/first`
     
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error('인기 대분류 데이터를 불러올 수 없습니다')
+    // 캠퍼스 필터가 선택된 경우 쿼리 파라미터로 전달
+    if (showCampusFilter.value && selectedCampus.value) {
+      url += `?campusId=${selectedCampus.value}`
     }
 
-    const data = await response.json()
-    popularFirstSort.value = data
+    const response = await axios.get(url)
+    popularFirstSort.value = response.data
   } catch (err) {
     console.error('Popular first sort fetch error:', err)
     throw err
@@ -354,24 +353,17 @@ const fetchPopularFirstSort = async () => {
 
 const fetchPopularSecondSort = async () => {
   try {
-    const token = localStorage.getItem('jwtToken')
-    const url = selectedCourse.value 
+    let url = selectedCourse.value
       ? `${title_url}/history/popular/second/${selectedCourse.value}`
       : `${title_url}/history/popular/second`
     
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error('인기 중분류 데이터를 불러올 수 없습니다')
+    // 캠퍼스 필터가 선택된 경우 쿼리 파라미터로 전달
+    if (showCampusFilter.value && selectedCampus.value) {
+      url += `?campusId=${selectedCampus.value}`
     }
 
-    const data = await response.json()
-    popularSecondSort.value = data
+    const response = await axios.get(url)
+    popularSecondSort.value = response.data
   } catch (err) {
     console.error('Popular second sort fetch error:', err)
     throw err
@@ -380,24 +372,17 @@ const fetchPopularSecondSort = async () => {
 
 const fetchUserReadingRank = async () => {
   try {
-    const token = localStorage.getItem('jwtToken')
-    const url = selectedCourse.value 
+    let url = selectedCourse.value
       ? `${title_url}/history/rank/${selectedCourse.value}`
       : `${title_url}/history/rank`
     
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error('사용자 랭킹 데이터를 불러올 수 없습니다')
+    // 캠퍼스 필터가 선택된 경우 쿼리 파라미터로 전달
+    if (showCampusFilter.value && selectedCampus.value) {
+      url += `?campusId=${selectedCampus.value}`
     }
 
-    const data = await response.json()
-    userReadingRank.value = data
+    const response = await axios.get(url)
+    userReadingRank.value = response.data
   } catch (err) {
     console.error('User reading rank fetch error:', err)
     throw err
@@ -606,9 +591,52 @@ const refreshData = () => {
   fetchData()
 }
 
+// 캠퍼스 목록 가져오기
+const fetchCampuses = async () => {
+  try {
+    const res = await axios.get('/api/campus')
+    campuses.value = res.data || []
+  } catch (error) {
+    console.error('캠퍼스 목록 조회 실패:', error)
+  }
+}
+
+// 사용자 타입 확인 및 캠퍼스 필터 설정
+const checkUserType = async () => {
+  try {
+    const token = localStorage.getItem('jwtToken')
+    if (!token) return
+    
+    const response = await axios.get('/api/admin/me', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      validateStatus: () => true
+    })
+    
+    if (response.status === 200) {
+      const data = response.data
+      if (!data.seqCampus) {
+        // 전체 관리자
+        showCampusFilter.value = true
+        currentUserCampusId.value = null
+      } else {
+        // 특정 캠퍼스 관리자
+        showCampusFilter.value = false
+        currentUserCampusId.value = data.seqCampus.seqCampus || data.seqCampus
+        selectedCampus.value = String(currentUserCampusId.value) // 기본값 설정
+      }
+    }
+  } catch (error) {
+    console.error('사용자 타입 확인 실패:', error)
+  }
+}
+
 // 라이프사이클
-onMounted(() => {
-  fetchData()
+onMounted(async () => {
+  await fetchCampuses()
+  await checkUserType()
+  await fetchData()
 })
 
 onBeforeUnmount(() => {

@@ -16,6 +16,7 @@ import playbook.encore.back.data.dto.book.BookSearchResponseDto;
 import playbook.encore.back.data.dto.book.BookSortAndBarcodeRequestDto;
 import playbook.encore.back.data.dto.book.BookUnprintedResponseDto;
 import playbook.encore.back.data.entity.Book;
+import playbook.encore.back.data.repository.AdminRepository;
 import playbook.encore.back.data.repository.BookUserRepository;
 import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.service.BookService;
@@ -23,6 +24,7 @@ import playbook.encore.back.service.BookService;
 import playbook.encore.back.jwt.jwtUtil;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/books")
@@ -30,38 +32,98 @@ public class BookController {
 
     private final BookService bookService;
     private final jwtUtil jwtUtil;
+    private final BookUserRepository bookUserRepository;
+    private final AdminRepository adminRepository;
 
 
     @Autowired
-    public BookController(BookService bookService, jwtUtil jwtUtil) {
+    public BookController(BookService bookService, jwtUtil jwtUtil, BookUserRepository bookUserRepository, AdminRepository adminRepository) {
         this.bookService = bookService;
         this.jwtUtil = jwtUtil;
+        this.bookUserRepository = bookUserRepository;
+        this.adminRepository = adminRepository;
     }
 
     @GetMapping
     public ResponseEntity<?> getBooks(
-            HttpServletRequest request
+            HttpServletRequest request,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size,
+            @RequestParam(value = "sortBy", defaultValue = "seqBook") String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "desc") String sortDir,
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId
     ) throws Exception {
         String idUser = null;
+        Integer campusId = null;
 
-        try {
-            // JWT 토큰 추출 시도
-            String authHeader = request.getHeader("Authorization");
+        // 쿼리 파라미터로 전달된 campusId가 있으면 우선 사용 (전체 관리자/비회원이 캠퍼스를 선택한 경우)
+        if (requestCampusId != null) {
+            campusId = requestCampusId;
+        } else {
+            // JWT 토큰 추출 시도 (토큰이 없어도 동작 가능)
+            try {
+                String authHeader = request.getHeader("Authorization");
 
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                String token = authHeader.substring(7);
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    String token = authHeader.substring(7);
 
-                String reason = jwtUtil.validateAndGetReason(token);
+                    String reason = jwtUtil.validateAndGetReason(token);
 
-                if (reason == null || reason.equals("VALID")) {
-                    idUser = jwtUtil.getIdUserFromToken(token);
+                    if (reason == null || reason.equals("VALID")) {
+                        idUser = jwtUtil.getIdUserFromToken(token);
+                        String role = jwtUtil.getRoleFromToken(token);
+                        
+                        // Interceptor가 설정한 campusId 가져오기 시도
+                        campusId = (Integer) request.getAttribute("campusId");
+                        
+                        // Interceptor가 실행되지 않은 경우 직접 계산
+                        if (campusId == null) {
+                            if ("admin".equalsIgnoreCase(role)) {
+                                Optional<playbook.encore.back.data.entity.Admin> adminOpt = adminRepository.findByIdAdminWithCampus(idUser);
+                                if (adminOpt.isPresent() && adminOpt.get().getSeqCampus() != null) {
+                                    campusId = adminOpt.get().getSeqCampus().getSeqCampus();
+                                }
+                            } else if ("user".equalsIgnoreCase(role)) {
+                                Optional<playbook.encore.back.data.entity.BookUser> userOpt = bookUserRepository.findByIdUserWithCourseAndCampus(idUser);
+                                if (userOpt.isPresent() && userOpt.get().getSeqCourse() != null && userOpt.get().getSeqCourse().getSeqCampus() != null) {
+                                    campusId = userOpt.get().getSeqCourse().getSeqCampus().getSeqCampus();
+                                }
+                            }
+                        }
+                    }
                 }
+            } catch (Exception e) {
+                // 토큰 처리 실패는 무시하고 계속 진행 (비로그인 사용자로 처리)
+                System.out.println("JWT 토큰 처리 실패 (무시): " + e.getMessage());
             }
-            BookListResponseDto bookListResponseDto = bookService.getBookList(idUser);
+        }
+        
+        try {
+            // 정렬 필드 매핑 (프론트엔드에서 사용하는 필드명을 백엔드 필드명으로 변환)
+            String mappedSortBy = mapSortField(sortBy);
+            
+            BookListResponseDto bookListResponseDto = bookService.getBookListWithPagination(idUser, campusId, page, size, mappedSortBy, sortDir);
             return ResponseEntity.status(HttpStatus.OK).body(bookListResponseDto);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            System.out.println("JWT 토큰 처리 실패: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
+        }
+    }
+    
+    // 정렬 필드 매핑 헬퍼 메서드
+    private String mapSortField(String sortBy) {
+        switch (sortBy) {
+            case "latest":
+                return "seqBook";
+            case "title":
+                return "titleBook";
+            case "author":
+                return "authorBook";
+            case "popular":
+                return "borrowCount";
+            default:
+                return "seqBook";
         }
     }
 
@@ -73,8 +135,11 @@ public class BookController {
         if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
         }
+
+        Integer campusId = (Integer) request.getAttribute("campusId");
+
         try {
-            List<BookResponseDto> booklist = bookService.getAllBooks();
+            List<BookResponseDto> booklist = bookService.getAllBooks(campusId);
             return ResponseEntity.status(HttpStatus.OK).body(booklist);
         } catch (Exception e) {
             System.out.println("책 목록 조회 중 오류 발생: " + e.getMessage());
@@ -113,10 +178,59 @@ public class BookController {
 
     @GetMapping("/sortFirst")
     public ResponseEntity<BookListResponseDto> getBooksBySortFirstId(
+            HttpServletRequest request,
             @RequestParam("id") int sortFirstId,
-            @RequestParam("page") int page
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size,
+            @RequestParam(value = "sortBy", defaultValue = "seqBook") String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "desc") String sortDir,
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId
     ) throws Exception {
-        BookListResponseDto bookListResponseDto = bookService.getBookListBySortFirst(sortFirstId, page);
+        Integer campusId = null;
+
+        // 쿼리 파라미터로 전달된 campusId가 있으면 우선 사용 (전체 관리자/비회원이 캠퍼스를 선택한 경우)
+        if (requestCampusId != null) {
+            campusId = requestCampusId;
+        } else {
+            // JWT 토큰이 있으면 campusId 계산
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                try {
+                    String token = authHeader.substring(7);
+                    String reason = jwtUtil.validateAndGetReason(token);
+                    
+                    if (reason == null || reason.equals("VALID")) {
+                        String idUser = jwtUtil.getIdUserFromToken(token);
+                        String role = jwtUtil.getRoleFromToken(token);
+                        
+                        // Interceptor가 설정한 campusId 가져오기 시도
+                        campusId = (Integer) request.getAttribute("campusId");
+                        
+                        // Interceptor가 실행되지 않은 경우 직접 계산
+                        if (campusId == null) {
+                            if ("admin".equalsIgnoreCase(role)) {
+                                Optional<playbook.encore.back.data.entity.Admin> adminOpt = adminRepository.findByIdAdminWithCampus(idUser);
+                                if (adminOpt.isPresent() && adminOpt.get().getSeqCampus() != null) {
+                                    campusId = adminOpt.get().getSeqCampus().getSeqCampus();
+                                }
+                            } else if ("user".equalsIgnoreCase(role)) {
+                                Optional<playbook.encore.back.data.entity.BookUser> userOpt = bookUserRepository.findByIdUserWithCourseAndCampus(idUser);
+                                if (userOpt.isPresent() && userOpt.get().getSeqCourse() != null && userOpt.get().getSeqCourse().getSeqCampus() != null) {
+                                    campusId = userOpt.get().getSeqCourse().getSeqCampus().getSeqCampus();
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    // 토큰 검증 실패 시 campusId는 null로 유지 (비로그인 사용자)
+                }
+            }
+        }
+
+        // 정렬 필드 매핑
+        String mappedSortBy = mapSortField(sortBy);
+        
+        BookListResponseDto bookListResponseDto = bookService.getBookListBySortFirstWithPagination(sortFirstId, campusId, page, size, mappedSortBy, sortDir);
         return ResponseEntity.status(HttpStatus.OK).body(bookListResponseDto);
     }
 
@@ -134,6 +248,7 @@ public class BookController {
         System.out.println("equals result: " + LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr));
 
         if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+            Integer campusId = (Integer) request.getAttribute("campusId");
             BookResponseDto bookResponseDto = bookService.insertBook(bookRequestDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(bookResponseDto);
         }
@@ -181,19 +296,94 @@ public class BookController {
     }
 
     @GetMapping("/related")
-    public ResponseEntity<List<BookSearchResponseDto>> getBookTitleSimiler(@RequestParam("q") String query) throws Exception {
-        List<BookSearchResponseDto> bookSearchList = bookService.searchBookTitles(query);
+    public ResponseEntity<List<BookSearchResponseDto>> getBookTitleSimiler(
+            HttpServletRequest request,
+            @RequestParam("q") String query) throws Exception {
+        Integer campusId = null;
+        
+        // JWT 토큰이 있으면 campusId 계산
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            try {
+                String token = authHeader.substring(7);
+                String reason = jwtUtil.validateAndGetReason(token);
+                
+                if (reason == null || reason.equals("VALID")) {
+                    String idUser = jwtUtil.getIdUserFromToken(token);
+                    String role = jwtUtil.getRoleFromToken(token);
+                    
+                    // Interceptor가 설정한 campusId 가져오기 시도
+                    campusId = (Integer) request.getAttribute("campusId");
+                    
+                    // Interceptor가 실행되지 않은 경우 직접 계산
+                    if (campusId == null) {
+                        if ("admin".equalsIgnoreCase(role)) {
+                            Optional<playbook.encore.back.data.entity.Admin> adminOpt = adminRepository.findByIdAdminWithCampus(idUser);
+                            if (adminOpt.isPresent() && adminOpt.get().getSeqCampus() != null) {
+                                campusId = adminOpt.get().getSeqCampus().getSeqCampus();
+                            }
+                        } else if ("user".equalsIgnoreCase(role)) {
+                            Optional<playbook.encore.back.data.entity.BookUser> userOpt = bookUserRepository.findByIdUserWithCourseAndCampus(idUser);
+                            if (userOpt.isPresent() && userOpt.get().getSeqCourse() != null && userOpt.get().getSeqCourse().getSeqCampus() != null) {
+                                campusId = userOpt.get().getSeqCourse().getSeqCampus().getSeqCampus();
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // 토큰 검증 실패 시 campusId는 null로 유지 (비로그인 사용자)
+            }
+        }
+        
+        List<BookSearchResponseDto> bookSearchList = bookService.searchBookTitles(query, campusId);
         return ResponseEntity.status(HttpStatus.OK).body(bookSearchList);
     }
 
     @GetMapping("/search")
     public ResponseEntity<BookListResponseDto> getSearchResults(
-        @RequestParam("q") String query, 
-        @RequestParam(value = "exact", defaultValue = "false") boolean exact) throws Exception 
+        HttpServletRequest request,
+        @RequestParam("q") String query,
+        @RequestParam(value = "exact", defaultValue = "false") boolean exact) throws Exception
         {
+            Integer campusId = null;
+            
+            // JWT 토큰이 있으면 campusId 계산
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                try {
+                    String token = authHeader.substring(7);
+                    String reason = jwtUtil.validateAndGetReason(token);
+                    
+                    if (reason == null || reason.equals("VALID")) {
+                        String idUser = jwtUtil.getIdUserFromToken(token);
+                        String role = jwtUtil.getRoleFromToken(token);
+                        
+                        // Interceptor가 설정한 campusId 가져오기 시도
+                        campusId = (Integer) request.getAttribute("campusId");
+                        
+                        // Interceptor가 실행되지 않은 경우 직접 계산
+                        if (campusId == null) {
+                            if ("admin".equalsIgnoreCase(role)) {
+                                Optional<playbook.encore.back.data.entity.Admin> adminOpt = adminRepository.findByIdAdminWithCampus(idUser);
+                                if (adminOpt.isPresent() && adminOpt.get().getSeqCampus() != null) {
+                                    campusId = adminOpt.get().getSeqCampus().getSeqCampus();
+                                }
+                            } else if ("user".equalsIgnoreCase(role)) {
+                                Optional<playbook.encore.back.data.entity.BookUser> userOpt = bookUserRepository.findByIdUserWithCourseAndCampus(idUser);
+                                if (userOpt.isPresent() && userOpt.get().getSeqCourse() != null && userOpt.get().getSeqCourse().getSeqCampus() != null) {
+                                    campusId = userOpt.get().getSeqCourse().getSeqCampus().getSeqCampus();
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    // 토큰 검증 실패 시 campusId는 null로 유지 (비로그인 사용자)
+                }
+            }
+            
             BookListResponseDto result = exact
-            ? bookService.searchBooksByExactTitle(query)
-            : bookService.searchBooksByTitleContaining(query);
+            ? bookService.searchBooksByExactTitle(query, campusId)
+            : bookService.searchBooksByTitleContaining(query, campusId);
             return ResponseEntity.ok(result);
     }
 

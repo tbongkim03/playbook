@@ -40,8 +40,10 @@ public class BookUserController {
         try {
             LoginUserResponseDto loginUserResponseDto = bookUserService.loginServiceUser(loginUserRequestDto);
             return ResponseEntity.status(HttpStatus.OK).body(loginUserResponseDto);
-        } catch (Exception IllegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
         }    
     }
 
@@ -51,7 +53,29 @@ public class BookUserController {
         Object roleAttr = request.getAttribute("ROLE");
         if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
             BookUser user = (BookUser) request.getAttribute("user");
-            LoginUserDataResponseDto loginUserDataResponseDto = new LoginUserDataResponseDto(user.getSeqCourse().getSeqCourse(), user.getIdUser(), user.getNameUser(), user.getDcUser());
+            
+            // seqCourse가 null인 경우 처리 (과정이 삭제된 경우)
+            Integer seqCourse = null;
+            Integer seqCampus = null;
+            String campusName = null;
+            
+            if (user.getSeqCourse() != null) {
+                seqCourse = user.getSeqCourse().getSeqCourse();
+                if (user.getSeqCourse().getSeqCampus() != null) {
+                    seqCampus = user.getSeqCourse().getSeqCampus().getSeqCampus();
+                    campusName = user.getSeqCourse().getSeqCampus().getNameCampus();
+                }
+            }
+            
+            LoginUserDataResponseDto loginUserDataResponseDto = new LoginUserDataResponseDto(
+                seqCourse, 
+                seqCampus, 
+                campusName, 
+                user.getIdUser(), 
+                user.getNameUser(), 
+                user.getDcUser(),
+                user.getStatusUser().toString()
+            );
             return ResponseEntity.status(HttpStatus.OK).body(loginUserDataResponseDto);
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("유저만 접근 가능합니다.");
@@ -60,35 +84,39 @@ public class BookUserController {
     @PostMapping("/validate")
     public ResponseEntity<?> getCurrentPassword(
             HttpServletRequest request,
-            @RequestBody String password
+            @RequestBody PasswordValidateRequestDto requestDto
     ) throws Exception {
         try {
             Object roleAttr = request.getAttribute("ROLE");
             if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
                 BookUser user = (BookUser) request.getAttribute("user");
-                boolean result = bookUserService.validatePassword(user, password);
+                boolean result = bookUserService.validatePassword(user, requestDto.getPassword());
                 return ResponseEntity.status(HttpStatus.OK).body(result);
             }
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("유저만 접근 가능합니다.");
-        } catch (Exception IllegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
         }
     }
     @PutMapping("/password")
     public ResponseEntity<?> updatePassword(
             HttpServletRequest request,
-            @RequestBody String newPassword
+            @RequestBody PasswordUpdateRequestDto requestDto
     ) throws Exception {
         try {
             Object roleAttr = request.getAttribute("ROLE");
             if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
                 BookUser user = (BookUser) request.getAttribute("user");
-                boolean result = bookUserService.updatePassword(user, newPassword);
+                boolean result = bookUserService.updatePassword(user, requestDto.getNewPassword());
                 return ResponseEntity.status(HttpStatus.OK).body(result);
             }
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("유저만 접근 가능합니다.");
-        } catch (Exception IllegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
         }
     }
 //    @PutMapping("/discord")
@@ -128,33 +156,56 @@ public class BookUserController {
 
     @GetMapping("/list")
     public ResponseEntity<?> getUserList(
-            HttpServletRequest request
+            HttpServletRequest request,
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId
     ) throws Exception {
         try {
             Object roleAttr = request.getAttribute("ROLE");
             if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-                return ResponseEntity.status(HttpStatus.OK).body(bookUserService.getBookUserList());
+                // 쿼리 파라미터로 전달된 campusId가 있으면 우선 사용
+                Integer campusId = requestCampusId;
+                
+                // 쿼리 파라미터가 없으면 interceptor에서 설정한 campusId 사용
+                if (campusId == null) {
+                    campusId = (Integer) request.getAttribute("campusId");
+                }
+                
+                return ResponseEntity.status(HttpStatus.OK).body(bookUserService.getBookUserList(campusId));
             }
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
-        } catch (Exception IllegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
         }
     }
 
     @DeleteMapping
     public ResponseEntity<?> deleteUser(
             HttpServletRequest request,
-            @RequestBody DeleteUserRequestDto deleteUserRequestDto
+            @RequestBody(required = false) DeleteUserRequestDto deleteUserRequestDto
     ) throws Exception {
         try {
             Object roleAttr = request.getAttribute("ROLE");
+            
             if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+                // 관리자가 다른 사용자 삭제
+                if (deleteUserRequestDto == null || deleteUserRequestDto.getIdUser() == null) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("삭제할 사용자 ID가 필요합니다.");
+                }
                 boolean result = bookUserService.deleteUserByAdmin(deleteUserRequestDto.getIdUser());
                 return ResponseEntity.status(HttpStatus.OK).body(result);
+            } else if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
+                // 사용자 본인 탈퇴
+                BookUser user = (BookUser) request.getAttribute("user");
+                boolean result = bookUserService.deleteUserBySelf(user);
+                return ResponseEntity.status(HttpStatus.OK).body(result);
             }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
-        } catch (Exception IllegalArgumentException) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(IllegalArgumentException.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("권한이 없습니다.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
         }
     }
 }

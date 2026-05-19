@@ -49,11 +49,61 @@
           </div>
 
           <div class="info-item">
+            <label class="info-label">캠퍼스</label>
+            <div class="info-value">
+              <span class="value-text">{{ userInfo.campusName || '-' }}</span>
+            </div>
+          </div>
+
+          <div class="info-item">
             <label class="info-label">수강중인 과정</label>
             <div class="info-value">
               <span class="value-text">{{ currentCourse }}</span>
             </div>
           </div>
+
+          <div class="info-item">
+            <label class="info-label">계정 상태</label>
+            <div class="info-value">
+              <span class="value-text" :class="getUserStatusClass()">{{ getUserStatusText() }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 과정 종료 안내 -->
+        <div v-if="!userInfo.seqCourse && userInfo.statusUser === 'stop'" class="course-ended-notice">
+          <div class="notice-icon">⚠️</div>
+          <div class="notice-content">
+            <h4>과정이 종료되었습니다</h4>
+            <p>수강하신 과정이 종료되어 도서 대출 및 반납 서비스를 이용하실 수 없습니다. 회원 탈퇴를 진행해주세요.</p>
+          </div>
+        </div>
+
+        <!-- 정지 상태 안내 -->
+        <div v-else-if="userInfo.statusUser === 'stop'" class="status-stop-notice">
+          <div class="notice-icon">🚫</div>
+          <div class="notice-content">
+            <h4>계정이 정지 상태입니다</h4>
+            <p>현재 계정이 정지 상태로 도서 대출 및 반납 서비스를 이용하실 수 없습니다.</p>
+          </div>
+        </div>
+
+        <!-- 연체 상태 안내 -->
+        <div v-else-if="userInfo.statusUser === 'overdue'" class="status-overdue-notice">
+          <div class="notice-icon">🚨</div>
+          <div class="notice-content">
+            <h4>연체 중인 도서가 있습니다</h4>
+            <p>연체된 도서를 반납하시면 다시 대출 서비스를 이용하실 수 있습니다.</p>
+          </div>
+        </div>
+
+        <div class="account-actions">
+          <button @click="openWithdrawModal" class="withdraw-button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            회원 탈퇴
+          </button>
         </div>
       </section>
 
@@ -327,6 +377,45 @@
         </form>
       </div>
     </div>
+
+    <!-- 회원 탈퇴 모달 -->
+    <div v-if="withdrawModal" class="modal-overlay" @click="closeWithdrawModal">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3 class="modal-title">회원 탈퇴</h3>
+          <button @click="closeWithdrawModal" class="close-button">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+              <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="withdraw-warning">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" stroke="#ef4444" stroke-width="2"/>
+              <path d="M12 8v4M12 16h.01" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <h4>정말 탈퇴하시겠습니까?</h4>
+            <p>회원 탈퇴 시 다음 사항을 확인해주세요:</p>
+            <ul class="withdraw-notice-list">
+              <li>대출 중인 도서가 있으면 탈퇴할 수 없습니다.</li>
+              <li>연체 중인 도서가 있으면 탈퇴할 수 없습니다.</li>
+              <li>탈퇴 후 모든 개인정보가 삭제되며 복구할 수 없습니다.</li>
+              <li>탈퇴 후 찜 목록, 대출 기록 등 모든 데이터가 삭제됩니다.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" @click="closeWithdrawModal" class="cancel-button">취소</button>
+          <button type="button" @click="handleWithdraw" class="withdraw-confirm-button" :disabled="withdrawLoading">
+            {{ withdrawLoading ? '탈퇴 중...' : '탈퇴하기' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -340,14 +429,17 @@ const router = useRouter()
 const jwtToken = ref(localStorage.getItem('jwtToken'))
 
 // API 기본 URL
-const API_BASE_URL = 'http://localhost:8080'
+const API_BASE_URL = '/api'
 
 // 유저 정보
 const userInfo = ref({
   seqCourse: null,
+  seqCampus: null,
+  campusName: '',
   idUser: '',
   nameUser: '',
-  dcUser: ''
+  dcUser: '',
+  statusUser: ''
 })
 
 // 현재 과정명
@@ -369,6 +461,7 @@ const rentalSummary = ref({
 const passwordModal = ref(false)
 const discordModal = ref(false)
 const courseModal = ref(false)
+const withdrawModal = ref(false)
 
 // 과정 드롭다운
 const courseDropdownOpen = ref(false)
@@ -414,6 +507,8 @@ const courseForm = ref({
   }
 })
 
+const withdrawLoading = ref(false)
+
 // API 헤더 설정
 const getHeaders = () => ({
   'Content-Type': 'application/json',
@@ -429,7 +524,24 @@ const filteredCourseList = computed(() => {
   )
 })
 
+// 사용자 인증 확인
+const checkUserAuth = () => {
+  const token = localStorage.getItem('jwtToken')
+  const userType = localStorage.getItem('userType')
+  
+  if (!token || userType !== 'user') {
+    alert('로그인이 필요합니다.')
+    router.push('/login')
+    return false
+  }
+  return true
+}
+
 onMounted(() => {
+  if (!checkUserAuth()) {
+    return
+  }
+  
   loadUserData()
   loadFavoriteBooks()
   loadRentalHistory()
@@ -455,14 +567,34 @@ async function loadUserData() {
       userInfo.value = data
       
       // 현재 과정명 설정 (과정 목록에서 찾아서 설정)
-      await getCourseList()
-      const course = courseList.value.find(c => c.seqCourse === data.seqCourse)
-      if (course) {
-        currentCourse.value = `${course.title} ${course.trprDegr}기`
+      if (data.seqCourse) {
+        await getCourseList()
+        const course = courseList.value.find(c => c.seqCourse === data.seqCourse)
+        if (course) {
+          currentCourse.value = `${course.title} ${course.trprDegr}기`
+        } else {
+          currentCourse.value = '과정 정보 없음'
+        }
+      } else {
+        currentCourse.value = '과정 정보 없음 (과정 종료)'
       }
+    } else if (response.status === 401) {
+      // 인증 실패 시 로그인 페이지로 리다이렉트
+      alert('로그인이 필요하거나 세션이 만료되었습니다.')
+      localStorage.removeItem('jwtToken')
+      localStorage.removeItem('userType')
+      localStorage.removeItem('campusId')
+      router.push('/login')
     }
   } catch (error) {
     console.error('유저 정보 로드 실패:', error)
+    if (error.response?.status === 401) {
+      alert('로그인이 필요하거나 세션이 만료되었습니다.')
+      localStorage.removeItem('jwtToken')
+      localStorage.removeItem('userType')
+      localStorage.removeItem('campusId')
+      router.push('/login')
+    }
   }
 }
 
@@ -478,7 +610,7 @@ async function loadFavoriteBooks() {
       favoriteBooks.value = data
     }
   } catch (error) {
-    console.error('찜 목록 로드 실패:', error)
+    alert('찜 목록 로드 실패:', error.response?.data)
   }
 }
 
@@ -500,7 +632,7 @@ async function loadRentalHistory() {
       }
     }
   } catch (error) {
-    console.error('대여 기록 로드 실패:', error)
+    alert('대여 기록 로드 실패:', error.response?.data)
   }
 }
 
@@ -508,7 +640,7 @@ async function loadRentalHistory() {
 async function getCourseList() {
   try {
     const token = localStorage.getItem('jwtToken')
-    const res = await fetch('http://localhost:8080/api/work24/course', {
+    const res = await fetch('/api/work24/course', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -606,7 +738,7 @@ async function getCourseList() {
       .sort((a, b) => a.title.localeCompare(b.title, 'ko'))
 
   } catch (err) {
-    console.error('API 조회 실패:', err)
+    alert('과정 조회 실패:', err.response?.data)
   }
 }
 
@@ -624,9 +756,9 @@ async function removeFavorite(seqBook) {
       return
     }
     
-    console.log('삭제할 seqBook:', seqBook)
+    // console.log('삭제할 seqBook:', seqBook)
 
-    const response = await axios.delete('http://localhost:8080/favor', {
+    const response = await axios.delete('/api/favor', {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${jwtToken.value}`
@@ -638,7 +770,7 @@ async function removeFavorite(seqBook) {
       favoriteBooks.value = favoriteBooks.value.filter(book => book.seqBook !== seqBook)
     }
   } catch (error) {
-    console.error('찜 해제 실패:', error)
+    // console.error('찜 해제 실패:', error)
     
     if (error.response) {
       const status = error.response.status
@@ -687,6 +819,74 @@ function openPasswordModal() {
 function closePasswordModal() {
   passwordModal.value = false
   resetPasswordForm()
+}
+
+function openWithdrawModal() {
+  withdrawModal.value = true
+}
+
+function closeWithdrawModal() {
+  withdrawModal.value = false
+}
+
+function getUserStatusText() {
+  const statusMap = {
+    'available': '정상',
+    'overdue': '연체',
+    'stop': '정지'
+  }
+  return statusMap[userInfo.value.statusUser] || userInfo.value.statusUser || '알 수 없음'
+}
+
+function getUserStatusClass() {
+  const statusClassMap = {
+    'available': 'status-available',
+    'overdue': 'status-overdue',
+    'stop': 'status-stop'
+  }
+  return statusClassMap[userInfo.value.statusUser] || ''
+}
+
+async function handleWithdraw() {
+  if (!confirm('정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+    return
+  }
+
+  withdrawLoading.value = true
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/users`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+      body: JSON.stringify({})
+    })
+
+    if (response.ok) {
+      // localStorage 먼저 삭제
+      localStorage.removeItem('jwtToken')
+      localStorage.removeItem('userType')
+      localStorage.removeItem('campusId')
+      
+      alert('회원 탈퇴가 완료되었습니다.')
+      
+      // 강제 새로고침으로 메인 페이지 이동 (히스토리 없이)
+      if (window.location.pathname === '/') {
+        // 이미 메인 페이지에 있으면 강제 새로고침
+        window.location.reload()
+      } else {
+        // 다른 페이지에 있으면 메인으로 이동 후 새로고침
+        window.location.replace('/')
+      }
+    } else {
+      const errorText = await response.text()
+      alert(errorText || '회원 탈퇴에 실패했습니다.')
+      withdrawLoading.value = false
+    }
+  } catch (error) {
+    console.error('회원 탈퇴 중 오류:', error)
+    alert('회원 탈퇴 중 오류가 발생했습니다.')
+    withdrawLoading.value = false
+  }
 }
 
 function openDiscordModal() {
@@ -823,6 +1023,8 @@ function handleKeydown(event) {
       closeDiscordModal()
     } else if (courseModal.value) {
       closeCourseModal()
+    } else if (withdrawModal.value) {
+      closeWithdrawModal()
     }
   }
 }
@@ -836,9 +1038,16 @@ async function validatePassword(password) {
       body: JSON.stringify({ password })
     })
 
-    return response.ok
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('비밀번호 검증 실패:', errorText)
+      return false
+    }
+
+    const result = await response.json()
+    return result === true
   } catch (error) {
-    console.error('비밀번호 검증 실패:', error)
+    console.error('비밀번호 검증 중 오류:', error)
     return false
   }
 }
@@ -898,7 +1107,6 @@ async function changePassword() {
       alert('비밀번호 변경에 실패했습니다.')
     }
   } catch (error) {
-    console.error('비밀번호 변경 실패:', error)
     alert('비밀번호 변경 중 오류가 발생했습니다.')
   } finally {
     passwordForm.value.loading = false
@@ -1429,6 +1637,162 @@ async function changePassword() {
   background: #d1d5db;
   border-color: #d1d5db;
   cursor: not-allowed;
+}
+
+.account-actions {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.withdraw-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.withdraw-button:hover {
+  background: #fee2e2;
+  border-color: #f87171;
+}
+
+.withdraw-warning {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.withdraw-warning svg {
+  margin-bottom: 1rem;
+}
+
+.withdraw-warning h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 0.5rem 0;
+}
+
+.withdraw-warning > p {
+  color: #6b7280;
+  margin: 0 0 1.5rem 0;
+}
+
+.withdraw-notice-list {
+  text-align: left;
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0 0;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.withdraw-notice-list li {
+  padding: 0.5rem 0;
+  color: #991b1b;
+  font-size: 0.875rem;
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.withdraw-notice-list li::before {
+  content: '⚠️';
+  position: absolute;
+  left: 0;
+}
+
+.withdraw-confirm-button {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #dc2626;
+  border: 1px solid #dc2626;
+  color: white;
+}
+
+.withdraw-confirm-button:hover:not(:disabled) {
+  background: #b91c1c;
+  border-color: #b91c1c;
+}
+
+.withdraw-confirm-button:disabled {
+  background: #d1d5db;
+  border-color: #d1d5db;
+  cursor: not-allowed;
+}
+
+.status-available {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.status-overdue {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.status-stop {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.course-ended-notice,
+.status-stop-notice,
+.status-overdue-notice {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border-radius: 12px;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.course-ended-notice {
+  background: #fef3c7;
+  border: 1px solid #fbbf24;
+}
+
+.status-stop-notice {
+  background: #fee2e2;
+  border: 1px solid #f87171;
+}
+
+.status-overdue-notice {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+}
+
+.notice-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.notice-content h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 0.5rem 0;
+}
+
+.notice-content p {
+  font-size: 0.9rem;
+  color: #475569;
+  margin: 0;
+  line-height: 1.5;
 }
 
 @media (max-width: 768px) {

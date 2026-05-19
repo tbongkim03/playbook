@@ -17,7 +17,9 @@ public interface AdminService {
 
     boolean updateDiscord(Admin user, String newDiscord);
 
-    AdminListResponseDto getAdminList();
+    boolean updateAdmin(Admin currentUser, UpdateAdminRequestDto updateRequest);
+
+    AdminListResponseDto getAdminList(Integer campusId);
 
     boolean deleteAdmin(String idAdmin);
 }

@@ -17,6 +17,10 @@ public class Admin {
     @Column(name = "seq_admin", nullable = false)
     private Integer seqAdmin;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seq_campus")
+    private Campus seqCampus;
+
     @Column(name = "id_admin", nullable = false)
     private String idAdmin;
 

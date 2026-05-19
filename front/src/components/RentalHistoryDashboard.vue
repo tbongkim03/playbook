@@ -16,7 +16,7 @@
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ stats.totalRentals }}</div>
-          <div class="stat-label">총 대여 건수</div>
+          <div class="stat-label">총 대출 건수</div>
         </div>
       </div>
 
@@ -75,12 +75,12 @@
         </div>
 
         <div class="filter-group" v-if="filters.period === 'custom'">
-          <label>시작일</label>
+          <label>시작 일</label>
           <input type="date" v-model="filters.startDate" @change="applyFilters">
         </div>
 
         <div class="filter-group" v-if="filters.period === 'custom'">
-          <label>종료일</label>
+          <label>종료 일</label>
           <input type="date" v-model="filters.endDate" @change="applyFilters">
         </div>
 
@@ -108,6 +108,21 @@
               <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2"/>
             </svg>
           </div>
+        </div>
+        
+        <!-- 캠퍼스 필터 (전체 관리자만 표시) -->
+        <div v-if="showCampusFilter" class="filter-group">
+          <label>캠퍼스</label>
+          <select v-model="selectedCampus" @change="onCampusChange" class="filter-select">
+            <option value="">전체 캠퍼스</option>
+            <option
+              v-for="campus in campuses"
+              :key="campus.seqCampus"
+              :value="campus.seqCampus"
+            >
+              {{ campus.nameCampus }}
+            </option>
+          </select>
         </div>
       </div>
     </div>
@@ -140,13 +155,14 @@
         <table class="history-table" v-if="!isLoading">
           <thead>
             <tr>
-              <th>도서명</th>
+              <th>도서 명</th>
               <th>저자</th>
+              <th>바코드</th>
               <th>사용자</th>
-              <th>과정</th>
-              <th>대출일</th>
+              <th>과정 명</th>
+              <th>대출 일</th>
               <th>반납예정일</th>
-              <th>반납일</th>
+              <th>반납 일</th>
               <th>상태</th>
               <th>작업</th>
             </tr>
@@ -155,6 +171,7 @@
             <tr v-for="rental in filteredRentals" :key="rental.id" class="history-row">
               <td class="book-title">{{ rental.bookTitle }}</td>
               <td class="book-author">{{ rental.bookAuthor }}</td>
+              <td class="barcode">{{ rental.barcodeBook || '-' }}</td>
               <td class="user-name">{{ rental.userName }}</td>
               <td class="course-name">{{ rental.courseDisplay }}</td>
               <td class="rental-date">{{ formatDate(rental.rentalDate) }}</td>
@@ -166,13 +183,6 @@
                 </span>
               </td>
               <td class="actions">
-                <button 
-                  v-if="rental.status === 'rented'" 
-                  class="return-btn" 
-                  @click="processReturn(rental)"
-                >
-                  반납 처리
-                </button>
                 <button class="detail-btn" @click="showRentalDetail(rental)">
                   상세보기
                 </button>
@@ -256,12 +266,16 @@
                 <label>ISBN</label>
                 <span>{{ selectedRental.bookIsbn || '-' }}</span>
               </div>
+              <div class="detail-item">
+                <label>바코드</label>
+                <span>{{ selectedRental.barcodeBook || '-' }}</span>
+              </div>
             </div>
           </div>
 
           <div class="detail-section">
             <h4>사용자 정보</h4>
-            <div class="detail-grid">
+            <div class="detail-grid user-info-grid">
               <div class="detail-item">
                 <label>이름</label>
                 <span>{{ selectedRental.userName }}</span>
@@ -271,7 +285,7 @@
                 <span>{{ selectedRental.userId }}</span>
               </div>
               <div class="detail-item">
-                <label>과정명</label>
+                <label>과정 명</label>
                 <span>{{ selectedRental.courseName || '-' }}</span>
               </div>
             </div>
@@ -281,7 +295,7 @@
             <h4>대출 정보</h4>
             <div class="detail-grid">
               <div class="detail-item">
-                <label>대출일</label>
+                <label>대출 일</label>
                 <span>{{ selectedRental.rentalDate }}</span>
               </div>
               <div class="detail-item">
@@ -289,7 +303,7 @@
                 <span>{{ selectedRental.dueDate }}</span>
               </div>
               <div class="detail-item">
-                <label>반납일</label>
+                <label>반납 일</label>
                 <span>{{ selectedRental.returnDate ? selectedRental.returnDate : '미반납' }}</span>
               </div>
               <div class="detail-item">
@@ -315,6 +329,12 @@ const rentalHistory = ref([])
 const isLoading = ref(false)
 const showDetailModal = ref(false)
 const selectedRental = ref(null)
+
+// 캠퍼스 필터 관련
+const campuses = ref([])
+const selectedCampus = ref('')
+const showCampusFilter = ref(false)
+const currentUserCampusId = ref(null)
 
 // 통계 데이터
 const stats = ref({
@@ -444,6 +464,52 @@ const visiblePages = computed(() => {
   return pages
 })
 
+// 캠퍼스 목록 가져오기
+const fetchCampuses = async () => {
+  try {
+    const res = await axios.get('/api/campus')
+    campuses.value = res.data || []
+  } catch (error) {
+    console.error('캠퍼스 목록 조회 실패:', error)
+  }
+}
+
+// 사용자 타입 확인 및 캠퍼스 필터 설정
+const checkUserType = async () => {
+  try {
+    const token = localStorage.getItem('jwtToken')
+    if (!token) return
+    
+    const response = await axios.get('/api/admin/me', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      validateStatus: () => true
+    })
+    
+    if (response.status === 200) {
+      const data = response.data
+      if (!data.seqCampus) {
+        // 전체 관리자
+        showCampusFilter.value = true
+        currentUserCampusId.value = null
+      } else {
+        // 특정 캠퍼스 관리자
+        showCampusFilter.value = false
+        currentUserCampusId.value = data.seqCampus.seqCampus || data.seqCampus
+        selectedCampus.value = String(currentUserCampusId.value) // 기본값 설정
+      }
+    }
+  } catch (error) {
+    console.error('사용자 타입 확인 실패:', error)
+  }
+}
+
+// 캠퍼스 변경 핸들러
+const onCampusChange = () => {
+  applyFilters()
+}
+
 // 메서드
 const fetchRentalHistory = async () => {
   try {
@@ -452,29 +518,27 @@ const fetchRentalHistory = async () => {
     const headers = getAuthHeaders()
     if (!headers) return
     
-    const response = await axios.get('http://localhost:8080/history/book', {
+    // 캠퍼스 필터가 선택된 경우 쿼리 파라미터로 전달
+    const campusParam = (showCampusFilter.value && selectedCampus.value) ? `?campusId=${selectedCampus.value}` : ''
+    
+    const response = await axios.get(`/api/history/book${campusParam}`, {
       headers: headers
     })
-    
-    console.log('API 응답 성공:', response.data)
-    console.log('응답 데이터 타입:', typeof response.data)
-    console.log('응답 데이터 키들:', Object.keys(response.data || {}))
     
     // 응답 데이터 구조 확인 및 처리 (HistoryBookResponseDto 기준)
     const responseData = response.data
     
     // 1. 통계 데이터 처리 (RentalSummaryDto)
     if (responseData && responseData.summary) {
-      console.log('통계 데이터:', responseData.summary)
       stats.value = {
         totalRentals: responseData.summary.totalBorrowed || 0,
         activeRentals: responseData.summary.currentlyBorrowed || 0,
         totalReturns: responseData.summary.totalReturned || 0,
         overdueRentals: responseData.summary.overdueCount || 0
       }
-      console.log('설정된 통계:', stats.value)
+      // console.log('설정된 통계:', stats.value)
     } else {
-      console.warn('통계 데이터가 없습니다')
+      // console.warn('통계 데이터가 없습니다')
       stats.value = {
         totalRentals: 0,
         activeRentals: 0,
@@ -488,28 +552,15 @@ const fetchRentalHistory = async () => {
     
     if (responseData && responseData.history && Array.isArray(responseData.history)) {
       historyList = responseData.history
-      console.log('히스토리 데이터 발견:', historyList.length, '개')
-    } else {
-      console.warn('히스토리 데이터가 없거나 잘못된 형식입니다')
-      console.log('응답 데이터 구조:', responseData)
     }
-    
-    console.log('히스토리 리스트:', historyList)
-    console.log('히스토리 리스트 길이:', historyList.length)
-    
-    if (historyList.length > 0) {
-      console.log('첫 번째 히스토리 아이템:', historyList[0])
-    }
-    
     // 3. 데이터 변환 및 설정 (RentalHistoryDto 기준)
-    rentalHistory.value = historyList.map((item, index) => {
-      console.log(`히스토리 아이템 ${index}:`, item)
-      
+    rentalHistory.value = historyList.map((item, index) => {      
       const mappedItem = {
         id: index + 1, // ID 생성
         bookTitle: item.bookTitle || '제목 없음',
         bookAuthor: item.bookAuthor || '저자 정보 없음',
         bookIsbn: item.bookIsbn || '',
+        barcodeBook: item.barcodeBook || null, // 바코드 데이터
         userName: item.userName || '사용자 정보 없음',
         userId: item.userId || '사용자 정보 없음',
         courseName: item.courseName || null, // 원본 과정명 저장
@@ -528,14 +579,8 @@ const fetchRentalHistory = async () => {
       return mappedItem
     })
     
-  } catch (error) {
-    console.error('API 요청 실패:', error)
-    console.error('에러 상세:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status
-    })
-    
+  } 
+  catch (error) {  
     if (error.response?.status === 403) {
       alert('관리자만 접근할 수 있습니다.')
       window.history.back()
@@ -580,7 +625,7 @@ const getStatusText = (rental) => {
     case 'overdue':
       return '연체'
     case 'booked':
-      return '대출중'
+      return '대출 중'
     default:
       return '반납완료'
   }
@@ -614,10 +659,11 @@ const changePage = (page) => {
 
 const exportData = () => {
   const csvContent = [
-    ['도서명', '저자', '사용자', '과정', '대출일', '반납예정일', '반납일', '상태'].join(','),
+    ['도서명', '저자', '바코드', '사용자', '과정', '대출 일', '반납예정일', '반납 일', '상태'].join(','),
     ...rentalHistory.value.map(rental => [
       rental.bookTitle,
       rental.bookAuthor,
+      rental.barcodeBook || '',
       rental.userName,
       rental.courseDisplay,
       formatDate(rental.rentalDate),
@@ -634,14 +680,11 @@ const exportData = () => {
   link.click()
 }
 
-const processReturn = (rental) => {
-  // 반납 처리 로직 (필요시 구현)
-  console.log('반납 처리:', rental)
-}
-
 // 컴포넌트 마운트 시 데이터 로드
-onMounted(() => {
-  fetchRentalHistory()
+onMounted(async () => {
+  await fetchCampuses()
+  await checkUserType()
+  await fetchRentalHistory()
 })
 </script>
 
@@ -804,7 +847,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px;
+  padding: 18px 20px;
   border-bottom: 1px solid #f1f5f9;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
@@ -826,10 +869,10 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 18px;
+  padding: 8px 14px;
   border: none;
-  border-radius: 12px;
-  font-size: 0.9rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -869,20 +912,20 @@ onMounted(() => {
 
 .history-table th {
   text-align: left;
-  padding: 18px 24px;
+  padding: 12px 16px;
   background: #fafafa;
   color: #2d3748;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   border-bottom: 1px solid #e2e8f0;
   white-space: nowrap;
 }
 
 .history-table td {
-  padding: 18px 24px;
+  padding: 12px 16px;
   border-bottom: 1px solid #f7fafc;
   color: #4a5568;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .history-row:hover {
@@ -891,30 +934,65 @@ onMounted(() => {
 
 .book-title {
   font-weight: 500;
-  max-width: 200px;
+  max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: #2d3748;
 }
 
-.course-name {
+.book-author {
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #4a5568;
   font-size: 0.8rem;
+}
+
+.barcode {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #4a5568;
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+}
+
+.user-name {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+
+.course-name {
+  font-size: 0.75rem;
   color: #6b7280;
   font-weight: 500;
-  max-width: 150px;
+  max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.status-badge {
-  padding: 6px 14px;
-  border-radius: 20px;
+.rental-date,
+.due-date,
+.return-date {
+  white-space: nowrap;
+  min-width: 90px;
   font-size: 0.8rem;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .status-rented {
@@ -937,26 +1015,14 @@ onMounted(() => {
   gap: 8px;
 }
 
-.return-btn,
 .detail-btn {
-  padding: 8px 14px;
+  padding: 6px 12px;
   border: none;
-  border-radius: 10px;
-  font-size: 0.8rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-}
-
-.return-btn {
-  background: linear-gradient(135deg, #b8e6c1 0%, #d4f1d4 100%);
-  color: #2d3748;
-  box-shadow: 0 2px 8px rgba(184, 230, 193, 0.3);
-}
-
-.return-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(184, 230, 193, 0.4);
 }
 
 .detail-btn {
@@ -1061,15 +1127,15 @@ onMounted(() => {
 /* 모달 스타일 */
 .modal-overlay {
   position: fixed;
-  top: 0;
+  top: 72px;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: calc(100% - 72px);
   background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 1050;
   backdrop-filter: blur(8px);
 }
 
@@ -1078,8 +1144,8 @@ onMounted(() => {
   border-radius: 20px;
   width: 90%;
   max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
+  max-height: calc(100vh - 192px);
+  overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
@@ -1124,6 +1190,9 @@ onMounted(() => {
 
 .detail-content {
   padding: 0 24px 24px 24px;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
 }
 
 .detail-section {
@@ -1143,6 +1212,10 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 16px;
+}
+
+.user-info-grid {
+  grid-template-columns: repeat(3, 1fr) !important;
 }
 
 .detail-item {
@@ -1219,8 +1292,8 @@ onMounted(() => {
   
   .history-table th,
   .history-table td {
-    padding: 14px 16px;
-    font-size: 0.8rem;
+    padding: 10px 12px;
+    font-size: 0.75rem;
   }
   
   .actions {
@@ -1231,7 +1304,7 @@ onMounted(() => {
   .return-btn,
   .detail-btn {
     font-size: 0.7rem;
-    padding: 6px 10px;
+    padding: 5px 8px;
   }
   
   .pagination {
@@ -1255,11 +1328,31 @@ onMounted(() => {
   }
   
   .book-title {
-    max-width: 120px;
+    max-width: 100px;
+  }
+  
+  .barcode {
+    max-width: 70px;
+    font-size: 0.65rem;
   }
   
   .course-name {
+    max-width: 80px;
+  }
+  
+  .book-author {
     max-width: 100px;
+  }
+  
+  .user-name {
+    max-width: 80px;
+  }
+  
+  .rental-date,
+  .due-date,
+  .return-date {
+    min-width: 70px;
+    font-size: 0.7rem;
   }
   
   .modal-content {

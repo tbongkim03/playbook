@@ -1,0 +1,49 @@
+services:
+  back-dev:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+    container_name: back-dev
+    env_file:
+      - ./back/.env.dev
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db-dev
+    networks:
+      - dev-network
+
+  db-dev:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    container_name: db-dev
+    env_file:
+      - ./db/.env.dev
+    ports:
+      - "6603:3306"
+    volumes:
+      - db-dev-data:/var/lib/mysql
+    networks:
+      - dev-network
+
+  front-dev:
+    build:
+      context: ./front
+      dockerfile: DevDockerfile
+    container_name: front-dev
+    ports:
+      - "80:80"
+    depends_on:
+      - back-dev
+    networks:
+      - dev-network
+
+volumes:
+  db-dev-data:
+
+networks:
+  dev-network:
+    driver: bridge
+
+

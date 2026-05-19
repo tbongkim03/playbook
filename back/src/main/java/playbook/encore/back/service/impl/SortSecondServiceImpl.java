@@ -1,5 +1,6 @@
 package playbook.encore.back.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import playbook.encore.back.service.SortSecondService;
 
 import java.util.List;
 
+@Slf4j
 @Service
 public class SortSecondServiceImpl implements SortSecondService {
 
@@ -39,7 +41,7 @@ public class SortSecondServiceImpl implements SortSecondService {
     @Override
     @Transactional
     public SortSecondResponseDto insertSortSecond(SortSecondRequestDto sortSecondRequestDto) {
-
+        log.info("[SortSecondService] 소분류 등록 - name: {}", sortSecondRequestDto.getNameSortSecond());
         SortFirst sortFirst = sortFirstRepository.findById(sortSecondRequestDto.getSeqSortFirst())
                 .orElseThrow(() -> new IllegalArgumentException("해당 대분류가 존재하지 않습니다"));
 
@@ -57,6 +59,7 @@ public class SortSecondServiceImpl implements SortSecondService {
 
     @Override
     public List<SortSecondResponseDto> getAllSortSecond() throws Exception {
+        log.info("[SortSecondService] 전체 소분류 조회");
         List<SortSecond> sortSecondList = sortSecondDAO.selectAllSortSecond();
 
         List<SortSecondResponseDto> responseList = new java.util.ArrayList<>();
@@ -71,6 +74,7 @@ public class SortSecondServiceImpl implements SortSecondService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SortSecondResponseDto changeSortSecond(Integer sortSecondId, SortSecondRequestDto sortSecondRequestDto) throws Exception {
+        log.info("[SortSecondService] 소분류 수정 - sortSecondId: {}", sortSecondId);
         SortFirst sortFirst = sortFirstRepository.findById(sortSecondRequestDto.getSeqSortFirst())
                 .orElseThrow(() -> new IllegalArgumentException("해당 대분류가 존재하지 않습니다."));
 
@@ -89,6 +93,7 @@ public class SortSecondServiceImpl implements SortSecondService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteSortSecondById(Integer sortSecondId) throws Exception {
+        log.info("[SortSecondService] 소분류 삭제 - sortSecondId: {}", sortSecondId);
         SortSecond selectedSortSecond = sortSecondRepository.findById(sortSecondId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 소분류가 존재하지 않습니다."));
 

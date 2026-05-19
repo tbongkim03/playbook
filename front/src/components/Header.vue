@@ -20,7 +20,7 @@
                   <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </div>
-              <span class="username">{{ username }} {{ isAdmin ? '(관리자)' : '님' }}</span>
+              <span class="username">{{ username }}({{ campusName || '정보 없음' }})</span>
             </div>
           </router-link>
 
@@ -61,6 +61,7 @@ import { useRoute, useRouter } from 'vue-router'
 const isLogin = ref(false) // 로그인 여부
 const username = ref('')    // 로그인 사용자 이름
 const isAdmin = ref(false)  // 관리자 여부
+const campusName = ref('')  // 캠퍼스 이름
 
 const route = useRoute()
 const router = useRouter()
@@ -89,35 +90,51 @@ async function fetchUserInfo() {
       Authorization: `Bearer ${token}`
     };
 
+    // validateStatus를 사용하여 모든 상태 코드를 성공으로 간주 (콘솔 에러 방지)
+    const axiosConfig = {
+      headers,
+      validateStatus: () => true  // 모든 HTTP 상태 코드를 성공으로 처리
+    };
+
     const [userRes, adminRes] = await Promise.allSettled([
-      axios.get('http://localhost:8080/users/me', { headers }),
-      axios.get('http://localhost:8080/admin/me', { headers })
+      axios.get('/api/users/me', axiosConfig),
+      axios.get('/api/admin/me', axiosConfig)
     ]);
 
-    if (userRes.status === 'fulfilled') {
+    if (userRes.status === 'fulfilled' && userRes.value.status === 200) {
       const data = userRes.value.data;
+      if (data.seqCampus) {
+        localStorage.setItem('campusId', data.seqCampus);
+        campusName.value = data.campusName || '정보 없음';
+      } else {
+        localStorage.removeItem('campusId');
+        campusName.value = '정보 없음';
+      }
       username.value = data.nameUser || data.idUser || '사용자';
       isLogin.value = true;
       isAdmin.value = false;
-    } else if (adminRes.status === 'fulfilled') {
+    } else if (adminRes.status === 'fulfilled' && adminRes.value.status === 200) {
       const data = adminRes.value.data;
+      if (data.seqCampus?.seqCampus) {
+        localStorage.setItem('campusId', data.seqCampus?.seqCampus);
+        campusName.value = data.seqCampus?.nameCampus || '정보 없음';
+      } else {
+        // 전체 관리자
+        campusName.value = '전체';
+      }
       username.value = data.nameAdmin || data.idAdmin || '관리자';
       isLogin.value = true;
       isAdmin.value = true;
     } else {
       // 둘 다 실패한 경우
-      const userError = userRes.reason?.response?.data || userRes.reason?.message;
-      const adminError = adminRes.reason?.response?.data || adminRes.reason?.message;
-      alert("사용자 정보 불러오기 실패");
-      localStorage.removeItem('jwtToken');
-      localStorage.removeItem('userType');
-      isLogin.value = false;
-      username.value = '';
-      isAdmin.value = false;
-      router.push('/login');
+       localStorage.removeItem('jwtToken')
+       isLogin.value = false
+       username.value = ''
+       isAdmin.value = false
+       campusName.value = ''
     }
   } catch (error) {
-    alert('예기치 못한 오류 발생: ' + (error?.message || error));
+    alert('예기치 못한 오류 발생: ' + (error.response?.data || error));
     isLogin.value = false;
     username.value = '';
     isAdmin.value = false;

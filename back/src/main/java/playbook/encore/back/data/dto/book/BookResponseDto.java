@@ -10,6 +10,8 @@ import java.time.LocalDate;
 @Builder
 public class BookResponseDto {
     private int seqBook;
+    private int seqCampus;
+    private String campusName;  // 캠퍼스 이름
     private int seqSortSecond;
     private String isbnBook;
     private String titleBook;
@@ -23,4 +25,6 @@ public class BookResponseDto {
     private boolean bookBorrowed;
     @Builder.Default
     private boolean isBorrowedByMe = false;
+    @Builder.Default
+    private int borrowCount = 0;  // 대출 횟수
 }

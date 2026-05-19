@@ -41,6 +41,10 @@ dependencies {
     implementation("net.dv8tion:JDA:5.6.1")
 }
 
+bootRun {
+    args = ['--spring.profiles.active=local']
+}
+
 tasks.named('test') {
     useJUnitPlatform()
 }
