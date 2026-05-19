@@ -50,8 +50,7 @@ function close() {
 }
 const navigateTo = (r) => {
   // 로그인 체크
-  const token = localStorage.getItem('jwtToken')
-  if (!token) {
+  if (!sessionStorage.getItem('userType')) {
     close()
     alert('로그인이 필요합니다.')
     router.push('/login')

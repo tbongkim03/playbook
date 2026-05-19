@@ -220,27 +220,12 @@ const borrowBook = async (barcode) => {
   // console.log('borrowBook 호출됨:', barcode)
   isLoading.value = true
   
-  const token = localStorage.getItem('jwtToken')
-  // console.log('사용할 토큰:', token ? `${token.substring(0, 20)}...` : 'null')
-  
-  if (!token) {
-    showMessage('로그인이 필요합니다.', 'error')
-    isLoading.value = false
-    return
-  }
-  
   try {
-    // console.log('API 요청 시작')
-    
     const response = await axios({
-      method: 'post',  
+      method: 'post',
       url: '/api/history/borrow',
       data: barcode,
-      headers: {
-        'Content-Type': 'text/plain',
-        'Authorization': `Bearer ${token}`
-      },
-      withCredentials: false
+      headers: { 'Content-Type': 'text/plain' }
     })
     
     // console.log('API 응답 성공:', response)
@@ -298,8 +283,7 @@ const goBack = () => {
 
 // 사용자 인증 확인
 const checkAuth = () => {
-  const token = localStorage.getItem('jwtToken')
-  if (!token) {
+  if (!sessionStorage.getItem('userType')) {
     alert('로그인이 필요합니다.')
     router.push('/login')
     return false
@@ -311,8 +295,6 @@ onMounted(() => {
   if (!checkAuth()) {
     return
   }
-  
-  axios.defaults.withCredentials = false
   
   // 컴포넌트 마운트 시 입력 필드에 포커스
   if (barcodeInput.value) {

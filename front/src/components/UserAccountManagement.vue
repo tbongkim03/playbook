@@ -301,13 +301,9 @@ const handleKeydown = (event) => {
 }
 
 // API 헤더 설정
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('jwtToken')
-  return {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  }
-}
+const getAuthHeaders = () => ({
+  'Content-Type': 'application/json'
+})
 
 // 현재 사용자 정보 조회
 const fetchCurrentUser = async () => {

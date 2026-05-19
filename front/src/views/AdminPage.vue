@@ -201,10 +201,9 @@ const closeRegisterModal = () => {
 
 // 관리자 권한 확인
 const checkAdminAuth = () => {
-  const token = localStorage.getItem('jwtToken')
-  const userType = localStorage.getItem('userType')
-  
-  if (!token || userType !== 'admin') {
+  const userType = sessionStorage.getItem('userType')
+
+  if (userType !== 'admin') {
     alert('관리자 권한이 필요합니다.')
     router.push('/login')
     return false

@@ -426,7 +426,6 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-const jwtToken = ref(localStorage.getItem('jwtToken'))
 
 // API 기본 URL
 const API_BASE_URL = '/api'
@@ -511,8 +510,7 @@ const withdrawLoading = ref(false)
 
 // API 헤더 설정
 const getHeaders = () => ({
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${jwtToken.value}`
+  'Content-Type': 'application/json'
 })
 
 // 과정 검색 필터링
@@ -526,10 +524,9 @@ const filteredCourseList = computed(() => {
 
 // 사용자 인증 확인
 const checkUserAuth = () => {
-  const token = localStorage.getItem('jwtToken')
-  const userType = localStorage.getItem('userType')
-  
-  if (!token || userType !== 'user') {
+  const userType = sessionStorage.getItem('userType')
+
+  if (userType !== 'user') {
     alert('로그인이 필요합니다.')
     router.push('/login')
     return false
@@ -559,7 +556,8 @@ onBeforeUnmount(() => {
 async function loadUserData() {
   try {
     const response = await fetch(`${API_BASE_URL}/users/me`, {
-      headers: getHeaders()
+      headers: getHeaders(),
+      credentials: 'include'
     })
     
     if (response.ok) {
@@ -579,20 +577,17 @@ async function loadUserData() {
         currentCourse.value = '과정 정보 없음 (과정 종료)'
       }
     } else if (response.status === 401) {
-      // 인증 실패 시 로그인 페이지로 리다이렉트
       alert('로그인이 필요하거나 세션이 만료되었습니다.')
-      localStorage.removeItem('jwtToken')
-      localStorage.removeItem('userType')
-      localStorage.removeItem('campusId')
+      sessionStorage.removeItem('userType')
+      sessionStorage.removeItem('campusId')
       router.push('/login')
     }
   } catch (error) {
     console.error('유저 정보 로드 실패:', error)
     if (error.response?.status === 401) {
       alert('로그인이 필요하거나 세션이 만료되었습니다.')
-      localStorage.removeItem('jwtToken')
-      localStorage.removeItem('userType')
-      localStorage.removeItem('campusId')
+      sessionStorage.removeItem('userType')
+      sessionStorage.removeItem('campusId')
       router.push('/login')
     }
   }
@@ -602,7 +597,8 @@ async function loadUserData() {
 async function loadFavoriteBooks() {
   try {
     const response = await fetch(`${API_BASE_URL}/favor`, {
-      headers: getHeaders()
+      headers: getHeaders(),
+      credentials: 'include'
     })
     
     if (response.ok) {
@@ -618,7 +614,8 @@ async function loadFavoriteBooks() {
 async function loadRentalHistory() {
   try {
     const response = await fetch(`${API_BASE_URL}/history/me`, {
-      headers: getHeaders()
+      headers: getHeaders(),
+      credentials: 'include'
     })
     
     if (response.ok) {
@@ -639,13 +636,10 @@ async function loadRentalHistory() {
 // 과정 목록 가져오기
 async function getCourseList() {
   try {
-    const token = localStorage.getItem('jwtToken')
     const res = await fetch('/api/work24/course', {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      }
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include'
     })
     const data = await res.json()
     const apiCoursesRaw = data?.srchList || []
@@ -750,19 +744,14 @@ function goToBookDetail(seqBook) {
 // 찜 해제
 async function removeFavorite(seqBook) {
   try {
-    if (!jwtToken.value) {
+    if (!sessionStorage.getItem('userType')) {
       alert('로그인이 필요합니다.')
       router.push('/login')
       return
     }
-    
-    // console.log('삭제할 seqBook:', seqBook)
 
     const response = await axios.delete('/api/favor', {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${jwtToken.value}`
-      },
+      headers: { 'Content-Type': 'application/json' },
       data: seqBook
     })
 
@@ -779,8 +768,9 @@ async function removeFavorite(seqBook) {
       if (status === 403) {
         alert(message)
       } else if (status === 401) {
-        alert('로그인이 필요하거나 토큰이 만료되었습니다.')
-        localStorage.removeItem('jwtToken')
+        alert('로그인이 필요하거나 세션이 만료되었습니다.')
+        sessionStorage.removeItem('userType')
+        sessionStorage.removeItem('campusId')
         router.push('/login')
       } else {
         alert(`오류: ${message}`)
@@ -858,14 +848,13 @@ async function handleWithdraw() {
     const response = await fetch(`${API_BASE_URL}/users`, {
       method: 'DELETE',
       headers: getHeaders(),
+      credentials: 'include',
       body: JSON.stringify({})
     })
 
     if (response.ok) {
-      // localStorage 먼저 삭제
-      localStorage.removeItem('jwtToken')
-      localStorage.removeItem('userType')
-      localStorage.removeItem('campusId')
+      sessionStorage.removeItem('userType')
+      sessionStorage.removeItem('campusId')
       
       alert('회원 탈퇴가 완료되었습니다.')
       
@@ -1035,6 +1024,7 @@ async function validatePassword(password) {
     const response = await fetch(`${API_BASE_URL}/users/validate`, {
       method: 'POST',
       headers: getHeaders(),
+      credentials: 'include',
       body: JSON.stringify({ password })
     })
 
@@ -1097,6 +1087,7 @@ async function changePassword() {
     const response = await fetch(`${API_BASE_URL}/users/password`, {
       method: 'PUT',
       headers: getHeaders(),
+      credentials: 'include',
       body: JSON.stringify({ newPassword: passwordForm.value.newPassword })
     })
 

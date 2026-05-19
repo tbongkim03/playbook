@@ -155,7 +155,6 @@ const isD = ref(false)
 const buttonsDisabled = ref(false)
 const showBarcode = ref(false)
 const startPosition = ref(0)  // 시작 위치 (0-64)
-const token = localStorage.getItem('jwtToken')
 
 function close() {
   emit('close')
@@ -182,10 +181,8 @@ const uniqueTest = async () => {
   try {
     const response = await fetch(`/api/books/check/barcode`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({
         seqBook: props.seqBook,
         barcodeBook: props.barcodeBook
@@ -433,10 +430,8 @@ const postPrintedBook = async (printCheckBook) => {
 
     const response = await fetch(`/api/books/${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(bodyData)
     })
 

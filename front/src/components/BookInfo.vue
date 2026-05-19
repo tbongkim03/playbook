@@ -220,8 +220,7 @@ const getButtonClass = () => {
 
 const handleBorrowOrReturn = () => {
     // 로그인 체크
-    const token = localStorage.getItem('jwtToken')
-    if (!token) {
+    if (!sessionStorage.getItem('userType')) {
         alert('로그인이 필요합니다.')
         router.push('/login')
         return
@@ -242,31 +241,25 @@ const handleBorrowOrReturn = () => {
 
 const handleWishlist = async () => {
     try {
-        const token = localStorage.getItem('jwtToken')
-        
-        if (!token) {
+        if (!sessionStorage.getItem('userType')) {
             alert('로그인이 필요합니다.')
             router.push('/login')
             return
         }
-        
+
         let response
-        
+
         if (isWishlisted.value) {
             // 찜하기 해제 - DELETE 요청
             response = await axios.delete('/api/favor', {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json' },
                 data: book.value.seqBook
             })
         } else {
             // 찜하기 추가 - POST 요청
             response = await axios.post('/api/favor', book.value.seqBook, {
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json'
                 }
             })
         }
@@ -283,8 +276,9 @@ const handleWishlist = async () => {
             if (status === 403) {
                 alert(message)
             } else if (status === 401) {
-                alert('로그인이 필요하거나 토큰이 만료되었습니다.')
-                localStorage.removeItem('jwtToken')
+                alert('로그인이 필요하거나 세션이 만료되었습니다.')
+                sessionStorage.removeItem('userType')
+                sessionStorage.removeItem('campusId')
                 router.push('/login')
             } else {
                 alert(`오류: ${message}`)
@@ -308,14 +302,9 @@ const checkWishlistStatus = async () => {
     if (isAdmin.value) return
     
     try {
-        const token = localStorage.getItem('jwtToken')
-        if (!token) return
-        
-        const response = await axios.get('/api/favor', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        })
+        if (!sessionStorage.getItem('userType')) return
+
+        const response = await axios.get('/api/favor')
         
         if (response.status === 200 && response.data) {
             const favorList = response.data
@@ -351,26 +340,22 @@ const checkWishlistStatus = async () => {
 
 // 운영자 여부 확인 함수
 const checkAdminStatus = async () => {
-    const token = localStorage.getItem('jwtToken')
-    
+    const userType = sessionStorage.getItem('userType')
+
     // 비회원 확인
-    if (!token) {
+    if (!userType) {
         isGuest.value = true
         isAdmin.value = false
         isFullAdmin.value = false
-        showCampusInfo.value = true // 비회원은 캠퍼스 정보 표시
+        showCampusInfo.value = true
         return
     }
-    
-    const userType = localStorage.getItem('userType')
+
     if (userType === 'admin') {
         isAdmin.value = true
         // 전체 관리자인지 확인
         try {
             const response = await axios.get('/api/admin/me', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
                 validateStatus: () => true
             })
             
@@ -396,13 +381,10 @@ const checkAdminStatus = async () => {
         return
     }
     
-    // userType이 없거나 'user'인 경우, API로 확인
+    // userType이 'user'인 경우
     try {
         const response = await axios.get('/api/admin/me', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
-            validateStatus: () => true // 모든 상태 코드를 성공으로 처리
+            validateStatus: () => true
         })
         
         if (response.status === 200) {
@@ -435,15 +417,7 @@ onMounted(async () => {
     await checkAdminStatus()
     
     try {
-        const token = localStorage.getItem('jwtToken')
-        const headers = {}
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`
-        }
-        
-        const res = await axios.get(`/api/books/${bookId}`, {
-            headers: headers
-        })
+        const res = await axios.get(`/api/books/${bookId}`)
         
         if (res.data) {
             book.value = res.data

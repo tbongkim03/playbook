@@ -234,7 +234,6 @@ function handleFormEnter(e) {
 async function searchISBN() {
   // const apiKey = import.meta.env.VITE_NL_API_KEY
 
-  const token = localStorage.getItem('jwtToken')
   const isbn = String(book.isbn || '').trim()
 
   if (!isbn) {
@@ -245,14 +244,10 @@ async function searchISBN() {
   isSearching.value = true
 
   try {
-    // const url = `https://www.nl.go.kr/seoji/SearchApi.do?cert_key=${apiKey}&result_style=json&page_no=1&page_size=1&isbn=${isbn}`
-    // const res = await fetch(url)
     const res = await fetch('/api/national-library/isbn', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(isbn)
     })
     const data = await res.json()
@@ -337,14 +332,11 @@ async function submitBook() {
 
   try {
     isLoading.value = true
-    const token = localStorage.getItem('jwtToken')
 
     const response = await fetch('/api/books', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(payload)
     })
 
@@ -377,16 +369,12 @@ async function submitBook() {
 }
 
 async function searchBookImageFromNaver() {
-  const token = localStorage.getItem('jwtToken')
-  
   if (book.isbn && String(book.isbn).trim()) {
     try {
       const response = await fetch('/api/naver/book-search', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           isbn: String(book.isbn).trim(),
           display: 10

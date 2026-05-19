@@ -247,17 +247,14 @@ async function handleLogin() {
       apiUrl = '/api/users/login'
     }
 
-    const res = await axios.post(apiUrl, loginData)
+    await axios.post(apiUrl, loginData)
 
-    localStorage.setItem('jwtToken', res.data.token)
-    localStorage.setItem('userType', isAdminMode.value ? 'admin' : 'user')
+    sessionStorage.setItem('userType', isAdminMode.value ? 'admin' : 'user')
 
     // 사용자 정보 조회하여 캠퍼스 저장
     try {
       const userInfoUrl = isAdminMode.value ? '/api/admin/me' : '/api/users/me'
-      const userInfo = await axios.get(userInfoUrl, {
-        headers: { 'Authorization': `Bearer ${res.data.token}` }
-      })
+      const userInfo = await axios.get(userInfoUrl)
 
       // 캠퍼스 정보가 있으면 저장
       if (userInfo.data) {
@@ -265,14 +262,14 @@ async function handleLogin() {
           // 관리자의 경우
           const campus = userInfo.data.seqCampus
           if (campus) {
-            localStorage.setItem('campusId', campus.seqCampus)
+            sessionStorage.setItem('campusId', campus.seqCampus)
           }
         } else if (!isAdminMode.value && userInfo.data.seqCampus) {
           // 일반 사용자의 경우
-          localStorage.setItem('campusId', userInfo.data.seqCampus)
+          sessionStorage.setItem('campusId', userInfo.data.seqCampus)
         } else {
           // 캠퍼스 정보가 없는 경우 (과정 종료 등)
-          localStorage.removeItem('campusId')
+          sessionStorage.removeItem('campusId')
         }
       }
     } catch (infoError) {

@@ -52,13 +52,22 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 
 const router = useRouter()
 
-onMounted(() => {
-  localStorage.removeItem("jwtToken")
-  localStorage.removeItem("userType")
-  
+onMounted(async () => {
+  const userType = sessionStorage.getItem('userType')
+  try {
+    const logoutUrl = userType === 'admin' ? '/api/admin/logout' : '/api/users/logout'
+    await axios.post(logoutUrl)
+  } catch (e) {
+    // 세션이 이미 만료된 경우 무시
+  }
+
+  sessionStorage.removeItem('userType')
+  sessionStorage.removeItem('campusId')
+
   setTimeout(() => {
     router.push('/')
   }, 1200)

@@ -94,39 +94,37 @@ const router = createRouter({
 
 // 라우터 전역 가드 - 인증 체크
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('jwtToken')
-  const userType = localStorage.getItem('userType')
-  
+  const userType = sessionStorage.getItem('userType')
+
   // 로그인이 필요한 페이지 목록
   const requiresAuth = ['/users', '/borrow', '/return']
-  
+
   // 관리자 권한이 필요한 페이지 목록
   const requiresAdmin = ['/admin']
-  
-  // 로그인 페이지로 리다이렉트 중이면 통과
+
   if (to.path === '/login') {
     next()
     return
   }
-  
+
   // 관리자 권한이 필요한 페이지
   if (requiresAdmin.includes(to.path)) {
-    if (!token || userType !== 'admin') {
+    if (userType !== 'admin') {
       alert('관리자 권한이 필요합니다.')
       next('/login')
       return
     }
   }
-  
+
   // 로그인이 필요한 페이지
   if (requiresAuth.includes(to.path)) {
-    if (!token) {
+    if (!userType) {
       alert('로그인이 필요합니다.')
       next('/login')
       return
     }
   }
-  
+
   next()
 })
 

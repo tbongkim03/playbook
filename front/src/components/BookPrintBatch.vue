@@ -259,8 +259,6 @@ const printAll = async () => {
     return
   }
 
-  const token = localStorage.getItem('jwtToken')
-
   const printWindow = window.open('', '', 'width=1000,height=600') 
 
   if (!printWindow) {
@@ -427,10 +425,8 @@ const printAll = async () => {
 
     const res = await fetch('/api/books/batch/print', {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(ids)
     })
 

@@ -604,13 +604,9 @@ const fetchCampuses = async () => {
 // 사용자 타입 확인 및 캠퍼스 필터 설정
 const checkUserType = async () => {
   try {
-    const token = localStorage.getItem('jwtToken')
-    if (!token) return
-    
+    if (!sessionStorage.getItem('userType')) return
+
     const response = await axios.get('/api/admin/me', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
       validateStatus: () => true
     })
     

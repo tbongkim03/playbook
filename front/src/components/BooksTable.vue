@@ -644,13 +644,9 @@ const fetchCampuses = async () => {
 // 사용자 타입 확인 및 캠퍼스 필터 설정
 const checkUserType = async () => {
   try {
-    const token = localStorage.getItem('jwtToken')
-    if (!token) return
-    
+    if (!sessionStorage.getItem('userType')) return
+
     const response = await axios.get('/api/admin/me', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
       validateStatus: () => true
     })
     
@@ -712,15 +708,12 @@ const unavailableCount = computed(() =>
 
 // 모든 도서 데이터 가져오기 (페이지네이션 없이)
 const fetchBooks = async () => {
-  const token = localStorage.getItem('jwtToken')
   const url = `${API_BASE}/books/all`
 
   const res = await fetch(url, {
     method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include'
   })
 
   if (!res.ok) { 
@@ -1001,12 +994,9 @@ async function deleteBook(book) {
 
   try {
     setActiveRow(book.seqBook) // 클릭 시 활성 행 설정
-    const token = localStorage.getItem('jwtToken')
     const response = await fetch(`${API_BASE}/books/${book.seqBook}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+      credentials: 'include'
     })
 
     if (!response.ok) {

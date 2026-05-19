@@ -103,8 +103,7 @@ function handleBorrowReturnClick(event) {
   const href = event.currentTarget.getAttribute('href')
   
   // 로그인 체크
-  const token = localStorage.getItem('jwtToken')
-  if (!token) {
+  if (!sessionStorage.getItem('userType')) {
     alert('로그인이 필요합니다.')
     router.push('/login')
     return

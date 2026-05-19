@@ -221,24 +221,12 @@ const returnBook = async (barcode) => {
   console.log('returnBook 호출됨:', barcode)
   isLoading.value = true
   
-  const token = localStorage.getItem('jwtToken')
-  
-  if (!token) {
-    showMessage('로그인이 필요합니다.', 'error')
-    isLoading.value = false
-    return
-  }
-  
   try {
     const response = await axios({
-      method: 'put',  // 반납은 PUT 메소드 사용
+      method: 'put',
       url: '/api/history/return',
       data: barcode,
-      headers: {
-        'Content-Type': 'text/plain',
-        'Authorization': `Bearer ${token}`
-      },
-      withCredentials: false  // JWT 토큰 사용 시 false
+      headers: { 'Content-Type': 'text/plain' }
     })
     
     showMessage(response.data, 'success')
@@ -287,8 +275,7 @@ const goBack = () => {
 
 // 사용자 인증 확인
 const checkAuth = () => {
-  const token = localStorage.getItem('jwtToken')
-  if (!token) {
+  if (!sessionStorage.getItem('userType')) {
     alert('로그인이 필요합니다.')
     router.push('/login')
     return false
@@ -300,8 +287,6 @@ onMounted(() => {
   if (!checkAuth()) {
     return
   }
-  
-  axios.defaults.withCredentials = false
   
   // 컴포넌트 마운트 시 입력 필드에 포커스
   if (barcodeInput.value) {

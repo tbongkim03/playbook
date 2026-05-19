@@ -569,23 +569,19 @@ const fetchCampuses = async () => {
 
 // 전체 관리자/비회원 확인
 const checkUserType = async () => {
-  const token = localStorage.getItem('jwtToken')
-  
-  if (!token) {
+  const userType = sessionStorage.getItem('userType')
+
+  if (!userType) {
     // 비회원
     isGuest.value = true
     isFullAdmin.value = false
     showCampusFilter.value = true
     return
   }
-  
-  const userType = localStorage.getItem('userType')
+
   if (userType === 'admin') {
     try {
       const response = await axios.get('/api/admin/me', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
         validateStatus: () => true
       })
       

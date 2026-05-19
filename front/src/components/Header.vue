@@ -77,8 +77,8 @@ function goHome() {
 
 // 사용자 정보 가져오기 함수
 async function fetchUserInfo() {
-  const token = localStorage.getItem('jwtToken');
-  if (!token) {
+  const userType = sessionStorage.getItem('userType');
+  if (!userType) {
     isLogin.value = false;
     username.value = '';
     isAdmin.value = false;
@@ -86,55 +86,49 @@ async function fetchUserInfo() {
   }
 
   try {
-    const headers = {
-      Authorization: `Bearer ${token}`
-    };
+    const axiosConfig = { validateStatus: () => true };
 
-    // validateStatus를 사용하여 모든 상태 코드를 성공으로 간주 (콘솔 에러 방지)
-    const axiosConfig = {
-      headers,
-      validateStatus: () => true  // 모든 HTTP 상태 코드를 성공으로 처리
-    };
-
-    const [userRes, adminRes] = await Promise.allSettled([
-      axios.get('/api/users/me', axiosConfig),
-      axios.get('/api/admin/me', axiosConfig)
-    ]);
-
-    if (userRes.status === 'fulfilled' && userRes.value.status === 200) {
-      const data = userRes.value.data;
-      if (data.seqCampus) {
-        localStorage.setItem('campusId', data.seqCampus);
-        campusName.value = data.campusName || '정보 없음';
-      } else {
-        localStorage.removeItem('campusId');
-        campusName.value = '정보 없음';
+    if (userType === 'user') {
+      const userRes = await axios.get('/api/users/me', axiosConfig);
+      if (userRes.status === 200) {
+        const data = userRes.data;
+        if (data.seqCampus) {
+          sessionStorage.setItem('campusId', data.seqCampus);
+          campusName.value = data.campusName || '정보 없음';
+        } else {
+          sessionStorage.removeItem('campusId');
+          campusName.value = '정보 없음';
+        }
+        username.value = data.nameUser || data.idUser || '사용자';
+        isLogin.value = true;
+        isAdmin.value = false;
+        return;
       }
-      username.value = data.nameUser || data.idUser || '사용자';
-      isLogin.value = true;
-      isAdmin.value = false;
-    } else if (adminRes.status === 'fulfilled' && adminRes.value.status === 200) {
-      const data = adminRes.value.data;
-      if (data.seqCampus?.seqCampus) {
-        localStorage.setItem('campusId', data.seqCampus?.seqCampus);
-        campusName.value = data.seqCampus?.nameCampus || '정보 없음';
-      } else {
-        // 전체 관리자
-        campusName.value = '전체';
+    } else if (userType === 'admin') {
+      const adminRes = await axios.get('/api/admin/me', axiosConfig);
+      if (adminRes.status === 200) {
+        const data = adminRes.data;
+        if (data.seqCampus?.seqCampus) {
+          sessionStorage.setItem('campusId', data.seqCampus?.seqCampus);
+          campusName.value = data.seqCampus?.nameCampus || '정보 없음';
+        } else {
+          campusName.value = '전체';
+        }
+        username.value = data.nameAdmin || data.idAdmin || '관리자';
+        isLogin.value = true;
+        isAdmin.value = true;
+        return;
       }
-      username.value = data.nameAdmin || data.idAdmin || '관리자';
-      isLogin.value = true;
-      isAdmin.value = true;
-    } else {
-      // 둘 다 실패한 경우
-       localStorage.removeItem('jwtToken')
-       isLogin.value = false
-       username.value = ''
-       isAdmin.value = false
-       campusName.value = ''
     }
+
+    // 세션 만료 등 실패 시
+    sessionStorage.removeItem('userType');
+    sessionStorage.removeItem('campusId');
+    isLogin.value = false;
+    username.value = '';
+    isAdmin.value = false;
+    campusName.value = '';
   } catch (error) {
-    alert('예기치 못한 오류 발생: ' + (error.response?.data || error));
     isLogin.value = false;
     username.value = '';
     isAdmin.value = false;

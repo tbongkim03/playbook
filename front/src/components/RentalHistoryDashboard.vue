@@ -357,14 +357,9 @@ const currentPage = ref(1)
 const itemsPerPage = 10
 
 // API 헤더 설정
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('jwtToken')
-
-  return {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  }
-}
+const getAuthHeaders = () => ({
+  'Content-Type': 'application/json'
+})
 
 // 과정명을 첫 단어와 마지막 단어만 표시하는 함수
 const formatCourseName = (courseName) => {
@@ -477,13 +472,9 @@ const fetchCampuses = async () => {
 // 사용자 타입 확인 및 캠퍼스 필터 설정
 const checkUserType = async () => {
   try {
-    const token = localStorage.getItem('jwtToken')
-    if (!token) return
-    
+    if (!sessionStorage.getItem('userType')) return
+
     const response = await axios.get('/api/admin/me', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
       validateStatus: () => true
     })
     

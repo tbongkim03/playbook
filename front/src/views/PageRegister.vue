@@ -356,8 +356,6 @@ const selectedCourse = ref(null)
 
 const fromTerm = window.history.state?.fromTerm
 
-const token = localStorage.getItem("jwtToken")
-
 if (!fromTerm) {
   alert('잘못된 접근입니다.')
   router.replace('/')

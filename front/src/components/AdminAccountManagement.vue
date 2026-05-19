@@ -399,13 +399,9 @@ const deletingAdmin = ref({
 })
 
 // API 헤더 설정
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('jwtToken')
-  return {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  }
-}
+const getAuthHeaders = () => ({
+  'Content-Type': 'application/json'
+})
 
 // 비밀번호 검증
 const validatePassword = async (idAdmin, password) => {

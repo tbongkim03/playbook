@@ -402,13 +402,9 @@ const deletingCourse = ref({
 })
 
 // API 헤더 설정
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('jwtToken')
-  return {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  }
-}
+const getAuthHeaders = () => ({
+  'Content-Type': 'application/json'
+})
 
 // 활성 캠퍼스 목록 (별도로 관리)
 const activeCampusListForSelect = ref([])
@@ -439,13 +435,9 @@ const handleKeydown = (event) => {
 // 사용자 타입 확인 및 캠퍼스 필터 설정
 const checkUserType = async () => {
   try {
-    const token = localStorage.getItem('jwtToken')
-    if (!token) return
-    
+    if (!sessionStorage.getItem('userType')) return
+
     const response = await axios.get('/api/admin/me', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
       validateStatus: () => true
     })
     
