@@ -30,7 +30,7 @@ services:
     networks:
       - dev-network
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -62,5 +62,4 @@ volumes:
 networks:
   dev-network:
     driver: bridge
-
 
