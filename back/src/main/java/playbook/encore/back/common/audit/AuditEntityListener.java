@@ -13,22 +13,30 @@ public class AuditEntityListener {
         LocalDateTime now = LocalDateTime.now();
         entity.setCreatedAt(now);
         entity.setUpdatedAt(now);
-        AuditContext ctx = getAuditContext();
-        if (ctx != null) {
-            entity.setCreatedBy(ctx.getActorId());
-            entity.setCreatedByType(ctx.getActorType());
-            entity.setUpdatedBy(ctx.getActorId());
-            entity.setUpdatedByType(ctx.getActorType());
+        try {
+            AuditContext ctx = getAuditContext();
+            if (ctx != null) {
+                entity.setCreatedBy(ctx.getActorId());
+                entity.setCreatedByType(ctx.getActorType());
+                entity.setUpdatedBy(ctx.getActorId());
+                entity.setUpdatedByType(ctx.getActorType());
+            }
+        } catch (Exception e) {
+            // request scope 없는 환경(앱 초기화 등)에서는 감사 정보 생략
         }
     }
 
     @PreUpdate
     public void preUpdate(BaseAuditEntity entity) {
         entity.setUpdatedAt(LocalDateTime.now());
-        AuditContext ctx = getAuditContext();
-        if (ctx != null) {
-            entity.setUpdatedBy(ctx.getActorId());
-            entity.setUpdatedByType(ctx.getActorType());
+        try {
+            AuditContext ctx = getAuditContext();
+            if (ctx != null) {
+                entity.setUpdatedBy(ctx.getActorId());
+                entity.setUpdatedByType(ctx.getActorType());
+            }
+        } catch (Exception e) {
+            // request scope 없는 환경(앱 초기화 등)에서는 감사 정보 생략
         }
     }
 
