@@ -55,8 +55,8 @@ public class SortFirstDAOImpl implements SortFirstDAO {
 
         if (optionalSortFirst.isPresent()) {
             SortFirst selectedSortFirst = optionalSortFirst.get();
-
-            sortFirstRepository.delete(selectedSortFirst);
+            selectedSortFirst.setUseYn("N");
+            sortFirstRepository.save(selectedSortFirst);
         } else {
             throw new IllegalArgumentException("해당 대분류를 삭제에 실패했습니다: " + sortFirst.getSeqSortFirst());
         }

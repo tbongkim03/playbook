@@ -14,6 +14,9 @@ import java.time.LocalDateTime;
 @Setter
 public abstract class BaseAuditEntity {
 
+    @Column(name = "use_yn", nullable = false, columnDefinition = "CHAR(1) DEFAULT 'Y'")
+    private String useYn = "Y";
+
     @Column(name = "created_by_type", length = 20)
     private String createdByType;
 

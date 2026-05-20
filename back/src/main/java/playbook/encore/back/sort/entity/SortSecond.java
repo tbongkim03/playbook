@@ -3,10 +3,12 @@ package playbook.encore.back.sort.entity;
 import jakarta.persistence.*;
 import playbook.encore.back.common.audit.BaseAuditEntity;
 import lombok.*;
+import org.hibernate.annotations.Where;
 
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = false)
+@Where(clause = "use_yn = 'Y'")
 @Table(name = "tb_sort_second")
 public class SortSecond extends BaseAuditEntity {
     @Id

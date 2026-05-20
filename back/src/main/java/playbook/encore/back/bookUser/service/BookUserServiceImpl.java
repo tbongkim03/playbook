@@ -20,6 +20,7 @@ import playbook.encore.back.course.dao.CourseRepository;
 import playbook.encore.back.history.dao.HistoryRepository;
 import playbook.encore.back.history.entity.History;
 import playbook.encore.back.bookUser.service.BookUserService;
+import playbook.encore.back.favor.dao.FavorRepository;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -34,14 +35,16 @@ public class BookUserServiceImpl implements BookUserService{
     private final CourseRepository courseRepository;
     private final BookUserRepository bookUserRepository;
     private final HistoryRepository historyRepository;
+    private final FavorRepository favorRepository;
 
     @Autowired
-    public BookUserServiceImpl(AdminDAO adminDAO, BookUserDAO bookUserDAO, CourseRepository courseRepository, BookUserRepository bookUserRepository, HistoryRepository historyRepository) {
+    public BookUserServiceImpl(AdminDAO adminDAO, BookUserDAO bookUserDAO, CourseRepository courseRepository, BookUserRepository bookUserRepository, HistoryRepository historyRepository, FavorRepository favorRepository) {
         this.adminDAO = adminDAO;
         this.bookUserDAO = bookUserDAO;
         this.courseRepository = courseRepository;
         this.bookUserRepository = bookUserRepository;
         this.historyRepository = historyRepository;
+        this.favorRepository = favorRepository;
     }
 
     @Override
@@ -161,11 +164,9 @@ public class BookUserServiceImpl implements BookUserService{
                 throw new IllegalArgumentException("대출 중인 책이 있어 삭제할 수 없습니다.");
             }
 
-            // 찜 기록 삭제
-//            favorRepository.deleteBySeqUser(user);
-//            favorRepository.flush();
-
-            bookUserRepository.deleteById(user.getSeqUser());
+            favorRepository.softDeleteBySeqUser(user);
+            user.setUseYn("N");
+            bookUserRepository.save(user);
             bookUserRepository.flush();
 
             return true;
@@ -197,8 +198,9 @@ public class BookUserServiceImpl implements BookUserService{
                 throw new IllegalArgumentException("대출 중인 도서가 있어 탈퇴할 수 없습니다. 먼저 모든 도서를 반납해주세요.");
             }
 
-            // 사용자 삭제 (찜 목록은 외래키 CASCADE로 자동 삭제됨)
-            bookUserRepository.deleteById(user.getSeqUser());
+            favorRepository.softDeleteBySeqUser(user);
+            user.setUseYn("N");
+            bookUserRepository.save(user);
             bookUserRepository.flush();
 
             return true;

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import playbook.encore.back.course.entity.Course;
 import playbook.encore.back.common.audit.BaseAuditEntity;
 import lombok.*;
+import org.hibernate.annotations.Where;
 
 @Entity
 @Data
@@ -11,6 +12,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Where(clause = "use_yn = 'Y'")
 @Table(name = "tb_user")
 public class BookUser extends BaseAuditEntity {
     @Id

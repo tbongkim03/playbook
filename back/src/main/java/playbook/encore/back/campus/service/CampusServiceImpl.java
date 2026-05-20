@@ -111,6 +111,7 @@ public class CampusServiceImpl implements CampusService {
         
         // 실제 삭제 대신 비활성화 처리 (데이터 무결성 유지)
         campus.setActive(false);
+        campus.setUseYn("N");
         campusRepository.save(campus);
     }
 }

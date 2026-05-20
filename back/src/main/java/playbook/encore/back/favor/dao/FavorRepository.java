@@ -1,6 +1,7 @@
 package playbook.encore.back.favor.dao;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import playbook.encore.back.favor.dto.FavorResponseDto;
@@ -21,9 +22,13 @@ public interface FavorRepository extends JpaRepository<Favor, Integer> {
     boolean existsBySeqUserAndSeqBook(BookUser user, Book book);
     Optional<Favor> findBySeqUserAndSeqBook(BookUser user, Book book);
 
-    void deleteBySeqUserAndSeqBook(BookUser user, Book book);
+    @Modifying
+    @Query("UPDATE Favor f SET f.useYn = 'N' WHERE f.seqUser = :user AND f.seqBook = :book")
+    void softDeleteBySeqUserAndSeqBook(@Param("user") BookUser user, @Param("book") Book book);
 
-    void deleteBySeqUser(BookUser user);
+    @Modifying
+    @Query("UPDATE Favor f SET f.useYn = 'N' WHERE f.seqUser = :user")
+    void softDeleteBySeqUser(@Param("user") BookUser user);
 
     List<BookUser> findAllBySeqBook(Book book);
 }

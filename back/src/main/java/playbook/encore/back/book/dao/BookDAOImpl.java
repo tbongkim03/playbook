@@ -151,8 +151,8 @@ public class BookDAOImpl implements BookDAO {
 
         if (optionalBook.isPresent()) {
             Book selectedBook = optionalBook.get();
-
-            bookRepository.delete(selectedBook);
+            selectedBook.setUseYn("N");
+            bookRepository.save(selectedBook);
         } else {
             throw new IllegalArgumentException("해당 도서를 삭제하지 못했습니다. : " + book.getTitleBook());
         }

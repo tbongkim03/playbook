@@ -55,8 +55,8 @@ public class CourseDAOImpl implements CourseDAO{
 
         if (optionalCourse.isPresent()) {
             Course selectedCourse = optionalCourse.get();
-
-            courseRepository.delete(selectedCourse);
+            selectedCourse.setUseYn("N");
+            courseRepository.save(selectedCourse);
         } else {
             throw new IllegalArgumentException("해당 과정을 삭제하지 못하였습니다.");
         }

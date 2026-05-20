@@ -5,6 +5,7 @@ import playbook.encore.back.sort.entity.SortSecond;
 import playbook.encore.back.campus.entity.Campus;
 import playbook.encore.back.common.audit.BaseAuditEntity;
 import lombok.*;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDate;
 
@@ -14,6 +15,7 @@ import java.time.LocalDate;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Where(clause = "use_yn = 'Y'")
 @Table(name = "tb_book")
 public class Book extends BaseAuditEntity {
     @Id

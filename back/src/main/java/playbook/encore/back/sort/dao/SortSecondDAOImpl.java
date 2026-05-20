@@ -55,8 +55,8 @@ public class SortSecondDAOImpl implements SortSecondDAO {
 
         if (optionalSortSecond.isPresent()) {
             SortSecond selectedSortSecond = optionalSortSecond.get();
-
-            sortSecondRepository.delete(selectedSortSecond);
+            selectedSortSecond.setUseYn("N");
+            sortSecondRepository.save(selectedSortSecond);
         } else {
             throw new IllegalArgumentException("해당 중분류를 삭제에 실패했습니다: " + sortSecondId);
 

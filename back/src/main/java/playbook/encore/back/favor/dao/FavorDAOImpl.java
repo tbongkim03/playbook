@@ -57,6 +57,7 @@ public class FavorDAOImpl implements FavorDAO {
         Favor favor = favorRepository.findBySeqUserAndSeqBook(user, book)
                 .orElseThrow(() -> new IllegalArgumentException("찜하기 목록에 해당 책이 없습니다."));
 
-        favorRepository.deleteBySeqUserAndSeqBook(user, book);
+        favor.setUseYn("N");
+        favorRepository.save(favor);
     }
 }
