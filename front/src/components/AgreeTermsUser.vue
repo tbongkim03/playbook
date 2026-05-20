@@ -46,99 +46,8 @@
                     </div>
 
                     <div class="terms-full" v-else>
-                        <h6>본 약관은 도서 대출 서비스를 이용함에 있어 회사(또는 서비스 운영자)와 회원 간의 권리, 의무 및 책임 사항을 규정함을 목적으로 합니다.</h6>
-                        
-                        <div class="terms-section">
-                            <h7>제1조 (목적)</h7>
-                            <p>이 약관은 회사가 제공하는 도서 대출 서비스(이하 "서비스")의 이용 조건 및 절차, 회사와 회원 간의 권리·의무 및 책임사항을 규정함을 목적으로 합니다.</p>
-                        </div>
-
-                        <div class="terms-section">
-                            <h7>제2조 (정의)</h7>
-                            <p>
-                                1. "회원"이라 함은 본 약관에 동의하고 서비스를 이용하는 자를 말합니다.<br>
-                                2. "도서"라 함은 서비스에서 대출를 위해 제공하는 도서를 말합니다.<br>
-                                3. "대출"라 함은 회사가 회원에게 일정 기간 도서를 빌려주는 행위를 말합니다.
-                            </p>
-                        </div>
-
-                        <div class="terms-section">
-                            <h7>제3조 (약관의 게시 및 변경)</h7>
-                            <p>
-                                1. 회사는 본 약관을 서비스 화면에 게시하거나 기타의 방법으로 회원에게 공지합니다.<br>
-                                2. 회사는 관련 법령을 위배하지 않는 범위에서 약관을 개정할 수 있습니다.<br>
-                                3. 개정 약관은 적용일자 및 개정 사유를 명시하여 공지하며, 회원이 변경된 약관에 동의하지 않을 경우 서비스 이용을 중단할 수 있습니다.
-                            </p>
-                        </div>
-
-                        <div class="terms-section">
-                            <h7>제4조 (회원가입)</h7>
-                            <p>
-                                1. 회원가입은 본 약관 및 개인정보 수집·이용 동의서에 동의하고, 회사가 정한 가입 양식에 정보를 기재하여 신청하면 회사가 이를 승낙함으로써 완료됩니다.<br>
-                                2. 회사는 회원의 신청을 승낙함을 원칙으로 하나, 다음 각 호에 해당하는 경우 승낙을 거부할 수 있습니다.<br>
-                                • 허위 정보를 기재한 경우<br>
-                                • 타인의 정보를 도용한 경우<br>
-                                • 기타 회사가 부적합하다고 판단한 경우
-                            </p>
-                        </div>
-
-                        <div class="terms-section">
-                            <h7>제5조 (회원의 의무)</h7>
-                            <p>
-                                1. 회원은 본 약관 및 서비스 이용안내, 공지사항을 준수해야 합니다.<br>
-                                2. 회원은 타인의 권리나 명예를 침해하거나 공공질서를 해치는 행위를 해서는 안 됩니다.<br>
-                                3. 회원은 대출한 도서를 정해진 반납 기한까지 반환해야 합니다.
-                            </p>
-                        </div>
-
-                        <div class="terms-section highlight">
-                            <h7>제7조 (대출 기간 및 반납 의무)</h7>
-                            <p>
-                                1. 회원은 회사가 정한 대출 기간 내에 대출한 도서를 반납해야 합니다.<br>
-                                2. 대출 기간은 대출일로부터 7일입니다.<br>
-                                3. 회원은 최대 2권까지 동시에 대출할 수 있습니다.
-                            </p>
-                        </div>
-
-                        <div class="terms-section highlight">
-                            <h7>제8조 (연체에 대한 제재)</h7>
-                            <p>
-                                1. 회원이 반납 기한을 초과하여 도서를 연체할 경우, 연체일 수의 2배 기간 동안 추가 대출이 제한됩니다.<br>
-                                <strong>예) 3일 연체 시 → 6일 대출 정지</strong><br>
-                                2. 회사는 연체 사실 및 대출 제한 기간을 회원에게 고지합니다.
-                            </p>
-                        </div>
-
-                        <div class="terms-section">
-                            <h7>제9조 (도서의 분실 및 훼손)</h7>
-                            <p>
-                                1. 회원이 대출한 도서를 분실하거나 심각하게 훼손한 경우, 동일 도서로 배상해야 합니다.<br>
-                                2. 동일 도서로 배상이 어려운 경우, 회사가 인정하는 금액을 변상해야 할 수 있습니다.
-                            </p>
-                        </div>
-
-                        <div class="terms-section">
-                            <h7>제6조 (회원의 상태 및 서비스 이용 제한)</h7>
-                            <p>
-                                1. 회원의 상태는 정상(available), 연체(overdue), 정지(stop)로 구분됩니다.<br>
-                                2. 정지 상태의 회원도 로그인은 가능하나, 도서 대출 및 반납 기능은 이용할 수 없습니다.<br>
-                                3. 회원의 상태는 연체 반납, 과정 종료, 대출 권수 등에 따라 자동으로 변경됩니다.
-                            </p>
-                        </div>
-
-                        <div class="terms-section">
-                            <h7>제10조 ~ 제12조 (기타 조항)</h7>
-                            <p>서비스 이용 제한, 면책조항, 준거법 및 관할 등에 관한 사항을 포함합니다.</p>
-                        </div>
-
-                        <div class="terms-section">
-                            <h7>제13조 (회원 탈퇴)</h7>
-                            <p>
-                                1. 회원은 언제든지 회원 탈퇴를 요청할 수 있습니다.<br>
-                                2. 대출 중이거나 연체 중인 도서가 있는 경우 탈퇴할 수 없습니다.<br>
-                                3. 회원 탈퇴 시 모든 개인정보 및 데이터가 즉시 삭제되며 복구할 수 없습니다.
-                            </p>
-                        </div>
+                        <div v-if="termsContent" v-html="termsContent"></div>
+                        <div v-else style="color:#a0aec0; padding: 12px 0;">약관을 불러오는 중...</div>
                     </div>
                 </div>
             </div>
@@ -166,7 +75,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
 
 defineProps({
   isTermsAgree: {
@@ -178,6 +88,16 @@ defineProps({
 defineEmits(['update:isTermsAgree'])
 
 const isFullView = ref(false)
+const termsContent = ref('')
+
+onMounted(async () => {
+  try {
+    const res = await axios.get('/api/terms/SERVICE')
+    termsContent.value = res.data.data?.content || ''
+  } catch {
+    // 로드 실패 시 빈 상태 유지
+  }
+})
 
 function toggleFullView() {
   isFullView.value = !isFullView.value

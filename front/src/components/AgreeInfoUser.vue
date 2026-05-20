@@ -54,73 +54,8 @@
                     </div>
 
                     <div class="terms-full" v-else>
-                        <h6>본인은 도서 대출 서비스 제공을 위하여 아래와 같은 개인정보를 수집·이용하는 것에 동의합니다.</h6>
-                        
-                        <div class="terms-section">
-                            <h7>1. 수집 항목</h7>
-                            <div class="collection-items">
-                                <div class="item-tag">이름</div>
-                                <div class="item-tag">아이디(ID)</div>
-                                <div class="item-tag">비밀번호</div>
-                                <div class="item-tag discord">디스코드 아이디</div>
-                            </div>
-                        </div>
-
-                        <div class="terms-section">
-                            <h7>2. 수집·이용 목적</h7>
-                            <ul class="purpose-list">
-                                <li>
-                                    <span class="purpose-icon">👤</span>
-                                    <span>회원 식별 및 관리</span>
-                                </li>
-                                <li>
-                                    <span class="purpose-icon">📚</span>
-                                    <span>도서 대출 및 반납 서비스 제공</span>
-                                </li>
-                                <li class="highlight-purpose">
-                                    <span class="purpose-icon">🔔</span>
-                                    <span>디스코드 아이디를 통한 반납 기한 알림 메시지 발송</span>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div class="terms-section">
-                            <h7>3. 보유 및 이용 기간</h7>
-                            <div class="retention-info">
-                                <div class="retention-item">
-                                    <div class="retention-icon">⏰</div>
-                                    <div class="retention-content">
-                                        <strong>기본 보유 기간</strong>
-                                        <p>회원 탈퇴 시까지 보유 및 이용</p>
-                                    </div>
-                                </div>
-                                <div class="retention-item">
-                                    <div class="retention-icon">⚖️</div>
-                                    <div class="retention-content">
-                                        <strong>법령에 따른 보존</strong>
-                                        <p>관련 법령에 따라 보존할 필요가 있는 경우 해당 법령에 따름</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="terms-section warning">
-                            <h7>4. 동의를 거부할 권리 및 불이익</h7>
-                            <div class="warning-content">
-                                <div class="warning-item">
-                                    <span class="warning-icon">✅</span>
-                                    <span>귀하는 개인정보 수집·이용에 동의하지 않을 수 있습니다.</span>
-                                </div>
-                                <div class="warning-item important">
-                                    <span class="warning-icon">⚠️</span>
-                                    <span>단, 필수 항목에 대한 동의를 거부할 경우, 서비스 이용이 제한될 수 있습니다.</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="final-notice">
-                            <strong>▶ [필수] 위 내용을 충분히 읽고 이해하였으며, 개인정보 수집·이용에 동의합니다.</strong>
-                        </div>
+                        <div v-if="termsContent" v-html="termsContent"></div>
+                        <div v-else style="color:#a0aec0; padding: 12px 0;">약관을 불러오는 중...</div>
                     </div>
                 </div>
             </div>
@@ -148,7 +83,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
 
 defineProps({
   isInfoAgree: {
@@ -160,6 +96,16 @@ defineProps({
 defineEmits(['update:isInfoAgree'])
 
 const isFullView = ref(false)
+const termsContent = ref('')
+
+onMounted(async () => {
+  try {
+    const res = await axios.get('/api/terms/PRIVACY')
+    termsContent.value = res.data.data?.content || ''
+  } catch {
+    // 로드 실패 시 빈 상태 유지
+  }
+})
 
 function toggleFullView() {
   isFullView.value = !isFullView.value

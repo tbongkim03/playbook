@@ -111,7 +111,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { swAlert } from '@/utils/sweetAlert'
 import AgreeTermsUser from '@/components/AgreeTermsUser.vue'
@@ -131,12 +131,13 @@ const isManualTrigger = ref(false)
 const route = useRoute()
 const router = useRouter()
 
-const fromLogin = window.history.state?.fromLogin
-
-if (!fromLogin) {
-  await swAlert('잘못된 접근입니다.', 'warning')
-  router.replace('/')
-}
+onMounted(async () => {
+  const fromLogin = window.history.state?.fromLogin
+  if (!fromLogin) {
+    await swAlert('잘못된 접근입니다.', 'warning')
+    router.replace('/')
+  }
+})
 
 watch(allAgree, (agree) => {
   if (!isManualTrigger.value) return

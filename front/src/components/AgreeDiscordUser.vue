@@ -72,101 +72,8 @@
                     </div>
     
                     <div class="terms-full" v-else>
-                        <h6>본인은 도서 대출 및 반납 기한과 관련된 알림 메시지를 수신하는 것에 동의합니다.</h6>
-    
-                        <div class="terms-section">
-                            <h7>1. 수신 항목 및 수단</h7>
-                            <div class="reception-info">
-                                <div class="reception-items">
-                                    <strong>수신 항목</strong>
-                                    <div class="item-list">
-                                        <div class="list-item">
-                                            <span class="item-icon">📚</span>
-                                            <span>도서 대출 완료 안내</span>
-                                        </div>
-                                        <div class="list-item">
-                                            <span class="item-icon">📅</span>
-                                            <span>반납 예정일 안내</span>
-                                        </div>
-                                        <div class="list-item">
-                                            <span class="item-icon">✅</span>
-                                            <span>반납 완료 안내</span>
-                                        </div>
-                                        <div class="list-item highlight">
-                                            <span class="item-icon">🚨</span>
-                                            <span>연체 발생 알림</span>
-                                        </div>
-                                    </div>
-                                </div>
-    
-                                <div class="reception-method">
-                                    <strong>수신 수단</strong>
-                                    <div class="method-card">
-                                        <div class="discord-badge">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419-.0189 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9554 2.4189-2.1568 2.4189Z" fill="currentColor"/>
-                                                            </svg>
-                                            <span>디스코드 메시지</span>
-                                        </div>
-                                        <p>실시간으로 중요한 알림을 받아보세요</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-    
-                        <div class="terms-section">
-                            <h7>2. 이용 목적</h7>
-                            <div class="purpose-cards">
-                                <div class="purpose-card">
-                                    <div class="purpose-icon">📋</div>
-                                    <div class="purpose-content">
-                                        <strong>도서 대출 및 반납 기한 안내</strong>
-                                        <p>정확한 대출/반납 일정을 알려드립니다</p>
-                                    </div>
-                                </div>
-                                <div class="purpose-card highlight">
-                                    <div class="purpose-icon">🛡️</div>
-                                    <div class="purpose-content">
-                                        <strong>연체 방지 및 원활한 서비스 운영</strong>
-                                        <p>미리 알림을 통해 연체를 방지하고 서비스 품질을 향상시킵니다</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-    
-                        <div class="terms-section">
-                            <h7>3. 보유 및 이용 기간</h7>
-                            <div class="duration-info">
-                                <div class="duration-card">
-                                    <div class="duration-icon">📅</div>
-                                    <div class="duration-content">
-                                        <strong>알림 수신 기간</strong>
-                                        <p>동의일로부터 회원 탈퇴 또는 수신 동의 철회 시까지</p>
-                                        <div class="duration-note">
-                                            언제든지 알림 수신을 중단할 수 있습니다
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-    
-                        <div class="terms-section warning">
-                            <h7>4. 동의를 거부할 권리 및 불이익</h7>
-                            <div class="warning-content">
-                                <div class="warning-item">
-                                    <span class="warning-icon">✅</span>
-                                    <span>귀하는 알림 수신에 동의하지 않을 수 있습니다.</span>
-                                </div>
-                                <div class="warning-item important">
-                                    <span class="warning-icon">⚠️</span>
-                                    <span>단, 필수 항목에 대한 동의를 거부할 경우, 서비스 이용이 제한될 수 있습니다.</span>
-                                </div>
-                            </div>
-                        </div>
-    
-                        <div class="final-notice">
-                            <strong>▶ [필수] 위 내용을 충분히 읽고 이해하였으며, 도서 대출 및 반납 알림 수신에 동의합니다.</strong>
-                        </div>
+                        <div v-if="termsContent" v-html="termsContent"></div>
+                        <div v-else style="color:#a0aec0; padding: 12px 0;">약관을 불러오는 중...</div>
                     </div>
                 </div>
             </div>
@@ -194,7 +101,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
 
 defineProps({
     isDiscordAgree: {
@@ -206,6 +114,16 @@ defineProps({
 defineEmits(['update:isDiscordAgree'])
 
 const isFullView = ref(false)
+const termsContent = ref('')
+
+onMounted(async () => {
+    try {
+        const res = await axios.get('/api/terms/DISCORD')
+        termsContent.value = res.data.data?.content || ''
+    } catch {
+        // 로드 실패 시 빈 상태 유지
+    }
+})
 
 function toggleFullView() {
     isFullView.value = !isFullView.value
