@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { isMobile } from '@/utils/mobileDetect';
+import { swAlert } from '@/utils/sweetAlert';
 import HomePage from '@/views/HomePage.vue';
 import PageLogin from '@/views/PageLogin.vue';
 import PageLogout from '@/components/PageLogout.vue';
@@ -94,7 +95,7 @@ const router = createRouter({
 });
 
 // 라우터 전역 가드 - 인증 체크
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const userType = sessionStorage.getItem('userType')
 
   // 로그인이 필요한 페이지 목록
@@ -111,7 +112,7 @@ router.beforeEach((to, from, next) => {
   // 관리자 권한이 필요한 페이지
   if (requiresAdmin.includes(to.path)) {
     if (userType !== 'admin') {
-      alert('관리자 권한이 필요합니다.')
+      await swAlert('관리자 권한이 필요합니다.', 'warning')
       next('/login')
       return
     }
@@ -120,7 +121,7 @@ router.beforeEach((to, from, next) => {
   // 로그인이 필요한 페이지
   if (requiresAuth.includes(to.path)) {
     if (!userType) {
-      alert('로그인이 필요합니다.')
+      await swAlert('로그인이 필요합니다.', 'info')
       next('/login')
       return
     }
@@ -129,7 +130,7 @@ router.beforeEach((to, from, next) => {
   // PC 전용 페이지 (대출/반납)
   const pcOnlyRoutes = ['/borrow', '/return']
   if (pcOnlyRoutes.includes(to.path) && isMobile()) {
-    alert('PC에서만 이용 가능한 기능입니다.')
+    await swAlert('PC에서만 이용 가능한 기능입니다.', 'info')
     next('/')
     return
   }

@@ -262,6 +262,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
+import { swAlert } from '@/utils/sweetAlert'
 
 // 반응형 데이터
 const userList = ref([])
@@ -368,11 +369,11 @@ const fetchUserList = async () => {
     
   } catch (error) {
     if (error.response?.status === 403) {
-      alert('관리자 권한이 필요합니다.')
+      await swAlert('관리자 권한이 필요합니다.', 'warning')
     } else if (error.response?.status === 401) {
-      alert('로그인이 필요합니다.')
+      await swAlert('로그인이 필요합니다.', 'info')
     } else {
-      alert('학생 목록을 불러오는데 실패했습니다.')
+      await swAlert('학생 목록을 불러오는데 실패했습니다.', 'error')
     }
   } finally {
     isLoading.value = false
@@ -487,17 +488,17 @@ const deleteUser = async () => {
       }
     })
     
-    alert('학생 계정이 성공적으로 삭제되었습니다.')
+    await swAlert('학생 계정이 성공적으로 삭제되었습니다.', 'success')
     closeDeleteModal()
     await fetchUserList()
-    
+
   } catch (error) {
     if (error.response?.status === 403) {
-      alert('관리자 권한이 필요합니다.')
+      await swAlert('관리자 권한이 필요합니다.', 'warning')
     } else if (error.response?.status === 401) {
-      alert(error.response?.data?.msg)
+      await swAlert(error.response?.data?.msg || '인증에 실패했습니다.', 'warning')
     } else {
-      alert(error.response?.data?.msg || '학생 삭제에 실패했습니다.')
+      await swAlert(error.response?.data?.msg || '학생 삭제에 실패했습니다.', 'error')
     }
   } finally {
     isLoading.value = false

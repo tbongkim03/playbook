@@ -168,6 +168,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
+import { swAlert } from '@/utils/sweetAlert'
 import AdminAccountManagement from '@/components/AdminAccountManagement.vue'
 import RentalHistoryDashboard from '@/components/RentalHistoryDashboard.vue'
 import StatisticsDashboard from '@/components/StatisticsDashboard.vue'
@@ -204,7 +205,7 @@ const checkAdminAuth = () => {
   const userType = sessionStorage.getItem('userType')
 
   if (userType !== 'admin') {
-    alert('관리자 권한이 필요합니다.')
+    await swAlert('관리자 권한이 필요합니다.', 'warning')
     router.push('/login')
     return false
   }

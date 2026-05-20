@@ -36,6 +36,7 @@
 </template>
 
 <script>
+import { swAlert } from '@/utils/sweetAlert'
 export default {
     name: 'BookSearch',
     emits: ['search'],
@@ -70,7 +71,7 @@ export default {
                 this.suggestions = uniqueTitles;
                 this.selectedIndex = -1; // 새로운 검색 결과가 나올 때 선택 초기화
             } catch (error) {
-                alert('자동완성 요청 실패:', error);
+                await swAlert('자동완성 요청에 실패했습니다.', 'error');
                 this.suggestions = [];
                 this.selectedIndex = -1;
             }

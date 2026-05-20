@@ -323,6 +323,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { swAlert } from '@/utils/sweetAlert'
 
 // 반응형 데이터
 const rentalHistory = ref([])
@@ -573,7 +574,7 @@ const fetchRentalHistory = async () => {
   } 
   catch (error) {  
     if (error.response?.status === 403) {
-      alert('관리자만 접근할 수 있습니다.')
+      await swAlert('관리자만 접근할 수 있습니다.', 'warning')
       window.history.back()
       return
     }
@@ -581,8 +582,8 @@ const fetchRentalHistory = async () => {
     const errorMessage = error.response?.data?.msg ||
                         error.message ||
                         '대출 히스토리를 불러오는데 실패했습니다.'
-    alert(errorMessage)
-    
+    await swAlert(errorMessage, 'error')
+
   } finally {
     isLoading.value = false
   }

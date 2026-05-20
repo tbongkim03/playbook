@@ -363,6 +363,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import axios from 'axios'
+import { swAlert } from '@/utils/sweetAlert'
 
 // 반응형 데이터
 const activeTab = ref('courses')
@@ -486,7 +487,7 @@ const fetchCourseList = async () => {
     courseList.value = response.data.data
   } catch (error) {
     console.error('과정 목록 로드 실패:', error)
-    alert('과정 목록을 불러오는데 실패했습니다.')
+    await swAlert('과정 목록을 불러오는데 실패했습니다.', 'error')
   } finally {
     isLoading.value = false
   }
@@ -494,7 +495,7 @@ const fetchCourseList = async () => {
 
 const addCourse = async () => {
   if (!newCourse.value.nameCourse || !newCourse.value.startDtCourse || !newCourse.value.finishDtCourse) {
-    alert('필수 정보를 모두 입력해주세요.')
+    await swAlert('필수 정보를 모두 입력해주세요.', 'warning')
     return
   }
 
@@ -509,13 +510,12 @@ const addCourse = async () => {
     await axios.post('/api/courses', courseData, {
       headers: getAuthHeaders()
     })
-    
-    alert('과정이 성공적으로 추가되었습니다.')
+
+    await swAlert('과정이 성공적으로 추가되었습니다.', 'success')
     closeAddCourseModal()
     await fetchCourseList()
   } catch (error) {
-    console.error('과정 추가 실패:', error)
-    alert(error.response?.data?.msg || '과정 추가에 실패했습니다.')
+    await swAlert(error.response?.data?.msg || '과정 추가에 실패했습니다.', 'error')
   } finally {
     isLoading.value = false
   }
@@ -534,7 +534,7 @@ const openEditCourseModal = (course) => {
 
 const updateCourse = async () => {
   if (!editingCourse.value.nameCourse || !editingCourse.value.startDtCourse || !editingCourse.value.finishDtCourse) {
-    alert('필수 정보를 모두 입력해주세요.')
+    await swAlert('필수 정보를 모두 입력해주세요.', 'warning')
     return
   }
 
@@ -549,13 +549,12 @@ const updateCourse = async () => {
     await axios.put(`/api/courses/${editingCourse.value.seqCourse}`, courseData, {
       headers: getAuthHeaders()
     })
-    
-    alert('과정이 성공적으로 수정되었습니다.')
+
+    await swAlert('과정이 성공적으로 수정되었습니다.', 'success')
     closeEditCourseModal()
     await fetchCourseList()
   } catch (error) {
-    console.error('과정 수정 실패:', error)
-    alert(error.response?.data?.msg || '과정 수정에 실패했습니다.')
+    await swAlert(error.response?.data?.msg || '과정 수정에 실패했습니다.', 'error')
   } finally {
     isLoading.value = false
   }
@@ -576,12 +575,11 @@ const deleteCourse = async (courseId) => {
       headers: getAuthHeaders()
     })
     
-    alert('과정이 성공적으로 삭제되었습니다.')
+    await swAlert('과정이 성공적으로 삭제되었습니다.', 'success')
     closeDeleteCourseModal()
     await fetchCourseList()
   } catch (error) {
-    console.error('과정 삭제 실패:', error)
-    alert(error.response?.data?.msg || '과정 삭제에 실패했습니다.')
+    await swAlert(error.response?.data?.msg || '과정 삭제에 실패했습니다.', 'error')
   } finally {
     isLoading.value = false
   }

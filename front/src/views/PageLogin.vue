@@ -190,6 +190,7 @@
 import axios from 'axios'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { swAlert } from '@/utils/sweetAlert'
 
 const router = useRouter()
 const userId = ref('')
@@ -300,11 +301,11 @@ async function handleLogin() {
       errorMessage = '서버에 연결할 수 없습니다. 네트워크를 확인해주세요.'
     }
     
-    alert(errorMessage)
+    await swAlert(errorMessage, 'error')
   }
 }
 
-function blockJavascriptInput(event) {
+async function blockJavascriptInput(event) {
   const input = event.target.value;
   
   // JavaScript 관련 키워드 패턴
@@ -322,7 +323,7 @@ function blockJavascriptInput(event) {
   for (let pattern of jsPatterns) {
     if (pattern.test(input)) {
       event.preventDefault();
-      alert('JavaScript 코드는 입력할 수 없습니다.');
+      await swAlert('JavaScript 코드는 입력할 수 없습니다.', 'warning');
       
       // 해당 부분 제거
       event.target.value = input.replace(pattern, '');

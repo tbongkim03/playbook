@@ -329,6 +329,7 @@
 import { ref, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
+import { swAlert } from '@/utils/sweetAlert'
 
 const route = useRoute()
 const router = useRouter()
@@ -358,7 +359,7 @@ const selectedCourse = ref(null)
 const fromTerm = window.history.state?.fromTerm
 
 if (!fromTerm) {
-  alert('잘못된 접근입니다.')
+  swAlert('잘못된 접근입니다.', 'warning')
   router.replace('/')
 }
 
@@ -442,7 +443,7 @@ async function getCourseList() {
     const apiCoursesRaw = data?.srchList || []
 
     if (apiCoursesRaw.length === 0) {
-      alert('훈련 과정을 찾을 수 없습니다.')
+      await swAlert('훈련 과정을 찾을 수 없습니다.', 'error')
       return
     }
 
@@ -530,7 +531,7 @@ async function getCourseList() {
 
   } catch (err) {
     // console.error('API 조회 실패:', err)
-    alert('훈련과정 정보를 조회하는 중 오류가 발생했습니다.')
+    await swAlert('훈련과정 정보를 조회하는 중 오류가 발생했습니다.', 'error')
   }
 }
 
@@ -620,9 +621,9 @@ function validateCourse() {
   errors.value.course = selectedCourse.value ? '' : '훈련과정을 선택해주세요.'
 }
 
-function blockJavascriptInput(event) {
+async function blockJavascriptInput(event) {
   const input = event.target.value;
-  
+
   // JavaScript 관련 키워드 패턴
   const jsPatterns = [
     /<script[^>]*>.*?<\/script>/gi,
@@ -633,12 +634,12 @@ function blockJavascriptInput(event) {
     /setTimeout\s*\(/gi,
     /setInterval\s*\(/gi
   ];
-  
+
   // 패턴 검사
   for (let pattern of jsPatterns) {
     if (pattern.test(input)) {
       event.preventDefault();
-      alert('JavaScript 코드는 입력할 수 없습니다.');
+      await swAlert('JavaScript 코드는 입력할 수 없습니다.', 'warning');
       
       // 해당 부분 제거
       event.target.value = input.replace(pattern, '');
@@ -674,13 +675,13 @@ async function handleSubmit() {
     const response = await axios.post('/api/users/register', payload)
 
     if (response.data.code === '0000') {
-      alert('회원가입이 완료되었습니다!')
+      await swAlert('회원가입이 완료되었습니다!', 'success')
       router.push('/login')
     } else {
-      alert(`회원가입 실패: ${response.data.msg || '알 수 없는 오류'}`)
+      await swAlert(`회원가입 실패: ${response.data.msg || '알 수 없는 오류'}`, 'error')
     }
   } catch (error) {
-    alert(`회원가입 요청 중 오류가 발생했습니다: ${error.response?.data?.msg || error.message}`)
+    await swAlert(`회원가입 요청 중 오류가 발생했습니다: ${error.response?.data?.msg || error.message}`, 'error')
   }
 }
 </script>

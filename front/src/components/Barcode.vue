@@ -138,6 +138,7 @@
 <script setup>
 import { ref, watch, onMounted, nextTick } from 'vue'
 import JsBarcode from 'jsbarcode'
+import { swAlert } from '@/utils/sweetAlert'
 
 const props = defineProps({
   seqBook: Number,
@@ -243,9 +244,9 @@ onMounted(async () => {
 })
 
 // 나중에 출력(저장만)
-const saveBook = () => {
+const saveBook = async () => {
   if (isD.value === true) {
-    alert("🚫 중복된 바코드입니다. 저장할 수 없습니다.")
+    await swAlert('중복된 바코드입니다. 저장할 수 없습니다.', 'warning')
     return
   }
   
@@ -253,20 +254,20 @@ const saveBook = () => {
 }
 
 // 개별 출력 및 저장
-const printBarcode = () => {
+const printBarcode = async () => {
   if (isD.value === true) {
-    alert("🚫 중복된 바코드입니다. 출력할 수 없습니다.")
+    await swAlert('중복된 바코드입니다. 출력할 수 없습니다.', 'warning')
     return
   }
 
   if (!barcodeSvg.value) {
-    alert("바코드가 아직 생성되지 않았습니다")
+    await swAlert('바코드가 아직 생성되지 않았습니다.', 'info')
     return
   }
 
   const printWindow = window.open('', '', 'width=1000,height=600')
   if (!printWindow) {
-    alert("팝업 차단을 해제해 주세요")
+    await swAlert('팝업 차단을 해제해 주세요.', 'warning')
     return
   }
 
@@ -416,7 +417,7 @@ const postPrintedBook = async (printCheckBook) => {
     const id = props.seqBook
 
     if (!id) {
-      alert('존재하지 않는 책입니다.')
+      await swAlert('존재하지 않는 책입니다.', 'error')
       return
     }
 
@@ -440,11 +441,11 @@ const postPrintedBook = async (printCheckBook) => {
     }
 
     const result = await response.json()
-    alert("✅ 저장하였습니다.")
+    await swAlert('저장하였습니다.', 'success')
     close()
 
   } catch (error) {
-    alert(`저장 실패: ${error.message}`)
+    await swAlert(`저장 실패: ${error.message}`, 'error')
   }
 }
 </script>

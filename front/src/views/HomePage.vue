@@ -190,6 +190,7 @@ import BookArea from '@/components/BookArea.vue'
 import BookSearch from '@/components/BookSearch.vue'
 import BorrowReturn from '@/components/BorrowReturn.vue'
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { swAlert } from '@/utils/sweetAlert'
 
 const isModalOpen = ref(true)
 
@@ -237,7 +238,7 @@ const fetchLargeCategories = async () => {
     const res = await axios.get('/api/subjects')
     largeCategories.value = res.data.data
   } catch (error) {
-    alert('대분류 카테고리 조회 실패:', error.message)
+    console.warn('대분류 카테고리 조회 실패:', error.message)
   }
 }
 
@@ -246,7 +247,7 @@ const fetchMediumCategories = async () => {
     const res = await axios.get('/api/subtitles')
     mediumCategoriesAll.value = res.data.data
   } catch (error) {
-    alert('중분류 카테고리 조회 실패:', error.message)
+    console.warn('중분류 카테고리 조회 실패:', error.message)
   }
 }
 
@@ -289,7 +290,7 @@ const loadBooks = async (page = 1) => {
     // 페이지 상단으로 스크롤 이동
     window.scrollTo({ top: 0, behavior: 'smooth' })
   } catch (error) {
-    alert('책 목록 조회 실패:', error.message)
+    console.warn('책 목록 조회 실패:', error.message)
     bookList.value = []
     totalCount.value = 0
   } finally {
@@ -531,7 +532,7 @@ const fetchBooks = async (query = '', exact = false) => {
     const data = res.data.data;
 
     if (!data.content) {
-      alert('서버 응답 데이터 오류: ', data);
+      console.warn('서버 응답 데이터 오류:', data);
       bookList.value = [];
       totalCount.value = 0;
       return;
@@ -549,7 +550,7 @@ const fetchBooks = async (query = '', exact = false) => {
     // 페이지 상단으로 스크롤 이동
     window.scrollTo({ top: 0, behavior: 'smooth' })
   } catch (error) {
-    alert('도서 검색 실패:', error.message)
+    await swAlert('도서 검색 중 오류가 발생했습니다.', 'error')
     bookList.value = []
     totalCount.value = 0
   } finally {

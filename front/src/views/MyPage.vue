@@ -423,6 +423,7 @@
 import { ref, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+import { swAlert, swConfirm } from '@/utils/sweetAlert'
 
 const router = useRouter()
 
@@ -523,22 +524,22 @@ const filteredCourseList = computed(() => {
 })
 
 // 사용자 인증 확인
-const checkUserAuth = () => {
+const checkUserAuth = async () => {
   const userType = sessionStorage.getItem('userType')
 
   if (userType !== 'user') {
-    alert('로그인이 필요합니다.')
+    await swAlert('로그인이 필요합니다.', 'info')
     router.push('/login')
     return false
   }
   return true
 }
 
-onMounted(() => {
-  if (!checkUserAuth()) {
+onMounted(async () => {
+  if (!(await checkUserAuth())) {
     return
   }
-  
+
   loadUserData()
   loadFavoriteBooks()
   loadRentalHistory()
@@ -573,7 +574,7 @@ async function loadUserData() {
     }
   } catch (error) {
     if (error.response?.status === 401) {
-      alert('로그인이 필요하거나 세션이 만료되었습니다.')
+      await swAlert('로그인이 필요하거나 세션이 만료되었습니다.', 'warning')
       sessionStorage.removeItem('userType')
       sessionStorage.removeItem('campusId')
       router.push('/login')
@@ -693,7 +694,7 @@ async function getCourseList() {
       .sort((a, b) => a.title.localeCompare(b.title, 'ko'))
 
   } catch (err) {
-    alert('과정 조회 실패:', err.response?.data)
+    console.warn('과정 조회 실패:', err.response?.data)
   }
 }
 
@@ -706,7 +707,7 @@ function goToBookDetail(seqBook) {
 async function removeFavorite(seqBook) {
   try {
     if (!sessionStorage.getItem('userType')) {
-      alert('로그인이 필요합니다.')
+      await swAlert('로그인이 필요합니다.', 'info')
       router.push('/login')
       return
     }
@@ -727,19 +728,19 @@ async function removeFavorite(seqBook) {
       const message = error.response.data?.msg || '오류가 발생했습니다.'
       
       if (status === 403) {
-        alert(message)
+        await swAlert(message, 'warning')
       } else if (status === 401) {
-        alert('로그인이 필요하거나 세션이 만료되었습니다.')
+        await swAlert('로그인이 필요하거나 세션이 만료되었습니다.', 'warning')
         sessionStorage.removeItem('userType')
         sessionStorage.removeItem('campusId')
         router.push('/login')
       } else {
-        alert(`오류: ${message}`)
+        await swAlert(`오류: ${message}`, 'error')
       }
     } else if (error.request) {
-      alert('서버와의 연결에 실패했습니다. 잠시 후 다시 시도해주세요.')
+      await swAlert('서버와의 연결에 실패했습니다. 잠시 후 다시 시도해주세요.', 'error')
     } else {
-      alert('찜 해제 중 오류가 발생했습니다.')
+      await swAlert('찜 해제 중 오류가 발생했습니다.', 'error')
     }
   }
 }
@@ -799,7 +800,7 @@ function getUserStatusClass() {
 }
 
 async function handleWithdraw() {
-  if (!confirm('정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+  if (!(await swConfirm('정말로 탈퇴하시겠습니까?', '이 작업은 되돌릴 수 없습니다.', { isDangerous: true }))) {
     return
   }
 
@@ -811,7 +812,7 @@ async function handleWithdraw() {
     sessionStorage.removeItem('userType')
     sessionStorage.removeItem('campusId')
 
-    alert('회원 탈퇴가 완료되었습니다.')
+    await swAlert('회원 탈퇴가 완료되었습니다.', 'success')
 
     // 강제 새로고침으로 메인 페이지 이동 (히스토리 없이)
     if (window.location.pathname === '/') {
@@ -820,7 +821,7 @@ async function handleWithdraw() {
       window.location.replace('/')
     }
   } catch (error) {
-    alert(error.response?.data?.msg || '회원 탈퇴 중 오류가 발생했습니다.')
+    await swAlert(error.response?.data?.msg || '회원 탈퇴 중 오류가 발생했습니다.', 'error')
     withdrawLoading.value = false
   }
 }
@@ -1019,10 +1020,10 @@ async function changePassword() {
 
     // 비밀번호 변경
     await axios.put(`${API_BASE_URL}/users/password`, { newPassword: passwordForm.value.newPassword })
-    alert('비밀번호가 성공적으로 변경되었습니다.')
+    await swAlert('비밀번호가 성공적으로 변경되었습니다.', 'success')
     closePasswordModal()
   } catch (error) {
-    alert(error.response?.data?.msg || '비밀번호 변경 중 오류가 발생했습니다.')
+    await swAlert(error.response?.data?.msg || '비밀번호 변경 중 오류가 발생했습니다.', 'error')
   } finally {
     passwordForm.value.loading = false
   }

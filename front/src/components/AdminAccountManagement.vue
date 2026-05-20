@@ -321,6 +321,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
+import { swAlert } from '@/utils/sweetAlert'
 
 // 반응형 데이터
 const adminList = ref([])
@@ -521,11 +522,11 @@ const fetchAdminList = async () => {
     adminList.value = response.data.data.content || response.data.data
   } catch (error) {
     if (error.response?.status === 403) {
-      alert('관리자 권한이 필요합니다.')
+      await swAlert('관리자 권한이 필요합니다.', 'warning')
     } else if (error.response?.status === 401) {
-      alert('로그인이 필요합니다.')
+      await swAlert('로그인이 필요합니다.', 'info')
     } else {
-      alert('관리자 목록을 불러오는데 실패했습니다.')
+      await swAlert('관리자 목록을 불러오는데 실패했습니다.', 'error')
     }
   } finally {
     isLoading.value = false
@@ -535,12 +536,12 @@ const fetchAdminList = async () => {
 // 관리자 추가
 const addAdmin = async () => {
   if (!newAdmin.value.idAdmin || !newAdmin.value.nameAdmin || !newAdmin.value.pwAdmin) {
-    alert('필수 정보를 모두 입력해주세요.')
+    await swAlert('필수 정보를 모두 입력해주세요.', 'warning')
     return
   }
 
   if (!idValidation.value.isValid) {
-    alert('ID 중복확인을 완료해주세요.')
+    await swAlert('ID 중복확인을 완료해주세요.', 'warning')
     return
   }
 
@@ -549,17 +550,17 @@ const addAdmin = async () => {
     const response = await axios.post('/api/admin/register', newAdmin.value, {
       headers: getAuthHeaders()
     })
-    
-    alert('관리자가 성공적으로 추가되었습니다.')
+
+    await swAlert('관리자가 성공적으로 추가되었습니다.', 'success')
     closeAddModal()
     await fetchAdminList()
   } catch (error) {
     if (error.response?.status === 403) {
-      alert('관리자만 접근 가능합니다.')
+      await swAlert('관리자만 접근 가능합니다.', 'warning')
     } else if (error.response?.status === 401) {
-      alert('인증에 실패했습니다.')
+      await swAlert('인증에 실패했습니다.', 'warning')
     } else {
-      alert(error.response?.data?.msg || '관리자 추가에 실패했습니다.')
+      await swAlert(error.response?.data?.msg || '관리자 추가에 실패했습니다.', 'error')
     }
   } finally {
     isLoading.value = false
@@ -569,7 +570,7 @@ const addAdmin = async () => {
 // 관리자 계정 수정 (디스코드 ID 및 비밀번호 수정, 비밀번호 검증 포함)
 const updateAdmin = async () => {
   if (!editPassword.value) {
-    alert('현재 비밀번호를 입력해주세요.')
+    await swAlert('현재 비밀번호를 입력해주세요.', 'warning')
     return
   }
 
@@ -581,7 +582,7 @@ const updateAdmin = async () => {
 
   // 디스코드 ID와 비밀번호 둘 다 변경하지 않는 경우
   if (!discordChanged && !passwordChanged) {
-    alert('디스코드 ID 또는 비밀번호 중 하나는 변경해야 합니다.')
+    await swAlert('디스코드 ID 또는 비밀번호 중 하나는 변경해야 합니다.', 'warning')
     return
   }
 
@@ -604,20 +605,18 @@ const updateAdmin = async () => {
     if (updateData.newDiscord !== null) updatedFields.push('디스코드 ID')
     if (updateData.newPassword !== null) updatedFields.push('비밀번호')
     
-    alert(`${updatedFields.join(' 및 ')}가 성공적으로 수정되었습니다.`)
+    await swAlert(`${updatedFields.join(' 및 ')}가 성공적으로 수정되었습니다.`, 'success')
     closeEditModal()
     await fetchAdminList()
   } catch (error) {
-    console.error('관리자 수정 실패:', error)
-    console.error('에러 응답:', error.response)
     if (error.response?.status === 403) {
-      alert('관리자만 접근 가능합니다.')
+      await swAlert('관리자만 접근 가능합니다.', 'warning')
     } else if (error.response?.status === 401) {
-      alert('비밀번호가 일치하지 않습니다.')
+      await swAlert('비밀번호가 일치하지 않습니다.', 'warning')
     } else if (error.response?.status === 400) {
-      alert(error.response?.data?.msg || '입력 정보를 확인해주세요.')
+      await swAlert(error.response?.data?.msg || '입력 정보를 확인해주세요.', 'warning')
     } else {
-      alert(error.response?.data?.msg || '관리자 수정에 실패했습니다.')
+      await swAlert(error.response?.data?.msg || '관리자 수정에 실패했습니다.', 'error')
     }
   } finally {
     isLoading.value = false
@@ -637,33 +636,31 @@ const confirmDeleteAdmin = (admin) => {
 // 관리자 삭제 (비밀번호 검증 포함)
 const deleteAdmin = async (idAdmin) => {
   if (!deletePassword.value) {
-    alert('현재 비밀번호를 입력해주세요.')
+    await swAlert('현재 비밀번호를 입력해주세요.', 'warning')
     return
   }
 
   try {
     isLoading.value = true
-    
-    // 먼저 비밀번호 검증
+
     await validatePassword(idAdmin, deletePassword.value)
-    
-    // 비밀번호가 맞으면 관리자 삭제
+
     const response = await axios.delete('/api/admin', {
       headers: getAuthHeaders(),
       data: { idAdmin: deletingAdmin.value.idAdmin }
     })
-    
-    alert('관리자가 성공적으로 삭제되었습니다.')
+
+    await swAlert('관리자가 성공적으로 삭제되었습니다.', 'success')
     closeDeleteModal()
     await fetchAdminList()
-    
+
   } catch (error) {
     if (error.response?.status === 403) {
-      alert('관리자 권한이 필요합니다.')
+      await swAlert('관리자 권한이 필요합니다.', 'warning')
     } else if (error.response?.status === 401) {
-      alert('비밀번호가 일치하지 않습니다.')
+      await swAlert('비밀번호가 일치하지 않습니다.', 'warning')
     } else {
-      alert(error.response?.data?.msg || '관리자 삭제에 실패했습니다.')
+      await swAlert(error.response?.data?.msg || '관리자 삭제에 실패했습니다.', 'error')
     }
   } finally {
     isLoading.value = false

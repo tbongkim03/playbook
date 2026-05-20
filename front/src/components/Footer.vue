@@ -88,6 +88,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { swAlert } from '@/utils/sweetAlert'
 
 const currentDate = ref('')
 const router = useRouter()
@@ -98,13 +99,13 @@ function navigateToPage(event) {
   router.push(href)
 }
 
-function handleBorrowReturnClick(event) {
+async function handleBorrowReturnClick(event) {
   event.preventDefault()
   const href = event.currentTarget.getAttribute('href')
   
   // 로그인 체크
   if (!sessionStorage.getItem('userType')) {
-    alert('로그인이 필요합니다.')
+    await swAlert('로그인이 필요합니다.', 'info')
     router.push('/login')
     return
   }

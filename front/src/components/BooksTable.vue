@@ -518,6 +518,7 @@ import { ref, computed, onMounted, onBeforeUnmount, watchEffect } from 'vue'
 import axios from 'axios'
 import Barcode from './Barcode.vue'
 import PrintBatch from './BookPrintBatch.vue'
+import { swAlert, swConfirm } from '@/utils/sweetAlert'
 
 // emit 정의
 defineEmits(['open-register-modal'])
@@ -975,19 +976,19 @@ const setActiveRow = (seqBook) => {
 
 // 도서 삭제
 async function deleteBook(book) {
-  if (!confirm(`"${book.titleBook}" 도서를 삭제하시겠습니까?`)) {
+  if (!(await swConfirm(`"${book.titleBook}" 도서를 삭제하시겠습니까?`, '', { isDangerous: true }))) {
     return
   }
 
   try {
-    setActiveRow(book.seqBook) // 클릭 시 활성 행 설정
+    setActiveRow(book.seqBook)
     await axios.delete(`${API_BASE}/books/${book.seqBook}`)
 
     allBooks.value = allBooks.value.filter(b => b.seqBook !== book.seqBook)
-    activeRowId.value = null // 삭제 후 활성 행 초기화
-    alert('삭제에 성공하였습니다.')
+    activeRowId.value = null
+    await swAlert('삭제에 성공하였습니다.', 'success')
   } catch (error) {
-    alert(`삭제 실패: ${error.response?.data?.msg || error.message}`)
+    await swAlert(`삭제 실패: ${error.response?.data?.msg || error.message}`, 'error')
   }
 }
 
@@ -1003,14 +1004,14 @@ function barcodeCreate(book) {
 }
 
 // 도서 선택 토글
-function toggleBookSelection(book) {
+async function toggleBookSelection(book) {
   if (!canSelectBook(book)) return
-  
+
   if (selectedBooks.value.has(book.seqBook)) {
     selectedBooks.value.delete(book.seqBook)
   } else {
     if (selectedBooks.value.size >= MAX_SELECTION) {
-      alert(`최대 ${MAX_SELECTION}개까지 선택할 수 있습니다.`)
+      await swAlert(`최대 ${MAX_SELECTION}개까지 선택할 수 있습니다.`, 'warning')
       return
     }
     selectedBooks.value.add(book.seqBook)
@@ -1018,17 +1019,15 @@ function toggleBookSelection(book) {
 }
 
 // 현재 페이지의 모든 선택 가능한 도서 선택/해제
-function toggleAllOnCurrentPage() {
+async function toggleAllOnCurrentPage() {
   const selectableBooks = paginatedBooks.value.filter(canSelectBook)
-  
+
   if (isAllSelectedOnCurrentPage.value) {
-    // 모두 해제
     selectableBooks.forEach(book => selectedBooks.value.delete(book.seqBook))
   } else {
-    // 선택 가능한 개수 확인
     const remainingSlots = MAX_SELECTION - selectedBooks.value.size
     if (remainingSlots < selectableBooks.length) {
-      alert(`최대 ${MAX_SELECTION}개까지 선택할 수 있습니다. 현재 ${selectedBooks.value.size}개 선택됨.`)
+      await swAlert(`최대 ${MAX_SELECTION}개까지 선택할 수 있습니다. 현재 ${selectedBooks.value.size}개 선택됨.`, 'warning')
       return
     }
     // 모두 선택
@@ -1132,13 +1131,13 @@ watchEffect(() => {
 })
 
 // 일괄 프린트
-function printBarcodes() {
+async function printBarcodes() {
   if (selectedBooks.value.size === 0) {
-    alert('출력할 도서를 선택해주세요.')
+    await swAlert('출력할 도서를 선택해주세요.', 'warning')
     return
   }
   if (selectedBooks.value.size > MAX_SELECTION) {
-    alert(`최대 ${MAX_SELECTION}개까지 선택할 수 있습니다.`)
+    await swAlert(`최대 ${MAX_SELECTION}개까지 선택할 수 있습니다.`, 'warning')
     return
   }
   isPrintBatchOpen.value = true
@@ -1157,7 +1156,7 @@ const refreshBooks = async () => {
   try {
     await fetchBooks()
   } catch (error) {
-    alert('목록을 새로고침하는 중 오류가 발생했습니다.')
+    await swAlert('목록을 새로고침하는 중 오류가 발생했습니다.', 'error')
   } finally {
     isRefreshing.value = false
   }

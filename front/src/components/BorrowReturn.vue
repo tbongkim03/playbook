@@ -52,6 +52,7 @@
 <script setup>
 import router from '@/router'
 import { isMobile } from '@/utils/mobileDetect'
+import { swAlert } from '@/utils/sweetAlert'
 
 const emit = defineEmits(['close'])
 const mobile = isMobile()
@@ -59,15 +60,15 @@ const mobile = isMobile()
 function close() {
   emit('close')
 }
-const navigateTo = (r) => {
+const navigateTo = async (r) => {
   if (mobile) {
-    alert('PC에서만 이용 가능한 기능입니다.')
+    await swAlert('PC에서만 이용 가능한 기능입니다.', 'info')
     return
   }
   // 로그인 체크
   if (!sessionStorage.getItem('userType')) {
     close()
-    alert('로그인이 필요합니다.')
+    await swAlert('로그인이 필요합니다.', 'info')
     router.push('/login')
     return
   }

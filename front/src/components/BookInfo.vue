@@ -161,6 +161,7 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import noImage from '@/assets/free-icon-no-image-11542598.png'
 import { isMobile } from '@/utils/mobileDetect'
+import { swAlert } from '@/utils/sweetAlert'
 
 const mobile = isMobile()
 
@@ -222,24 +223,24 @@ const getButtonClass = () => {
     }
 }
 
-const handleBorrowOrReturn = () => {
+const handleBorrowOrReturn = async () => {
     if (mobile) {
-        alert('PC에서만 이용 가능한 기능입니다.')
+        await swAlert('PC에서만 이용 가능한 기능입니다.', 'info')
         return
     }
     // 로그인 체크
     if (!sessionStorage.getItem('userType')) {
-        alert('로그인이 필요합니다.')
+        await swAlert('로그인이 필요합니다.', 'info')
         router.push('/login')
         return
     }
-    
+
     if (book.value.borrowedByMe) {
         // 내가 대출한 경우 - 반납 페이지로 이동
         router.push('/return')
     } else if (book.value.bookBorrowed) {
         // 다른 사람이 대출한 경우
-        alert('이 도서는 현재 대출 중입니다.')
+        await swAlert('이 도서는 현재 대출 중입니다.', 'info')
         return
     } else {
         // 대출 가능한 경우 - 대출 페이지로 이동
@@ -250,7 +251,7 @@ const handleBorrowOrReturn = () => {
 const handleWishlist = async () => {
     try {
         if (!sessionStorage.getItem('userType')) {
-            alert('로그인이 필요합니다.')
+            await swAlert('로그인이 필요합니다.', 'info')
             router.push('/login')
             return
         }
@@ -282,26 +283,26 @@ const handleWishlist = async () => {
             const message = error.response?.data?.msg || '오류가 발생했습니다.'
             
             if (status === 403) {
-                alert(message)
+                await swAlert(message, 'warning')
             } else if (status === 401) {
-                alert('로그인이 필요하거나 세션이 만료되었습니다.')
+                await swAlert('로그인이 필요하거나 세션이 만료되었습니다.', 'warning')
                 sessionStorage.removeItem('userType')
                 sessionStorage.removeItem('campusId')
                 router.push('/login')
             } else {
-                alert(`오류: ${message}`)
+                await swAlert(`오류: ${message}`, 'error')
             }
         } else if (error.request) {
-            alert('서버와의 연결에 실패했습니다. 잠시 후 다시 시도해주세요.')
+            await swAlert('서버와의 연결에 실패했습니다. 잠시 후 다시 시도해주세요.', 'error')
         } else {
-            alert('요청 처리 중 오류가 발생했습니다.')
+            await swAlert('요청 처리 중 오류가 발생했습니다.', 'error')
         }
     }
 }
 
-const handleShare = () => {
+const handleShare = async () => {
     navigator.clipboard.writeText(book.value.titleBook + ' ' + book.value.authorBook)
-    alert('클립보드에 복사되었습니다!')
+    await swAlert('클립보드에 복사되었습니다!', 'success')
 }
 
 // 찜하기 상태 확인 함수
@@ -327,7 +328,7 @@ const checkWishlistStatus = async () => {
             isWishlisted.value = false
             return
         }
-        alert(`찜 목록 확인 실패: ${error.message || error}`)
+        await swAlert(`찜 목록 확인 실패: ${error.message || error}`, 'error')
     }
 }
 

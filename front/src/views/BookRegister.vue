@@ -172,6 +172,7 @@
 <script setup>
 import { reactive, ref, computed } from 'vue'
 import axios from 'axios'
+import { swAlert } from '@/utils/sweetAlert'
 
 // Props와 Emits
 const emit = defineEmits(['book-registered', 'cancel'])
@@ -238,7 +239,7 @@ async function searchISBN() {
   const isbn = String(book.isbn || '').trim()
 
   if (!isbn) {
-    alert('ISBN을 입력해주세요.')
+    await swAlert('ISBN을 입력해주세요.', 'warning')
     return
   }
 
@@ -252,7 +253,7 @@ async function searchISBN() {
     // console.log('조회된 도서 정보:', doc)
 
     if (!doc) {
-      alert('도서 정보를 찾을 수 없습니다.')
+      await swAlert('도서 정보를 찾을 수 없습니다.', 'error')
       return
     }
 
@@ -281,7 +282,7 @@ async function searchISBN() {
     hasSearched.value = true // 조회 완료 상태 설정
 
   } catch (err) {
-    alert('도서 정보를 조회하는 중 오류가 발생했습니다.')
+    await swAlert('도서 정보를 조회하는 중 오류가 발생했습니다.', 'error')
   } finally {
     isSearching.value = false
   }
@@ -312,7 +313,7 @@ function formatDisplayDate(dateStr) {
 
 async function submitBook() {
   if (!isFormValid.value) {
-    alert('필수 정보를 모두 입력해주세요.')
+    await swAlert('필수 정보를 모두 입력해주세요.', 'warning')
     return
   }
   
@@ -332,13 +333,13 @@ async function submitBook() {
     const response = await axios.post('/api/books', payload)
     const data = response.data.data
 
-    alert(`도서 "${data?.titleBook || book.title}"가 성공적으로 등록되었습니다!`)
+    await swAlert(`도서 "${data?.titleBook || book.title}"가 성공적으로 등록되었습니다!`, 'success')
     
     // 폼 초기화
     resetForm()
     
   } catch (err) {
-    alert(`등록 실패: ${err.response?.data?.msg || err.message}`)
+    await swAlert(`등록 실패: ${err.response?.data?.msg || err.message}`, 'error')
   } finally {
     isLoading.value = false
   }
@@ -360,7 +361,7 @@ async function searchBookImageFromNaver() {
         }
       }
     } catch (error) {
-      alert('ISBN 검색 중 오류:', error.response?.data)
+      console.warn('ISBN 검색 중 오류:', error.response?.data)
     }
   }
 }

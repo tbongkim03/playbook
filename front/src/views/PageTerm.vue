@@ -113,6 +113,7 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { swAlert } from '@/utils/sweetAlert'
 import AgreeTermsUser from '@/components/AgreeTermsUser.vue'
 import AgreeInfoUser from '@/components/AgreeInfoUser.vue'
 import AgreeDiscordUser from '@/components/AgreeDiscordUser.vue'
@@ -133,7 +134,7 @@ const router = useRouter()
 const fromLogin = window.history.state?.fromLogin
 
 if (!fromLogin) {
-  alert('잘못된 접근입니다.')
+  await swAlert('잘못된 접근입니다.', 'warning')
   router.replace('/')
 }
 

@@ -72,6 +72,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { swAlert } from '@/utils/sweetAlert'
 
 const router = useRouter()
 const barcodeInput = ref(null)
@@ -284,7 +285,7 @@ const goBack = () => {
 // 사용자 인증 확인
 const checkAuth = () => {
   if (!sessionStorage.getItem('userType')) {
-    alert('로그인이 필요합니다.')
+    await swAlert('로그인이 필요합니다.', 'info')
     router.push('/login')
     return false
   }

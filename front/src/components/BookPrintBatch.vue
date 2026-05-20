@@ -150,6 +150,7 @@
 <script setup>
 import { ref, watch, computed, onMounted, nextTick } from 'vue'
 import JsBarcode from 'jsbarcode'
+import { swAlert } from '@/utils/sweetAlert'
 
 const props = defineProps({
   books: {
@@ -255,14 +256,14 @@ function createPageRows(boxes) {
 // 출력 함수
 const printAll = async () => {
   if (!displayedBooks.value.length) {
-    alert('출력할 바코드가 없습니다.')
+    await swAlert('출력할 바코드가 없습니다.', 'warning')
     return
   }
 
   const printWindow = window.open('', '', 'width=1000,height=600') 
 
   if (!printWindow) {
-    alert("팝업 차단을 해제해 주세요")
+    await swAlert('팝업 차단을 해제해 주세요', 'warning')
     return
   }
 
@@ -435,7 +436,7 @@ const printAll = async () => {
       throw new Error(errorMessage || `서버 오류: ${res.status}`)
     }
 
-    alert('인쇄 완료 상태로 저장되었습니다.')
+    await swAlert('인쇄 완료 상태로 저장되었습니다.', 'success')
 
     // 부모 컴포넌트에 새로고침 이벤트 발생
     emit('refresh')
@@ -443,7 +444,7 @@ const printAll = async () => {
     // 바코드 다시 생성
     generateBarcodes()
   } catch (error) {
-    alert('저장에 실패했습니다.', error)
+    await swAlert('저장에 실패했습니다.', 'error')
   }
 }
 </script>
