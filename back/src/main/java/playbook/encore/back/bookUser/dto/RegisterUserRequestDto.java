@@ -1,14 +1,17 @@
 package playbook.encore.back.bookUser.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Data
 public class RegisterUserRequestDto {
-    private Integer seqCorse;
-    private String idUser;
-    private String pwUser;
-    private String nameUser;
-    private String dcUser;
+    @NotNull private Integer seqCorse;
+    @NotBlank @Size(max = 50) private String idUser;
+    @NotBlank @Size(max = 50) private String pwUser;
+    @NotBlank @Size(max = 50) private String nameUser;
+    @Size(max = 100) private String dcUser;
     private boolean agreeTermsUser;
     private boolean agreeInfoUser;
     private boolean agreeDiscordAlarmUser;

@@ -408,7 +408,7 @@ const validatePassword = async (idAdmin, password) => {
   try {
     const response = await axios.post(
       `/api/admin/validate?id=${idAdmin}`,
-      password,
+      { password },
       {
         headers: getAuthHeaders()
       }
@@ -650,7 +650,7 @@ const deleteAdmin = async (idAdmin) => {
     // 비밀번호가 맞으면 관리자 삭제
     const response = await axios.delete('/api/admin', {
       headers: getAuthHeaders(),
-      data: deletingAdmin.value.idAdmin
+      data: { idAdmin: deletingAdmin.value.idAdmin }
     })
     
     alert('관리자가 성공적으로 삭제되었습니다.')

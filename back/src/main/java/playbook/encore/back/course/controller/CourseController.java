@@ -1,6 +1,7 @@
 package playbook.encore.back.course.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +35,7 @@ public class CourseController {
     }
 
     @PostMapping
-    public ResponseEntity<Response> postCourse(@RequestBody CourseRequestDto courseRequestDto) throws Exception {
+    public ResponseEntity<Response> postCourse(@RequestBody @Valid CourseRequestDto courseRequestDto) throws Exception {
         CourseResponseDto courseResponseDto = courseService.insertCourse(courseRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(ResponseHandler.success(courseResponseDto));
     }
@@ -42,7 +43,7 @@ public class CourseController {
     @PutMapping("/{id}")
     public ResponseEntity<Response> putCourseById(
             @PathVariable("id") Integer courseId,
-            @RequestBody CourseRequestDto courseRequestDto
+            @RequestBody @Valid CourseRequestDto courseRequestDto
     ) throws Exception {
         CourseResponseDto courseResponseDto = courseService.changeCourse(courseId, courseRequestDto);
         return ResponseEntity.ok(ResponseHandler.success(courseResponseDto));

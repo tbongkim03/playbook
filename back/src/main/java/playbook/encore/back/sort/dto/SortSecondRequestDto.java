@@ -1,14 +1,15 @@
 package playbook.encore.back.sort.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import playbook.encore.back.sort.entity.SortFirst;
 
 @Data
 public class SortSecondRequestDto {
 
-    private Integer seqSortFirst;
-    private String korSortSecond;
-    private String nameSortSecond;
+    @NotNull private Integer seqSortFirst;
+    @NotBlank private String korSortSecond;
+    @NotBlank private String nameSortSecond;
 
     public SortSecondRequestDto(Integer seqSortFirst, String korSortSecond, String nameSortSecond) {
         this.seqSortFirst = seqSortFirst;

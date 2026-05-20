@@ -1,9 +1,9 @@
 package playbook.encore.back.bookUser.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
 public class PasswordUpdateRequestDto {
-    private String newPassword;
+    @NotBlank private String newPassword;
 }
-

@@ -1,16 +1,11 @@
 package playbook.encore.back.admin.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
-public class UpdateAdminRequestDto {
+public class AdminDeleteRequestDto {
     @NotBlank private String idAdmin;
-    @NotBlank private String currentPassword;
-    private String newPassword;
-    private String newDiscord;
 }

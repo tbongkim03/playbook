@@ -1,6 +1,7 @@
 package playbook.encore.back.campus.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,7 +54,7 @@ public class CampusController {
     @PostMapping
     public ResponseEntity<Response> createCampus(
             HttpServletRequest request,
-            @RequestBody CampusRequestDto campusRequestDto
+            @RequestBody @Valid CampusRequestDto campusRequestDto
     ) {
         try {
             Object roleAttr = request.getAttribute("ROLE");
@@ -73,7 +74,7 @@ public class CampusController {
     public ResponseEntity<Response> updateCampus(
             HttpServletRequest request,
             @PathVariable("id") Integer seqCampus,
-            @RequestBody CampusRequestDto campusRequestDto
+            @RequestBody @Valid CampusRequestDto campusRequestDto
     ) {
         try {
             Object roleAttr = request.getAttribute("ROLE");

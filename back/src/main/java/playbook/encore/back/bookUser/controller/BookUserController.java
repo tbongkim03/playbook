@@ -2,6 +2,7 @@ package playbook.encore.back.bookUser.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +35,7 @@ public class BookUserController {
 
     // 회원가입 관련 부분
     @PostMapping("/register")
-    public ResponseEntity<Response> registerUser(@RequestBody RegisterUserRequestDto registerUserRequestDto) throws Exception {
+    public ResponseEntity<Response> registerUser(@RequestBody @Valid RegisterUserRequestDto registerUserRequestDto) throws Exception {
         RegisterUserResponseDto registerUserResponseDto = bookUserService.createUser(registerUserRequestDto);
         return ResponseEntity.ok(ResponseHandler.success(registerUserResponseDto));
     }
@@ -49,7 +50,7 @@ public class BookUserController {
     @PostMapping("/login")
     public ResponseEntity<Response> loginUser(
             HttpServletRequest request,
-            @RequestBody LoginUserRequestDto loginUserRequestDto) throws Exception {
+            @RequestBody @Valid LoginUserRequestDto loginUserRequestDto) throws Exception {
         try {
             String userId = bookUserService.loginServiceUser(loginUserRequestDto);
 
@@ -117,7 +118,7 @@ public class BookUserController {
     @PostMapping("/validate")
     public ResponseEntity<Response> getCurrentPassword(
             HttpServletRequest request,
-            @RequestBody PasswordValidateRequestDto requestDto
+            @RequestBody @Valid PasswordValidateRequestDto requestDto
     ) throws Exception {
         try {
             Object roleAttr = request.getAttribute("ROLE");
@@ -137,7 +138,7 @@ public class BookUserController {
     @PutMapping("/password")
     public ResponseEntity<Response> updatePassword(
             HttpServletRequest request,
-            @RequestBody PasswordUpdateRequestDto requestDto
+            @RequestBody @Valid PasswordUpdateRequestDto requestDto
     ) throws Exception {
         try {
             Object roleAttr = request.getAttribute("ROLE");

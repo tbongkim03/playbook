@@ -3,6 +3,7 @@ package playbook.encore.back.book.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -54,7 +55,7 @@ public class NLISBNController {
     @PostMapping("/naver/book-search")
     public ResponseEntity<Response> searchBook(
             HttpServletRequest request,
-            @RequestBody NaverBookSearchRequestDto requestM) {
+            @RequestBody @Valid NaverBookSearchRequestDto requestM) {
         try {
             Object roleAttr = request.getAttribute("ROLE");
             if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {

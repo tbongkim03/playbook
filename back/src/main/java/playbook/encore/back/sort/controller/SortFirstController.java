@@ -1,6 +1,7 @@
 package playbook.encore.back.sort.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +35,7 @@ public class SortFirstController {
     @PostMapping
     public ResponseEntity<Response> postSortFirst(
             HttpServletRequest request,
-            @RequestBody SortFirstRequestDto sortFirstRequestDto
+            @RequestBody @Valid SortFirstRequestDto sortFirstRequestDto
     ) throws Exception {
         Object roleAttr = request.getAttribute("ROLE");
         if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
@@ -48,7 +49,7 @@ public class SortFirstController {
     public ResponseEntity<Response> putSortFirstById(
             HttpServletRequest request,
             @PathVariable("id") Integer sortFirstId,
-            @RequestBody SortFirstRequestDto sortFirstRequestDto
+            @RequestBody @Valid SortFirstRequestDto sortFirstRequestDto
     ) throws Exception {
         Object roleAttr = request.getAttribute("ROLE");
         if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {

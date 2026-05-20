@@ -2,6 +2,7 @@ package playbook.encore.back.book.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -164,7 +165,7 @@ public class BookController {
     @PostMapping
     public ResponseEntity<Response> insertBook(
             HttpServletRequest request,
-            @RequestBody BookRequestDto bookRequestDto
+            @RequestBody @Valid BookRequestDto bookRequestDto
     ) throws Exception {
         Object roleAttr = request.getAttribute("ROLE");
         if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
@@ -178,7 +179,7 @@ public class BookController {
     public ResponseEntity<Response> updateBookById(
             HttpServletRequest request,
             @PathVariable("id") int bookId,
-            @RequestBody BookSortAndBarcodeRequestDto bookSortAndBarcodeRequestDto
+            @RequestBody @Valid BookSortAndBarcodeRequestDto bookSortAndBarcodeRequestDto
     ) throws Exception {
         Object roleAttr = request.getAttribute("ROLE");
         if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
@@ -261,7 +262,7 @@ public class BookController {
     @PostMapping("/check/barcode")
     public ResponseEntity<Response> isBarcodeDuplicated(
             HttpServletRequest request,
-            @RequestBody BookBarcodeUniqueRequestDto bookBarcodeUniqueRequestDto
+            @RequestBody @Valid BookBarcodeUniqueRequestDto bookBarcodeUniqueRequestDto
     ) throws Exception {
         Object roleAttr = request.getAttribute("ROLE");
         if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {

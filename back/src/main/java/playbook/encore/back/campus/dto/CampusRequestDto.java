@@ -1,5 +1,7 @@
 package playbook.encore.back.campus.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,8 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CampusRequestDto {
     private Integer seqCampus;
-    private String nameCampus;
-    private String locationCampus;
-    private Boolean isActive;
+    @NotBlank private String nameCampus;
+    @NotBlank private String locationCampus;
+    @NotNull private Boolean isActive;
 }
-
