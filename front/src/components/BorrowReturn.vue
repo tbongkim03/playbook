@@ -12,8 +12,16 @@
                         </svg>
                     </button>
                 </div>
-                <div class="function-area">
-                    <div class="function-card borrow-card" @click="navigateTo('/borrow')">
+                <div v-if="mobile" class="mobile-notice">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                        <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    대출 · 반납은 PC에서만 이용 가능합니다.
+                </div>
+                <div class="function-area" :class="{ 'disabled-area': mobile }">
+                    <div class="function-card borrow-card" :class="{ 'card-disabled': mobile }" @click="navigateTo('/borrow')">
                         <div class="card-icon">
                             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -24,7 +32,7 @@
                         <h2 class="card-title">도서 대출</h2>
                         <p class="card-description">새로운 책을 대출해보세요</p>
                     </div>
-                    <div class="function-card return-card" @click="navigateTo('/return')">
+                    <div class="function-card return-card" :class="{ 'card-disabled': mobile }" @click="navigateTo('/return')">
                         <div class="card-icon">
                             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -43,12 +51,19 @@
 
 <script setup>
 import router from '@/router'
+import { isMobile } from '@/utils/mobileDetect'
 
 const emit = defineEmits(['close'])
+const mobile = isMobile()
+
 function close() {
   emit('close')
 }
 const navigateTo = (r) => {
+  if (mobile) {
+    alert('PC에서만 이용 가능한 기능입니다.')
+    return
+  }
   // 로그인 체크
   if (!sessionStorage.getItem('userType')) {
     close()
@@ -56,7 +71,7 @@ const navigateTo = (r) => {
     router.push('/login')
     return
   }
-  
+
   close()
   router.push(r)
 }
@@ -246,6 +261,26 @@ const navigateTo = (r) => {
   opacity: 0.9;
   font-weight: 400;
   line-height: 1.5;
+}
+
+.mobile-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+  color: #c2410c;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 20px;
+}
+
+.card-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 /* 반응형 디자인 */

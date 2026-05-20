@@ -95,11 +95,12 @@
 
             <!-- 액션 버튼 -->
             <div class="action-buttons">
-                <button 
+                <button
                     class="btn"
                     :class="getButtonClass()"
                     @click="handleBorrowOrReturn"
-                    :disabled="book.bookBorrowed && !book.borrowedByMe"
+                    :disabled="(book.bookBorrowed && !book.borrowedByMe) || mobile"
+                    :title="mobile ? 'PC에서만 이용 가능한 기능입니다' : ''"
                 >
                     <svg v-if="!book.bookBorrowed" class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253z" />
@@ -159,6 +160,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import noImage from '@/assets/free-icon-no-image-11542598.png'
+import { isMobile } from '@/utils/mobileDetect'
+
+const mobile = isMobile()
 
 const route = useRoute()
 const router = useRouter()
@@ -219,6 +223,10 @@ const getButtonClass = () => {
 }
 
 const handleBorrowOrReturn = () => {
+    if (mobile) {
+        alert('PC에서만 이용 가능한 기능입니다.')
+        return
+    }
     // 로그인 체크
     if (!sessionStorage.getItem('userType')) {
         alert('로그인이 필요합니다.')

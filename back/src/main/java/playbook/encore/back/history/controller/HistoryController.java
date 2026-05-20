@@ -12,6 +12,7 @@ import playbook.encore.back.history.dto.HistoryBookResponseDto;
 import playbook.encore.back.history.dto.PopularLabelDto;
 import playbook.encore.back.history.dto.UserReadingRankDto;
 import playbook.encore.back.bookUser.entity.BookUser;
+import playbook.encore.back.common.util.MobileDetectUtil;
 import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.history.service.HistoryService;
 
@@ -72,6 +73,10 @@ public class HistoryController {
             HttpServletRequest request,
             @RequestBody String barcodeBook
     ) throws Exception {
+        if (MobileDetectUtil.isMobile(request)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ResponseHandler.error(ResponseCode.NOT_AUTHORIZED, "PC에서만 이용 가능한 기능입니다"));
+        }
         Object roleAttr = request.getAttribute("ROLE");
         if (roleAttr == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
@@ -108,6 +113,10 @@ public class HistoryController {
             HttpServletRequest request,
             @RequestBody String barcodeBook
     ) throws Exception {
+        if (MobileDetectUtil.isMobile(request)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ResponseHandler.error(ResponseCode.NOT_AUTHORIZED, "PC에서만 이용 가능한 기능입니다"));
+        }
         Object roleAttr = request.getAttribute("ROLE");
         if (roleAttr == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());

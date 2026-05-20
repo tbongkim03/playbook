@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { isMobile } from '@/utils/mobileDetect';
 import HomePage from '@/views/HomePage.vue';
 import PageLogin from '@/views/PageLogin.vue';
 import PageLogout from '@/components/PageLogout.vue';
@@ -123,6 +124,14 @@ router.beforeEach((to, from, next) => {
       next('/login')
       return
     }
+  }
+
+  // PC 전용 페이지 (대출/반납)
+  const pcOnlyRoutes = ['/borrow', '/return']
+  if (pcOnlyRoutes.includes(to.path) && isMobile()) {
+    alert('PC에서만 이용 가능한 기능입니다.')
+    next('/')
+    return
   }
 
   next()
