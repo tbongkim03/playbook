@@ -283,7 +283,7 @@ const goBack = () => {
 }
 
 // 사용자 인증 확인
-const checkAuth = () => {
+const checkAuth = async () => {
   if (!sessionStorage.getItem('userType')) {
     await swAlert('로그인이 필요합니다.', 'info')
     router.push('/login')
@@ -292,8 +292,8 @@ const checkAuth = () => {
   return true
 }
 
-onMounted(() => {
-  if (!checkAuth()) {
+onMounted(async () => {
+  if (!await checkAuth()) {
     return
   }
   

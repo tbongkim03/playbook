@@ -59,14 +59,14 @@
       <!-- 미리보기 영역 -->
       <div class="preview-section">
         <div class="preview-label">미리보기</div>
-        <div class="preview-content" v-html="currentContent || '<p style=\"color:#aaa\">내용을 입력하면 여기에 미리보기가 표시됩니다.</p>'"></div>
+        <div class="preview-content" v-html="previewHtml"></div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { swAlert, swToast } from '@/utils/sweetAlert'
 
@@ -81,6 +81,10 @@ const currentContent = ref('')
 const originalContent = ref('')
 const loading = ref(false)
 const saving = ref(false)
+
+const previewHtml = computed(() =>
+  currentContent.value || '<p style="color:#aaa">내용을 입력하면 여기에 미리보기가 표시됩니다.</p>'
+)
 
 const fetchTerms = async (type) => {
   loading.value = true
