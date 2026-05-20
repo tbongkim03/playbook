@@ -324,6 +324,7 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { swAlert } from '@/utils/sweetAlert'
+import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
 
 // 반응형 데이터
 const rentalHistory = ref([])
@@ -331,11 +332,16 @@ const isLoading = ref(false)
 const showDetailModal = ref(false)
 const selectedRental = ref(null)
 
-// 캠퍼스 필터 관련
-const campuses = ref([])
-const selectedCampus = ref('')
-const showCampusFilter = ref(false)
-const currentUserCampusId = ref(null)
+// 캠퍼스 필터 관련 (캠퍼스 관리자는 자기 캠퍼스 고정, 필터 숨김)
+const {
+  showCampusFilter,
+  currentUserCampusId,
+  selectedCampus,
+  campuses,
+  fetchAdminInfo,
+  fetchCampuses,
+  getCampusParam,
+} = useAdminCampusFilter({ showFilterForCampusAdmin: false })
 
 // 통계 데이터
 const stats = ref({
@@ -357,10 +363,6 @@ const searchQuery = ref('')
 const currentPage = ref(1)
 const itemsPerPage = 10
 
-// API 헤더 설정
-const getAuthHeaders = () => ({
-  'Content-Type': 'application/json'
-})
 
 // 과정명을 첫 단어와 마지막 단어만 표시하는 함수
 const formatCourseName = (courseName) => {
@@ -460,42 +462,6 @@ const visiblePages = computed(() => {
   return pages
 })
 
-// 캠퍼스 목록 가져오기
-const fetchCampuses = async () => {
-  try {
-    const res = await axios.get('/api/campus')
-    campuses.value = res.data.data || []
-  } catch (error) {
-    console.error('캠퍼스 목록 조회 실패:', error)
-  }
-}
-
-// 사용자 타입 확인 및 캠퍼스 필터 설정
-const checkUserType = async () => {
-  try {
-    if (!sessionStorage.getItem('userType')) return
-
-    const response = await axios.get('/api/admin/me', {
-      validateStatus: () => true
-    })
-    
-    if (response.status === 200) {
-      const data = response.data.data
-      if (!data.seqCampus) {
-        // 전체 관리자
-        showCampusFilter.value = true
-        currentUserCampusId.value = null
-      } else {
-        // 특정 캠퍼스 관리자
-        showCampusFilter.value = false
-        currentUserCampusId.value = data.seqCampus.seqCampus || data.seqCampus
-        selectedCampus.value = String(currentUserCampusId.value) // 기본값 설정
-      }
-    }
-  } catch (error) {
-    console.error('사용자 타입 확인 실패:', error)
-  }
-}
 
 // 캠퍼스 변경 핸들러
 const onCampusChange = () => {
@@ -507,15 +473,7 @@ const fetchRentalHistory = async () => {
   try {
     isLoading.value = true
     
-    const headers = getAuthHeaders()
-    if (!headers) return
-    
-    // 캠퍼스 필터가 선택된 경우 쿼리 파라미터로 전달
-    const campusParam = (showCampusFilter.value && selectedCampus.value) ? `?campusId=${selectedCampus.value}` : ''
-    
-    const response = await axios.get(`/api/history/book${campusParam}`, {
-      headers: headers
-    })
+    const response = await axios.get(`/api/history/book${getCampusParam()}`)
     
     // 응답 데이터 구조 확인 및 처리 (HistoryBookResponseDto 기준)
     const responseData = response.data.data
@@ -674,7 +632,7 @@ const exportData = () => {
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(async () => {
   await fetchCampuses()
-  await checkUserType()
+  await fetchAdminInfo()
   await fetchRentalHistory()
 })
 </script>

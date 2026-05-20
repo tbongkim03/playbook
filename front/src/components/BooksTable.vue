@@ -519,11 +519,11 @@ import axios from 'axios'
 import Barcode from './Barcode.vue'
 import PrintBatch from './BookPrintBatch.vue'
 import { swAlert, swConfirm } from '@/utils/sweetAlert'
+import { API_BASE, MAX_BARCODE_SELECTION } from '@/utils/constants'
 
 // emit 정의
 defineEmits(['open-register-modal'])
 
-const API_BASE = '/api'
 
 // 데이터 상태
 const allBooks = ref([])
@@ -544,7 +544,7 @@ const activeRowId = ref(null)
 const selectedBooks = ref(new Set()) // seqBook을 저장
 const isDragging = ref(false)
 const dragStartBook = ref(null)
-const MAX_SELECTION = 65
+const MAX_SELECTION = MAX_BARCODE_SELECTION
 
 // 필터 상태
 const filters = ref({

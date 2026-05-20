@@ -263,6 +263,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
 import { swAlert } from '@/utils/sweetAlert'
+import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
 
 // 반응형 데이터
 const userList = ref([])
@@ -272,10 +273,15 @@ const searchQuery = ref('')
 const selectedStatus = ref('')
 
 // 캠퍼스 필터 관련
-const campuses = ref([])
-const selectedCampus = ref('')
-const showCampusFilter = ref(false)
-const currentUserCampusId = ref(null)
+const {
+  showCampusFilter,
+  currentUserCampusId,
+  selectedCampus,
+  campuses,
+  fetchAdminInfo,
+  fetchCampuses,
+  getCampusParam,
+} = useAdminCampusFilter()
 
 // 모달 상태
 const showDetailModal = ref(false)
@@ -301,43 +307,11 @@ const handleKeydown = (event) => {
   }
 }
 
-// API 헤더 설정
-const getAuthHeaders = () => ({
-  'Content-Type': 'application/json'
-})
-
 // 현재 사용자 정보 조회
 const fetchCurrentUser = async () => {
-  try {
-    const response = await axios.get('/api/admin/me', {
-      headers: getAuthHeaders()
-    })
-    currentUser.value = response.data.data
-
-    // 캠퍼스 필터 설정
-    if (!response.data.data.seqCampus) {
-      // 전체 관리자
-      showCampusFilter.value = true
-      currentUserCampusId.value = null
-      selectedCampus.value = '' // 기본값: 전체
-    } else {
-      // 특정 캠퍼스 관리자
-      showCampusFilter.value = true
-      currentUserCampusId.value = response.data.data.seqCampus.seqCampus || response.data.data.seqCampus
-      selectedCampus.value = String(currentUserCampusId.value) // 기본값: 본인 캠퍼스
-    }
-  } catch (error) {
-    console.error('현재 사용자 정보 조회 실패:', error)
-  }
-}
-
-// 캠퍼스 목록 가져오기
-const fetchCampuses = async () => {
-  try {
-    const res = await axios.get('/api/campus')
-    campuses.value = res.data.data || []
-  } catch (error) {
-    console.error('캠퍼스 목록 조회 실패:', error)
+  const data = await fetchAdminInfo()
+  if (data) {
+    currentUser.value = data
   }
 }
 
@@ -350,10 +324,7 @@ const onCampusChange = () => {
 const fetchUserList = async () => {
   try {
     isLoading.value = true
-    const campusParam = (showCampusFilter.value && selectedCampus.value) ? `?campusId=${selectedCampus.value}` : ''
-    const response = await axios.get(`/api/users/list${campusParam}`, {
-      headers: getAuthHeaders()
-    })
+    const response = await axios.get(`/api/users/list${getCampusParam()}`)
 
     userList.value = response.data.data.map(userArray => ({
       nameUser: userArray[0],
@@ -482,10 +453,7 @@ const deleteUser = async () => {
     
     // 학생 삭제
     const response = await axios.delete('/api/users', {
-      headers: getAuthHeaders(),
-      data: {
-        idUser: deletingUser.value.idUser
-      }
+      data: { idUser: deletingUser.value.idUser }
     })
     
     await swAlert('학생 계정이 성공적으로 삭제되었습니다.', 'success')

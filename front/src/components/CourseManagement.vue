@@ -364,6 +364,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import axios from 'axios'
 import { swAlert } from '@/utils/sweetAlert'
+import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
 
 // 반응형 데이터
 const activeTab = ref('courses')
@@ -372,10 +373,15 @@ const campusList = ref([])
 const isLoading = ref(false)
 
 // 캠퍼스 필터 관련 (과정 관리 탭용)
-const campuses = ref([])
-const selectedCampus = ref('')
-const showCampusFilter = ref(false)
-const currentUserCampusId = ref(null)
+const {
+  showCampusFilter,
+  currentUserCampusId,
+  selectedCampus,
+  campuses,
+  fetchAdminInfo,
+  fetchCampuses,
+  getCampusParam,
+} = useAdminCampusFilter()
 
 // 모달 상태
 const showAddCourseModal = ref(false)
@@ -402,10 +408,6 @@ const deletingCourse = ref({
   nameCourse: ''
 })
 
-// API 헤더 설정
-const getAuthHeaders = () => ({
-  'Content-Type': 'application/json'
-})
 
 // 활성 캠퍼스 목록 (별도로 관리)
 const activeCampusListForSelect = ref([])
@@ -433,43 +435,6 @@ const handleKeydown = (event) => {
   }
 }
 
-// 사용자 타입 확인 및 캠퍼스 필터 설정
-const checkUserType = async () => {
-  try {
-    if (!sessionStorage.getItem('userType')) return
-
-    const response = await axios.get('/api/admin/me', {
-      validateStatus: () => true
-    })
-    
-    if (response.status === 200) {
-      const data = response.data.data
-      if (!data.seqCampus) {
-        // 전체 관리자
-        showCampusFilter.value = true
-        currentUserCampusId.value = null
-        selectedCampus.value = '' // 기본값: 전체
-      } else {
-        // 특정 캠퍼스 관리자
-        showCampusFilter.value = true
-        currentUserCampusId.value = data.seqCampus.seqCampus || data.seqCampus
-        selectedCampus.value = String(currentUserCampusId.value) // 기본값: 본인 캠퍼스
-      }
-    }
-  } catch (error) {
-    console.error('사용자 타입 확인 실패:', error)
-  }
-}
-
-// 캠퍼스 목록 가져오기 (과정 관리 탭용)
-const fetchCampuses = async () => {
-  try {
-    const res = await axios.get('/api/campus')
-    campuses.value = res.data.data || []
-  } catch (error) {
-    console.error('캠퍼스 목록 조회 실패:', error)
-  }
-}
 
 // 캠퍼스 변경 핸들러
 const onCampusChange = () => {
@@ -480,10 +445,7 @@ const onCampusChange = () => {
 const fetchCourseList = async () => {
   try {
     isLoading.value = true
-    const campusParam = (showCampusFilter.value && selectedCampus.value) ? `?campusId=${selectedCampus.value}` : ''
-    const response = await axios.get(`/api/courses${campusParam}`, {
-      headers: getAuthHeaders()
-    })
+    const response = await axios.get(`/api/courses${getCampusParam()}`)
     courseList.value = response.data.data
   } catch (error) {
     console.error('과정 목록 로드 실패:', error)
@@ -507,9 +469,7 @@ const addCourse = async () => {
       startDtCourse: newCourse.value.startDtCourse,
       finishDtCourse: newCourse.value.finishDtCourse
     }
-    await axios.post('/api/courses', courseData, {
-      headers: getAuthHeaders()
-    })
+    await axios.post('/api/courses', courseData)
 
     await swAlert('과정이 성공적으로 추가되었습니다.', 'success')
     closeAddCourseModal()
@@ -546,9 +506,7 @@ const updateCourse = async () => {
       startDtCourse: editingCourse.value.startDtCourse,
       finishDtCourse: editingCourse.value.finishDtCourse
     }
-    await axios.put(`/api/courses/${editingCourse.value.seqCourse}`, courseData, {
-      headers: getAuthHeaders()
-    })
+    await axios.put(`/api/courses/${editingCourse.value.seqCourse}`, courseData)
 
     await swAlert('과정이 성공적으로 수정되었습니다.', 'success')
     closeEditCourseModal()
@@ -571,9 +529,7 @@ const confirmDeleteCourse = (course) => {
 const deleteCourse = async (courseId) => {
   try {
     isLoading.value = true
-    await axios.delete(`/api/courses/${courseId}`, {
-      headers: getAuthHeaders()
-    })
+    await axios.delete(`/api/courses/${courseId}`)
     
     await swAlert('과정이 성공적으로 삭제되었습니다.', 'success')
     closeDeleteCourseModal()
@@ -618,11 +574,7 @@ const closeDeleteCourseModal = () => {
 // 활성 캠퍼스 목록 조회 (과정 추가/수정 모달용)
 const fetchActiveCampusList = async () => {
   try {
-    const response = await axios.get('/api/campus', {
-      headers: getAuthHeaders()
-    })
-    // activeCampusList는 computed이므로 campusList에 활성 캠퍼스만 저장
-    // 하지만 전체 목록도 필요하므로 별도로 관리
+    const response = await axios.get('/api/campus')
     return response.data.data
   } catch (error) {
     console.error('활성 캠퍼스 목록 로드 실패:', error)
@@ -634,18 +586,14 @@ const fetchActiveCampusList = async () => {
 const fetchCampusList = async () => {
   try {
     isLoading.value = true
-    const response = await axios.get('/api/campus/all', {
-      headers: getAuthHeaders()
-    })
+    const response = await axios.get('/api/campus/all')
     campusList.value = response.data.data
   } catch (error) {
     console.error('캠퍼스 목록 로드 실패:', error)
     if (error.response?.status === 403) {
       // 403 에러 시 활성 캠퍼스만이라도 가져오기
       try {
-        const activeResponse = await axios.get('/api/campus', {
-          headers: getAuthHeaders()
-        })
+        const activeResponse = await axios.get('/api/campus')
         campusList.value = activeResponse.data.data
       } catch (fallbackError) {
         console.error('활성 캠퍼스 목록 로드 실패:', fallbackError)
@@ -689,7 +637,7 @@ onMounted(async () => {
   // 활성 캠퍼스 목록 먼저 로드 (과정 추가/수정 모달용)
   activeCampusListForSelect.value = await fetchActiveCampusList()
   // 사용자 타입 확인 및 캠퍼스 필터 설정
-  await checkUserType()
+  await fetchAdminInfo()
   // 캠퍼스 목록 가져오기 (과정 관리 탭 필터용)
   await fetchCampuses()
   // 과정 목록 로드

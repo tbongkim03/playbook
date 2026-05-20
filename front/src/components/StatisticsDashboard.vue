@@ -181,8 +181,8 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import axios from 'axios'
-
-const title_url = "/api"
+import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
+import { API_BASE } from '@/utils/constants'
 
 // Chart.js 등록
 Chart.register(...registerables)
@@ -192,11 +192,16 @@ const loading = ref(false)
 const error = ref(null)
 const selectedCourse = ref('')
 
-// 캠퍼스 필터 관련
-const campuses = ref([])
-const selectedCampus = ref('')
-const showCampusFilter = ref(false)
-const currentUserCampusId = ref(null)
+// 캠퍼스 필터 관련 (캠퍼스 관리자는 자기 캠퍼스 고정, 필터 숨김)
+const {
+  showCampusFilter,
+  currentUserCampusId,
+  selectedCampus,
+  campuses,
+  fetchAdminInfo,
+  fetchCampuses,
+  getCampusParam,
+} = useAdminCampusFilter({ showFilterForCampusAdmin: false })
 
 // 통계 데이터
 const popularFirstSort = ref([])
@@ -248,13 +253,13 @@ async function getCourseList() {
       }
     })
 
-    const dbRes = await axios.get(`${title_url}/courses`)
+    const dbRes = await axios.get(`${API_BASE}/courses`)
     const dbCourses = dbRes.data.data
 
     for (const apiItem of apiCourses) {
       const exists = dbCourses.find(dbItem => dbItem.nameCourse === apiItem.nameCourse)
       if (!exists) {
-        await axios.post(`${title_url}/courses`, {
+        await axios.post(`${API_BASE}/courses`, {
           nameCourse: apiItem.nameCourse,
           startDtCourse: apiItem.startDtCourse,
           finishDtCourse: apiItem.finishDtCourse
@@ -265,7 +270,7 @@ async function getCourseList() {
     for (const dbItem of dbCourses) {
       const exists = apiCourses.find(apiItem => apiItem.nameCourse === dbItem.nameCourse)
       if (!exists) {
-        await axios.delete(`${title_url}/courses/${dbItem.seqCourse}`)
+        await axios.delete(`${API_BASE}/courses/${dbItem.seqCourse}`)
       }
     }
 
@@ -277,7 +282,7 @@ async function getCourseList() {
           dbItem.finishDtCourse !== apiItem.finishDtCourse
 
         if (isDifferent) {
-          await axios.put(`${title_url}/courses/${dbItem.seqCourse}`, {
+          await axios.put(`${API_BASE}/courses/${dbItem.seqCourse}`, {
             nameCourse: apiItem.nameCourse,
             startDtCourse: apiItem.startDtCourse,
             finishDtCourse: apiItem.finishDtCourse
@@ -286,7 +291,7 @@ async function getCourseList() {
       }
     }
 
-    const finalDbRes = await axios.get(`${title_url}/courses`)
+    const finalDbRes = await axios.get(`${API_BASE}/courses`)
     const finalDbCourses = finalDbRes.data.data
 
     courses.value = finalDbCourses
@@ -335,13 +340,10 @@ let userRankChartInstance = null
 const fetchPopularFirstSort = async () => {
   try {
     let url = selectedCourse.value
-      ? `${title_url}/history/popular/first/${selectedCourse.value}`
-      : `${title_url}/history/popular/first`
+      ? `${API_BASE}/history/popular/first/${selectedCourse.value}`
+      : `${API_BASE}/history/popular/first`
     
-    // 캠퍼스 필터가 선택된 경우 쿼리 파라미터로 전달
-    if (showCampusFilter.value && selectedCampus.value) {
-      url += `?campusId=${selectedCampus.value}`
-    }
+    url += getCampusParam()
 
     const response = await axios.get(url)
     popularFirstSort.value = response.data.data
@@ -354,13 +356,10 @@ const fetchPopularFirstSort = async () => {
 const fetchPopularSecondSort = async () => {
   try {
     let url = selectedCourse.value
-      ? `${title_url}/history/popular/second/${selectedCourse.value}`
-      : `${title_url}/history/popular/second`
+      ? `${API_BASE}/history/popular/second/${selectedCourse.value}`
+      : `${API_BASE}/history/popular/second`
     
-    // 캠퍼스 필터가 선택된 경우 쿼리 파라미터로 전달
-    if (showCampusFilter.value && selectedCampus.value) {
-      url += `?campusId=${selectedCampus.value}`
-    }
+    url += getCampusParam()
 
     const response = await axios.get(url)
     popularSecondSort.value = response.data.data
@@ -373,13 +372,10 @@ const fetchPopularSecondSort = async () => {
 const fetchUserReadingRank = async () => {
   try {
     let url = selectedCourse.value
-      ? `${title_url}/history/rank/${selectedCourse.value}`
-      : `${title_url}/history/rank`
+      ? `${API_BASE}/history/rank/${selectedCourse.value}`
+      : `${API_BASE}/history/rank`
     
-    // 캠퍼스 필터가 선택된 경우 쿼리 파라미터로 전달
-    if (showCampusFilter.value && selectedCampus.value) {
-      url += `?campusId=${selectedCampus.value}`
-    }
+    url += getCampusParam()
 
     const response = await axios.get(url)
     userReadingRank.value = response.data.data
@@ -591,47 +587,11 @@ const refreshData = () => {
   fetchData()
 }
 
-// 캠퍼스 목록 가져오기
-const fetchCampuses = async () => {
-  try {
-    const res = await axios.get('/api/campus')
-    campuses.value = res.data.data || []
-  } catch (error) {
-    console.error('캠퍼스 목록 조회 실패:', error)
-  }
-}
-
-// 사용자 타입 확인 및 캠퍼스 필터 설정
-const checkUserType = async () => {
-  try {
-    if (!sessionStorage.getItem('userType')) return
-
-    const response = await axios.get('/api/admin/me', {
-      validateStatus: () => true
-    })
-    
-    if (response.status === 200) {
-      const data = response.data.data
-      if (!data.seqCampus) {
-        // 전체 관리자
-        showCampusFilter.value = true
-        currentUserCampusId.value = null
-      } else {
-        // 특정 캠퍼스 관리자
-        showCampusFilter.value = false
-        currentUserCampusId.value = data.seqCampus.seqCampus || data.seqCampus
-        selectedCampus.value = String(currentUserCampusId.value) // 기본값 설정
-      }
-    }
-  } catch (error) {
-    console.error('사용자 타입 확인 실패:', error)
-  }
-}
 
 // 라이프사이클
 onMounted(async () => {
   await fetchCampuses()
-  await checkUserType()
+  await fetchAdminInfo()
   await fetchData()
 })
 

@@ -322,16 +322,22 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
 import { swAlert } from '@/utils/sweetAlert'
+import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
 
 // 반응형 데이터
 const adminList = ref([])
-const campusList = ref([])
 const isLoading = ref(false)
 
 // 캠퍼스 필터 관련
-const selectedCampus = ref('')
-const showCampusFilter = ref(false)
-const currentUserCampusId = ref(null)
+const {
+  showCampusFilter,
+  currentUserCampusId,
+  selectedCampus,
+  campuses: campusList,
+  fetchAdminInfo,
+  fetchCampuses: fetchCampusList,
+  getCampusParam,
+} = useAdminCampusFilter()
 
 // 모달 상태
 const showAddModal = ref(false)
@@ -399,21 +405,11 @@ const deletingAdmin = ref({
   dcAdmin: ''
 })
 
-// API 헤더 설정
-const getAuthHeaders = () => ({
-  'Content-Type': 'application/json'
-})
 
 // 비밀번호 검증
 const validatePassword = async (idAdmin, password) => {
   try {
-    const response = await axios.post(
-      `/api/admin/validate?id=${idAdmin}`,
-      { password },
-      {
-        headers: getAuthHeaders()
-      }
-    )
+    const response = await axios.post(`/api/admin/validate?id=${idAdmin}`, { password })
     return response.data.data
   } catch (error) {
     throw error
@@ -422,31 +418,14 @@ const validatePassword = async (idAdmin, password) => {
 
 // 현재 사용자 정보 조회
 const fetchCurrentUser = async () => {
-  try {
-    const response = await axios.get('/api/admin/me', {
-      headers: getAuthHeaders()
-    })
+  const data = await fetchAdminInfo()
+  if (data) {
     currentUser.value = {
-      idAdmin: response.data.data.idAdmin,
-      nameAdmin: response.data.data.nameAdmin,
-      dcAdmin: response.data.data.dcAdmin || '',
-      seqCampus: response.data.data.seqCampus
+      idAdmin: data.idAdmin,
+      nameAdmin: data.nameAdmin,
+      dcAdmin: data.dcAdmin || '',
+      seqCampus: data.seqCampus
     }
-
-    // 캠퍼스 필터 설정
-    if (!response.data.data.seqCampus) {
-      // 전체 관리자
-      showCampusFilter.value = true
-      currentUserCampusId.value = null
-      selectedCampus.value = '' // 기본값: 전체
-    } else {
-      // 특정 캠퍼스 관리자
-      showCampusFilter.value = true
-      currentUserCampusId.value = response.data.data.seqCampus.seqCampus || response.data.data.seqCampus
-      selectedCampus.value = String(currentUserCampusId.value) // 기본값: 본인 캠퍼스
-    }
-  } catch (error) {
-    console.error('현재 사용자 정보 조회 실패:', error)
   }
 }
 
@@ -478,8 +457,7 @@ const validateId = async () => {
 
   try {
     const response = await axios.get(`/api/admin/register/validate`, {
-      params: { id: newAdmin.value.idAdmin },
-      headers: getAuthHeaders()
+      params: { id: newAdmin.value.idAdmin }
     })
 
     const data = response.data.data;
@@ -499,26 +477,11 @@ const validateId = async () => {
   }
 }
 
-// 캠퍼스 목록 조회
-const fetchCampusList = async () => {
-  try {
-    const response = await axios.get('/api/campus', {
-      headers: getAuthHeaders()
-    })
-    campusList.value = response.data.data
-  } catch (error) {
-    console.error('캠퍼스 목록 로드 실패:', error)
-  }
-}
-
 // 관리자 목록 조회
 const fetchAdminList = async () => {
   try {
     isLoading.value = true
-    const campusParam = (showCampusFilter.value && selectedCampus.value) ? `?campusId=${selectedCampus.value}` : ''
-    const response = await axios.get(`/api/admin/list${campusParam}`, {
-      headers: getAuthHeaders()
-    })
+    const response = await axios.get(`/api/admin/list${getCampusParam()}`)
     adminList.value = response.data.data.content || response.data.data
   } catch (error) {
     if (error.response?.status === 403) {
@@ -547,9 +510,7 @@ const addAdmin = async () => {
 
   try {
     isLoading.value = true
-    const response = await axios.post('/api/admin/register', newAdmin.value, {
-      headers: getAuthHeaders()
-    })
+    const response = await axios.post('/api/admin/register', newAdmin.value)
 
     await swAlert('관리자가 성공적으로 추가되었습니다.', 'success')
     closeAddModal()
@@ -597,9 +558,7 @@ const updateAdmin = async () => {
       newDiscord: discordChanged ? newDiscordValue : null
     }
     
-    const response = await axios.put('/api/admin/update', updateData, {
-      headers: getAuthHeaders()
-    })
+    const response = await axios.put('/api/admin/update', updateData)
     
     const updatedFields = []
     if (updateData.newDiscord !== null) updatedFields.push('디스코드 ID')
@@ -646,7 +605,6 @@ const deleteAdmin = async (idAdmin) => {
     await validatePassword(idAdmin, deletePassword.value)
 
     const response = await axios.delete('/api/admin', {
-      headers: getAuthHeaders(),
       data: { idAdmin: deletingAdmin.value.idAdmin }
     })
 
