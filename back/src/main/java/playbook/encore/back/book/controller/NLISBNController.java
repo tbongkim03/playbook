@@ -1,6 +1,5 @@
 package playbook.encore.back.book.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,15 +16,17 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import playbook.encore.back.book.dto.NaverBookSearchRequestDto;
-import playbook.encore.back.admin.entity.Admin;
+import playbook.encore.back.admin.entity.Admin;
 import playbook.encore.back.admin.dao.AdminRepository;
+import playbook.encore.back.common.response.Response;
+import playbook.encore.back.common.response.ResponseCode;
+import playbook.encore.back.common.response.ResponseHandler;
 import playbook.encore.back.interceptor.LoginCheckInterceptor;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.StringReader;
 import java.net.URLEncoder;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -51,7 +52,7 @@ public class NLISBNController {
     }
 
     @PostMapping("/naver/book-search")
-    public ResponseEntity<?> searchBook(
+    public ResponseEntity<Response> searchBook(
             HttpServletRequest request,
             @RequestBody NaverBookSearchRequestDto requestM) {
         try {
@@ -59,9 +60,9 @@ public class NLISBNController {
             if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
                 Admin user = (Admin) request.getAttribute("admin");
                 if (adminRepository.findByIdAdmin(user.getIdAdmin()).isEmpty()) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("관리자 정보가 없습니다.");
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(ResponseHandler.invalidParam("관리자 정보가 없습니다."));
                 }
-                // ISBN으로 상세 검색 API 호출 (XML)
                 String url = String.format(
                         "https://openapi.naver.com/v1/search/book_adv.xml?d_isbn=%s&display=%d",
                         URLEncoder.encode(requestM.getIsbn(), "UTF-8"),
@@ -78,24 +79,18 @@ public class NLISBNController {
                 RestTemplate restTemplate = new RestTemplate();
                 ResponseEntity<String> xmlResponse = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 
-                // XML을 JSON으로 변환
                 Map<String, Object> jsonResponse = convertXmlToJson(xmlResponse.getBody());
-
-                return ResponseEntity.ok()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(jsonResponse);
+                return ResponseEntity.ok(ResponseHandler.success(jsonResponse));
             } else {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
             }
         } catch (Exception e) {
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "네이버 책 상세 검색 API 호출 실패: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
         }
     }
 
     @PostMapping("/national-library/isbn")
-    public ResponseEntity<?> searchByISBN(
+    public ResponseEntity<Response> searchByISBN(
             HttpServletRequest request,
             @RequestBody String isbnString) {
         try {
@@ -103,26 +98,17 @@ public class NLISBNController {
             if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
                 Admin user = (Admin) request.getAttribute("admin");
                 if (adminRepository.findByIdAdmin(user.getIdAdmin()).isEmpty()) {
-                    Map<String, String> errorResponse = new HashMap<>();
-                    errorResponse.put("error", "관리자 정보가 없습니다.");
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .body(errorResponse);
+                            .body(ResponseHandler.invalidParam("관리자 정보가 없습니다."));
                 }
 
-                // ISBN 문자열 정리 (따옴표 제거, 공백 제거)
                 String cleanIsbn = isbnString.replaceAll("[\"\\s-]", "").trim();
 
-                // ISBN 유효성 검사
                 if (cleanIsbn.isEmpty() || (!cleanIsbn.matches("\\d{10}") && !cleanIsbn.matches("\\d{13}"))) {
-                    Map<String, String> errorResponse = new HashMap<>();
-                    errorResponse.put("error", "올바른 ISBN 형식이 아닙니다. (10자리 또는 13자리 숫자)");
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .body(errorResponse);
+                            .body(ResponseHandler.invalidParamPattern("ISBN"));
                 }
 
-                // URL 생성 (long 타입으로 처리하여 13자리 ISBN 지원)
                 String url = String.format(
                         "https://www.nl.go.kr/seoji/SearchApi.do?cert_key=%s&result_style=json&page_no=1&page_size=1&isbn=%s",
                         apiKey, cleanIsbn);
@@ -134,101 +120,49 @@ public class NLISBNController {
                 HttpEntity<String> entity = new HttpEntity<>(headers);
                 RestTemplate restTemplate = new RestTemplate();
 
-                System.out.println("국립중앙도서관 API 요청 URL: " + url);
-
                 ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
                 String responseBody = response.getBody();
 
-                System.out.println("국립중앙도서관 API 응답: " + responseBody);
-
-                // 응답이 비어있는 경우 처리
                 if (responseBody == null || responseBody.trim().isEmpty()) {
-                    Map<String, Object> errorResponse = new HashMap<>();
-                    errorResponse.put("error", "국립중앙도서관 API에서 빈 응답을 받았습니다.");
-                    errorResponse.put("docs", new ArrayList<>());
-                    return ResponseEntity.ok()
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .body(errorResponse);
+                    return ResponseEntity.ok(ResponseHandler.noData());
                 }
 
-                // JSON 형식 검증 및 파싱
                 try {
                     ObjectMapper objectMapper = new ObjectMapper();
                     JsonNode jsonNode = objectMapper.readTree(responseBody);
-
-                    // 정상적인 JSON 응답인 경우 그대로 반환
-                    return ResponseEntity.ok()
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .body(responseBody);
-
-                } catch (JsonProcessingException e) {
-                    System.err.println("JSON 파싱 오류: " + e.getMessage());
-                    System.err.println("원본 응답: " + responseBody);
-
-                    // JSON이 아닌 응답 처리 (HTML 오류 페이지 등)
-                    Map<String, Object> errorResponse = new HashMap<>();
-                    errorResponse.put("error", "국립중앙도서관 API에서 올바르지 않은 형식의 응답을 받았습니다.");
-                    errorResponse.put("docs", new ArrayList<>());
-                    errorResponse.put("originalResponse", responseBody.substring(0, Math.min(500, responseBody.length())));
-
+                    return ResponseEntity.ok(ResponseHandler.success(jsonNode));
+                } catch (Exception e) {
                     return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .body(errorResponse);
+                            .body(ResponseHandler.error(ResponseCode.FAIL_PROCESS, "국립중앙도서관 API에서 올바르지 않은 형식의 응답을 받았습니다."));
                 }
 
             } else {
-                Map<String, String> errorResponse = new HashMap<>();
-                errorResponse.put("error", "관리자만 접근 가능합니다.");
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(errorResponse);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
             }
 
         } catch (NumberFormatException e) {
-            System.err.println("ISBN 숫자 변환 오류: " + e.getMessage());
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "ISBN은 숫자만 입력 가능합니다.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(errorResponse);
+                    .body(ResponseHandler.invalidParamType("ISBN"));
 
         } catch (HttpClientErrorException e) {
-            System.err.println("HTTP 클라이언트 오류: " + e.getMessage());
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "외부 API 요청 중 클라이언트 오류가 발생했습니다: " + e.getStatusCode());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(errorResponse);
+                    .body(ResponseHandler.error(ResponseCode.FAIL_PROCESS, "외부 API 요청 중 클라이언트 오류가 발생했습니다: " + e.getStatusCode()));
 
         } catch (HttpServerErrorException e) {
-            System.err.println("HTTP 서버 오류: " + e.getMessage());
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "외부 API 서버에서 오류가 발생했습니다: " + e.getStatusCode());
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(errorResponse);
+                    .body(ResponseHandler.error(ResponseCode.FAIL_PROCESS, "외부 API 서버에서 오류가 발생했습니다: " + e.getStatusCode()));
 
         } catch (ResourceAccessException e) {
-            System.err.println("네트워크 연결 오류: " + e.getMessage());
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "외부 API 연결 중 네트워크 오류가 발생했습니다.");
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(errorResponse);
+                    .body(ResponseHandler.error(ResponseCode.TARGET_DISABLED, "외부 API 연결 중 네트워크 오류가 발생했습니다."));
 
         } catch (Exception e) {
-            System.err.println("예상치 못한 오류: " + e.getMessage());
-            e.printStackTrace();
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "서버에서 예상치 못한 오류가 발생했습니다: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(errorResponse);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
         }
     }
 
     @GetMapping("/work24/course")
-    public ResponseEntity<?> searchWork24ByISBN() {
+    public ResponseEntity<Response> searchWork24ByISBN() {
         try {
             String todayDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             String sixMonthAgo = LocalDate.now().minusMonths(6).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -243,13 +177,12 @@ public class NLISBNController {
             HttpEntity<String> entity = new HttpEntity<>(headers);
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(response.getBody());
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(response.getBody());
+            return ResponseEntity.ok(ResponseHandler.success(jsonNode));
         } catch (Exception e) {
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "워크24 ISBN 검색 API 호출 실패: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
         }
     }
 
@@ -264,7 +197,6 @@ public class NLISBNController {
 
             doc.getDocumentElement().normalize();
 
-            // channel 정보 추출
             NodeList channelList = doc.getElementsByTagName("channel");
             if (channelList.getLength() > 0) {
                 Element channel = (Element) channelList.item(0);
@@ -274,7 +206,6 @@ public class NLISBNController {
                 result.put("start", Integer.parseInt(getElementValue(channel, "start", "1")));
                 result.put("display", Integer.parseInt(getElementValue(channel, "display", "0")));
 
-                // item 정보 추출
                 NodeList itemList = channel.getElementsByTagName("item");
                 for (int i = 0; i < itemList.getLength(); i++) {
                     Element item = (Element) itemList.item(i);
@@ -297,7 +228,6 @@ public class NLISBNController {
             result.put("items", items);
 
         } catch (Exception e) {
-            System.err.println("XML 파싱 오류: " + e.getMessage());
             result.put("error", "XML 파싱 실패: " + e.getMessage());
             result.put("total", 0);
             result.put("start", 1);

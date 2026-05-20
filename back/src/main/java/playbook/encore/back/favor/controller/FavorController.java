@@ -2,10 +2,13 @@ package playbook.encore.back.favor.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import playbook.encore.back.favor.dto.FavorResponseDto;
 import playbook.encore.back.bookUser.entity.BookUser;
+import playbook.encore.back.common.response.Response;
+import playbook.encore.back.common.response.ResponseHandler;
+import playbook.encore.back.favor.dto.FavorResponseDto;
 import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.favor.service.FavorService;
 
@@ -22,66 +25,65 @@ public class FavorController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getFavor(
-            HttpServletRequest request
-    ) throws Exception {
+    public ResponseEntity<Response> getFavor(HttpServletRequest request) throws Exception {
         Object roleAttr = request.getAttribute("ROLE");
         if (roleAttr == null || !LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
-            return ResponseEntity.status(403).body("일반 회원만 접근 가능합니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         }
         try {
             Object userAttr = request.getAttribute("user");
             if (userAttr == null || !(userAttr instanceof BookUser)) {
-                return ResponseEntity.status(403).body("사용자 정보가 없습니다.");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.noSession("user"));
             }
-            BookUser user = (BookUser) request.getAttribute("user");
+            BookUser user = (BookUser) userAttr;
             List<FavorResponseDto> favorData = favorService.getFavorList(user);
-            return ResponseEntity.ok(favorData);
+            return ResponseEntity.ok(ResponseHandler.success(favorData));
         } catch (Exception e) {
-            return ResponseEntity.status(403).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
         }
     }
 
     @PostMapping
-    public ResponseEntity<?> addFavor(
-            HttpServletRequest request,
-            @RequestBody int bookId
-    ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (roleAttr == null || !LoginCheckInterceptor.RoleType.USER.equals(roleAttr))
-            return ResponseEntity.status(403).body("일반 회원만 접근 가능합니다.");
-        try {
-            Object userAttr = request.getAttribute("user");
-            if (userAttr == null || !(userAttr instanceof BookUser)) {
-                return ResponseEntity.status(403).body("사용자 정보가 없습니다.");
-            }
-            BookUser user = (BookUser) request.getAttribute("user");
-            favorService.addFavor(user, bookId);
-            return ResponseEntity.ok("즐겨찾기에 추가되었습니다.");
-        } catch (Exception e) {
-            return ResponseEntity.status(403).body(e.getMessage());
-        }
-    }
-
-    @DeleteMapping
-    public ResponseEntity<?> deleteFavor(
+    public ResponseEntity<Response> addFavor(
             HttpServletRequest request,
             @RequestBody int bookId
     ) throws Exception {
         Object roleAttr = request.getAttribute("ROLE");
         if (roleAttr == null || !LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
-            return ResponseEntity.status(403).body("일반 회원만 접근 가능합니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         }
         try {
             Object userAttr = request.getAttribute("user");
             if (userAttr == null || !(userAttr instanceof BookUser)) {
-                return ResponseEntity.status(403).body("사용자 정보가 없습니다.");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.noSession("user"));
             }
-            BookUser user = (BookUser) request.getAttribute("user");
-            favorService.deleteFavor(user, bookId);
-            return ResponseEntity.ok("즐겨찾기에서 삭제되었습니다.");
+            BookUser user = (BookUser) userAttr;
+            favorService.addFavor(user, bookId);
+            return ResponseEntity.ok(ResponseHandler.success());
         } catch (Exception e) {
-            return ResponseEntity.status(403).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
+        }
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Response> deleteFavor(
+            HttpServletRequest request,
+            @RequestBody int bookId
+    ) throws Exception {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (roleAttr == null || !LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        }
+        try {
+            Object userAttr = request.getAttribute("user");
+            if (userAttr == null || !(userAttr instanceof BookUser)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.noSession("user"));
+            }
+            BookUser user = (BookUser) userAttr;
+            favorService.deleteFavor(user, bookId);
+            return ResponseEntity.ok(ResponseHandler.success());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
         }
     }
 }

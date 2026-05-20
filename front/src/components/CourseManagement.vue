@@ -442,7 +442,7 @@ const checkUserType = async () => {
     })
     
     if (response.status === 200) {
-      const data = response.data
+      const data = response.data.data
       if (!data.seqCampus) {
         // 전체 관리자
         showCampusFilter.value = true
@@ -464,7 +464,7 @@ const checkUserType = async () => {
 const fetchCampuses = async () => {
   try {
     const res = await axios.get('/api/campus')
-    campuses.value = res.data || []
+    campuses.value = res.data.data || []
   } catch (error) {
     console.error('캠퍼스 목록 조회 실패:', error)
   }
@@ -483,7 +483,7 @@ const fetchCourseList = async () => {
     const response = await axios.get(`/api/courses${campusParam}`, {
       headers: getAuthHeaders()
     })
-    courseList.value = response.data
+    courseList.value = response.data.data
   } catch (error) {
     console.error('과정 목록 로드 실패:', error)
     alert('과정 목록을 불러오는데 실패했습니다.')
@@ -515,7 +515,7 @@ const addCourse = async () => {
     await fetchCourseList()
   } catch (error) {
     console.error('과정 추가 실패:', error)
-    alert(error.response?.data || '과정 추가에 실패했습니다.')
+    alert(error.response?.data?.msg || '과정 추가에 실패했습니다.')
   } finally {
     isLoading.value = false
   }
@@ -555,7 +555,7 @@ const updateCourse = async () => {
     await fetchCourseList()
   } catch (error) {
     console.error('과정 수정 실패:', error)
-    alert(error.response?.data || '과정 수정에 실패했습니다.')
+    alert(error.response?.data?.msg || '과정 수정에 실패했습니다.')
   } finally {
     isLoading.value = false
   }
@@ -581,7 +581,7 @@ const deleteCourse = async (courseId) => {
     await fetchCourseList()
   } catch (error) {
     console.error('과정 삭제 실패:', error)
-    alert(error.response?.data || '과정 삭제에 실패했습니다.')
+    alert(error.response?.data?.msg || '과정 삭제에 실패했습니다.')
   } finally {
     isLoading.value = false
   }
@@ -625,7 +625,7 @@ const fetchActiveCampusList = async () => {
     })
     // activeCampusList는 computed이므로 campusList에 활성 캠퍼스만 저장
     // 하지만 전체 목록도 필요하므로 별도로 관리
-    return response.data
+    return response.data.data
   } catch (error) {
     console.error('활성 캠퍼스 목록 로드 실패:', error)
     return []
@@ -639,7 +639,7 @@ const fetchCampusList = async () => {
     const response = await axios.get('/api/campus/all', {
       headers: getAuthHeaders()
     })
-    campusList.value = response.data
+    campusList.value = response.data.data
   } catch (error) {
     console.error('캠퍼스 목록 로드 실패:', error)
     if (error.response?.status === 403) {
@@ -648,7 +648,7 @@ const fetchCampusList = async () => {
         const activeResponse = await axios.get('/api/campus', {
           headers: getAuthHeaders()
         })
-        campusList.value = activeResponse.data
+        campusList.value = activeResponse.data.data
       } catch (fallbackError) {
         console.error('활성 캠퍼스 목록 로드 실패:', fallbackError)
         campusList.value = []

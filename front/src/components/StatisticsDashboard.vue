@@ -231,7 +231,7 @@ async function getCourseList() {
 
   try {
     const res = await axios.get('/api/work24/course')
-    const data = res.data
+    const data = res.data.data
     const apiCoursesRaw = data?.srchList || []
 
     if (apiCoursesRaw.length === 0) return
@@ -249,7 +249,7 @@ async function getCourseList() {
     })
 
     const dbRes = await axios.get(`${title_url}/courses`)
-    const dbCourses = dbRes.data
+    const dbCourses = dbRes.data.data
 
     for (const apiItem of apiCourses) {
       const exists = dbCourses.find(dbItem => dbItem.nameCourse === apiItem.nameCourse)
@@ -287,7 +287,7 @@ async function getCourseList() {
     }
 
     const finalDbRes = await axios.get(`${title_url}/courses`)
-    const finalDbCourses = finalDbRes.data
+    const finalDbCourses = finalDbRes.data.data
 
     courses.value = finalDbCourses
       .map(item => {
@@ -344,7 +344,7 @@ const fetchPopularFirstSort = async () => {
     }
 
     const response = await axios.get(url)
-    popularFirstSort.value = response.data
+    popularFirstSort.value = response.data.data
   } catch (err) {
     console.error('Popular first sort fetch error:', err)
     throw err
@@ -363,7 +363,7 @@ const fetchPopularSecondSort = async () => {
     }
 
     const response = await axios.get(url)
-    popularSecondSort.value = response.data
+    popularSecondSort.value = response.data.data
   } catch (err) {
     console.error('Popular second sort fetch error:', err)
     throw err
@@ -382,7 +382,7 @@ const fetchUserReadingRank = async () => {
     }
 
     const response = await axios.get(url)
-    userReadingRank.value = response.data
+    userReadingRank.value = response.data.data
   } catch (err) {
     console.error('User reading rank fetch error:', err)
     throw err
@@ -595,7 +595,7 @@ const refreshData = () => {
 const fetchCampuses = async () => {
   try {
     const res = await axios.get('/api/campus')
-    campuses.value = res.data || []
+    campuses.value = res.data.data || []
   } catch (error) {
     console.error('캠퍼스 목록 조회 실패:', error)
   }
@@ -611,7 +611,7 @@ const checkUserType = async () => {
     })
     
     if (response.status === 200) {
-      const data = response.data
+      const data = response.data.data
       if (!data.seqCampus) {
         // 전체 관리자
         showCampusFilter.value = true

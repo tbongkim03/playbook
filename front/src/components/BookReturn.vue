@@ -229,12 +229,16 @@ const returnBook = async (barcode) => {
       headers: { 'Content-Type': 'text/plain' }
     })
     
-    showMessage(response.data, 'success')
-  } 
+    if (response.data.code === '0000') {
+      showMessage(response.data.msg || '도서 반납이 완료되었습니다.', 'success')
+    } else {
+      showMessage(response.data.msg || '반납 처리 중 오류가 발생했습니다.', 'error')
+    }
+  }
   catch (error) {
     if (error.response) {
       // 서버 응답이 있는 경우
-      const errorMessage = error.response.data || `서버 오류: ${error.response.status}`
+      const errorMessage = error.response.data?.msg || `서버 오류: ${error.response.status}`
       showMessage(errorMessage, 'error')
     } else if (error.request) {
       // 요청은 보냈지만 응답이 없는 경우

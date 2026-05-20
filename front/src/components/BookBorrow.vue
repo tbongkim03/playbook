@@ -229,7 +229,7 @@ const borrowBook = async (barcode) => {
     })
     
     // console.log('API 응답 성공:', response)
-    showMessage(response.data, 'success')
+    showMessage('도서 대출이 완료되었습니다.', 'success')
     
   } catch (error) {
     // console.error('API 요청 실패:', error)
@@ -238,7 +238,7 @@ const borrowBook = async (barcode) => {
       // 서버 응답이 있는 경우
       // console.error('응답 상태:', error.response.status)
       // console.error('응답 데이터:', error.response.data)
-      const errorMessage = error.response.data || `서버 오류: ${error.response.status}`
+      const errorMessage = error.response.data?.msg || `서버 오류: ${error.response.status}`
       showMessage(errorMessage, 'error')
     } else if (error.request) {
       // 요청은 보냈지만 응답이 없는 경우

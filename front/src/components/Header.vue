@@ -91,7 +91,7 @@ async function fetchUserInfo() {
     if (userType === 'user') {
       const userRes = await axios.get('/api/users/me', axiosConfig);
       if (userRes.status === 200) {
-        const data = userRes.data;
+        const data = userRes.data.data;
         if (data.seqCampus) {
           sessionStorage.setItem('campusId', data.seqCampus);
           campusName.value = data.campusName || '정보 없음';
@@ -107,7 +107,7 @@ async function fetchUserInfo() {
     } else if (userType === 'admin') {
       const adminRes = await axios.get('/api/admin/me', axiosConfig);
       if (adminRes.status === 200) {
-        const data = adminRes.data;
+        const data = adminRes.data.data;
         if (data.seqCampus?.seqCampus) {
           sessionStorage.setItem('campusId', data.seqCampus?.seqCampus);
           campusName.value = data.seqCampus?.nameCampus || '정보 없음';

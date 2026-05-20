@@ -235,7 +235,7 @@ const selectedSort = ref('latest')
 const fetchLargeCategories = async () => {
   try {
     const res = await axios.get('/api/subjects')
-    largeCategories.value = res.data
+    largeCategories.value = res.data.data
   } catch (error) {
     alert('대분류 카테고리 조회 실패:', error.message)
   }
@@ -244,7 +244,7 @@ const fetchLargeCategories = async () => {
 const fetchMediumCategories = async () => {
   try {
     const res = await axios.get('/api/subtitles')
-    mediumCategoriesAll.value = res.data
+    mediumCategoriesAll.value = res.data.data
   } catch (error) {
     alert('중분류 카테고리 조회 실패:', error.message)
   }
@@ -276,7 +276,7 @@ const loadBooks = async (page = 1) => {
     }
 
     const res = await axios.get(url)
-    const data = res.data
+    const data = res.data.data
 
     // 서버에서 이미 필터링된 데이터를 받음
     bookList.value = data.content || []
@@ -528,7 +528,7 @@ const fetchBooks = async (query = '', exact = false) => {
     }
 
     const res = await axios.get(url);
-    const data = res.data;
+    const data = res.data.data;
 
     if (!data.content) {
       alert('서버 응답 데이터 오류: ', data);
@@ -561,7 +561,7 @@ const fetchBooks = async (query = '', exact = false) => {
 const fetchCampuses = async () => {
   try {
     const res = await axios.get('/api/campus')
-    campuses.value = res.data || []
+    campuses.value = res.data.data || []
   } catch (error) {
     console.error('캠퍼스 목록 조회 실패:', error)
   }
@@ -587,7 +587,7 @@ const checkUserType = async () => {
       
       if (response.status === 200) {
         // seqCampus가 null이면 전체 관리자
-        if (!response.data.seqCampus) {
+        if (!response.data.data.seqCampus) {
           isFullAdmin.value = true
           showCampusFilter.value = true
         } else {

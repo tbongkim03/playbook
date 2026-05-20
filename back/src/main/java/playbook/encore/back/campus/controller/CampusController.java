@@ -7,11 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import playbook.encore.back.campus.dto.CampusRequestDto;
 import playbook.encore.back.campus.dto.CampusResponseDto;
-import playbook.encore.back.admin.entity.Admin;
+import playbook.encore.back.common.response.Response;
+import playbook.encore.back.common.response.ResponseHandler;
 import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.campus.service.CampusService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/campus")
@@ -20,34 +19,22 @@ public class CampusController {
 
     private final CampusService campusService;
 
-    /**
-     * 활성화된 캠퍼스 목록 조회
-     * Frontend에서 캠퍼스 드롭다운을 위해 사용
-     */
     @GetMapping
-    public ResponseEntity<List<CampusResponseDto>> getAllActiveCampuses() {
-        List<CampusResponseDto> campuses = campusService.getActiveCampuses();
-        return ResponseEntity.status(HttpStatus.OK).body(campuses);
+    public ResponseEntity<Response> getAllActiveCampuses() {
+        return ResponseEntity.ok(ResponseHandler.success(campusService.getActiveCampuses()));
     }
 
-    /**
-     * 모든 캠퍼스 목록 조회 (관리자용)
-     */
     @GetMapping("/all")
-    public ResponseEntity<?> getAllCampuses(HttpServletRequest request) {
+    public ResponseEntity<Response> getAllCampuses(HttpServletRequest request) {
         Object roleAttr = request.getAttribute("ROLE");
         if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            List<CampusResponseDto> campuses = campusService.getAllCampuses();
-            return ResponseEntity.status(HttpStatus.OK).body(campuses);
+            return ResponseEntity.ok(ResponseHandler.success(campusService.getAllCampuses()));
         }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
     }
 
-    /**
-     * 캠퍼스 상세 조회
-     */
     @GetMapping("/{id}")
-    public ResponseEntity<?> getCampusById(
+    public ResponseEntity<Response> getCampusById(
             HttpServletRequest request,
             @PathVariable("id") Integer seqCampus
     ) {
@@ -55,19 +42,16 @@ public class CampusController {
             Object roleAttr = request.getAttribute("ROLE");
             if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
                 CampusResponseDto campus = campusService.getCampusById(seqCampus);
-                return ResponseEntity.status(HttpStatus.OK).body(campus);
+                return ResponseEntity.ok(ResponseHandler.success(campus));
             }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ResponseHandler.noData());
         }
     }
 
-    /**
-     * 캠퍼스 생성
-     */
     @PostMapping
-    public ResponseEntity<?> createCampus(
+    public ResponseEntity<Response> createCampus(
             HttpServletRequest request,
             @RequestBody CampusRequestDto campusRequestDto
     ) {
@@ -75,21 +59,18 @@ public class CampusController {
             Object roleAttr = request.getAttribute("ROLE");
             if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
                 CampusResponseDto campus = campusService.createCampus(campusRequestDto);
-                return ResponseEntity.status(HttpStatus.CREATED).body(campus);
+                return ResponseEntity.status(HttpStatus.CREATED).body(ResponseHandler.success(campus));
             }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
         }
     }
 
-    /**
-     * 캠퍼스 수정
-     */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateCampus(
+    public ResponseEntity<Response> updateCampus(
             HttpServletRequest request,
             @PathVariable("id") Integer seqCampus,
             @RequestBody CampusRequestDto campusRequestDto
@@ -98,21 +79,18 @@ public class CampusController {
             Object roleAttr = request.getAttribute("ROLE");
             if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
                 CampusResponseDto campus = campusService.updateCampus(seqCampus, campusRequestDto);
-                return ResponseEntity.status(HttpStatus.OK).body(campus);
+                return ResponseEntity.ok(ResponseHandler.success(campus));
             }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
         }
     }
 
-    /**
-     * 캠퍼스 삭제 (비활성화)
-     */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCampus(
+    public ResponseEntity<Response> deleteCampus(
             HttpServletRequest request,
             @PathVariable("id") Integer seqCampus
     ) {
@@ -120,13 +98,13 @@ public class CampusController {
             Object roleAttr = request.getAttribute("ROLE");
             if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
                 campusService.deleteCampus(seqCampus);
-                return ResponseEntity.status(HttpStatus.OK).body("캠퍼스가 비활성화되었습니다.");
+                return ResponseEntity.ok(ResponseHandler.success());
             }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ResponseHandler.noData());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
         }
     }
 }

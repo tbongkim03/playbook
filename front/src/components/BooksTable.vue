@@ -621,21 +621,21 @@ const getBookStatusClass = (book) => {
 
 // 대분류 데이터 가져오기
 const fetchLargeCategories = async () => {
-  const res = await fetch('/api/subjects')
-  largeCategories.value = await res.json()
+  const res = await axios.get('/api/subjects')
+  largeCategories.value = res.data.data
 }
 
 // 중분류 데이터 가져오기
 const fetchMediumCategories = async () => {
-  const res = await fetch('/api/subtitles')
-  mediumCategoriesAll.value = await res.json()
+  const res = await axios.get('/api/subtitles')
+  mediumCategoriesAll.value = res.data.data
 }
 
 // 캠퍼스 목록 가져오기
 const fetchCampuses = async () => {
   try {
     const res = await axios.get('/api/campus')
-    campuses.value = res.data || []
+    campuses.value = res.data.data || []
   } catch (error) {
     console.error('캠퍼스 목록 조회 실패:', error)
   }
@@ -649,9 +649,9 @@ const checkUserType = async () => {
     const response = await axios.get('/api/admin/me', {
       validateStatus: () => true
     })
-    
+
     if (response.status === 200) {
-      const data = response.data
+      const data = response.data.data
       if (!data.seqCampus) {
         // 전체 관리자
         showCampusFilter.value = true
@@ -710,23 +710,10 @@ const unavailableCount = computed(() =>
 const fetchBooks = async () => {
   const url = `${API_BASE}/books/all`
 
-  const res = await fetch(url, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include'
-  })
-
-  if (!res.ok) { 
-    const errorText = await res.text()
-    alert(`데이터 로드 오류: ${errorText}`)
-    // console.error('API Error:', res.status, errorText)
-    return
-  }
-
-  const data = await res.json()
+  const res = await axios.get(url)
+  const data = res.data.data
 
   if (!Array.isArray(data)) {
-    // console.error('서버 응답 데이터 오류: ', data)
     allBooks.value = []
     return
   }
@@ -994,21 +981,13 @@ async function deleteBook(book) {
 
   try {
     setActiveRow(book.seqBook) // 클릭 시 활성 행 설정
-    const response = await fetch(`${API_BASE}/books/${book.seqBook}`, {
-      method: 'DELETE',
-      credentials: 'include'
-    })
-
-    if (!response.ok) {
-      const errorMessage = await response.text()
-      throw new Error(errorMessage || `서버 오류: ${response.status}`)
-    }
+    await axios.delete(`${API_BASE}/books/${book.seqBook}`)
 
     allBooks.value = allBooks.value.filter(b => b.seqBook !== book.seqBook)
     activeRowId.value = null // 삭제 후 활성 행 초기화
     alert('삭제에 성공하였습니다.')
   } catch (error) {
-    alert(`삭제 실패: ${error.message}`)
+    alert(`삭제 실패: ${error.response?.data?.msg || error.message}`)
   }
 }
 

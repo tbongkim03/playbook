@@ -171,6 +171,7 @@
 
 <script setup>
 import { reactive, ref, computed } from 'vue'
+import axios from 'axios'
 
 // Props와 Emits
 const emit = defineEmits(['book-registered', 'cancel'])
@@ -244,13 +245,8 @@ async function searchISBN() {
   isSearching.value = true
 
   try {
-    const res = await fetch('/api/national-library/isbn', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(isbn)
-    })
-    const data = await res.json()
+    const res = await axios.post('/api/national-library/isbn', isbn)
+    const data = res.data.data
 
     const doc = data?.docs?.[0] || null
     // console.log('조회된 도서 정보:', doc)
@@ -333,36 +329,16 @@ async function submitBook() {
   try {
     isLoading.value = true
 
-    const response = await fetch('/api/books', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(payload)
-    })
+    const response = await axios.post('/api/books', payload)
+    const data = response.data.data
 
-    const contentType = response.headers.get('content-type')
-    
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(errorText || `서버 오류: ${response.status}`)
-    }
-
-    let data
-    if (contentType && contentType.includes('application/json')) {
-      data = await response.json()
-    } else {
-      const text = await response.text()
-      if (!text) throw new Error('알 수 없는 응답입니다.')
-      data = { titleBook: book.title }
-    }
-
-    alert(`도서 "${data.titleBook || book.title}"가 성공적으로 등록되었습니다!`)
+    alert(`도서 "${data?.titleBook || book.title}"가 성공적으로 등록되었습니다!`)
     
     // 폼 초기화
     resetForm()
     
   } catch (err) {
-    alert(`등록 실패: ${err.message}`)
+    alert(`등록 실패: ${err.response?.data?.msg || err.message}`)
   } finally {
     isLoading.value = false
   }
@@ -371,24 +347,16 @@ async function submitBook() {
 async function searchBookImageFromNaver() {
   if (book.isbn && String(book.isbn).trim()) {
     try {
-      const response = await fetch('/api/naver/book-search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          isbn: String(book.isbn).trim(),
-          display: 10
-        })
+      const response = await axios.post('/api/naver/book-search', {
+        isbn: String(book.isbn).trim(),
+        display: 10
       })
+      const data = response.data.data
 
-      if (response.ok) {
-        const data = await response.json()
-        
-        if (data.items && data.items.length > 0) {
-          const imageUrl = data.items[0].image
-          if (imageUrl) {
-            return imageUrl
-          }
+      if (data.items && data.items.length > 0) {
+        const imageUrl = data.items[0].image
+        if (imageUrl) {
+          return imageUrl
         }
       }
     } catch (error) {

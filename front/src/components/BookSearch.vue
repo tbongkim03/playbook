@@ -59,7 +59,7 @@ export default {
                 const response = await axios.get(
                     `/api/books/related?q=${encodeURIComponent(this.query)}`
                 );
-                const data = response.data;
+                const data = response.data.data;
 
                 // printCheckBook이 true인 항목들만 필터링
                 const availableBooks = data.filter(item => item.printCheckBook === true);

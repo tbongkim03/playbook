@@ -257,16 +257,16 @@ async function handleLogin() {
       const userInfo = await axios.get(userInfoUrl)
 
       // 캠퍼스 정보가 있으면 저장
-      if (userInfo.data) {
-        if (isAdminMode.value && userInfo.data.seqCampus) {
+      if (userInfo.data.data) {
+        if (isAdminMode.value && userInfo.data.data.seqCampus) {
           // 관리자의 경우
-          const campus = userInfo.data.seqCampus
+          const campus = userInfo.data.data.seqCampus
           if (campus) {
             sessionStorage.setItem('campusId', campus.seqCampus)
           }
-        } else if (!isAdminMode.value && userInfo.data.seqCampus) {
+        } else if (!isAdminMode.value && userInfo.data.data.seqCampus) {
           // 일반 사용자의 경우
-          sessionStorage.setItem('campusId', userInfo.data.seqCampus)
+          sessionStorage.setItem('campusId', userInfo.data.data.seqCampus)
         } else {
           // 캠퍼스 정보가 없는 경우 (과정 종료 등)
           sessionStorage.removeItem('campusId')

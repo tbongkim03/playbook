@@ -311,10 +311,10 @@ const fetchCurrentUser = async () => {
     const response = await axios.get('/api/admin/me', {
       headers: getAuthHeaders()
     })
-    currentUser.value = response.data
-    
+    currentUser.value = response.data.data
+
     // 캠퍼스 필터 설정
-    if (!response.data.seqCampus) {
+    if (!response.data.data.seqCampus) {
       // 전체 관리자
       showCampusFilter.value = true
       currentUserCampusId.value = null
@@ -322,7 +322,7 @@ const fetchCurrentUser = async () => {
     } else {
       // 특정 캠퍼스 관리자
       showCampusFilter.value = true
-      currentUserCampusId.value = response.data.seqCampus.seqCampus || response.data.seqCampus
+      currentUserCampusId.value = response.data.data.seqCampus.seqCampus || response.data.data.seqCampus
       selectedCampus.value = String(currentUserCampusId.value) // 기본값: 본인 캠퍼스
     }
   } catch (error) {
@@ -334,7 +334,7 @@ const fetchCurrentUser = async () => {
 const fetchCampuses = async () => {
   try {
     const res = await axios.get('/api/campus')
-    campuses.value = res.data || []
+    campuses.value = res.data.data || []
   } catch (error) {
     console.error('캠퍼스 목록 조회 실패:', error)
   }
@@ -354,7 +354,7 @@ const fetchUserList = async () => {
       headers: getAuthHeaders()
     })
 
-    userList.value = response.data.map(userArray => ({
+    userList.value = response.data.data.map(userArray => ({
       nameUser: userArray[0],
       idUser: userArray[1], 
       statusUser: formatStatus(userArray[2]),
@@ -495,9 +495,9 @@ const deleteUser = async () => {
     if (error.response?.status === 403) {
       alert('관리자 권한이 필요합니다.')
     } else if (error.response?.status === 401) {
-      alert(error.response?.data)
+      alert(error.response?.data?.msg)
     } else {
-      alert(error.response?.data || '학생 삭제에 실패했습니다.')
+      alert(error.response?.data?.msg || '학생 삭제에 실패했습니다.')
     }
   } finally {
     isLoading.value = false

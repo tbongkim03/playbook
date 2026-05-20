@@ -463,7 +463,7 @@ const visiblePages = computed(() => {
 const fetchCampuses = async () => {
   try {
     const res = await axios.get('/api/campus')
-    campuses.value = res.data || []
+    campuses.value = res.data.data || []
   } catch (error) {
     console.error('캠퍼스 목록 조회 실패:', error)
   }
@@ -479,7 +479,7 @@ const checkUserType = async () => {
     })
     
     if (response.status === 200) {
-      const data = response.data
+      const data = response.data.data
       if (!data.seqCampus) {
         // 전체 관리자
         showCampusFilter.value = true
@@ -517,7 +517,7 @@ const fetchRentalHistory = async () => {
     })
     
     // 응답 데이터 구조 확인 및 처리 (HistoryBookResponseDto 기준)
-    const responseData = response.data
+    const responseData = response.data.data
     
     // 1. 통계 데이터 처리 (RentalSummaryDto)
     if (responseData && responseData.summary) {
@@ -578,9 +578,8 @@ const fetchRentalHistory = async () => {
       return
     }
     
-    const errorMessage = error.response?.data?.message || 
-                        error.response?.data || 
-                        error.message || 
+    const errorMessage = error.response?.data?.msg ||
+                        error.message ||
                         '대출 히스토리를 불러오는데 실패했습니다.'
     alert(errorMessage)
     

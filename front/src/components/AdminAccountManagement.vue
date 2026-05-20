@@ -413,7 +413,7 @@ const validatePassword = async (idAdmin, password) => {
         headers: getAuthHeaders()
       }
     )
-    return response.data
+    return response.data.data
   } catch (error) {
     throw error
   }
@@ -426,14 +426,14 @@ const fetchCurrentUser = async () => {
       headers: getAuthHeaders()
     })
     currentUser.value = {
-      idAdmin: response.data.idAdmin,
-      nameAdmin: response.data.nameAdmin,
-      dcAdmin: response.data.dcAdmin || '',
-      seqCampus: response.data.seqCampus
+      idAdmin: response.data.data.idAdmin,
+      nameAdmin: response.data.data.nameAdmin,
+      dcAdmin: response.data.data.dcAdmin || '',
+      seqCampus: response.data.data.seqCampus
     }
-    
+
     // 캠퍼스 필터 설정
-    if (!response.data.seqCampus) {
+    if (!response.data.data.seqCampus) {
       // 전체 관리자
       showCampusFilter.value = true
       currentUserCampusId.value = null
@@ -441,7 +441,7 @@ const fetchCurrentUser = async () => {
     } else {
       // 특정 캠퍼스 관리자
       showCampusFilter.value = true
-      currentUserCampusId.value = response.data.seqCampus.seqCampus || response.data.seqCampus
+      currentUserCampusId.value = response.data.data.seqCampus.seqCampus || response.data.data.seqCampus
       selectedCampus.value = String(currentUserCampusId.value) // 기본값: 본인 캠퍼스
     }
   } catch (error) {
@@ -481,7 +481,7 @@ const validateId = async () => {
       headers: getAuthHeaders()
     })
 
-    const data = await response.data;
+    const data = response.data.data;
 
     idValidation.value = {
       isValid: !data.flag,
@@ -504,7 +504,7 @@ const fetchCampusList = async () => {
     const response = await axios.get('/api/campus', {
       headers: getAuthHeaders()
     })
-    campusList.value = response.data
+    campusList.value = response.data.data
   } catch (error) {
     console.error('캠퍼스 목록 로드 실패:', error)
   }
@@ -518,7 +518,7 @@ const fetchAdminList = async () => {
     const response = await axios.get(`/api/admin/list${campusParam}`, {
       headers: getAuthHeaders()
     })
-    adminList.value = response.data.content || response.data.adminList || response.data
+    adminList.value = response.data.data.content || response.data.data
   } catch (error) {
     if (error.response?.status === 403) {
       alert('관리자 권한이 필요합니다.')
@@ -559,7 +559,7 @@ const addAdmin = async () => {
     } else if (error.response?.status === 401) {
       alert('인증에 실패했습니다.')
     } else {
-      alert(error.response?.data || '관리자 추가에 실패했습니다.')
+      alert(error.response?.data?.msg || '관리자 추가에 실패했습니다.')
     }
   } finally {
     isLoading.value = false
@@ -615,9 +615,9 @@ const updateAdmin = async () => {
     } else if (error.response?.status === 401) {
       alert('비밀번호가 일치하지 않습니다.')
     } else if (error.response?.status === 400) {
-      alert(error.response?.data || '입력 정보를 확인해주세요.')
+      alert(error.response?.data?.msg || '입력 정보를 확인해주세요.')
     } else {
-      alert(error.response?.data || '관리자 수정에 실패했습니다.')
+      alert(error.response?.data?.msg || '관리자 수정에 실패했습니다.')
     }
   } finally {
     isLoading.value = false
@@ -663,7 +663,7 @@ const deleteAdmin = async (idAdmin) => {
     } else if (error.response?.status === 401) {
       alert('비밀번호가 일치하지 않습니다.')
     } else {
-      alert(error.response?.data || '관리자 삭제에 실패했습니다.')
+      alert(error.response?.data?.msg || '관리자 삭제에 실패했습니다.')
     }
   } finally {
     isLoading.value = false

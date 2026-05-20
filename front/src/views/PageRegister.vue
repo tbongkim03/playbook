@@ -328,6 +328,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import axios from 'axios'
 
 const route = useRoute()
 const router = useRouter()
@@ -436,14 +437,8 @@ async function getCourseList() {
 
   try {
     // 1. 외부 API에서 데이터 가져오기
-    // const res = await fetch(url)
-    const res = await fetch('/api/work24/course', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    const data = await res.json()
+    const res = await axios.get('/api/work24/course')
+    const data = res.data.data
     const apiCoursesRaw = data?.srchList || []
 
     if (apiCoursesRaw.length === 0) {
@@ -465,21 +460,17 @@ async function getCourseList() {
     })
 
     // 3. DB 데이터 가져오기
-    const dbRes = await fetch('/api/courses')
-    const dbCourses = await dbRes.json()
+    const dbRes = await axios.get('/api/courses')
+    const dbCourses = dbRes.data.data
 
     // 4. 추가: API에는 있는데 DB에는 없는 과정 → INSERT
     for (const apiItem of apiCourses) {
       const exists = dbCourses.find(dbItem => dbItem.nameCourse === apiItem.nameCourse)
       if (!exists) {
-        await fetch('/api/courses', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nameCourse: apiItem.nameCourse,
-            startDtCourse: apiItem.startDtCourse,
-            finishDtCourse: apiItem.finishDtCourse
-          })
+        await axios.post('/api/courses', {
+          nameCourse: apiItem.nameCourse,
+          startDtCourse: apiItem.startDtCourse,
+          finishDtCourse: apiItem.finishDtCourse
         })
       }
     }
@@ -488,9 +479,7 @@ async function getCourseList() {
     for (const dbItem of dbCourses) {
       const exists = apiCourses.find(apiItem => apiItem.nameCourse === dbItem.nameCourse)
       if (!exists) {
-        await fetch(`/api/courses/${dbItem.seqCourse}`, {
-          method: 'DELETE'
-        })
+        await axios.delete(`/api/courses/${dbItem.seqCourse}`)
       }
     }
 
@@ -503,22 +492,18 @@ async function getCourseList() {
           dbItem.finishDtCourse !== apiItem.finishDtCourse
 
         if (isDifferent) {
-          await fetch(`/api/courses/${dbItem.seqCourse}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              nameCourse: apiItem.nameCourse,
-              startDtCourse: apiItem.startDtCourse,
-              finishDtCourse: apiItem.finishDtCourse
-            })
+          await axios.put(`/api/courses/${dbItem.seqCourse}`, {
+            nameCourse: apiItem.nameCourse,
+            startDtCourse: apiItem.startDtCourse,
+            finishDtCourse: apiItem.finishDtCourse
           })
         }
       }
     }
 
     // 7. 모든 동기화 작업 완료 후 최신 DB 데이터를 다시 가져오기
-    const finalDbRes = await fetch('/api/courses')
-    const finalDbCourses = await finalDbRes.json()
+    const finalDbRes = await axios.get('/api/courses')
+    const finalDbCourses = finalDbRes.data.data
 
     // 8. 드롭다운 표시용 courseList 값 세팅
     courseList.value = finalDbCourses
@@ -602,12 +587,10 @@ async function validateUsername() {
   }
 
   try {
-    const response = await fetch(
+    const response = await axios.get(
       `/api/users/register/validate?id=${encodeURIComponent(trimmedId)}`
     )
-    if (!response.ok) throw new Error('네트워크 오류')
-
-    const data = await response.json()
+    const data = response.data.data
 
     if (data.flag === true) {
       errors.value.username = '이미 사용중인 아이디입니다.'
@@ -615,7 +598,6 @@ async function validateUsername() {
       errors.value.username = ''
     }
   } catch (error) {
-    // console.error('아이디 검사 실패:', error)
     errors.value.username = '아이디 확인 중 오류가 발생했습니다.'
   }
 }
@@ -689,22 +671,16 @@ async function handleSubmit() {
   }
 
   try {
-    const response = await fetch('/api/users/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
+    const response = await axios.post('/api/users/register', payload)
 
-    const result = await response.json()
-
-    if (result.code === 200) {
+    if (response.data.code === '0000') {
       alert('회원가입이 완료되었습니다!')
       router.push('/login')
     } else {
-      alert(`회원가입 실패: ${result.message || '알 수 없는 오류'}`)
+      alert(`회원가입 실패: ${response.data.msg || '알 수 없는 오류'}`)
     }
   } catch (error) {
-    alert('회원가입 요청 중 오류가 발생했습니다.')
+    alert(`회원가입 요청 중 오류가 발생했습니다: ${error.response?.data?.msg || error.message}`)
   }
 }
 </script>

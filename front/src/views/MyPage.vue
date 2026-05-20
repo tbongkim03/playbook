@@ -555,35 +555,23 @@ onBeforeUnmount(() => {
 // 유저 정보 로드
 async function loadUserData() {
   try {
-    const response = await fetch(`${API_BASE_URL}/users/me`, {
-      headers: getHeaders(),
-      credentials: 'include'
-    })
-    
-    if (response.ok) {
-      const data = await response.json()
-      userInfo.value = data
-      
-      // 현재 과정명 설정 (과정 목록에서 찾아서 설정)
-      if (data.seqCourse) {
-        await getCourseList()
-        const course = courseList.value.find(c => c.seqCourse === data.seqCourse)
-        if (course) {
-          currentCourse.value = `${course.title} ${course.trprDegr}기`
-        } else {
-          currentCourse.value = '과정 정보 없음'
-        }
+    const response = await axios.get(`${API_BASE_URL}/users/me`)
+    const data = response.data.data
+    userInfo.value = data
+
+    // 현재 과정명 설정 (과정 목록에서 찾아서 설정)
+    if (data.seqCourse) {
+      await getCourseList()
+      const course = courseList.value.find(c => c.seqCourse === data.seqCourse)
+      if (course) {
+        currentCourse.value = `${course.title} ${course.trprDegr}기`
       } else {
-        currentCourse.value = '과정 정보 없음 (과정 종료)'
+        currentCourse.value = '과정 정보 없음'
       }
-    } else if (response.status === 401) {
-      alert('로그인이 필요하거나 세션이 만료되었습니다.')
-      sessionStorage.removeItem('userType')
-      sessionStorage.removeItem('campusId')
-      router.push('/login')
+    } else {
+      currentCourse.value = '과정 정보 없음 (과정 종료)'
     }
   } catch (error) {
-    console.error('유저 정보 로드 실패:', error)
     if (error.response?.status === 401) {
       alert('로그인이 필요하거나 세션이 만료되었습니다.')
       sessionStorage.removeItem('userType')
@@ -596,52 +584,35 @@ async function loadUserData() {
 // 찜한 도서 목록 로드
 async function loadFavoriteBooks() {
   try {
-    const response = await fetch(`${API_BASE_URL}/favor`, {
-      headers: getHeaders(),
-      credentials: 'include'
-    })
-    
-    if (response.ok) {
-      const data = await response.json()
-      favoriteBooks.value = data
-    }
+    const response = await axios.get(`${API_BASE_URL}/favor`)
+    favoriteBooks.value = response.data.data || []
   } catch (error) {
-    alert('찜 목록 로드 실패:', error.response?.data)
+    console.error('찜 목록 로드 실패:', error.response?.data?.msg)
   }
 }
 
 // 대여 기록 로드
 async function loadRentalHistory() {
   try {
-    const response = await fetch(`${API_BASE_URL}/history/me`, {
-      headers: getHeaders(),
-      credentials: 'include'
-    })
-    
-    if (response.ok) {
-      const data = await response.json()
-      rentalHistory.value = data.history || []
-      rentalSummary.value = data.summary || {
-        totalBorrowed: 0,
-        totalReturned: 0,
-        currentlyBorrowed: 0,
-        overdueCount: 0
-      }
+    const response = await axios.get(`${API_BASE_URL}/history/me`)
+    const data = response.data.data
+    rentalHistory.value = data?.history || []
+    rentalSummary.value = data?.summary || {
+      totalBorrowed: 0,
+      totalReturned: 0,
+      currentlyBorrowed: 0,
+      overdueCount: 0
     }
   } catch (error) {
-    alert('대여 기록 로드 실패:', error.response?.data)
+    console.error('대여 기록 로드 실패:', error.response?.data?.msg)
   }
 }
 
 // 과정 목록 가져오기
 async function getCourseList() {
   try {
-    const res = await fetch('/api/work24/course', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include'
-    })
-    const data = await res.json()
+    const res = await axios.get('/api/work24/course')
+    const data = res.data.data
     const apiCoursesRaw = data?.srchList || []
 
     if (apiCoursesRaw.length === 0) return
@@ -658,20 +629,16 @@ async function getCourseList() {
       }
     })
 
-    const dbRes = await fetch(`${API_BASE_URL}/courses`)
-    const dbCourses = await dbRes.json()
+    const dbRes = await axios.get(`${API_BASE_URL}/courses`)
+    const dbCourses = dbRes.data.data
 
     for (const apiItem of apiCourses) {
       const exists = dbCourses.find(dbItem => dbItem.nameCourse === apiItem.nameCourse)
       if (!exists) {
-        await fetch(`${API_BASE_URL}/courses`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nameCourse: apiItem.nameCourse,
-            startDtCourse: apiItem.startDtCourse,
-            finishDtCourse: apiItem.finishDtCourse
-          })
+        await axios.post(`${API_BASE_URL}/courses`, {
+          nameCourse: apiItem.nameCourse,
+          startDtCourse: apiItem.startDtCourse,
+          finishDtCourse: apiItem.finishDtCourse
         })
       }
     }
@@ -679,9 +646,7 @@ async function getCourseList() {
     for (const dbItem of dbCourses) {
       const exists = apiCourses.find(apiItem => apiItem.nameCourse === dbItem.nameCourse)
       if (!exists) {
-        await fetch(`${API_BASE_URL}/courses/${dbItem.seqCourse}`, {
-          method: 'DELETE'
-        })
+        await axios.delete(`${API_BASE_URL}/courses/${dbItem.seqCourse}`)
       }
     }
 
@@ -693,21 +658,17 @@ async function getCourseList() {
           dbItem.finishDtCourse !== apiItem.finishDtCourse
 
         if (isDifferent) {
-          await fetch(`${API_BASE_URL}/courses/${dbItem.seqCourse}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              nameCourse: apiItem.nameCourse,
-              startDtCourse: apiItem.startDtCourse,
-              finishDtCourse: apiItem.finishDtCourse
-            })
+          await axios.put(`${API_BASE_URL}/courses/${dbItem.seqCourse}`, {
+            nameCourse: apiItem.nameCourse,
+            startDtCourse: apiItem.startDtCourse,
+            finishDtCourse: apiItem.finishDtCourse
           })
         }
       }
     }
 
-    const finalDbRes = await fetch(`${API_BASE_URL}/courses`)
-    const finalDbCourses = await finalDbRes.json()
+    const finalDbRes = await axios.get(`${API_BASE_URL}/courses`)
+    const finalDbCourses = finalDbRes.data.data
 
     courseList.value = finalDbCourses
       .map(item => {
@@ -763,7 +724,7 @@ async function removeFavorite(seqBook) {
     
     if (error.response) {
       const status = error.response.status
-      const message = error.response.data || '오류가 발생했습니다.'
+      const message = error.response.data?.msg || '오류가 발생했습니다.'
       
       if (status === 403) {
         alert(message)
@@ -845,35 +806,21 @@ async function handleWithdraw() {
   withdrawLoading.value = true
 
   try {
-    const response = await fetch(`${API_BASE_URL}/users`, {
-      method: 'DELETE',
-      headers: getHeaders(),
-      credentials: 'include',
-      body: JSON.stringify({})
-    })
+    await axios.delete(`${API_BASE_URL}/users`)
 
-    if (response.ok) {
-      sessionStorage.removeItem('userType')
-      sessionStorage.removeItem('campusId')
-      
-      alert('회원 탈퇴가 완료되었습니다.')
-      
-      // 강제 새로고침으로 메인 페이지 이동 (히스토리 없이)
-      if (window.location.pathname === '/') {
-        // 이미 메인 페이지에 있으면 강제 새로고침
-        window.location.reload()
-      } else {
-        // 다른 페이지에 있으면 메인으로 이동 후 새로고침
-        window.location.replace('/')
-      }
+    sessionStorage.removeItem('userType')
+    sessionStorage.removeItem('campusId')
+
+    alert('회원 탈퇴가 완료되었습니다.')
+
+    // 강제 새로고침으로 메인 페이지 이동 (히스토리 없이)
+    if (window.location.pathname === '/') {
+      window.location.reload()
     } else {
-      const errorText = await response.text()
-      alert(errorText || '회원 탈퇴에 실패했습니다.')
-      withdrawLoading.value = false
+      window.location.replace('/')
     }
   } catch (error) {
-    console.error('회원 탈퇴 중 오류:', error)
-    alert('회원 탈퇴 중 오류가 발생했습니다.')
+    alert(error.response?.data?.msg || '회원 탈퇴 중 오류가 발생했습니다.')
     withdrawLoading.value = false
   }
 }
@@ -1021,21 +968,8 @@ function handleKeydown(event) {
 // 비밀번호 검증
 async function validatePassword(password) {
   try {
-    const response = await fetch(`${API_BASE_URL}/users/validate`, {
-      method: 'POST',
-      headers: getHeaders(),
-      credentials: 'include',
-      body: JSON.stringify({ password })
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('비밀번호 검증 실패:', errorText)
-      return false
-    }
-
-    const result = await response.json()
-    return result === true
+    const response = await axios.post(`${API_BASE_URL}/users/validate`, { password })
+    return response.data.data === true
   } catch (error) {
     console.error('비밀번호 검증 중 오류:', error)
     return false
@@ -1084,21 +1018,11 @@ async function changePassword() {
     }
 
     // 비밀번호 변경
-    const response = await fetch(`${API_BASE_URL}/users/password`, {
-      method: 'PUT',
-      headers: getHeaders(),
-      credentials: 'include',
-      body: JSON.stringify({ newPassword: passwordForm.value.newPassword })
-    })
-
-    if (response.ok) {
-      alert('비밀번호가 성공적으로 변경되었습니다.')
-      closePasswordModal()
-    } else {
-      alert('비밀번호 변경에 실패했습니다.')
-    }
+    await axios.put(`${API_BASE_URL}/users/password`, { newPassword: passwordForm.value.newPassword })
+    alert('비밀번호가 성공적으로 변경되었습니다.')
+    closePasswordModal()
   } catch (error) {
-    alert('비밀번호 변경 중 오류가 발생했습니다.')
+    alert(error.response?.data?.msg || '비밀번호 변경 중 오류가 발생했습니다.')
   } finally {
     passwordForm.value.loading = false
   }

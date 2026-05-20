@@ -1,15 +1,16 @@
 package playbook.encore.back.course.controller;
 
-import java.util.List;
-
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import playbook.encore.back.common.response.Response;
+import playbook.encore.back.common.response.ResponseHandler;
 import playbook.encore.back.course.dto.CourseRequestDto;
 import playbook.encore.back.course.dto.CourseResponseDto;
 import playbook.encore.back.course.service.CourseService;
+
 @RestController
 @RequestMapping("/courses")
 public class CourseController {
@@ -21,40 +22,35 @@ public class CourseController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CourseResponseDto>> getCourseALll(
+    public ResponseEntity<Response> getCourseALll(
             HttpServletRequest request,
             @RequestParam(value = "campusId", required = false) Integer requestCampusId
-    ) throws Exception{
-        // 쿼리 파라미터로 전달된 campusId가 있으면 우선 사용
+    ) throws Exception {
         Integer campusId = requestCampusId;
-        
-        // 쿼리 파라미터가 없으면 interceptor에서 설정한 campusId 사용
         if (campusId == null) {
             campusId = (Integer) request.getAttribute("campusId");
         }
-        
-        List<CourseResponseDto> courseResponseDto = courseService.getAllCourse(campusId);
-        return ResponseEntity.status(HttpStatus.OK).body(courseResponseDto);
+        return ResponseEntity.ok(ResponseHandler.success(courseService.getAllCourse(campusId)));
     }
 
     @PostMapping
-    public ResponseEntity<CourseResponseDto> postCourse(@RequestBody CourseRequestDto courseRequestDto) throws Exception {
+    public ResponseEntity<Response> postCourse(@RequestBody CourseRequestDto courseRequestDto) throws Exception {
         CourseResponseDto courseResponseDto = courseService.insertCourse(courseRequestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(courseResponseDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ResponseHandler.success(courseResponseDto));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CourseResponseDto> putCourseById(
+    public ResponseEntity<Response> putCourseById(
             @PathVariable("id") Integer courseId,
             @RequestBody CourseRequestDto courseRequestDto
-    ) throws Exception{
+    ) throws Exception {
         CourseResponseDto courseResponseDto = courseService.changeCourse(courseId, courseRequestDto);
-        return ResponseEntity.status(HttpStatus.OK).body(courseResponseDto);
+        return ResponseEntity.ok(ResponseHandler.success(courseResponseDto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteCourse(@PathVariable("id") Integer courseId) throws Exception {
+    public ResponseEntity<Response> deleteCourse(@PathVariable("id") Integer courseId) throws Exception {
         courseService.deleteCourseById(courseId);
-        return ResponseEntity.status(HttpStatus.OK).body("삭제를 수행하였습니다.");
+        return ResponseEntity.ok(ResponseHandler.success());
     }
 }

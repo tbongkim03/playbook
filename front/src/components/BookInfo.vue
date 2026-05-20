@@ -271,7 +271,7 @@ const handleWishlist = async () => {
     } catch (error) {
         if (error.response) {
             const status = error.response.status
-            const message = error.response.data || '오류가 발생했습니다.'
+            const message = error.response?.data?.msg || '오류가 발생했습니다.'
             
             if (status === 403) {
                 alert(message)
@@ -306,35 +306,20 @@ const checkWishlistStatus = async () => {
 
         const response = await axios.get('/api/favor')
         
-        if (response.status === 200 && response.data) {
-            const favorList = response.data
-            isWishlisted.value = favorList.some(favor => 
-                favor.titleBook === book.value.titleBook && 
+        if (response.status === 200 && response.data.data) {
+            const favorList = response.data.data
+            isWishlisted.value = favorList.some(favor =>
+                favor.titleBook === book.value.titleBook &&
                 favor.authorBook === book.value.authorBook
             )
         }
-
-        if (response.status === 403 && response.data === '즐겨찾기 목록이 비어 있습니다.') {
-            isWishlisted.value = false
-        }
     } catch (error) {
-        // 403 에러인 경우 메시지에 따라 처리
         if (error.response && error.response.status === 403) {
-            const errorMessage = error.response.data
-            // 특정 메시지는 alert 없이 처리
-            if (errorMessage === '사용자 정보가 없습니다.' || 
-                errorMessage === '즐겨찾기 목록이 비어 있습니다.') {
-                if (errorMessage === '즐겨찾기 목록이 비어 있습니다.') {
-                    isWishlisted.value = false
-                }
-                return
-            }
-            // 나머지 403 에러는 alert 표시
-            alert(`오류: ${errorMessage}`)
-        } else {
-            // 403이 아닌 다른 에러는 alert 표시
-            alert(`찜 목록 확인 실패: ${error.message || error}`)
+            // 비로그인 또는 유저가 아닌 경우 → 즐겨찾기 상태 확인 불가, 무시
+            isWishlisted.value = false
+            return
         }
+        alert(`찜 목록 확인 실패: ${error.message || error}`)
     }
 }
 
@@ -361,7 +346,7 @@ const checkAdminStatus = async () => {
             
             if (response.status === 200) {
                 // seqCampus가 null이면 전체 관리자
-                if (!response.data.seqCampus) {
+                if (!response.data.data.seqCampus) {
                     isFullAdmin.value = true
                     showCampusInfo.value = true // 전체 관리자는 캠퍼스 정보 표시
                 } else {
@@ -419,8 +404,8 @@ onMounted(async () => {
     try {
         const res = await axios.get(`/api/books/${bookId}`)
         
-        if (res.data) {
-            book.value = res.data
+        if (res.data.data) {
+            book.value = res.data.data
             // 운영자가 아닌 경우에만 찜하기 상태 확인
             if (!isAdmin.value) {
                 await checkWishlistStatus()

@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.*;
 import playbook.encore.back.admin.dto.*;
 import playbook.encore.back.bookUser.dto.*;
 import playbook.encore.back.admin.entity.Admin;
+import playbook.encore.back.common.response.Response;
+import playbook.encore.back.common.response.ResponseCode;
+import playbook.encore.back.common.response.ResponseHandler;
 import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.admin.service.AdminService;
 
@@ -32,7 +35,7 @@ public class AdminController {
 
     // 회원가입 관련 부분
     @PostMapping("/register")
-    public ResponseEntity<?> registerAdmin(
+    public ResponseEntity<Response> registerAdmin(
             HttpServletRequest request,
             @RequestBody RegisterAdminRequestDto registerAdminRequestDto
     ) throws Exception {
@@ -40,20 +43,20 @@ public class AdminController {
         if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             Admin user = (Admin) request.getAttribute("admin");
             RegisterAdminResponseDto registerAdminResponseDto = adminService.createAdmin(user, registerAdminRequestDto);
-            return ResponseEntity.status(HttpStatus.OK).body(registerAdminResponseDto);
+            return ResponseEntity.ok(ResponseHandler.success(registerAdminResponseDto));
         }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
     }
 
     @GetMapping("/register/validate")
-    public ResponseEntity<RegisterIdValidateResponseDto> validationId(@RequestParam("id") String idAdmin) throws Exception {
+    public ResponseEntity<Response> validationId(@RequestParam("id") String idAdmin) throws Exception {
         RegisterIdValidateResponseDto registerIdValidateResponseDto = adminService.checkUserId(idAdmin);
-        return ResponseEntity.status(HttpStatus.OK).body(registerIdValidateResponseDto);
+        return ResponseEntity.ok(ResponseHandler.success(registerIdValidateResponseDto));
     }
 
     // 로그인 관련 부분
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(
+    public ResponseEntity<Response> loginUser(
             HttpServletRequest request,
             @RequestBody LoginAdminRequestDto loginAdminRequestDto) throws Exception {
         try {
@@ -69,26 +72,27 @@ public class AdminController {
             session.setAttribute("role", "admin");
             session.setAttribute(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME, adminId);
             session.setMaxInactiveInterval(3600);
-            return ResponseEntity.status(HttpStatus.OK).body("로그인 성공");
+            return ResponseEntity.ok(ResponseHandler.success());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ResponseHandler.error(ResponseCode.NOT_AUTHENTICATED, e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
         }
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logoutAdmin(HttpServletRequest request) {
+    public ResponseEntity<Response> logoutAdmin(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
         }
-        return ResponseEntity.status(HttpStatus.OK).body("로그아웃 성공");
+        return ResponseEntity.ok(ResponseHandler.success());
     }
 
     // 회원정보 관련 부분
     @GetMapping("/me")
-    public ResponseEntity<?> getAdminInfo(HttpServletRequest request) {
+    public ResponseEntity<Response> getAdminInfo(HttpServletRequest request) {
         Object roleAttr = request.getAttribute("ROLE");
         if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             Admin user = (Admin) request.getAttribute("admin");
@@ -98,13 +102,13 @@ public class AdminController {
                 user.getNameAdmin(),
                 user.getDcAdmin()
             );
-            return ResponseEntity.status(HttpStatus.OK).body(loginAdminDataResponseDto);
+            return ResponseEntity.ok(ResponseHandler.success(loginAdminDataResponseDto));
         }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
     }
 
     @PostMapping("/validate")
-    public ResponseEntity<?> getCurrentPassword(
+    public ResponseEntity<Response> getCurrentPassword(
             HttpServletRequest request,
             @RequestParam("id") String idAdmin,
             @RequestBody String password
@@ -114,18 +118,18 @@ public class AdminController {
             if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
                 Admin user = (Admin) request.getAttribute("admin");
                 boolean result = adminService.validatePassword(user, idAdmin, password);
-                return ResponseEntity.status(HttpStatus.OK).body(result);
+                return ResponseEntity.ok(ResponseHandler.success(result));
             }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
         }
     }
 
     @PutMapping("/password")
-    public ResponseEntity<?> updatePassword(
+    public ResponseEntity<Response> updatePassword(
             HttpServletRequest request,
             @RequestBody String newPassword
     ) throws Exception {
@@ -134,18 +138,18 @@ public class AdminController {
             if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
                 Admin user = (Admin) request.getAttribute("admin");
                 boolean result = adminService.updatePassword(user, newPassword);
-                return ResponseEntity.status(HttpStatus.OK).body(result);
+                return ResponseEntity.ok(ResponseHandler.success(result));
             }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
         }
     }
 
     @PutMapping("/discord")
-    public ResponseEntity<?> updateDiscord(
+    public ResponseEntity<Response> updateDiscord(
             HttpServletRequest request,
             @RequestBody String newDiscord
     ) throws Exception {
@@ -154,18 +158,18 @@ public class AdminController {
             if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
                 Admin user = (Admin) request.getAttribute("admin");
                 boolean result = adminService.updateDiscord(user, newDiscord);
-                return ResponseEntity.status(HttpStatus.OK).body(result);
+                return ResponseEntity.ok(ResponseHandler.success(result));
             }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
         }
     }
 
     @PutMapping("/update")
-    public ResponseEntity<?> updateAdmin(
+    public ResponseEntity<Response> updateAdmin(
             HttpServletRequest request,
             @RequestBody UpdateAdminRequestDto updateRequest
     ) throws Exception {
@@ -174,18 +178,18 @@ public class AdminController {
             if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
                 Admin user = (Admin) request.getAttribute("admin");
                 boolean result = adminService.updateAdmin(user, updateRequest);
-                return ResponseEntity.status(HttpStatus.OK).body(result);
+                return ResponseEntity.ok(ResponseHandler.success(result));
             }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
         }
     }
 
     @GetMapping("/list")
-    public ResponseEntity<?> getAdminList(
+    public ResponseEntity<Response> getAdminList(
             HttpServletRequest request,
             @RequestParam(value = "campusId", required = false) Integer requestCampusId
     ) throws Exception {
@@ -197,18 +201,18 @@ public class AdminController {
                     campusId = (Integer) request.getAttribute("campusId");
                 }
                 AdminListResponseDto adminListResponseDto = adminService.getAdminList(campusId);
-                return ResponseEntity.status(HttpStatus.OK).body(adminListResponseDto);
+                return ResponseEntity.ok(ResponseHandler.success(adminListResponseDto));
             }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
         }
     }
 
     @DeleteMapping
-    public ResponseEntity<?> deleteAdmin(
+    public ResponseEntity<Response> deleteAdmin(
             HttpServletRequest request,
             @RequestBody String idAdmin
     ) throws Exception {
@@ -216,13 +220,13 @@ public class AdminController {
             Object roleAttr = request.getAttribute("ROLE");
             if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
                 boolean result = adminService.deleteAdmin(idAdmin);
-                return ResponseEntity.status(HttpStatus.OK).body(result);
+                return ResponseEntity.ok(ResponseHandler.success(result));
             }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("관리자만 접근 가능합니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
         }
     }
 }
