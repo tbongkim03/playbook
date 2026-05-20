@@ -1,53 +1,51 @@
-/* color palette from <https://github.com/vuejs/theme> */
 :root {
-  --vt-c-white: #ffffff;
-  --vt-c-white-soft: #f8f8f8;
-  --vt-c-white-mute: #f2f2f2;
+  color-scheme: light;
 
-  --vt-c-black: #181818;
-  --vt-c-black-soft: #222222;
-  --vt-c-black-mute: #282828;
+  --pb-color-canvas: #f5f7f4;
+  --pb-color-surface: #ffffff;
+  --pb-color-surface-muted: #f0f4ef;
+  --pb-color-surface-subtle: #f8faf7;
+  --pb-color-border: #dbe3d8;
+  --pb-color-border-strong: #bdcbb8;
 
-  --vt-c-indigo: #2c3e50;
+  --pb-color-text: #1f2a24;
+  --pb-color-text-muted: #657267;
+  --pb-color-text-soft: #849086;
+  --pb-color-heading: #132018;
 
-  --vt-c-divider-light-1: rgba(60, 60, 60, 0.29);
-  --vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
-  --vt-c-divider-dark-1: rgba(84, 84, 84, 0.65);
-  --vt-c-divider-dark-2: rgba(84, 84, 84, 0.48);
+  --pb-color-brand: #2f6f4e;
+  --pb-color-brand-strong: #1f5138;
+  --pb-color-brand-soft: #e4efe6;
+  --pb-color-accent: #b58b2b;
+  --pb-color-accent-soft: #fbf3dc;
+  --pb-color-danger: #b42318;
+  --pb-color-danger-soft: #fde7e4;
+  --pb-color-success: #217a52;
+  --pb-color-success-soft: #e2f4e9;
+  --pb-color-warning: #a15c07;
+  --pb-color-warning-soft: #fff1d6;
 
-  --vt-c-text-light-1: var(--vt-c-indigo);
-  --vt-c-text-light-2: rgba(60, 60, 60, 0.66);
-  --vt-c-text-dark-1: var(--vt-c-white);
-  --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
-}
+  --pb-radius-xs: 4px;
+  --pb-radius-sm: 6px;
+  --pb-radius-md: 8px;
+  --pb-radius-lg: 12px;
 
-/* semantic color variables for this project */
-:root {
-  --color-background: var(--vt-c-white);
-  --color-background-soft: var(--vt-c-white-soft);
-  --color-background-mute: var(--vt-c-white-mute);
+  --pb-shadow-xs: 0 1px 2px rgba(19, 32, 24, 0.06);
+  --pb-shadow-sm: 0 6px 18px rgba(19, 32, 24, 0.08);
+  --pb-shadow-md: 0 12px 32px rgba(19, 32, 24, 0.1);
 
-  --color-border: var(--vt-c-divider-light-2);
-  --color-border-hover: var(--vt-c-divider-light-1);
+  --pb-header-height: 72px;
+  --pb-toolbar-height: 82px;
+  --pb-content-max: 1440px;
 
-  --color-heading: var(--vt-c-text-light-1);
-  --color-text: var(--vt-c-text-light-1);
-
-  --section-gap: 160px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: var(--vt-c-black);
-    --color-background-soft: var(--vt-c-black-soft);
-    --color-background-mute: var(--vt-c-black-mute);
-
-    --color-border: var(--vt-c-divider-dark-2);
-    --color-border-hover: var(--vt-c-divider-dark-1);
-
-    --color-heading: var(--vt-c-text-dark-1);
-    --color-text: var(--vt-c-text-dark-2);
-  }
+  --color-background: var(--pb-color-canvas);
+  --color-background-soft: var(--pb-color-surface-muted);
+  --color-background-mute: var(--pb-color-surface-subtle);
+  --color-border: var(--pb-color-border);
+  --color-border-hover: var(--pb-color-border-strong);
+  --color-heading: var(--pb-color-heading);
+  --color-text: var(--pb-color-text);
+  --section-gap: 96px;
 }
 
 *,
@@ -58,29 +56,35 @@
   font-weight: normal;
 }
 
+html {
+  background: var(--pb-color-canvas);
+}
+
 body {
   min-height: 100vh;
-  color: var(--color-text);
-  background: var(--color-background);
-  transition:
-    color 0.5s,
-    background-color 0.5s;
+  color: var(--pb-color-text);
+  background: var(--pb-color-canvas);
   line-height: 1.6;
   font-family:
     Inter,
+    Pretendard,
     -apple-system,
     BlinkMacSystemFont,
     'Segoe UI',
     Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    'Fira Sans',
-    'Droid Sans',
+    'Noto Sans KR',
     'Helvetica Neue',
+    Arial,
     sans-serif;
   font-size: 15px;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }

@@ -23,9 +23,10 @@ const isLoginoutPage = computed(() => {
 <style scoped>
 .app-container {
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
   margin: 0;
-  padding-top: 6rem;
+  padding-top: var(--pb-header-height);
   box-sizing: border-box;
+  background: var(--pb-color-canvas);
 }
 </style>

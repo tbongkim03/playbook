@@ -178,7 +178,7 @@ export default {
 .search-form {
     display: grid;
     column-gap: 10px;
-    width: 70%;
+    width: 100%;
 }
 
 #inputArea {
@@ -191,17 +191,19 @@ export default {
 #inputArea input {
     width: 100%;
     padding: 10px 40px 10px 20px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
+    border: 1px solid var(--pb-color-border);
+    border-radius: var(--pb-radius-sm);
     box-sizing: border-box;
     z-index: 0;
     position: relative;
     background-color: white;
-    font-size: 18px;
+    color: var(--pb-color-text);
+    font-size: 0.95rem;
 }
 
 #inputArea input:focus {
-    border-bottom: none;
+    border-color: var(--pb-color-brand);
+    box-shadow: 0 0 0 3px rgba(47, 111, 78, 0.14);
     outline: none;
 }
 
@@ -224,34 +226,35 @@ export default {
     margin: 0;
     padding: 0;
     list-style: none;
-    border: 1px solid #ccc;
+    border: 1px solid var(--pb-color-border);
     border-top: none;
     border-top-left-radius: 0;
     border-top-right-radius: 0;
-    border-bottom-left-radius: 10px;
-    border-bottom-right-radius: 10px;
-    background-color: white;
+    border-bottom-left-radius: var(--pb-radius-sm);
+    border-bottom-right-radius: var(--pb-radius-sm);
+    background-color: var(--pb-color-surface);
     max-height: 200px;
     overflow-y: auto;
     z-index: 1;
     box-sizing: border-box;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--pb-shadow-sm);
 }
 
 .autocomplete-list li {
-    padding: 10px;
+    padding: 10px 12px;
+    color: var(--pb-color-text);
     cursor: pointer;
     transition: background-color 0.2s ease;
 }
 
 .autocomplete-list li.active,
 .autocomplete-list li.keyboard-selected {
-    background-color: #e3f2fd !important;
-    color: #1976d2 !important;
+    background-color: var(--pb-color-brand-soft) !important;
+    color: var(--pb-color-brand-strong) !important;
     font-weight: 500;
 }
 
 .autocomplete-list li:hover:not(.keyboard-selected) {
-    background-color: #f5f5f5;
+    background-color: var(--pb-color-surface-muted);
 }
 </style>

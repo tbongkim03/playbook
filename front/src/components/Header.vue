@@ -147,13 +147,10 @@ onMounted(() => {
   left: 0;
   width: 100%;
   z-index: 1040;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 
-    0 1px 3px rgba(0, 0, 0, 0.05),
-    0 4px 20px rgba(0, 0, 0, 0.08);
-  animation: slideDown 0.5s ease-out;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--pb-color-border);
+  box-shadow: 0 1px 10px rgba(19, 32, 24, 0.06);
 }
 
 @keyframes slideDown {
@@ -168,12 +165,13 @@ onMounted(() => {
 }
 
 .header-content {
+  width: min(100% - 48px, var(--pb-content-max));
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 32px;
-  height: 72px;
+  padding: 10px 0;
+  height: var(--pb-header-height);
 }
 
 .logo-container {
@@ -181,17 +179,16 @@ onMounted(() => {
   align-items: center;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 12px;
-  padding: 8px;
+  border-radius: var(--pb-radius-md);
+  padding: 6px;
 }
 
 .logo-container:hover {
-  background: rgba(102, 126, 234, 0.05);
-  transform: scale(1.02);
+  background: var(--pb-color-brand-soft);
 }
 
 .logo-img {
-  max-width: 180px;
+  max-width: 172px;
   height: auto;
   transition: all 0.3s ease;
   filter: brightness(1) saturate(1);
@@ -212,9 +209,9 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   padding: 8px 16px;
-  background: rgba(102, 126, 234, 0.05);
-  border-radius: 12px;
-  border: 1px solid rgba(102, 126, 234, 0.1);
+  background: var(--pb-color-surface-subtle);
+  border-radius: var(--pb-radius-md);
+  border: 1px solid var(--pb-color-border);
   transition: all 0.3s ease;
   cursor: pointer;
   text-decoration: none;
@@ -222,10 +219,8 @@ onMounted(() => {
 }
 
 .user-info:hover {
-  background: rgba(102, 126, 234, 0.08);
-  border-color: rgba(102, 126, 234, 0.2);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  background: var(--pb-color-brand-soft);
+  border-color: var(--pb-color-border-strong);
   text-decoration: none;
   color: inherit;
 }
@@ -236,8 +231,8 @@ onMounted(() => {
   justify-content: center;
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 50%;
+  background: var(--pb-color-brand);
+  border-radius: 999px;
   color: white;
   transition: all 0.3s ease;
 }
@@ -250,8 +245,8 @@ onMounted(() => {
 .username {
   font-weight: 600;
   font-size: 0.95rem;
-  color: #1e293b;
-  letter-spacing: -0.01em;
+  color: var(--pb-color-text);
+  letter-spacing: 0;
 }
 
 .login-btn,
@@ -261,13 +256,13 @@ onMounted(() => {
   gap: 8px;
   padding: 10px 20px;
   border: 2px solid transparent;
-  border-radius: 12px;
+  border-radius: var(--pb-radius-sm);
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   position: relative;
   overflow: hidden;
 }
@@ -290,14 +285,14 @@ onMounted(() => {
 }
 
 .login-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--pb-color-brand);
   color: white;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  box-shadow: none;
 }
 
 .login-btn:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  background: var(--pb-color-brand-strong);
+  box-shadow: var(--pb-shadow-sm);
 }
 
 .login-btn:active {
@@ -305,17 +300,16 @@ onMounted(() => {
 }
 
 .logout-btn {
-  background: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
-  border-color: rgba(239, 68, 68, 0.2);
+  background: var(--pb-color-danger-soft);
+  color: var(--pb-color-danger);
+  border-color: rgba(180, 35, 24, 0.18);
 }
 
 .logout-btn:hover {
-  background: #dc2626;
+  background: var(--pb-color-danger);
   color: white;
-  border-color: #dc2626;
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 8px 25px rgba(220, 38, 38, 0.3);
+  border-color: var(--pb-color-danger);
+  box-shadow: var(--pb-shadow-sm);
 }
 
 .logout-btn:active {
@@ -367,24 +361,24 @@ onMounted(() => {
   }
 }
 
-/* 다크모드 대응 (선택사항) */
+/* Keep the service shell visually consistent with the light Playbook theme. */
 @media (prefers-color-scheme: dark) {
   .main-header {
-    background: rgba(15, 23, 42, 0.98);
-    border-bottom-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.96);
+    border-bottom-color: var(--pb-color-border);
   }
   
   .username {
-    color: #f1f5f9;
+    color: var(--pb-color-text);
   }
   
   .user-info {
-    background: rgba(100, 116, 139, 0.1);
-    border-color: rgba(100, 116, 139, 0.2);
+    background: var(--pb-color-surface-subtle);
+    border-color: var(--pb-color-border);
   }
   
   .user-info:hover {
-    background: rgba(100, 116, 139, 0.15);
+    background: var(--pb-color-brand-soft);
   }
 }
 </style>

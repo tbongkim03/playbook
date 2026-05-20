@@ -270,4 +270,110 @@ const handleImageError = (event) => {
     .borrowed-text, .my-borrowed-text {
         font-size: 0.65rem;
     }
+}
+
+/* Playbook design baseline overrides */
+.book-area {
+    display: block;
+    width: 100%;
+    background: transparent;
+    border-radius: var(--pb-radius-md);
+    color: inherit;
+}
+
+.book-area:hover {
+    color: inherit;
+}
+
+.book-area:hover .title {
+    color: var(--pb-color-brand-strong);
+    text-decoration: none;
+}
+
+.isBooked {
+    gap: 12px;
+}
+
+.img-area {
+    aspect-ratio: 3 / 4.35;
+    width: 100%;
+    height: auto;
+    background: var(--pb-color-surface-muted);
+    border: 1px solid var(--pb-color-border);
+    border-radius: var(--pb-radius-sm);
+    box-shadow: var(--pb-shadow-xs);
+}
+
+.img-area img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.book-area:hover .img-area {
+    border-color: var(--pb-color-border-strong);
+    box-shadow: var(--pb-shadow-sm);
+}
+
+.book-info {
+    min-height: 74px;
+    padding: 0;
+    gap: 4px;
+}
+
+.title {
+    color: var(--pb-color-heading);
+    font-size: 0.98rem;
+    line-height: 1.38;
+    letter-spacing: 0;
+}
+
+.author {
+    color: var(--pb-color-text-muted);
+    font-size: 0.85rem;
+    letter-spacing: 0;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+}
+
+.borrowed-dimmer {
+    background: rgba(31, 42, 36, 0.42);
+    backdrop-filter: blur(1px);
+}
+
+.borrowed-badge,
+.my-borrowed-badge {
+    top: 10px;
+    right: 10px;
+    border-radius: 999px;
+    box-shadow: var(--pb-shadow-xs);
+    animation: none;
+}
+
+.borrowed-badge {
+    background: var(--pb-color-danger);
+}
+
+.my-borrowed-badge {
+    background: var(--pb-color-success);
+}
+
+@media (max-width: 768px) {
+    .isBooked {
+        gap: 9px;
+    }
+
+    .book-info {
+        min-height: 66px;
+    }
+
+    .title {
+        font-size: 0.9rem;
+    }
+
+    .author {
+        font-size: 0.78rem;
+    }
 }</style>
