@@ -9,8 +9,10 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - db-dev
-      - redis-dev
+      db-dev:
+        condition: service_healthy
+      redis-dev:
+        condition: service_started
     networks:
       - dev-network
 
@@ -27,6 +29,12 @@ services:
       - db-dev-data:/var/lib/mysql
     networks:
       - dev-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   redis-dev:
     image: redis:7-alpine
