@@ -11,10 +11,14 @@ import java.util.List;
 import java.util.Optional;
 
 public interface AdminRepository extends JpaRepository<Admin, Integer> {
+
+    /** 관리자 ID로 단건 조회 */
     Optional<Admin> findByIdAdmin(String idAdmin);
 
+    /** 디스코드 사용자명으로 단건 조회 */
     Optional<Admin> findByDcAdmin(String discordUsername);
 
+    /** 관리자 ID로 조회 (캠퍼스 페치 조인) */
     @Query("""
         select a from Admin a
         left join fetch a.seqCampus
@@ -22,12 +26,14 @@ public interface AdminRepository extends JpaRepository<Admin, Integer> {
     """)
     Optional<Admin> findByIdAdminWithCampus(String userId);
 
+    /** 전체 관리자 목록 조회 (캠퍼스 페치 조인) */
     @Query("""
         select a from Admin a
         left join fetch a.seqCampus
     """)
     List<Admin> findAllWithCampus();
 
+    /** 캠퍼스별 관리자 목록 조회 (캠퍼스 페치 조인) */
     @Query("""
         select a from Admin a
         left join fetch a.seqCampus
@@ -35,7 +41,7 @@ public interface AdminRepository extends JpaRepository<Admin, Integer> {
     """)
     List<Admin> findAllWithCampusByCampusId(@Param("campusId") Integer campusId);
 
-    // 대출가능, 대출불가, 연체중 상태 일괄 변경
+    /** 전체 관리자 대출 상태 일괄 갱신 (available / stop / overdue) */
     @Modifying
     @Query("""
     UPDATE Admin a

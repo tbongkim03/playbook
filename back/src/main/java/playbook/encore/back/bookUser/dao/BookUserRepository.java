@@ -13,10 +13,14 @@ import playbook.encore.back.bookUser.entity.BookUser;
 import playbook.encore.back.course.entity.Course;
 
 public interface BookUserRepository extends JpaRepository<BookUser, Integer> {
+
+    /** 사용자 ID로 단건 조회 */
     Optional<BookUser> findByIdUser(String idUser);
 
+    /** 디스코드 사용자명으로 단건 조회 */
     Optional<BookUser> findByDcUser(String discordUsername);
 
+    /** 전체 사용자 목록 조회 (과정 정보 포함, 전체 캠퍼스) */
     @Query("""
     SELECT bu.nameUser, bu.idUser, bu.statusUser, bu.createdAt,
            c.nameCourse, c.startDtCourse, c.finishDtCourse
@@ -25,6 +29,7 @@ public interface BookUserRepository extends JpaRepository<BookUser, Integer> {
 """)
     List<Object[]> findAllUsersWithCourseDetails();
 
+    /** 사용자 ID로 조회 (과정·캠퍼스 페치 조인) */
     @Query("""
     select u from BookUser u
     left join fetch u.seqCourse c
@@ -33,14 +38,13 @@ public interface BookUserRepository extends JpaRepository<BookUser, Integer> {
 """)
     Optional<BookUser> findByIdUserWithCourseAndCampus(String idUser);
 
-
-    // 대출가능, 대출불가, 연체중 상태 일괄 변경
+    /** 전체 사용자 대출 상태 일괄 갱신 (available / stop / overdue) */
     @Modifying
     @Query("""
     UPDATE BookUser bu
     SET bu.statusUser = CASE
         WHEN EXISTS (SELECT h FROM History h
-                     WHERE h.seqUser = bu AND h.returnDt IS NULL 
+                     WHERE h.seqUser = bu AND h.returnDt IS NULL
                      AND h.bookDt < :overdueDate)
             THEN 'overdue'
         WHEN EXISTS (SELECT h FROM History h
@@ -51,25 +55,25 @@ public interface BookUserRepository extends JpaRepository<BookUser, Integer> {
 """)
     void updateAllStatusUser(@Param("overdueDate") LocalDate overdueDate);
 
-    // 특정 Course를 수강하는 모든 사용자 조회
+    /** 특정 과정 수강 사용자 목록 조회 */
     List<BookUser> findBySeqCourse(Course course);
 
-    // 특정 Course를 수강하는 사용자들의 상태를 stop으로 일괄 변경 (연체 중인 학생 제외)
+    /** 특정 과정 사용자 상태를 stop으로 일괄 변경 (연체 중인 사용자 제외) */
     @Modifying
     @Query("""
-        UPDATE BookUser bu 
-        SET bu.statusUser = 'stop' 
+        UPDATE BookUser bu
+        SET bu.statusUser = 'stop'
         WHERE bu.seqCourse = :course
           AND NOT EXISTS (
               SELECT h FROM History h
-              WHERE h.seqUser = bu 
-                AND h.returnDt IS NULL 
+              WHERE h.seqUser = bu
+                AND h.returnDt IS NULL
                 AND h.bookDt < :overdueDate
           )
     """)
     void updateStatusByCourse(@Param("course") Course course, @Param("overdueDate") LocalDate overdueDate);
 
-    // Course 테이블에 존재하지 않는 과정을 참조하는 사용자들의 상태를 stop으로 일괄 변경 (연체 중인 학생 제외)
+    /** 존재하지 않는 과정을 참조하는 사용자 상태를 stop으로 일괄 변경 (연체 중인 사용자 제외) */
     @Modifying
     @Query("""
         UPDATE BookUser bu

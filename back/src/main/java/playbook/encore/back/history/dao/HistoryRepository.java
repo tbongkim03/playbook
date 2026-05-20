@@ -15,35 +15,56 @@ import java.util.List;
 import java.util.Optional;
 
 public interface HistoryRepository extends JpaRepository<History, Integer> {
-    // 동일인이 같은 책을 빌린 것인지 확인
+
+    /** 사용자가 해당 도서를 현재 대출 중인지 확인 */
     boolean existsBySeqBookAndSeqUserAndReturnDtIsNull(Book book, BookUser user);
+
+    /** 관리자가 해당 도서를 현재 대출 중인지 확인 */
     boolean existsBySeqBookAndSeqAdminAndReturnDtIsNull(Book book, Admin admin);
 
-    // 반납할 대여 기록이 있는지
+    /** 관리자의 미반납 대출 기록 단건 조회 (반납 처리용) */
     Optional<History> findBySeqBookAndSeqAdminAndReturnDtIsNull(Book book, Admin admin);
+
+    /** 사용자의 미반납 대출 기록 단건 조회 (반납 처리용) */
     Optional<History> findBySeqBookAndSeqUserAndReturnDtIsNull(Book book, BookUser bookUser);
 
-    // 빌린 책인지 확인
+    /** 해당 도서가 현재 대출 중인지 확인 */
     boolean existsBySeqBookAndReturnDtIsNull(Book book);
-    // 대여 중인 책 수 확인
+
+    /** 사용자의 현재 대출 중인 도서 수 조회 */
     int countBySeqUserAndReturnDtIsNull(BookUser bookUser);
 
+    /** 전체 대출 건수 (대시보드) */
     int countByBookDtIsNotNull();
+
+    /** 전체 반납 완료 건수 (대시보드) */
     int countByBookDtIsNotNullAndReturnDtIsNotNull();
+
+    /** 전체 대출 중 건수 (대시보드) */
     int countByBookDtIsNotNullAndReturnDtIsNull();
+
+    /** 전체 연체 건수 (대시보드) */
     int countByReturnDtIsNullAndBookDtBefore(LocalDate localDate);
 
-    // 연체 여부 확인
+    /** 사용자의 미반납 대출 목록 전체 조회 (연체 여부 판단용) */
     List<History> findAllBySeqUserAndReturnDtIsNull(BookUser bookUser);
 
-    // 개인 대여 기록 조회
+    /** 사용자의 전체 대출 기록 조회 */
     List<History> findBySeqUser(BookUser user);
+
+    /** 사용자의 전체 대출 건수 */
     int countBySeqUserAndBookDtIsNotNull(BookUser user);
+
+    /** 사용자의 반납 완료 건수 */
     int countBySeqUserAndBookDtIsNotNullAndReturnDtIsNotNull(BookUser user);
+
+    /** 사용자의 현재 대출 중 건수 */
     int countBySeqUserAndBookDtIsNotNullAndReturnDtIsNull(BookUser user);
+
+    /** 사용자의 연체 건수 */
     int countBySeqUserAndReturnDtIsNullAndBookDtBefore(BookUser user, LocalDate localDate);
 
-    // 1. 인기 대분류 (특정 과정)
+    /** 인기 대분류 조회 (특정 과정) */
     @Query("""
         SELECT new playbook.encore.back.history.dto.PopularLabelDto(sf.korSortFirst, COUNT(h))
         FROM History h
@@ -57,7 +78,7 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
     List<PopularLabelDto> findPopularFirstSortByCourse(@Param("courseId") int courseId);
 
 
-    // 1-1. 인기 대분류 (전체 과정)
+    /** 인기 대분류 조회 (전체 과정) */
     @Query("""
         SELECT new playbook.encore.back.history.dto.PopularLabelDto(sf.korSortFirst, COUNT(h.seqHistory))
         FROM History h
@@ -69,7 +90,7 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
     """)
     List<PopularLabelDto> findPopularFirstSortAll();
 
-    // 2. 인기 중분류 (특정 과정)
+    /** 인기 소분류 조회 (특정 과정) */
     @Query("""
         SELECT new playbook.encore.back.history.dto.PopularLabelDto(ss.korSortSecond, COUNT(h.seqHistory))
         FROM History h
@@ -81,7 +102,7 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
     """)
     List<PopularLabelDto> findPopularSecondSortByCourse(@Param("courseId") int courseId);
 
-    // 2-1. 인기 중분류 (전체 과정)
+    /** 인기 소분류 조회 (전체 과정) */
     @Query("""
         SELECT new playbook.encore.back.history.dto.PopularLabelDto(ss.korSortSecond, COUNT(h.seqHistory))
         FROM History h
@@ -92,7 +113,7 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
     """)
     List<PopularLabelDto> findPopularSecondSortAll();
 
-    // 3. 회원 다독 순위 (특정 과정)
+    /** 회원 다독 순위 조회 (특정 과정) */
     @Query("""
         SELECT new playbook.encore.back.history.dto.UserReadingRankDto(u.nameUser, COUNT(h.seqHistory))
         FROM History h
@@ -103,7 +124,7 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
     """)
     List<UserReadingRankDto> findUserReadingRankByCourse(@Param("courseId") int courseId);
 
-    // 3-1. 회원 다독 순위 (전체 과정)
+    /** 회원 다독 순위 조회 (전체 과정) */
     @Query("""
         SELECT new playbook.encore.back.history.dto.UserReadingRankDto(u.nameUser, COUNT(h.seqHistory))
         FROM History h
