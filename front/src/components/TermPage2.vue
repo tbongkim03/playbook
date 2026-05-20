@@ -28,7 +28,8 @@
 
         <!-- 개인정보 처리 내용 -->
         <div class="privacy-container">
-            <div class="privacy-document">
+            <div v-if="dynamicContent" v-html="dynamicContent" class="privacy-document"></div>
+            <div v-else class="privacy-document">
                 <!-- 목차 -->
                 <div class="table-of-contents">
                     <h3>🔒 목차</h3>
@@ -247,9 +248,22 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 
 const router = useRouter()
+const dynamicContent = ref(null)
+
+onMounted(async () => {
+    try {
+        const res = await axios.get('/api/terms/PRIVACY')
+        const content = res.data.data?.content
+        if (content && content.trim()) dynamicContent.value = content
+    } catch {
+        // 로드 실패 시 정적 콘텐츠 표시
+    }
+})
 
 function goBack() {
     router.back()

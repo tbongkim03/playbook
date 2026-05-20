@@ -28,7 +28,8 @@
 
         <!-- 알림 동의 내용 -->
         <div class="notification-container">
-            <div class="notification-document">
+            <div v-if="dynamicContent" v-html="dynamicContent" class="notification-document"></div>
+            <div v-else class="notification-document">
                 <!-- 디스코드 소개 섹션 -->
                 <div class="discord-intro">
                     <div class="discord-hero">
@@ -320,9 +321,22 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 
 const router = useRouter()
+const dynamicContent = ref(null)
+
+onMounted(async () => {
+    try {
+        const res = await axios.get('/api/terms/DISCORD')
+        const content = res.data.data?.content
+        if (content && content.trim()) dynamicContent.value = content
+    } catch {
+        // 로드 실패 시 정적 콘텐츠 표시
+    }
+})
 
 function goBack() {
     router.back()

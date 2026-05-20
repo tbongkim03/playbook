@@ -28,7 +28,8 @@
 
         <!-- 약관 내용 -->
         <div class="terms-container">
-            <div class="terms-document">
+            <div v-if="dynamicContent" v-html="dynamicContent" class="terms-document"></div>
+            <div v-else class="terms-document">
                 <!-- 목차 -->
                 <div class="table-of-contents">
                     <h3>📋 목차</h3>
@@ -308,15 +309,27 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 
 const router = useRouter()
+const dynamicContent = ref(null)
+
+onMounted(async () => {
+    try {
+        const res = await axios.get('/api/terms/SERVICE')
+        const content = res.data.data?.content
+        if (content && content.trim()) dynamicContent.value = content
+    } catch {
+        // 로드 실패 시 정적 콘텐츠 표시
+    }
+})
 
 function goBack() {
     router.back()
 }
 
-// 부드러운 스크롤 효과를 위한 함수들
 function scrollToSection(sectionId) {
     const element = document.getElementById(sectionId)
     if (element) {
