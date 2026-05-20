@@ -61,7 +61,7 @@ public class HistoryServiceImpl implements HistoryService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void handleBookBorrow(Object human, String barcodeBook, Integer campusId) {
         log.info("[HistoryService] 도서 대출 처리 - barcode: {}, campusId: {}", barcodeBook, campusId);
         // 캠퍼스 검증
@@ -199,7 +199,7 @@ public class HistoryServiceImpl implements HistoryService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void handleBookReturn(Object human, String barcodeBook, Integer campusId) {
         log.info("[HistoryService] 도서 반납 처리 - barcode: {}, campusId: {}", barcodeBook, campusId);
         // 캠퍼스 검증
@@ -381,6 +381,7 @@ public class HistoryServiceImpl implements HistoryService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void deleteHistoryBook(int historyId) {
         log.info("[HistoryService] 대출 기록 삭제 - historyId: {}", historyId);
         History history = historyRepository.findById(historyId)
@@ -407,6 +408,7 @@ public class HistoryServiceImpl implements HistoryService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PopularLabelDto> findPopularFirstSortByCourse(int courseId) {
         log.info("[HistoryService] 과정별 대분류 인기 통계 - courseId: {}", courseId);
         if (!courseRepository.existsById(courseId)) {
@@ -416,6 +418,7 @@ public class HistoryServiceImpl implements HistoryService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PopularLabelDto> findPopularFirstSortAll(Integer campusId) {
         log.info("[HistoryService] 전체 대분류 인기 통계 - campusId: {}", campusId);
         if (campusId == null) {
@@ -428,6 +431,7 @@ public class HistoryServiceImpl implements HistoryService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PopularLabelDto> findPopularSecondSortByCourse(int courseId) {
         log.info("[HistoryService] 과정별 소분류 인기 통계 - courseId: {}", courseId);
         if (!courseRepository.existsById(courseId)) {
@@ -437,6 +441,7 @@ public class HistoryServiceImpl implements HistoryService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PopularLabelDto> findPopularSecondSortAll(Integer campusId) {
         log.info("[HistoryService] 전체 소분류 인기 통계 - campusId: {}", campusId);
         if (campusId == null) {
@@ -449,6 +454,7 @@ public class HistoryServiceImpl implements HistoryService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserReadingRankDto> findUserReadingRankByCourse(int courseId) {
         log.info("[HistoryService] 과정별 독서량 순위 - courseId: {}", courseId);
         if (!courseRepository.existsById(courseId)) {
@@ -458,6 +464,7 @@ public class HistoryServiceImpl implements HistoryService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserReadingRankDto> findUserReadingRankAll(Integer campusId) {
         log.info("[HistoryService] 전체 독서량 순위 - campusId: {}", campusId);
         if (campusId == null) {

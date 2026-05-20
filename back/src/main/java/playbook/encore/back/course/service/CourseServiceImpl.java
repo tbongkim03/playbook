@@ -46,6 +46,7 @@ public class CourseServiceImpl implements CourseService{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CourseResponseDto> getAllCourse(Integer campusId) {
         log.info("[CourseService] 전체 과정 조회 - campusId: {}", campusId);
         List<Course> courses;
@@ -65,7 +66,7 @@ public class CourseServiceImpl implements CourseService{
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public CourseResponseDto insertCourse(CourseRequestDto courseRequestDto) {
         log.info("[CourseService] 과정 등록 - name: {}", courseRequestDto.getNameCourse());
         Campus campus = null;

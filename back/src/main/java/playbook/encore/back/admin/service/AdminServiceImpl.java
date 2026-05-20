@@ -5,6 +5,7 @@ import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import playbook.encore.back.admin.dao.AdminDAO;
 import playbook.encore.back.bookUser.dao.BookUserDAO;
 import playbook.encore.back.admin.dto.*;
@@ -32,6 +33,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public RegisterAdminResponseDto createAdmin(Admin user, RegisterAdminRequestDto registerAdminRequestDto) {
         log.info("[AdminService] 관리자 등록 - id: {}", registerAdminRequestDto.getIdAdmin());
         String hashedPassword = BCrypt.hashpw(registerAdminRequestDto.getPwAdmin(), BCrypt.gensalt());
@@ -64,6 +66,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public RegisterIdValidateResponseDto checkUserId(String idAdmin) {
         log.info("[AdminService] 아이디 중복 확인 - id: {}", idAdmin);
         boolean flag = adminDAO.searchBookUserResultExact(idAdmin).isPresent() || bookUserDAO.searchBookUserResultExact(idAdmin).isPresent();
@@ -71,6 +74,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String loginServiceAdmin(LoginAdminRequestDto loginAdminRequestDto) {
         log.info("[AdminService] 관리자 로그인 시도 - id: {}", loginAdminRequestDto.getIdAdmin());
         String id = loginAdminRequestDto.getIdAdmin();
@@ -83,6 +87,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean validatePassword(Admin user, String idAdmin, String password) {
         log.info("[AdminService] 비밀번호 검증 - id: {}", idAdmin);
         boolean isPasswordExist = adminDAO.pwValidate(user, idAdmin, password).isPresent();
@@ -93,6 +98,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean updatePassword(Admin user, String newPassword) {
         log.info("[AdminService] 비밀번호 변경 - id: {}", user.getIdAdmin());
         String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
@@ -104,6 +110,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean updateDiscord(Admin user, String newDiscord) {
         log.info("[AdminService] 디스코드 변경 - id: {}", user.getIdAdmin());
         boolean isDiscordChanged = adminDAO.changeDiscord(user, newDiscord).isPresent();
@@ -114,6 +121,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean updateAdmin(Admin currentUser, UpdateAdminRequestDto updateRequest) {
         log.info("[AdminService] 관리자 정보 수정 - id: {}", updateRequest.getIdAdmin());
         // 전체 관리자 체크 (seqCampus가 null이면 전체 관리자)
@@ -165,6 +173,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public AdminListResponseDto getAdminList(Integer campusId) {
         log.info("[AdminService] 관리자 목록 조회 - campusId: {}", campusId);
         AdminListResponseDto adminListResponseDto = adminDAO.getAdminList(campusId);
@@ -175,6 +184,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean deleteAdmin(String idAdmin) {
         log.info("[AdminService] 관리자 삭제 - id: {}", idAdmin);
         boolean isAdminDeleted = adminDAO.deleteAdmin(idAdmin).isPresent();

@@ -23,6 +23,7 @@ public class FavorServiceImpl implements FavorService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<FavorResponseDto> getFavorList(BookUser user) {
         log.info("[FavorService] 즐겨찾기 목록 조회 - userId: {}", user.getIdUser());
         List<FavorResponseDto> favors = favorDAO.getFavors(user);
@@ -33,13 +34,14 @@ public class FavorServiceImpl implements FavorService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void addFavor(BookUser user, int bookId) {
         log.info("[FavorService] 즐겨찾기 추가 - userId: {}, bookId: {}", user.getIdUser(), bookId);
         favorDAO.addFavor(user, bookId);
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void deleteFavor(BookUser user, int bookId) {
         log.info("[FavorService] 즐겨찾기 삭제 - userId: {}, bookId: {}", user.getIdUser(), bookId);
         favorDAO.deleteFavor(user, bookId);

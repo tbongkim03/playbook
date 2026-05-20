@@ -48,6 +48,7 @@ public class BookUserServiceImpl implements BookUserService{
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public RegisterUserResponseDto createUser(RegisterUserRequestDto registerUserRequestDto) {
         log.info("[BookUserService] 사용자 등록 - id: {}", registerUserRequestDto.getIdUser());
         Course course = courseRepository.findById(registerUserRequestDto.getSeqCorse())
@@ -74,6 +75,7 @@ public class BookUserServiceImpl implements BookUserService{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public RegisterIdValidateResponseDto checkUserId(String idUser) {
         log.info("[BookUserService] 아이디 중복 확인 - id: {}", idUser);
         boolean flag = bookUserDAO.searchBookUserResultExact(idUser).isPresent() || adminDAO.searchBookUserResultExact(idUser).isPresent();
@@ -81,6 +83,7 @@ public class BookUserServiceImpl implements BookUserService{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String loginServiceUser(LoginUserRequestDto loginUserRequestDto) {
         log.info("[BookUserService] 사용자 로그인 시도 - id: {}", loginUserRequestDto.getIdUser());
         String id = loginUserRequestDto.getIdUser();
@@ -93,6 +96,7 @@ public class BookUserServiceImpl implements BookUserService{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean validatePassword(BookUser bookUser, String password) {
         log.info("[BookUserService] 비밀번호 검증 - id: {}", bookUser.getIdUser());
         boolean isPasswordExist = bookUserDAO.pwValidate(bookUser, password).isPresent();
@@ -103,6 +107,7 @@ public class BookUserServiceImpl implements BookUserService{
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean updatePassword(BookUser bookUser, String newPassword) {
         log.info("[BookUserService] 비밀번호 변경 - id: {}", bookUser.getIdUser());
         if (newPassword == null || newPassword.trim().isEmpty()) {
@@ -135,6 +140,7 @@ public class BookUserServiceImpl implements BookUserService{
 //    }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Object[]> getBookUserList(Integer campusId) {
         log.info("[BookUserService] 사용자 목록 조회 - campusId: {}", campusId);
         if (campusId == null) {
@@ -147,7 +153,7 @@ public class BookUserServiceImpl implements BookUserService{
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean deleteUserByAdmin(String idUser) {
         log.info("[BookUserService] 관리자에 의한 사용자 삭제 - id: {}", idUser);
         try {
@@ -176,7 +182,7 @@ public class BookUserServiceImpl implements BookUserService{
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean deleteUserBySelf(BookUser user) {
         log.info("[BookUserService] 사용자 탈퇴 - id: {}", user.getIdUser());
         try {

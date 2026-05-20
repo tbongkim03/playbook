@@ -39,7 +39,7 @@ public class SortSecondServiceImpl implements SortSecondService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public SortSecondResponseDto insertSortSecond(SortSecondRequestDto sortSecondRequestDto) {
         log.info("[SortSecondService] 소분류 등록 - name: {}", sortSecondRequestDto.getNameSortSecond());
         SortFirst sortFirst = sortFirstRepository.findById(sortSecondRequestDto.getSeqSortFirst())

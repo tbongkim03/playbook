@@ -75,7 +75,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public BookResponseDto insertBook(BookRequestDto bookRequestDto) {
         log.info("[BookService] 도서 등록 - title: {}", bookRequestDto.getTitleBook());
         Campus campus = campusRepository.findById(bookRequestDto.getSeqCampus())
@@ -147,7 +147,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<BookResponseDto> getAllBooks(Integer campusId) throws Exception {
         log.info("[BookService] 전체 도서 조회 - campusId: {}", campusId);
         List<Book> books;
@@ -327,7 +327,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public BookCountResponseDto getBookCount(String isbn) throws Exception {
         log.info("[BookService] ISBN별 도서 수 조회 - isbn: {}", isbn);
         Integer counts = bookRepository.countByIsbnBook(isbn);
@@ -336,6 +336,7 @@ public class BookServiceImpl implements BookService {
 
     // 연관검색어
     @Override
+    @Transactional(readOnly = true)
     public List<BookSearchResponseDto> searchBookTitles(String titleBook, Integer campusId) throws Exception {
         log.info("[BookService] 도서 연관 검색 - query: {}, campusId: {}", titleBook, campusId);
         List<Book> bookList;
@@ -407,13 +408,14 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void markBooksAsPrinted(List<Integer> bookIds) throws Exception {
         log.info("[BookService] 도서 인쇄 처리 - count: {}", bookIds.size());
         bookDAO.printPost(bookIds);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BookUnprintedResponseDto> findUnprintedBooks() throws Exception {
         log.info("[BookService] 미인쇄 도서 조회");
         return bookDAO.findUnprintedBooks().stream()
@@ -427,6 +429,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public BookBarcodeUniqueResponseDto checkDuplicated(BookBarcodeUniqueRequestDto bookBarcodeUniqueRequestDto) throws Exception {
         log.info("[BookService] 바코드 중복 확인 - barcode: {}", bookBarcodeUniqueRequestDto.getBarcodeBook());
         Integer seqBook = bookBarcodeUniqueRequestDto.getSeqBook();

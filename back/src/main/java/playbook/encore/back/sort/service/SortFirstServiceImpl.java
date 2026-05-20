@@ -33,7 +33,7 @@ public class SortFirstServiceImpl implements SortFirstService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public SortFirstResponseDto insertSortFirst(SortFirstRequestDto sortFirstRequestDto) {
         log.info("[SortFirstService] 대분류 등록 - name: {}", sortFirstRequestDto.getNameSortFirst());
         SortFirst sortFirst = new SortFirst();
