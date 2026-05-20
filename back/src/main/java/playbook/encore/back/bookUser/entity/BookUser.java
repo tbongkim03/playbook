@@ -2,17 +2,17 @@ package playbook.encore.back.bookUser.entity;
 
 import jakarta.persistence.*;
 import playbook.encore.back.course.entity.Course;
+import playbook.encore.back.common.audit.BaseAuditEntity;
 import lombok.*;
-
-import java.time.LocalDate;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "tb_user")
-public class BookUser {
+public class BookUser extends BaseAuditEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "seq_user", nullable = false)
@@ -46,9 +46,6 @@ public class BookUser {
     @Enumerated(EnumType.STRING)
     @Column(name = "status_user", nullable = false)
     private StatusType statusUser;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDate createdAt;
 
     public enum StatusType {
         stop, available, overdue 

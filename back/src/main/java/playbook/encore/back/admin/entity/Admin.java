@@ -2,17 +2,17 @@ package playbook.encore.back.admin.entity;
 
 import jakarta.persistence.*;
 import playbook.encore.back.campus.entity.Campus;
+import playbook.encore.back.common.audit.BaseAuditEntity;
 import lombok.*;
-
-import java.time.LocalDate;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "tb_admin")
-public class Admin {
+public class Admin extends BaseAuditEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "seq_admin", nullable = false)
@@ -46,9 +46,6 @@ public class Admin {
     @Enumerated(EnumType.STRING)
     @Column(name = "status_admin", nullable = false)
     private StatusTypeAdmin statusAdmin;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDate createdAt;
 
     public enum StatusTypeAdmin {
         stop, available, overdue

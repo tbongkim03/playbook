@@ -3,7 +3,7 @@ package playbook.encore.back.admin.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class AdminResponseDto {
@@ -12,11 +12,11 @@ public class AdminResponseDto {
     private String nameAdmin;
     private String dcAdmin;
     private String statusAdmin;
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
     private Integer campusId;
     private String campusName;  // 캠퍼스 이름 (null이면 "전체")
 
-    public AdminResponseDto(Integer seqAdmin, String idAdmin, String nameAdmin, String dcAdmin, String statusAdmin, LocalDate createdAt, Integer campusId, String campusName) {
+    public AdminResponseDto(Integer seqAdmin, String idAdmin, String nameAdmin, String dcAdmin, String statusAdmin, LocalDateTime createdAt, Integer campusId, String campusName) {
         this.seqAdmin = seqAdmin;
         this.idAdmin = idAdmin;
         this.nameAdmin = nameAdmin;

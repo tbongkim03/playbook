@@ -2,17 +2,19 @@ package playbook.encore.back.course.entity;
 
 import jakarta.persistence.*;
 import playbook.encore.back.campus.entity.Campus;
+import playbook.encore.back.common.audit.BaseAuditEntity;
 import lombok.*;
 
 import java.time.LocalDate;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "tb_course")
-public class Course {
+public class Course extends BaseAuditEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "seq_course", nullable = false)

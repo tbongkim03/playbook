@@ -1,21 +1,17 @@
 package playbook.encore.back.campus.entity;
 
 import jakarta.persistence.*;
+import playbook.encore.back.common.audit.BaseAuditEntity;
 import lombok.*;
 
-/**
- * Campus 엔티티
- * 캠퍼스 정보를 관리하는 엔티티
- * - 서초, G밸리, 동작 캠퍼스 등
- * - Course, Book, Admin, History와 연관관계
- */
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "tb_campus")
-public class Campus {
+public class Campus extends BaseAuditEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "seq_campus", nullable = false)

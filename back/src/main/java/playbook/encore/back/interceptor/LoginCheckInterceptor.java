@@ -10,6 +10,7 @@ import playbook.encore.back.admin.entity.Admin;
 import playbook.encore.back.bookUser.entity.BookUser;
 import playbook.encore.back.admin.dao.AdminRepository;
 import playbook.encore.back.bookUser.dao.BookUserRepository;
+import playbook.encore.back.common.audit.AuditContext;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -19,11 +20,13 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
 
     private final BookUserRepository bookUserRepository;
     private final AdminRepository adminRepository;
+    private final AuditContext auditContext;
 
     @Autowired
-    public LoginCheckInterceptor(BookUserRepository bookUserRepository, AdminRepository adminRepository) {
+    public LoginCheckInterceptor(BookUserRepository bookUserRepository, AdminRepository adminRepository, AuditContext auditContext) {
         this.bookUserRepository = bookUserRepository;
         this.adminRepository = adminRepository;
+        this.auditContext = auditContext;
     }
 
     @Override
@@ -56,6 +59,8 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
             request.setAttribute("admin", admin);
             request.setAttribute("ROLE", RoleType.ADMIN);
             request.setAttribute("campusId", admin.getSeqCampus() != null ? admin.getSeqCampus().getSeqCampus() : null);
+            auditContext.setActorId(admin.getSeqAdmin().longValue());
+            auditContext.setActorType("ADMIN");
         } else if ("user".equalsIgnoreCase(role)) {
             Optional<BookUser> userOpt = bookUserRepository.findByIdUserWithCourseAndCampus(userId);
             if (userOpt.isEmpty()) {
@@ -71,6 +76,8 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
                     ? user.getSeqCourse().getSeqCampus().getSeqCampus()
                     : null;
             request.setAttribute("campusId", campusId);
+            auditContext.setActorId(user.getSeqUser().longValue());
+            auditContext.setActorType("USER");
         } else {
             setUtf8Response(response);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

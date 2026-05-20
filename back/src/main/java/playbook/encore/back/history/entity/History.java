@@ -8,15 +8,17 @@ import playbook.encore.back.admin.entity.Admin;
 import playbook.encore.back.bookUser.entity.BookUser;
 import playbook.encore.back.course.entity.Course;
 import playbook.encore.back.book.entity.Book;
+import playbook.encore.back.common.audit.BaseAuditEntity;
 import lombok.*;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "tb_history")
-public class History {
+public class History extends BaseAuditEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "seq_history", nullable = false)

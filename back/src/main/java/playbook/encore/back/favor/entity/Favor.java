@@ -3,15 +3,17 @@ package playbook.encore.back.favor.entity;
 import jakarta.persistence.*;
 import playbook.encore.back.bookUser.entity.BookUser;
 import playbook.encore.back.book.entity.Book;
+import playbook.encore.back.common.audit.BaseAuditEntity;
 import lombok.*;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "tb_favor")
-public class Favor {
+public class Favor extends BaseAuditEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "seq_favor", nullable = false)

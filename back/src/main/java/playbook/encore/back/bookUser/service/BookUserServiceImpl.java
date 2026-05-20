@@ -62,7 +62,6 @@ public class BookUserServiceImpl implements BookUserService{
                 .agreeInfoUser(registerUserRequestDto.isAgreeTermsUser())
                 .agreeDiscordAlarmUser(registerUserRequestDto.isAgreeDiscordAlarmUser())
                 .statusUser(BookUser.StatusType.available)
-                .createdAt(LocalDate.now())
                 .build();
         
         bookUserDAO.createUser(bookUser);

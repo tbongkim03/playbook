@@ -3,17 +3,19 @@ package playbook.encore.back.book.entity;
 import jakarta.persistence.*;
 import playbook.encore.back.sort.entity.SortSecond;
 import playbook.encore.back.campus.entity.Campus;
+import playbook.encore.back.common.audit.BaseAuditEntity;
 import lombok.*;
 
 import java.time.LocalDate;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "tb_book")
-public class Book {
+public class Book extends BaseAuditEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "seq_book", nullable = false)

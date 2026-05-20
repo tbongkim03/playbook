@@ -14,7 +14,6 @@ import playbook.encore.back.campus.entity.Campus;
 import playbook.encore.back.campus.dao.CampusRepository;
 import playbook.encore.back.admin.service.AdminService;
 
-import java.time.LocalDate;
 import java.util.Optional;
 
 @Slf4j
@@ -54,7 +53,6 @@ public class AdminServiceImpl implements AdminService {
                 .agreeInfoAdmin(registerAdminRequestDto.isAgreeInfoAdmin())
                 .agreeDiscordAlarmAdmin(registerAdminRequestDto.isAgreeDiscordAlarmAdmin())
                 .statusAdmin(Admin.StatusTypeAdmin.available)
-                .createdAt(LocalDate.now())
                 .build();
 
         boolean savedAdmin = adminDAO.createAdmin(user, admin).isPresent();

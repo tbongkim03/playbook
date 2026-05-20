@@ -1,12 +1,14 @@
 package playbook.encore.back.sort.entity;
 
 import jakarta.persistence.*;
+import playbook.encore.back.common.audit.BaseAuditEntity;
 import lombok.*;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Table(name = "tb_sort_second")
-public class SortSecond {
+public class SortSecond extends BaseAuditEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "seq_sort_second", nullable = false)
