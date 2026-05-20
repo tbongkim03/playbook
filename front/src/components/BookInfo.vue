@@ -432,24 +432,22 @@ onMounted(async () => {
 
 <style scoped>
 .main {
-    height: 50vw;
     display: grid;
     grid-template-columns: 1fr 1fr;
     width: 98%;
-    padding: 0.7rem;
+    max-width: 1200px;
+    padding: 2rem 1.5rem;
     margin: 0 auto;
+    gap: 2rem;
 }
 
 .left-area {
-    width: 50%;
     position: relative;
 }
 
 .left-area, .right-area {
-    min-width: 720px;
     width: 100%;
     padding: 1rem;
-    margin: 0 auto;
 }
 
 .img-container {
@@ -487,19 +485,17 @@ onMounted(async () => {
 
 .borrowed-badge-large {
     position: absolute;
-    top: 15px;
-    right: 15px;
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: white;
-    padding: 8px 12px;
-    border-radius: 16px;
-    font-size: 0.8rem;
-    font-weight: 700;
+    top: 12px;
+    right: 12px;
+    background: var(--pb-color-danger);
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: var(--pb-radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 6px;
-    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
-    animation: pulse 2s infinite;
+    gap: 5px;
     z-index: 11;
 }
 
@@ -551,18 +547,17 @@ onMounted(async () => {
 
 .my-borrowed-badge {
     position: absolute;
-    top: 15px;
-    right: 15px;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-    padding: 8px 12px;
-    border-radius: 16px;
-    font-size: 0.8rem;
-    font-weight: 700;
+    top: 12px;
+    right: 12px;
+    background: var(--pb-color-success);
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: var(--pb-radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 6px;
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+    gap: 5px;
     z-index: 11;
 }
 
@@ -571,15 +566,6 @@ onMounted(async () => {
     letter-spacing: 0.5px;
 }
 
-@keyframes pulse {
-    0%, 100% {
-        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
-    }
-    50% {
-        box-shadow: 0 6px 25px rgba(239, 68, 68, 0.7);
-        transform: scale(1.02);
-    }
-}
 
 .right-area {
     display: flex;
@@ -590,16 +576,15 @@ onMounted(async () => {
 
 /* 대여중 알림 배너 (다른 사람이 대여한 경우) */
 .borrowed-alert {
-    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-    border: 2px solid #fca5a5;
-    border-radius: 12px;
-    padding: 16px;
+    background: var(--pb-color-danger-soft);
+    border: 1px solid var(--pb-color-danger);
+    border-radius: var(--pb-radius-md);
+    padding: 12px 16px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    color: #dc2626;
+    gap: 10px;
+    color: var(--pb-color-danger);
     font-weight: 600;
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
 }
 
 .borrowed-alert svg {
@@ -608,16 +593,15 @@ onMounted(async () => {
 
 /* 내가 대여중인 경우 알림 배너 */
 .my-borrowed-alert {
-    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-    border: 2px solid #6ee7b7;
-    border-radius: 12px;
-    padding: 16px;
+    background: var(--pb-color-success-soft);
+    border: 1px solid var(--pb-color-success);
+    border-radius: var(--pb-radius-md);
+    padding: 12px 16px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    color: #059669;
+    gap: 10px;
+    color: var(--pb-color-success);
     font-weight: 600;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
 }
 
 .my-borrowed-alert svg {
@@ -713,21 +697,21 @@ onMounted(async () => {
 }
 
 .status-borrowed {
-    background-color: #fef2f2;
-    color: #dc2626;
-    font-weight: 700;
+    background: var(--pb-color-danger-soft);
+    color: var(--pb-color-danger);
+    font-weight: 600;
 }
 
 .status-available {
-    background-color: #f0fdf4;
-    color: #16a34a;
-    font-weight: 700;
+    background: var(--pb-color-brand-soft);
+    color: var(--pb-color-brand);
+    font-weight: 600;
 }
 
 .status-my-borrowed {
-    background-color: #ecfdf5;
-    color: #059669;
-    font-weight: 700;
+    background: var(--pb-color-success-soft);
+    color: var(--pb-color-success);
+    font-weight: 600;
 }
 
 .action-buttons {
@@ -740,124 +724,84 @@ onMounted(async () => {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border: 1px solid transparent;
+    border-radius: var(--pb-radius-sm);
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 0.95rem;
+    transition: background 0.15s ease, opacity 0.15s ease;
+    font-size: 0.9rem;
 }
 
 .btn:disabled {
     cursor: not-allowed;
-    opacity: 0.6;
-    transform: none !important;
+    opacity: 0.5;
 }
 
 .btn-icon {
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 1.125rem;
+    height: 1.125rem;
 }
 
 .btn-primary {
-    background-color: #3b82f6;
-    color: white;
+    background: var(--pb-color-brand);
+    color: #fff;
+    border-color: var(--pb-color-brand);
 }
 
 .btn-primary:hover:not(:disabled) {
-    background-color: #2563eb;
-    transform: translateY(-1px);
+    background: var(--pb-color-brand-strong);
 }
 
 .btn-return {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    background: var(--pb-color-success);
+    color: #fff;
+    border-color: var(--pb-color-success);
 }
 
 .btn-return:hover {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+    opacity: 0.88;
 }
 
 .btn-disabled {
-    background-color: #dc2626;
-    color: white;
-}
-
-.btn-disabled:hover {
-    background-color: #b91c1c;
+    background: var(--pb-color-danger-soft);
+    color: var(--pb-color-danger);
+    border-color: var(--pb-color-danger);
 }
 
 .btn-secondary {
-    background-color: #6b7280;
-    color: white;
+    background: var(--pb-color-surface-muted);
+    color: var(--pb-color-text);
+    border-color: var(--pb-color-border);
 }
 
 .btn-secondary:hover {
-    background-color: #374151;
-    transform: translateY(-1px);
+    background: var(--pb-color-border);
 }
 
 .btn-wishlisted {
-    background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
-    color: white;
-    box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
+    background: #c4688b;
+    color: #fff;
+    border-color: #c4688b;
 }
 
 .btn-wishlisted:hover {
-    background: linear-gradient(135deg, #db2777 0%, #9d174d 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(236, 72, 153, 0.5);
-}
-
-.btn-wishlisted .btn-icon {
-    animation: heartbeat 1.5s ease-in-out infinite;
-}
-
-@keyframes heartbeat {
-    0%, 100% {
-        transform: scale(1);
-    }
-    14% {
-        transform: scale(1.1);
-    }
-    28% {
-        transform: scale(1);
-    }
-    42% {
-        transform: scale(1.1);
-    }
-    70% {
-        transform: scale(1);
-    }
-}
-
-.btn-tertiary {
-    background-color: #8b5cf6;
-    color: white;
-}
-
-.btn-tertiary:hover {
-    background-color: #7c3aed;
-    transform: translateY(-1px);
+    opacity: 0.88;
 }
 
 /* 대여중일 때 추가 정보 (다른 사람이 대여한 경우에만) */
 .borrowed-info {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    border-radius: 12px;
-    padding: 20px;
-    border: 1px solid #e2e8f0;
+    background: var(--pb-color-surface-muted);
+    border: 1px solid var(--pb-color-border);
+    border-radius: var(--pb-radius-md);
+    padding: 16px;
 }
 
 .borrowed-info h3 {
-    color: #374151;
-    font-size: 1.1rem;
+    color: var(--pb-color-text);
+    font-size: 1rem;
     font-weight: 600;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
 .borrowed-info ul {
@@ -867,24 +811,24 @@ onMounted(async () => {
 }
 
 .borrowed-info li {
-    color: #6b7280;
-    margin-bottom: 8px;
-    font-size: 0.95rem;
+    color: var(--pb-color-text-muted);
+    margin-bottom: 6px;
+    font-size: 0.9rem;
 }
 
 /* 내가 대여중일 때 추가 정보 */
 .my-borrowed-info {
-    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-    border-radius: 12px;
-    padding: 20px;
-    border: 1px solid #6ee7b7;
+    background: var(--pb-color-success-soft);
+    border: 1px solid var(--pb-color-success);
+    border-radius: var(--pb-radius-md);
+    padding: 16px;
 }
 
 .my-borrowed-info h3 {
-    color: #059669;
-    font-size: 1.1rem;
+    color: var(--pb-color-success);
+    font-size: 1rem;
     font-weight: 600;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
 .my-borrowed-info ul {
@@ -894,9 +838,10 @@ onMounted(async () => {
 }
 
 .my-borrowed-info li {
-    color: #047857;
-    margin-bottom: 8px;
-    font-size: 0.95rem;
+    color: var(--pb-color-success);
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+    opacity: 0.85;
 }
 
 /* 반응형 디자인 */

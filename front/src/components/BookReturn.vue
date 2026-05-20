@@ -128,7 +128,6 @@ const convertKoreanToEnglish = (text) => {
 
 // 바코드 입력 처리
 const onBarcodeInput = () => {
-  console.log('onBarcodeInput 호출됨:', barcodeBuffer.value)
   // 바코드 리더기는 빠르게 입력하므로 디바운스 적용
   clearTimeout(barcodeTimeout)
   barcodeTimeout = setTimeout(() => {
@@ -219,7 +218,6 @@ const processBarcodeInputFromKeyboard = async (keyboardInput) => {
 
 // 도서 반납 API 호출
 const returnBook = async (barcode) => {
-  console.log('returnBook 호출됨:', barcode)
   isLoading.value = true
   
   try {
