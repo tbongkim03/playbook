@@ -141,14 +141,14 @@ onMounted(() => fetchTerms('SERVICE'))
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   font-weight: 600;
-  color: #2d3748;
+  color: var(--pb-color-heading);
   margin-bottom: 6px;
 }
 
 .section-description {
-  color: #718096;
+  color: var(--pb-color-text-muted);
   font-size: 0.9rem;
   margin: 0;
 }
@@ -157,7 +157,7 @@ onMounted(() => fetchTerms('SERVICE'))
   display: flex;
   gap: 8px;
   margin-bottom: 20px;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 1px solid var(--pb-color-border);
   padding-bottom: 0;
 }
 
@@ -165,24 +165,24 @@ onMounted(() => fetchTerms('SERVICE'))
   padding: 10px 20px;
   border: none;
   background: transparent;
-  color: #718096;
+  color: var(--pb-color-text-muted);
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -2px;
-  transition: all 0.2s ease;
-  border-radius: 4px 4px 0 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  border-radius: var(--pb-radius-xs) var(--pb-radius-xs) 0 0;
 }
 
 .tab-btn:hover {
-  color: #4a5568;
-  background: #f7fafc;
+  color: var(--pb-color-text);
+  background: var(--pb-color-surface-muted);
 }
 
 .tab-btn.active {
-  color: #3182ce;
-  border-bottom-color: #3182ce;
+  color: var(--pb-color-brand);
+  border-bottom-color: var(--pb-color-brand);
   font-weight: 600;
 }
 
@@ -192,14 +192,14 @@ onMounted(() => fetchTerms('SERVICE'))
   gap: 12px;
   padding: 40px;
   justify-content: center;
-  color: #718096;
+  color: var(--pb-color-text-muted);
 }
 
 .spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid #e2e8f0;
-  border-top-color: #3182ce;
+  border: 2px solid var(--pb-color-border);
+  border-top-color: var(--pb-color-brand);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -230,35 +230,35 @@ onMounted(() => fetchTerms('SERVICE'))
 .preview-label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #4a5568;
+  color: var(--pb-color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .char-count {
   font-size: 0.8rem;
-  color: #a0aec0;
+  color: var(--pb-color-text-soft);
 }
 
 .content-textarea {
   width: 100%;
   min-height: 400px;
   padding: 16px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-md);
   font-family: 'Fira Code', 'Courier New', monospace;
   font-size: 0.85rem;
   line-height: 1.6;
-  color: #2d3748;
+  color: var(--pb-color-text);
   resize: vertical;
-  transition: border-color 0.2s;
+  transition: border-color 0.15s;
   box-sizing: border-box;
 }
 
 .content-textarea:focus {
   outline: none;
-  border-color: #3182ce;
-  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+  border-color: var(--pb-color-brand);
+  box-shadow: 0 0 0 3px rgba(47, 111, 78, 0.12);
 }
 
 .editor-actions {
@@ -269,44 +269,40 @@ onMounted(() => fetchTerms('SERVICE'))
 
 .btn-reset {
   padding: 10px 20px;
-  border: 1px solid #e2e8f0;
-  background: white;
-  color: #4a5568;
+  border: 1px solid var(--pb-color-border);
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text);
   font-size: 0.9rem;
-  border-radius: 8px;
+  border-radius: var(--pb-radius-md);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.15s, border-color 0.15s;
 }
 
 .btn-reset:hover:not(:disabled) {
-  background: #f7fafc;
-  border-color: #cbd5e0;
+  background: var(--pb-color-surface-muted);
+  border-color: var(--pb-color-border-strong);
 }
 
 .btn-save {
   padding: 10px 24px;
   border: none;
-  background: linear-gradient(135deg, #3182ce, #2b6cb0);
+  background: var(--pb-color-brand);
   color: white;
   font-size: 0.9rem;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: var(--pb-radius-md);
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(49, 130, 206, 0.3);
+  transition: background 0.15s;
 }
 
 .btn-save:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2b6cb0, #2c5282);
-  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.4);
-  transform: translateY(-1px);
+  background: var(--pb-color-brand-strong);
 }
 
 .btn-save:disabled,
 .btn-reset:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  transform: none;
 }
 
 .preview-section {
@@ -318,13 +314,13 @@ onMounted(() => fetchTerms('SERVICE'))
 .preview-content {
   min-height: 400px;
   padding: 20px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #f8fafc;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-md);
+  background: var(--pb-color-surface-muted);
   overflow-y: auto;
   font-size: 0.9rem;
   line-height: 1.7;
-  color: #2d3748;
+  color: var(--pb-color-text);
 }
 
 @media (max-width: 1100px) {
