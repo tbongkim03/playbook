@@ -89,5 +89,9 @@ scripts/
 리팩토링_계획서.md
 요청사항.txt
 
+# 디자인 작업 문서
+디자인_MEMORY.md
+디자인_진행계획.md
+
 # DB 마이그레이션
 db/migration/
