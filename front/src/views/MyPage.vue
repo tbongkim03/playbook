@@ -1051,13 +1051,13 @@ async function changePassword() {
 .header-content h1 {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--pb-color-heading);
   margin: 0 0 0.5rem 0;
 }
 
 .page-subtitle {
   font-size: 1.1rem;
-  color: #6b7280;
+  color: var(--pb-color-text-muted);
   margin: 0;
 }
 
@@ -1067,7 +1067,7 @@ async function changePassword() {
   gap: 12px;
   margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--pb-color-border);
 }
 
 .section-icon {
@@ -1076,34 +1076,34 @@ async function changePassword() {
   justify-content: center;
   width: 40px;
   height: 40px;
-  background: #f3f4f6;
-  border-radius: 8px;
-  color: #374151;
+  background: var(--pb-color-surface-subtle);
+  border-radius: var(--pb-radius-sm);
+  color: var(--pb-color-text);
 }
 
 .section-icon.favorites {
-  background: #fef2f2;
-  color: #dc2626;
+  background: var(--pb-color-danger-soft);
+  color: var(--pb-color-danger);
 }
 
 .section-icon.rental {
-  background: #f0f9ff;
-  color: #0284c7;
+  background: var(--pb-color-brand-soft);
+  color: var(--pb-color-brand);
 }
 
 .section-title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--pb-color-heading);
   margin: 0;
   flex: 1;
 }
 
 .count-badge {
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--pb-color-surface-muted);
+  color: var(--pb-color-text);
   padding: 4px 8px;
-  border-radius: 12px;
+  border-radius: var(--pb-radius-sm);
   font-size: 0.875rem;
   font-weight: 500;
   min-width: 24px;
@@ -1113,11 +1113,11 @@ async function changePassword() {
 .user-info-section,
 .favorites-section,
 .rental-history-section {
-  background: white;
-  border-radius: 12px;
+  background: var(--pb-color-surface);
+  border-radius: var(--pb-radius-md);
   padding: 2rem;
   margin-bottom: 2rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--pb-color-border);
 }
 
 .user-info-grid {
@@ -1131,7 +1131,7 @@ async function changePassword() {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 0;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--pb-color-surface-subtle);
 }
 
 .info-item:last-child {
@@ -1140,7 +1140,7 @@ async function changePassword() {
 
 .info-label {
   font-weight: 500;
-  color: #374151;
+  color: var(--pb-color-text);
   min-width: 120px;
 }
 
@@ -1152,7 +1152,7 @@ async function changePassword() {
 }
 
 .value-text {
-  color: #1a1a1a;
+  color: var(--pb-color-heading);
   flex: 1;
   text-align: right;
 }
@@ -1161,29 +1161,29 @@ async function changePassword() {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: #f3f4f6;
+  background: var(--pb-color-surface-subtle);
   border: none;
   padding: 8px 12px;
-  border-radius: 6px;
+  border-radius: var(--pb-radius-xs);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.15s;
   font-size: 0.875rem;
-  color: #374151;
+  color: var(--pb-color-text);
 }
 
 .edit-button:hover {
-  background: #e5e7eb;
+  background: var(--pb-color-surface-muted);
 }
 
 .empty-state {
   text-align: center;
   padding: 3rem 2rem;
-  color: #6b7280;
+  color: var(--pb-color-text-muted);
 }
 
 .empty-icon {
   margin-bottom: 1rem;
-  color: #d1d5db;
+  color: var(--pb-color-border-strong);
 }
 
 .empty-text {
@@ -1207,15 +1207,15 @@ async function changePassword() {
   align-items: center;
   justify-content: space-between;
   padding: 1rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .book-card:hover {
-  border-color: #d1d5db;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-color: var(--pb-color-border-strong);
+  box-shadow: var(--pb-shadow-xs);
 }
 
 .book-info {
@@ -1225,14 +1225,14 @@ async function changePassword() {
 .book-title {
   font-size: 1rem;
   font-weight: 500;
-  color: #1a1a1a;
+  color: var(--pb-color-heading);
   margin: 0 0 0.25rem 0;
   line-height: 1.4;
 }
 
 .book-author {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--pb-color-text-muted);
   margin: 0;
 }
 
@@ -1241,17 +1241,17 @@ async function changePassword() {
   border: none;
   cursor: pointer;
   padding: 8px;
-  border-radius: 4px;
-  transition: all 0.2s;
-  color: #d1d5db;
+  border-radius: var(--pb-radius-xs);
+  transition: background 0.15s;
+  color: var(--pb-color-border-strong);
 }
 
 .favorite-button.active {
-  color: #dc2626;
+  color: var(--pb-color-danger);
 }
 
 .favorite-button:hover {
-  background: #f3f4f6;
+  background: var(--pb-color-surface-subtle);
 }
 
 .rental-stats {
@@ -1262,38 +1262,37 @@ async function changePassword() {
 }
 
 .stat-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  background: var(--pb-color-surface-subtle);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
   padding: 1.5rem;
   text-align: center;
-  transition: all 0.2s;
+  transition: border-color 0.15s;
 }
 
 .stat-card:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-color: var(--pb-color-border-strong);
 }
 
 .stat-card.warning {
-  background: #fef2f2;
-  border-color: #fecaca;
+  background: var(--pb-color-danger-soft);
+  border-color: var(--pb-color-danger-muted);
 }
 
 .stat-card.warning .stat-value {
-  color: #dc2626;
+  color: var(--pb-color-danger);
 }
 
 .stat-value {
   font-size: 2rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--pb-color-heading);
   margin-bottom: 0.5rem;
 }
 
 .stat-label {
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--pb-color-text-muted);
   font-weight: 500;
 }
 
@@ -1305,21 +1304,21 @@ async function changePassword() {
 
 .history-item {
   padding: 1.5rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
 }
 
 .history-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--pb-color-heading);
   margin: 0 0 0.5rem 0;
   line-height: 1.4;
 }
 
 .history-author {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--pb-color-text-muted);
   margin: 0 0 1rem 0;
 }
 
@@ -1332,7 +1331,7 @@ async function changePassword() {
 
 .history-date {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--pb-color-text-muted);
   margin: 0;
 }
 
@@ -1342,22 +1341,22 @@ async function changePassword() {
   margin: 0;
   display: inline-block;
   padding: 4px 12px;
-  border-radius: 12px;
+  border-radius: var(--pb-radius-sm);
 }
 
 .history-status.booked {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: var(--pb-color-brand-soft);
+  color: var(--pb-color-brand-strong);
 }
 
 .history-status.returned {
-  background: #dcfce7;
-  color: #16a34a;
+  background: var(--pb-color-success-soft);
+  color: var(--pb-color-success);
 }
 
 .history-status.overdue {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--pb-color-danger-soft);
+  color: var(--pb-color-danger);
 }
 
 .modal-overlay {
@@ -1375,8 +1374,8 @@ async function changePassword() {
 }
 
 .modal-content {
-  background: white;
-  border-radius: 12px;
+  background: var(--pb-color-surface);
+  border-radius: var(--pb-radius-md);
   padding: 2rem;
   width: 100%;
   max-width: 500px;
@@ -1390,13 +1389,13 @@ async function changePassword() {
   justify-content: space-between;
   margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--pb-color-border);
 }
 
 .modal-header h3 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--pb-color-heading);
   margin: 0;
 }
 
@@ -1405,14 +1404,14 @@ async function changePassword() {
   border: none;
   cursor: pointer;
   padding: 4px;
-  border-radius: 4px;
-  color: #6b7280;
-  transition: all 0.2s;
+  border-radius: var(--pb-radius-xs);
+  color: var(--pb-color-text-muted);
+  transition: background 0.15s, color 0.15s;
 }
 
 .close-button:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--pb-color-surface-subtle);
+  color: var(--pb-color-text);
 }
 
 .modal-form {
@@ -1429,11 +1428,10 @@ async function changePassword() {
 
 .input-label {
   font-weight: 500;
-  color: #374151;
+  color: var(--pb-color-text);
   font-size: 0.875rem;
 }
 
-/* 개선된 입력 필드 스타일 */
 .input-container {
   position: relative;
   display: flex;
@@ -1443,21 +1441,23 @@ async function changePassword() {
 .form-input {
   width: 100%;
   padding: 12px 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
   font-size: 1rem;
-  transition: all 0.2s;
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text);
+  transition: border-color 0.15s, box-shadow 0.15s;
   outline: none;
 }
 
 .form-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--pb-color-brand);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-soft);
 }
 
 .form-input.error {
-  border-color: #dc2626;
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+  border-color: var(--pb-color-danger);
+  box-shadow: 0 0 0 3px var(--pb-color-danger-soft);
 }
 
 .form-input.has-buttons {
@@ -1477,17 +1477,17 @@ async function changePassword() {
   border: none;
   cursor: pointer;
   padding: 4px;
-  border-radius: 4px;
-  color: #9ca3af;
-  transition: all 0.2s;
+  border-radius: var(--pb-radius-xs);
+  color: var(--pb-color-text-soft);
+  transition: color 0.15s, background 0.15s;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .clear-button:hover {
-  color: #6b7280;
-  background: #f3f4f6;
+  color: var(--pb-color-text-muted);
+  background: var(--pb-color-surface-subtle);
 }
 
 .toggle-password-button {
@@ -1495,22 +1495,22 @@ async function changePassword() {
   border: none;
   cursor: pointer;
   padding: 4px;
-  border-radius: 4px;
-  color: #9ca3af;
-  transition: all 0.2s;
+  border-radius: var(--pb-radius-xs);
+  color: var(--pb-color-text-soft);
+  transition: color 0.15s, background 0.15s;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .toggle-password-button:hover {
-  color: #6b7280;
-  background: #f3f4f6;
+  color: var(--pb-color-text-muted);
+  background: var(--pb-color-surface-subtle);
 }
 
 .error-message {
   font-size: 0.875rem;
-  color: #dc2626;
+  color: var(--pb-color-danger);
 }
 
 .modal-actions {
@@ -1523,42 +1523,42 @@ async function changePassword() {
 .cancel-button,
 .submit-button {
   padding: 12px 24px;
-  border-radius: 8px;
+  border-radius: var(--pb-radius-sm);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.15s;
 }
 
 .cancel-button {
-  background: #f3f4f6;
-  border: 1px solid #d1d5db;
-  color: #374151;
+  background: var(--pb-color-surface-subtle);
+  border: 1px solid var(--pb-color-border);
+  color: var(--pb-color-text);
 }
 
 .cancel-button:hover {
-  background: #e5e7eb;
+  background: var(--pb-color-surface-muted);
 }
 
 .submit-button {
-  background: #3b82f6;
-  border: 1px solid #3b82f6;
+  background: var(--pb-color-brand);
+  border: 1px solid var(--pb-color-brand);
   color: white;
 }
 
 .submit-button:hover:not(:disabled) {
-  background: #2563eb;
+  background: var(--pb-color-brand-strong);
 }
 
 .submit-button:disabled {
-  background: #d1d5db;
-  border-color: #d1d5db;
+  background: var(--pb-color-border);
+  border-color: var(--pb-color-border);
   cursor: not-allowed;
 }
 
 .account-actions {
   margin-top: 2rem;
   padding-top: 2rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--pb-color-border);
   display: flex;
   justify-content: flex-end;
 }
@@ -1568,19 +1568,19 @@ async function changePassword() {
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: #fef2f2;
-  border: 1px solid #fca5a5;
-  border-radius: 8px;
-  color: #dc2626;
+  background: var(--pb-color-danger-soft);
+  border: 1px solid var(--pb-color-danger-muted);
+  border-radius: var(--pb-radius-sm);
+  color: var(--pb-color-danger);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.15s;
 }
 
 .withdraw-button:hover {
-  background: #fee2e2;
-  border-color: #f87171;
+  background: var(--pb-color-danger-soft);
+  border-color: var(--pb-color-danger);
 }
 
 .withdraw-warning {
@@ -1595,29 +1595,28 @@ async function changePassword() {
 .withdraw-warning h4 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--pb-color-heading);
   margin: 0 0 0.5rem 0;
 }
 
 .withdraw-warning > p {
-  color: #6b7280;
+  color: var(--pb-color-text-muted);
   margin: 0 0 1.5rem 0;
 }
 
 .withdraw-notice-list {
   text-align: left;
   list-style: none;
-  padding: 0;
-  margin: 1.5rem 0 0 0;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 8px;
   padding: 1rem;
+  margin: 1.5rem 0 0 0;
+  background: var(--pb-color-danger-soft);
+  border: 1px solid var(--pb-color-danger-muted);
+  border-radius: var(--pb-radius-sm);
 }
 
 .withdraw-notice-list li {
   padding: 0.5rem 0;
-  color: #991b1b;
+  color: var(--pb-color-danger);
   font-size: 0.875rem;
   position: relative;
   padding-left: 1.5rem;
@@ -1631,38 +1630,38 @@ async function changePassword() {
 
 .withdraw-confirm-button {
   padding: 12px 24px;
-  border-radius: 8px;
+  border-radius: var(--pb-radius-sm);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
-  background: #dc2626;
-  border: 1px solid #dc2626;
+  transition: background 0.15s;
+  background: var(--pb-color-danger);
+  border: 1px solid var(--pb-color-danger);
   color: white;
 }
 
 .withdraw-confirm-button:hover:not(:disabled) {
-  background: #b91c1c;
-  border-color: #b91c1c;
+  background: var(--pb-color-danger-strong);
+  border-color: var(--pb-color-danger-strong);
 }
 
 .withdraw-confirm-button:disabled {
-  background: #d1d5db;
-  border-color: #d1d5db;
+  background: var(--pb-color-border);
+  border-color: var(--pb-color-border);
   cursor: not-allowed;
 }
 
 .status-available {
-  color: #16a34a;
+  color: var(--pb-color-success);
   font-weight: 600;
 }
 
 .status-overdue {
-  color: #dc2626;
+  color: var(--pb-color-danger);
   font-weight: 600;
 }
 
 .status-stop {
-  color: #f59e0b;
+  color: var(--pb-color-warning);
   font-weight: 600;
 }
 
@@ -1671,25 +1670,25 @@ async function changePassword() {
 .status-overdue-notice {
   margin-top: 1.5rem;
   padding: 1.25rem;
-  border-radius: 12px;
+  border-radius: var(--pb-radius-md);
   display: flex;
   gap: 1rem;
   align-items: flex-start;
 }
 
 .course-ended-notice {
-  background: #fef3c7;
-  border: 1px solid #fbbf24;
+  background: var(--pb-color-warning-soft);
+  border: 1px solid var(--pb-color-warning-muted);
 }
 
 .status-stop-notice {
-  background: #fee2e2;
-  border: 1px solid #f87171;
+  background: var(--pb-color-danger-soft);
+  border: 1px solid var(--pb-color-danger-muted);
 }
 
 .status-overdue-notice {
-  background: #fef2f2;
-  border: 1px solid #fca5a5;
+  background: var(--pb-color-danger-soft);
+  border: 1px solid var(--pb-color-danger-muted);
 }
 
 .notice-icon {
@@ -1700,63 +1699,27 @@ async function changePassword() {
 .notice-content h4 {
   font-size: 1rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--pb-color-heading);
   margin: 0 0 0.5rem 0;
 }
 
 .notice-content p {
   font-size: 0.9rem;
-  color: #475569;
+  color: var(--pb-color-text-muted);
   margin: 0;
   line-height: 1.5;
 }
 
 @media (max-width: 768px) {
-  .mypage-container {
-    padding: 0 1rem;
-  }
-
-  .user-info-section,
-  .favorites-section,
-  .rental-history-section {
-    padding: 1.5rem;
-  }
-
-  .info-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .info-value {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .books-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .modal-overlay {
-    padding: 1rem;
-  }
-
-  .modal-content {
-    padding: 1.5rem;
-  }
-
-  .modal-actions {
-    flex-direction: column;
-  }
-
-  .rental-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .history-details {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
+  .mypage-container { padding: 0 1rem; }
+  .user-info-section, .favorites-section, .rental-history-section { padding: 1.5rem; }
+  .info-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .info-value { width: 100%; justify-content: space-between; }
+  .books-grid { grid-template-columns: 1fr; }
+  .modal-overlay { padding: 1rem; }
+  .modal-content { padding: 1.5rem; }
+  .modal-actions { flex-direction: column; }
+  .rental-stats { grid-template-columns: repeat(2, 1fr); }
+  .history-details { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
 }
 </style>

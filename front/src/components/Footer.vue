@@ -126,18 +126,16 @@ onMounted(() => {
 <style scoped>
 .modern-footer {
     position: relative;
-    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-    color: #f1f5f9;
+    background: var(--pb-color-surface-muted);
+    color: var(--pb-color-text);
+    border-top: 1px solid var(--pb-color-border);
     margin-top: auto;
-    overflow: hidden;
 }
 
 .footer-content {
     max-width: 1440px;
     margin: 0 auto;
     padding: 4rem 2rem 2rem;
-    position: relative;
-    z-index: 2;
 }
 
 .footer-main {
@@ -159,25 +157,21 @@ onMounted(() => {
     justify-content: center;
     width: 48px;
     height: 48px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 12px;
+    background: var(--pb-color-brand);
+    border-radius: var(--pb-radius-md);
     color: white;
     flex-shrink: 0;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .brand-text h3 {
     font-size: 1.5rem;
     font-weight: 700;
     margin: 0 0 0.5rem 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--pb-color-heading);
 }
 
 .brand-text p {
-    color: #94a3b8;
+    color: var(--pb-color-text-muted);
     margin: 0;
     font-size: 0.9rem;
 }
@@ -192,7 +186,7 @@ onMounted(() => {
     font-size: 1rem;
     font-weight: 600;
     margin: 0 0 1rem 0;
-    color: #e2e8f0;
+    color: var(--pb-color-heading);
 }
 
 .link-group ul {
@@ -206,39 +200,22 @@ onMounted(() => {
 }
 
 .link-group a {
-    color: #94a3b8;
+    color: var(--pb-color-text-muted);
     text-decoration: none;
     font-size: 0.9rem;
-    transition: all 0.3s ease;
+    transition: color 0.15s;
     display: inline-block;
-    position: relative;
-}
-
-.link-group a::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    transition: width 0.3s ease;
 }
 
 .link-group a:hover {
-    color: #e2e8f0;
-    transform: translateX(4px);
-}
-
-.link-group a:hover::after {
-    width: 100%;
+    color: var(--pb-color-brand);
 }
 
 .footer-social h4 {
     font-size: 1rem;
     font-weight: 600;
     margin: 0 0 1rem 0;
-    color: #e2e8f0;
+    color: var(--pb-color-heading);
 }
 
 .social-links {
@@ -252,43 +229,18 @@ onMounted(() => {
     justify-content: center;
     width: 40px;
     height: 40px;
-    background: rgba(100, 116, 139, 0.2);
-    border: 1px solid rgba(100, 116, 139, 0.3);
-    border-radius: 10px;
-    color: #94a3b8;
+    background: var(--pb-color-surface);
+    border: 1px solid var(--pb-color-border);
+    border-radius: var(--pb-radius-sm);
+    color: var(--pb-color-text-muted);
     text-decoration: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-}
-
-.social-link::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.social-link svg {
-    position: relative;
-    z-index: 1;
-    transition: all 0.3s ease;
-}
-
-.social-link:hover::before {
-    opacity: 1;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
 .social-link:hover {
-    color: white;
-    transform: translateY(-2px) scale(1.05);
-    border-color: transparent;
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    color: var(--pb-color-brand);
+    background: var(--pb-color-brand-soft);
+    border-color: var(--pb-color-brand-muted);
 }
 
 .footer-bottom {
@@ -296,12 +248,12 @@ onMounted(() => {
     justify-content: space-between;
     align-items: center;
     padding-top: 2rem;
-    border-top: 1px solid rgba(100, 116, 139, 0.3);
+    border-top: 1px solid var(--pb-color-border);
 }
 
 .copyright {
     font-size: 0.9rem;
-    color: #94a3b8;
+    color: var(--pb-color-text-muted);
 }
 
 .footer-decoration {
@@ -309,20 +261,11 @@ onMounted(() => {
     top: 0;
     left: 0;
     right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #11998e 100%);
+    height: 3px;
+    background: var(--pb-color-brand);
 }
 
-.decoration-line {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, #667eea, transparent);
-    opacity: 0.5;
-}
+.decoration-line { display: none; }
 
 .decoration-dots {
     position: absolute;
@@ -335,81 +278,24 @@ onMounted(() => {
 .decoration-dots span {
     width: 4px;
     height: 4px;
-    background: #64748b;
+    background: var(--pb-color-border-strong);
     border-radius: 50%;
-    animation: pulse 2s infinite;
 }
 
-.decoration-dots span:nth-child(2) {
-    animation-delay: 0.5s;
-}
-
-.decoration-dots span:nth-child(3) {
-    animation-delay: 1s;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 0.3;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 1;
-        transform: scale(1.2);
-    }
-}
-
-/* 반응형 디자인 */
 @media (max-width: 1024px) {
-    .footer-main {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-    
-    .footer-links {
-        grid-template-columns: repeat(2, 1fr);
-    }
+    .footer-main { grid-template-columns: 1fr; gap: 2rem; }
+    .footer-links { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 768px) {
-    .footer-content {
-        padding: 3rem 1rem 1.5rem;
-    }
-    
-    .footer-links {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
-    
-    .footer-bottom {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-    }
-    
-    .social-links {
-        justify-content: center;
-    }
-    
-    .decoration-dots {
-        right: 1rem;
-    }
+    .footer-content { padding: 3rem 1rem 1.5rem; }
+    .footer-links { grid-template-columns: 1fr; gap: 1.5rem; }
+    .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
+    .social-links { justify-content: center; }
+    .decoration-dots { right: 1rem; }
 }
 
 @media (max-width: 480px) {
-    .footer-brand {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
-    
-    .footer-meta {
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-    
-    .divider {
-        display: none;
-    }
+    .footer-brand { flex-direction: column; align-items: center; text-align: center; }
 }
 </style>

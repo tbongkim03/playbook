@@ -236,6 +236,8 @@ const handleKeydown = (event) => {
 
 // 검색 상태 추가
 const isSearchMode = ref(false)
+const lastSearchQuery = ref('')
+const lastSearchExact = ref(false)
 
 // 로딩 상태 추가
 const isLoading = ref(false)
@@ -355,15 +357,19 @@ const currentLargeForMedium = computed(() => {
 })
 
 const filteredBookList = computed(() => {
-  // 서버에서 이미 필터링된 데이터를 받으므로 추가 필터링은 중분류만
+  let list = bookList.value;
+
   if (selectedMediumCategory.value) {
-    return bookList.value.filter(book => 
-      book.seqSortSecond === selectedMediumCategory.value
-    );
+    list = list.filter(book => book.seqSortSecond === selectedMediumCategory.value);
   }
-  
-  // 일반 필터링 (서버에서 이미 처리됨)
-  return bookList.value;
+
+  // 검색 모드는 전체 결과가 bookList에 있으므로 클라이언트 페이지네이션 적용
+  if (isSearchMode.value) {
+    const start = (currentPage.value - 1) * ITEMS_PER_PAGE;
+    return list.slice(start, start + ITEMS_PER_PAGE);
+  }
+
+  return list;
 });
 
 const displayCount = computed(() => {
@@ -441,29 +447,18 @@ function selectMediumCategory(mediumSeq, largeSeq) {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-// 페이지 이동 함수 추가
 const goToPage = async (page) => {
-  if (page < 1 || page > Math.ceil(totalCount.value / ITEMS_PER_PAGE)) {
+  if (page < 1 || page > totalPages.value) return;
+
+  // 검색 모드는 bookList에 전체 결과가 있으므로 페이지만 변경
+  if (isSearchMode.value) {
+    currentPage.value = page;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
   }
-  
-  // 중분류가 선택된 경우는 클라이언트 사이드 필터링 유지
-  if (selectedMediumCategory.value) {
-    // 중분류 필터링은 클라이언트 사이드에서 처리 (기존 로직 유지)
-    // 하지만 서버에서 받은 데이터가 이미 필터링되어 있으므로 재요청 필요
-    await loadBooks(page);
-    // 중분류 필터링 적용
-    const mediumFilteredBooks = bookList.value.filter(book => 
-      book.seqSortSecond === selectedMediumCategory.value
-    );
-    bookList.value = mediumFilteredBooks;
-  } else {
-    // 서버에서 해당 페이지 데이터 요청
-    await loadBooks(page);
-  }
-  
-  // 페이지 상단으로 스크롤 이동
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+
+  await loadBooks(page);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function onSearch({ query, exact }) {
@@ -514,8 +509,11 @@ const sortBooks = (books) => {
 // 정렬 변경 핸들러
 const onSortChange = async () => {
   currentPage.value = 1;
-  // 서버에서 정렬된 첫 페이지 데이터 요청
-  await loadBooks(1);
+  if (isSearchMode.value) {
+    await fetchBooks(lastSearchQuery.value, lastSearchExact.value);
+  } else {
+    await loadBooks(1);
+  }
 };
 
 const fetchBooks = async (query = '', exact = false) => {
@@ -528,9 +526,11 @@ const fetchBooks = async (query = '', exact = false) => {
       params.set('q', query.trim());
       params.set('exact', exact);
       url = `/api/books/search?${params.toString()}`;
-      
-      // 검색 모드 활성화
+
+      // 검색 모드 활성화 및 쿼리 저장
       isSearchMode.value = true
+      lastSearchQuery.value = query.trim()
+      lastSearchExact.value = exact
     } else {
       // 검색어가 없으면 일반 목록으로 이동
       isSearchMode.value = false

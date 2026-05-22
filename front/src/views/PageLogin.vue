@@ -1,18 +1,12 @@
 <template>
     <div class="login-wrapper">
         <div class="login-container">
-            <!-- 로고 헤더 -->
-            <header class="login-header">
+            <div class="page-title">
                 <router-link to="/" custom v-slot="{ navigate }">
-                    <div class="logo-container" @click="navigate">
-                        <img src="@/assets/playbook_logo-removebg-preview.png" alt="Logo" class="logo-img" />
-                    </div>
+                    <img src="@/assets/playbook_logo-removebg-preview.png" alt="Logo" class="logo-img" @click="navigate" />
                 </router-link>
-                <div class="welcome-text">
-                    <h1>환영합니다</h1>
-                    <p>계정에 로그인하여 도서관 서비스를 이용하세요</p>
-                </div>
-            </header>
+                <h1>로그인</h1>
+            </div>
 
             <!-- 로그인 폼 -->
             <div class="login-card">
@@ -176,12 +170,6 @@
                 </div>
             </div>
 
-            <!-- 장식 요소 -->
-            <div class="decoration-elements">
-                <div class="floating-shape shape-1"></div>
-                <div class="floating-shape shape-2"></div>
-                <div class="floating-shape shape-3"></div>
-            </div>
         </div>
     </div>
 </template>
@@ -341,81 +329,56 @@ async function blockJavascriptInput(event) {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 2rem;
-  position: relative;
+  padding: 48px 2rem;
 }
 
 .login-container {
   width: 100%;
   max-width: 480px;
-  position: relative;
-  z-index: 10;
 }
 
-.login-header {
-  text-align: center;
+.page-title {
   margin-bottom: 2rem;
 }
 
-.logo-container {
-  display: inline-block;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-bottom: 1.5rem;
-}
-
-.logo-container:hover {
-  transform: scale(1.05);
-}
-
 .logo-img {
-  max-width: 200px;
-  height: auto;
-  transition: all 0.3s ease;
+  display: block;
+  height: 32px;
+  width: auto;
+  margin-bottom: 1.25rem;
+  cursor: pointer;
 }
 
-.welcome-text h1 {
-  font-size: 2.5rem;
+.page-title h1 {
+  font-size: 1.75rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0 0 0.5rem 0;
-  text-shadow: none;
+  color: var(--pb-color-heading);
+  margin: 0 0 0.375rem 0;
 }
 
-.welcome-text p {
-  font-size: 1.1rem;
-  color: #64748b;
+.page-title p {
+  font-size: 0.95rem;
+  color: var(--pb-color-text-muted);
   margin: 0;
-  font-weight: 400;
 }
 
 .login-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 24px;
+  background: var(--pb-color-surface);
+  border-radius: var(--pb-radius-lg);
   padding: 2.5rem;
-  box-shadow: 
-    0 25px 50px -12px rgba(0, 0, 0, 0.1),
-    0 4px 25px rgba(102, 126, 234, 0.1),
-    0 0 0 1px rgba(102, 126, 234, 0.05);
-  border: 1px solid rgba(102, 126, 234, 0.1);
+  box-shadow: var(--pb-shadow-md);
+  border: 1px solid var(--pb-color-border);
 }
 
-/* 로그인 모드 토글 스타일 */
 .login-mode-toggle {
   margin-bottom: 2rem;
 }
 
 .toggle-container {
   display: flex;
-  background: #f1f5f9;
-  border-radius: 12px;
+  background: var(--pb-color-surface-subtle);
+  border-radius: var(--pb-radius-md);
   padding: 4px;
-  position: relative;
-  overflow: hidden;
 }
 
 .toggle-btn {
@@ -427,36 +390,23 @@ async function blockJavascriptInput(event) {
   padding: 12px 16px;
   background: transparent;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--pb-radius-sm);
   font-size: 0.9rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--pb-color-text-muted);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  z-index: 2;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
 }
 
 .toggle-btn.active {
-  background: white;
-  color: #667eea;
-  box-shadow: 
-    0 2px 8px rgba(0, 0, 0, 0.1),
-    0 1px 3px rgba(102, 126, 234, 0.2);
-  transform: translateY(-1px);
+  background: var(--pb-color-surface);
+  color: var(--pb-color-brand);
+  box-shadow: var(--pb-shadow-xs);
 }
 
 .toggle-btn:hover:not(.active) {
-  color: #475569;
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.toggle-btn svg {
-  transition: all 0.3s ease;
-}
-
-.toggle-btn.active svg {
-  color: #667eea;
+  color: var(--pb-color-text);
+  background: var(--pb-color-surface-muted);
 }
 
 .login-form {
@@ -477,19 +427,19 @@ async function blockJavascriptInput(event) {
   left: 16px;
   top: 50%;
   transform: translateY(-50%);
-  color: #64748b;
+  color: var(--pb-color-text-muted);
   z-index: 2;
-  transition: all 0.3s ease;
 }
 
 .form-input {
   width: 100%;
   padding: 16px 16px 16px 48px;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-md);
   font-size: 1rem;
-  background: #ffffff;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text);
+  transition: border-color 0.15s, box-shadow 0.15s;
   box-sizing: border-box;
 }
 
@@ -499,27 +449,21 @@ async function blockJavascriptInput(event) {
 
 .form-input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  transform: translateY(-2px);
+  border-color: var(--pb-color-brand);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-soft);
 }
 
-.form-input:focus ~ .input-icon {
-  color: #667eea;
-}
-
-/* 입력 필드 액션 버튼들 스타일 */
 .input-action-btn {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #94a3b8;
+  color: var(--pb-color-text-soft);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: color 0.15s;
   padding: 4px;
-  border-radius: 6px;
+  border-radius: var(--pb-radius-xs);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -527,15 +471,13 @@ async function blockJavascriptInput(event) {
 }
 
 .input-action-btn:hover {
-  color: #64748b;
-  background: rgba(100, 116, 139, 0.1);
+  color: var(--pb-color-text-muted);
 }
 
 .clear-btn {
   right: 16px;
 }
 
-/* 비밀번호 필드의 액션 버튼들 */
 .password-actions {
   position: absolute;
   right: 16px;
@@ -562,8 +504,7 @@ async function blockJavascriptInput(event) {
 }
 
 .toggle-password-btn:hover {
-  color: #667eea;
-  background: rgba(102, 126, 234, 0.1);
+  color: var(--pb-color-brand);
 }
 
 .login-button {
@@ -573,58 +514,27 @@ async function blockJavascriptInput(event) {
   justify-content: center;
   gap: 12px;
   padding: 16px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--pb-color-brand);
   border: none;
-  border-radius: 12px;
+  border-radius: var(--pb-radius-md);
   color: white;
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-  position: relative;
-  overflow: hidden;
-}
-
-.login-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.6s;
-}
-
-.login-button:hover::before {
-  left: 100%;
+  transition: background 0.15s;
 }
 
 .login-button:hover:not(:disabled) {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
-}
-
-.login-button:active:not(:disabled) {
-  transform: translateY(0) scale(0.98);
+  background: var(--pb-color-brand-strong);
 }
 
 .login-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
-}
-
-.button-text {
-  position: relative;
-  z-index: 1;
 }
 
 .button-icon {
-  position: relative;
-  z-index: 1;
-  transition: transform 0.3s ease;
+  transition: transform 0.2s ease;
 }
 
 .login-button:hover .button-icon {
@@ -632,7 +542,7 @@ async function blockJavascriptInput(event) {
 }
 
 .link-menu {
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--pb-color-border);
   padding-top: 1.5rem;
 }
 
@@ -648,40 +558,38 @@ async function blockJavascriptInput(event) {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #64748b;
+  color: var(--pb-color-text-muted);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
   padding: 8px 12px;
-  border-radius: 8px;
-  transition: all 0.3s ease;
+  border-radius: var(--pb-radius-sm);
+  transition: color 0.15s, background 0.15s;
 }
 
 .link-item:hover {
-  color: #475569;
-  background: rgba(100, 116, 139, 0.1);
-  transform: translateY(-1px);
+  color: var(--pb-color-text);
+  background: var(--pb-color-surface-muted);
 }
 
 .signup-link {
-  color: #667eea;
+  color: var(--pb-color-brand);
   font-weight: 600;
 }
 
 .signup-link:hover {
-  color: #5a67d8;
-  background: rgba(102, 126, 234, 0.1);
+  color: var(--pb-color-brand-strong);
+  background: var(--pb-color-brand-soft);
 }
 
 .divider {
   width: 1px;
   height: 16px;
-  background: #e2e8f0;
+  background: var(--pb-color-border);
 }
 
-/* 관리자 모드 안내 스타일 */
 .admin-notice {
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--pb-color-border);
   padding-top: 1.5rem;
 }
 
@@ -691,148 +599,35 @@ async function blockJavascriptInput(event) {
   justify-content: center;
   gap: 8px;
   padding: 12px 16px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-  border-radius: 8px;
-  color: #667eea;
+  background: var(--pb-color-brand-soft);
+  border-radius: var(--pb-radius-sm);
+  color: var(--pb-color-brand);
   font-size: 0.9rem;
   font-weight: 600;
 }
 
-.notice-content svg {
-  color: #667eea;
-}
-
-.decoration-elements {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.floating-shape {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(102, 126, 234, 0.08);
-  animation: float 6s ease-in-out infinite;
-}
-
-.shape-1 {
-  width: 80px;
-  height: 80px;
-  top: 10%;
-  left: 10%;
-  animation-delay: 0s;
-}
-
-.shape-2 {
-  width: 60px;
-  height: 60px;
-  top: 70%;
-  right: 15%;
-  animation-delay: 2s;
-}
-
-.shape-3 {
-  width: 100px;
-  height: 100px;
-  bottom: 20%;
-  left: 5%;
-  animation-delay: 4s;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px) rotate(0deg);
-    opacity: 0.3;
-  }
-  50% {
-    transform: translateY(-20px) rotate(180deg);
-    opacity: 0.6;
-  }
-}
-
-/* 반응형 디자인 */
 @media (max-width: 768px) {
-  .login-wrapper {
-    padding: 1rem;
-  }
-  
-  .login-card {
-    padding: 2rem;
-  }
-  
-  .welcome-text h1 {
-    font-size: 2rem;
-  }
-  
-  .welcome-text p {
-    font-size: 1rem;
-  }
-  
-  .toggle-btn {
-    font-size: 0.8rem;
-    padding: 10px 12px;
-  }
-  
-  .link-items {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .divider {
-    width: 80%;
-    height: 1px;
-  }
-  
-  .password-input {
-    padding-right: 76px;
-  }
-  
-  .password-actions {
-    gap: 2px;
-  }
+  .login-wrapper { padding: 1rem; }
+  .login-card { padding: 2rem; }
+  .welcome-text h1 { font-size: 2rem; }
+  .welcome-text p { font-size: 1rem; }
+  .toggle-btn { font-size: 0.8rem; padding: 10px 12px; }
+  .link-items { flex-direction: column; gap: 0.5rem; }
+  .divider { width: 80%; height: 1px; }
+  .password-input { padding-right: 76px; }
+  .password-actions { gap: 2px; }
 }
 
 @media (max-width: 480px) {
-  .login-card {
-    padding: 1.5rem;
-  }
-  
-  .welcome-text h1 {
-    font-size: 1.75rem;
-  }
-  
-  .form-input {
-    padding: 14px 14px 14px 44px;
-  }
-  
-  .password-input {
-    padding-right: 70px;
-  }
-  
-  .login-button {
-    padding: 14px 20px;
-    font-size: 1rem;
-  }
-  
-  .toggle-btn {
-    font-size: 0.75rem;
-    padding: 8px 10px;
-    gap: 6px;
-  }
-  
-  .toggle-btn svg {
-    width: 16px;
-    height: 16px;
-  }
-  
-  .input-action-btn {
-    padding: 3px;
-  }
-  
+  .login-card { padding: 1.5rem; }
+  .welcome-text h1 { font-size: 1.75rem; }
+  .form-input { padding: 14px 14px 14px 44px; }
+  .password-input { padding-right: 70px; }
+  .login-button { padding: 14px 20px; font-size: 1rem; }
+  .toggle-btn { font-size: 0.75rem; padding: 8px 10px; gap: 6px; }
+  .toggle-btn svg { width: 16px; height: 16px; }
+  .input-action-btn { padding: 3px; }
+
   .input-action-btn svg {
     width: 14px;
     height: 14px;

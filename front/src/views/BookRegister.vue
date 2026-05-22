@@ -414,9 +414,9 @@ function resetTransform() {
 }
 
 .section-card {
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
+  background: var(--pb-color-surface-subtle);
+  border-radius: var(--pb-radius-sm);
+  border: 1px solid var(--pb-color-border);
   overflow: hidden;
   height: 100%;
 }
@@ -426,14 +426,14 @@ function resetTransform() {
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  border-bottom: 1px solid #e9ecef;
-  background: #e9ecef;
+  border-bottom: 1px solid var(--pb-color-border);
+  background: var(--pb-color-surface-muted);
 }
 
 .card-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #212529;
+  color: var(--pb-color-heading);
   margin: 0;
 }
 
@@ -451,27 +451,29 @@ function resetTransform() {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: #495057;
+  color: var(--pb-color-text-muted);
 }
 
 .required {
-  color: #dc3545;
+  color: var(--pb-color-danger);
 }
 
 .form-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid #ced4da;
-  border-radius: 6px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-xs);
   font-size: 1rem;
-  transition: all 0.3s ease;
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text);
+  transition: border-color 0.15s, box-shadow 0.15s;
   box-sizing: border-box;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  border-color: var(--pb-color-brand);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-soft);
 }
 
 .isbn-group {
@@ -494,20 +496,20 @@ function resetTransform() {
   align-items: center;
   gap: 6px;
   padding: 0.75rem 1rem;
-  background: #6c757d;
+  background: var(--pb-color-text-muted);
   color: white;
-  border: 1px solid #6c757d;
-  border-top-right-radius: 6px;
-  border-bottom-right-radius: 6px;
+  border: 1px solid var(--pb-color-text-muted);
+  border-top-right-radius: var(--pb-radius-xs);
+  border-bottom-right-radius: var(--pb-radius-xs);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.15s;
   white-space: nowrap;
 }
 
 .search-btn:hover:not(:disabled) {
-  background: #5a6268;
-  border-color: #5a6268;
+  background: var(--pb-color-text);
+  border-color: var(--pb-color-text);
 }
 
 .search-btn:disabled {
@@ -528,18 +530,18 @@ function resetTransform() {
   gap: 8px;
   padding: 0.75rem 2rem;
   background: transparent;
-  color: #6c757d;
-  border: 1px solid #6c757d;
-  border-radius: 6px;
+  color: var(--pb-color-text-muted);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-xs);
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.15s, color 0.15s;
 }
 
 .cancel-btn:hover:not(:disabled) {
-  background: #6c757d;
-  color: white;
+  background: var(--pb-color-surface-muted);
+  color: var(--pb-color-text);
 }
 
 .register-btn {
@@ -547,28 +549,25 @@ function resetTransform() {
   align-items: center;
   gap: 8px;
   padding: 0.75rem 2rem;
-  background: #007bff;
+  background: var(--pb-color-brand);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--pb-radius-xs);
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.15s;
 }
 
 .register-btn:hover:not(:disabled) {
-  background: #0056b3;
-  transform: translateY(-1px);
+  background: var(--pb-color-brand-strong);
 }
 
 .register-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
 }
 
-/* 미리보기 섹션 */
 .preview-content {
   padding: 1.5rem;
   height: calc(100% - 80px);
@@ -592,17 +591,16 @@ function resetTransform() {
   position: relative;
   max-width: 250px;
   width: 100%;
-  border-radius: 8px;
+  border-radius: var(--pb-radius-sm);
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  box-shadow: var(--pb-shadow-md);
 }
 
 .cover-image {
   width: 100%;
   height: auto;
   display: block;
-  border-radius: 8px;
+  border-radius: var(--pb-radius-sm);
 }
 
 .no-image-placeholder {
@@ -611,10 +609,10 @@ function resetTransform() {
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  color: #6c757d;
+  color: var(--pb-color-text-muted);
   text-align: center;
-  border: 2px dashed #dee2e6;
-  border-radius: 8px;
+  border: 2px dashed var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
   min-height: 300px;
 }
 
@@ -627,7 +625,7 @@ function resetTransform() {
   font-size: 1.1rem;
   font-weight: 500;
   margin-bottom: 0.5rem;
-  color: #495057;
+  color: var(--pb-color-text);
 }
 
 .no-image-placeholder span {
@@ -636,10 +634,10 @@ function resetTransform() {
 }
 
 .book-info-summary {
-  background: white;
-  border-radius: 8px;
+  background: var(--pb-color-surface);
+  border-radius: var(--pb-radius-sm);
   padding: 1.5rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--pb-color-border);
 }
 
 .info-item {
@@ -647,7 +645,7 @@ function resetTransform() {
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 0;
-  border-bottom: 1px solid #f1f3f4;
+  border-bottom: 1px solid var(--pb-color-surface-subtle);
 }
 
 .info-item:last-child {
@@ -656,98 +654,40 @@ function resetTransform() {
 
 .info-item label {
   font-weight: 500;
-  color: #6c757d;
+  color: var(--pb-color-text-muted);
   min-width: 80px;
 }
 
 .info-item span {
-  color: #495057;
+  color: var(--pb-color-text);
   text-align: right;
   word-break: break-word;
   flex: 1;
   margin-left: 1rem;
 }
 
-/* 반응형 디자인 */
 @media (max-width: 1024px) {
-  .register-content {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-  
-  .form-section {
-    order: 1;
-  }
-  
-  .preview-section {
-    order: 2;
-  }
-
-  .section-card {
-    height: auto;
-  }
-
-  .form-content,
-  .preview-content {
-    height: auto;
-  }
+  .register-content { grid-template-columns: 1fr; gap: 1.5rem; }
+  .form-section { order: 1; }
+  .preview-section { order: 2; }
+  .section-card { height: auto; }
+  .form-content, .preview-content { height: auto; }
 }
 
 @media (max-width: 768px) {
-  .card-header {
-    padding: 1rem;
-  }
-  
-  .form-content,
-  .preview-content {
-    padding: 1rem;
-  }
-  
-  .book-cover-wrapper {
-    min-height: 250px;
-  }
-  
-  .no-image-placeholder {
-    min-height: 250px;
-    padding: 1.5rem;
-  }
-
-  .form-actions {
-    flex-direction: column;
-  }
-
-  .cancel-btn,
-  .register-btn {
-    width: 100%;
-    justify-content: center;
-  }
+  .card-header { padding: 1rem; }
+  .form-content, .preview-content { padding: 1rem; }
+  .book-cover-wrapper { min-height: 250px; }
+  .no-image-placeholder { min-height: 250px; padding: 1.5rem; }
+  .form-actions { flex-direction: column; }
+  .cancel-btn, .register-btn { width: 100%; justify-content: center; }
 }
 
 @media (max-width: 480px) {
-  .isbn-input-wrapper {
-    flex-direction: column;
-  }
-  
-  .isbn-input-wrapper .form-input {
-    border-radius: 6px;
-    border-right: 1px solid #ced4da;
-    margin-bottom: 0.5rem;
-  }
-  
-  .search-btn {
-    border-radius: 6px;
-    justify-content: center;
-  }
-  
-  .info-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
-  }
-  
-  .info-item span {
-    text-align: left;
-    margin-left: 0;
-  }
+  .isbn-input-wrapper { flex-direction: column; }
+  .isbn-input-wrapper .form-input { border-radius: var(--pb-radius-xs); border-right: 1px solid var(--pb-color-border); margin-bottom: 0.5rem; }
+  .search-btn { border-radius: var(--pb-radius-xs); justify-content: center; }
+  .info-item { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+  .info-item span { text-align: left; margin-left: 0; }
 }
 </style>

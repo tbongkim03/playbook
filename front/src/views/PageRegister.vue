@@ -10,7 +10,6 @@
         </router-link>
         <div class="header-text">
           <h1>회원가입</h1>
-          <p>계정 정보를 입력하여 회원가입을 완료하세요</p>
         </div>
       </header>
 
@@ -315,12 +314,6 @@
         </div>
       </div>
 
-      <!-- 장식 요소 -->
-      <div class="decoration-elements">
-        <div class="floating-shape shape-1"></div>
-        <div class="floating-shape shape-2"></div>
-        <div class="floating-shape shape-3"></div>
-      </div>
     </div>
   </div>
 </template>
@@ -356,12 +349,6 @@ const errors = ref({
 const courseList = ref([])
 const selectedCourse = ref(null)
 
-const fromTerm = window.history.state?.fromTerm
-
-if (!fromTerm) {
-  swAlert('잘못된 접근입니다.', 'warning')
-  router.replace('/')
-}
 
 // 폼 유효성 검사
 const isFormValid = computed(() => {
@@ -418,7 +405,13 @@ function togglePasswordVisibility() {
 // const srchTraStDt = formatDateToYYYYMMDD(sixMonthsAgo)
 // const srchTraEndDt = formatDateToYYYYMMDD(today)
 
-onMounted(() => {
+onMounted(async () => {
+  const fromTerm = window.history.state?.fromTerm
+  if (!fromTerm) {
+    await swAlert('잘못된 접근입니다.', 'warning')
+    router.replace('/')
+    return
+  }
   getCourseList()
   document.addEventListener('click', handleClickOutside)
 })
@@ -688,23 +681,18 @@ async function handleSubmit() {
 
 <style scoped>
 .register-wrapper {
-  min-height: 100vh;
+  min-height: calc(100vh - var(--pb-header-height));
   width: 100%;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  background: var(--pb-color-canvas);
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 2rem;
-  margin-top: -6rem;
-  position: relative;
-  overflow: hidden;
+  align-items: flex-start;
+  padding: 48px 2rem;
 }
 
 .register-container {
   width: 100%;
-  max-width: 600px;
-  position: relative;
-  z-index: 10;
+  max-width: 650px;
 }
 
 .register-header {
@@ -715,80 +703,66 @@ async function handleSubmit() {
 .logo-container {
   display: inline-block;
   cursor: pointer;
-  transition: all 0.3s ease;
-  margin-bottom: 1.5rem;
-}
-
-.logo-container:hover {
-  transform: scale(1.05);
+  margin-bottom: 1.25rem;
 }
 
 .logo-img {
-  max-width: 180px;
+  max-width: 160px;
   height: auto;
-  transition: all 0.3s ease;
 }
 
 .header-text h1 {
-  font-size: 2.2rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0 0 0.5rem 0;
+  color: var(--pb-color-heading);
+  margin: 0 0 0.375rem 0;
 }
 
 .header-text p {
-  font-size: 1.1rem;
-  color: #64748b;
+  font-size: 0.95rem;
+  color: var(--pb-color-text-muted);
   margin: 0;
-  font-weight: 400;
 }
 
 .register-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 24px;
-  padding: 2.5rem;
-  box-shadow: 
-    0 25px 50px -12px rgba(0, 0, 0, 0.1),
-    0 4px 25px rgba(102, 126, 234, 0.1),
-    0 0 0 1px rgba(102, 126, 234, 0.05);
-  border: 1px solid rgba(102, 126, 234, 0.1);
-  margin-bottom: 2rem;
+  background: var(--pb-color-surface);
+  border-radius: var(--pb-radius-lg);
+  padding: 2rem;
+  box-shadow: var(--pb-shadow-md);
+  border: 1px solid var(--pb-color-border);
+  margin-bottom: 1.5rem;
 }
 
 .register-form {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 .form-section {
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 1.5rem;
-  background: #fafbfc;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-md);
+  padding: 1.25rem;
+  background: var(--pb-color-surface-subtle);
 }
 
 .section-header {
   display: flex;
   align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e2e8f0;
-  gap: 12px;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.875rem;
+  border-bottom: 1px solid var(--pb-color-border);
+  gap: 10px;
 }
 
 .section-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 10px;
+  width: 34px;
+  height: 34px;
+  background: var(--pb-color-brand);
+  border-radius: var(--pb-radius-sm);
   color: white;
   flex-shrink: 0;
 }
@@ -798,24 +772,25 @@ async function handleSubmit() {
 }
 
 .section-header h3 {
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--pb-color-heading);
   margin: 0;
   flex: 1;
 }
 
 .section-badge {
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.85rem;
+  background: var(--pb-color-brand-soft);
+  color: var(--pb-color-brand);
+  padding: 3px 10px;
+  border-radius: var(--pb-radius-sm);
+  font-size: 0.8rem;
   font-weight: 500;
+  border: 1px solid var(--pb-color-brand-muted);
 }
 
 .input-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .input-group:last-child {
@@ -829,56 +804,43 @@ async function handleSubmit() {
 
 .input-icon {
   position: absolute;
-  left: 16px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: #64748b;
+  color: var(--pb-color-text-muted);
   z-index: 2;
-  transition: all 0.3s ease;
 }
 
 .form-input {
   width: 100%;
-  padding: 16px 16px 16px 48px;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 1rem;
-  background: #ffffff;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 10px 12px 10px 42px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-md);
+  font-size: 0.95rem;
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text);
+  transition: border-color 0.15s, box-shadow 0.15s;
   box-sizing: border-box;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  transform: translateY(-2px);
-}
-
-.form-input:focus + .form-label,
-.form-input:not(:placeholder-shown) + .form-label {
-  transform: translateY(-12px) translateX(-8px) scale(0.85);
-  color: #667eea;
-  background: white;
-  padding: 0 8px;
-}
-
-.form-input:focus ~ .input-icon {
-  color: #667eea;
+  border-color: var(--pb-color-brand);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-soft);
 }
 
 .form-input.error {
-  border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  border-color: var(--pb-color-danger);
+  box-shadow: 0 0 0 3px var(--pb-color-danger-soft);
 }
 
 .form-input.success {
-  border-color: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+  border-color: var(--pb-color-success);
+  box-shadow: 0 0 0 3px var(--pb-color-success-soft);
 }
 
 .password-input {
-  padding-right: 80px;
+  padding-right: 76px;
 }
 
 .input-action-btn {
@@ -887,51 +849,34 @@ async function handleSubmit() {
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #94a3b8;
+  color: var(--pb-color-text-soft);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: color 0.15s;
   padding: 4px;
-  border-radius: 6px;
+  border-radius: var(--pb-radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 3;
 }
 
-.form-label {
-  position: absolute;
-  left: 48px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #64748b;
-  font-size: 1rem;
-  font-weight: 500;
-  pointer-events: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1;
+.input-action-btn:hover {
+  color: var(--pb-color-text-muted);
 }
 
 .input-description {
-  font-size: 0.875rem;
-  color: #64748b;
-  margin-top: 0.5rem;
-  padding-left: 4px;
+  font-size: 0.85rem;
+  color: var(--pb-color-text-muted);
+  margin-top: 0.375rem;
 }
 
-.input-action-btn:hover {
-  color: #64748b;
-  background: rgba(100, 116, 139, 0.1);
-}
-
-/* 단일 지우기 버튼 (이름, 아이디, 디스코드) */
 .clear-btn {
-  right: 16px;
+  right: 14px;
 }
 
-/* 비밀번호 필드의 액션 버튼들 컨테이너 */
 .password-actions {
   position: absolute;
-  right: 16px;
+  right: 14px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
@@ -940,7 +885,6 @@ async function handleSubmit() {
   z-index: 3;
 }
 
-/* 비밀번호 액션 버튼들 위치 재설정 */
 .password-actions .clear-btn {
   position: relative;
   right: 0;
@@ -956,15 +900,13 @@ async function handleSubmit() {
 }
 
 .toggle-password-btn:hover {
-  color: #667eea;
-  background: rgba(102, 126, 234, 0.1);
+  color: var(--pb-color-brand);
 }
 
 .error-message {
-  color: #ef4444;
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
-  padding-left: 4px;
+  color: var(--pb-color-danger);
+  font-size: 0.85rem;
+  margin-top: 0.375rem;
   font-weight: 500;
 }
 
@@ -977,56 +919,49 @@ async function handleSubmit() {
   display: flex;
   align-items: center;
   width: 100%;
-  padding: 16px 16px 16px 48px;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  background: #ffffff;
+  padding: 10px 12px 10px 42px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-md);
+  background: var(--pb-color-surface);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: border-color 0.15s;
   box-sizing: border-box;
 }
 
 .select-input:hover {
-  border-color: #cbd5e1;
+  border-color: var(--pb-color-border-strong);
 }
 
-.select-input.open,
-.select-input:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+.select-input.open {
+  border-color: var(--pb-color-brand);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-soft);
 }
 
 .select-input.error {
-  border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  border-color: var(--pb-color-danger);
+  box-shadow: 0 0 0 3px var(--pb-color-danger-soft);
 }
 
 .select-icon {
   position: absolute;
-  left: 16px;
-  color: #64748b;
-  transition: all 0.3s ease;
-}
-
-.select-input.open .select-icon {
-  color: #667eea;
+  left: 14px;
+  color: var(--pb-color-text-muted);
 }
 
 .select-text {
   flex: 1;
-  font-size: 1rem;
-  color: #1e293b;
+  font-size: 0.95rem;
+  color: var(--pb-color-text);
 }
 
 .select-text.placeholder {
-  color: #9ca3af;
-  background-color: #fff !important;
+  color: var(--pb-color-text-soft);
+  background-color: transparent !important;
 }
 
 .select-arrow {
-  margin-left: 12px;
-  color: #64748b;
-  transition: all 0.3s ease;
+  margin-left: 10px;
+  color: var(--pb-color-text-muted);
 }
 
 .select-arrow svg.rotated {
@@ -1038,16 +973,16 @@ async function handleSubmit() {
   top: 100%;
   left: 0;
   right: 0;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  margin-top: 8px;
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-md);
+  box-shadow: var(--pb-shadow-popover);
+  margin-top: 4px;
   z-index: 1000;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-10px);
-  transition: all 0.3s ease;
+  transform: translateY(-6px);
+  transition: opacity 0.15s, transform 0.15s;
 }
 
 .select-dropdown.show {
@@ -1060,63 +995,56 @@ async function handleSubmit() {
   top: auto;
   bottom: 100%;
   margin-top: 0;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .dropdown-search {
-  padding: 12px;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 10px;
+  border-bottom: 1px solid var(--pb-color-border);
 }
 
 .search-input {
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  padding: 7px 10px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
+  font-size: 0.875rem;
   box-sizing: border-box;
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text);
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--pb-color-brand);
 }
 
 .dropdown-list {
   max-height: 200px;
   overflow-y: auto;
-  padding: 8px;
+  padding: 6px;
   margin: 0;
   list-style: none;
 }
 
-.dropdown-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.dropdown-list::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1;
-  border-radius: 3px;
-}
-
-.dropdown-list::-webkit-scrollbar-track {
-  background-color: #f1f5f9;
-}
+.dropdown-list::-webkit-scrollbar { width: 6px; }
+.dropdown-list::-webkit-scrollbar-thumb { background-color: var(--pb-color-border); border-radius: 3px; }
+.dropdown-list::-webkit-scrollbar-track { background-color: var(--pb-color-surface-subtle); }
 
 .dropdown-item {
-  padding: 12px;
-  border-radius: 8px;
+  padding: 10px 12px;
+  border-radius: var(--pb-radius-sm);
   cursor: pointer;
-  transition: all 0.3s ease;
-  margin-bottom: 4px;
+  transition: background 0.12s;
+  margin-bottom: 2px;
 }
 
 .dropdown-item:hover {
-  background: #f1f5f9;
+  background: var(--pb-color-surface-muted);
 }
 
 .dropdown-item.selected {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--pb-color-brand);
   color: white;
 }
 
@@ -1128,94 +1056,58 @@ async function handleSubmit() {
 
 .course-title {
   font-weight: 500;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .course-detail {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   opacity: 0.8;
 }
 
 .no-results {
-  padding: 20px;
+  padding: 18px;
   text-align: center;
-  color: #64748b;
-  font-size: 0.9rem;
+  color: var(--pb-color-text-muted);
+  font-size: 0.875rem;
 }
 
 .submit-section {
   text-align: center;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 }
 
 .submit-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 16px 32px;
+  gap: 10px;
+  padding: 11px 28px;
   border: none;
-  border-radius: 12px;
-  font-size: 1.1rem;
+  border-radius: var(--pb-radius-md);
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-  min-width: 220px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  transition: background 0.15s;
+  min-width: 200px;
+  background: var(--pb-color-brand);
   color: white;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-}
-
-.submit-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.6s;
-}
-
-.submit-button:hover::before {
-  left: 100%;
 }
 
 .submit-button:hover:not(:disabled) {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+  background: var(--pb-color-brand-strong);
 }
 
 .submit-button:disabled {
-  background: #e2e8f0;
-  color: #94a3b8;
+  background: var(--pb-color-surface-muted);
+  color: var(--pb-color-text-soft);
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.button-text {
-  position: relative;
-  z-index: 1;
-}
-
-.button-icon {
-  position: relative;
-  z-index: 1;
-  transition: transform 0.3s ease;
-}
-
-.submit-button:hover:not(:disabled) .button-icon {
-  transform: translateX(4px);
 }
 
 .progress-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .progress-step {
@@ -1226,183 +1118,69 @@ async function handleSubmit() {
 }
 
 .step-number {
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  margin-bottom: 0.5rem;
-  transition: all 0.3s ease;
-  background: #e2e8f0;
-  color: #94a3b8;
+  font-size: 0.875rem;
+  margin-bottom: 0.375rem;
+  background: var(--pb-color-surface-muted);
+  color: var(--pb-color-text-soft);
+  border: 1px solid var(--pb-color-border);
 }
 
 .progress-step.completed .step-number {
-  background: #10b981;
+  background: var(--pb-color-success);
   color: white;
+  border-color: var(--pb-color-success);
 }
 
 .progress-step.active .step-number {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--pb-color-brand);
   color: white;
-  transform: scale(1.1);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  border-color: var(--pb-color-brand);
 }
 
 .progress-step span {
-  font-size: 0.9rem;
-  color: #64748b;
+  font-size: 0.8rem;
+  color: var(--pb-color-text-muted);
   font-weight: 500;
 }
 
 .progress-step.active span,
 .progress-step.completed span {
-  color: #1e293b;
+  color: var(--pb-color-heading);
   font-weight: 600;
 }
 
 .progress-line {
   width: 60px;
   height: 2px;
-  background: #e2e8f0;
+  background: var(--pb-color-border);
   margin: 0 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .progress-line.completed {
-  background: #10b981;
+  background: var(--pb-color-success);
 }
 
-.decoration-elements {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.floating-shape {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(102, 126, 234, 0.08);
-  animation: float 6s ease-in-out infinite;
-}
-
-.shape-1 {
-  width: 80px;
-  height: 80px;
-  top: 15%;
-  left: 10%;
-  animation-delay: 0s;
-}
-
-.shape-2 {
-  width: 60px;
-  height: 60px;
-  top: 65%;
-  right: 15%;
-  animation-delay: 2s;
-}
-
-.shape-3 {
-  width: 100px;
-  height: 100px;
-  bottom: 25%;
-  left: 5%;
-  animation-delay: 4s;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px) rotate(0deg);
-    opacity: 0.3;
-  }
-  50% {
-    transform: translateY(-20px) rotate(180deg);
-    opacity: 0.6;
-  }
-}
-
-/* 반응형 디자인 */
 @media (max-width: 768px) {
-  .register-wrapper {
-    padding: 1rem;
-  }
-  
-  .register-card {
-    padding: 2rem;
-  }
-  
-  .header-text h1 {
-    font-size: 1.8rem;
-  }
-  
-  .progress-indicator {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .progress-line {
-    width: 2px;
-    height: 40px;
-    margin: 0;
-  }
-  
-  .form-section {
-    padding: 1.25rem;
-  }
-
-  .password-input {
-    padding-right: 76px;
-  }
-  
-  .password-actions {
-    gap: 2px;
-  }
-  
-  .section-header {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
+  .register-wrapper { padding: 1.5rem 1rem; }
+  .register-card { padding: 1.5rem; }
+  .progress-indicator { flex-direction: column; gap: 0.75rem; }
+  .progress-line { width: 2px; height: 32px; margin: 0; }
+  .form-section { padding: 1rem; }
+  .password-input { padding-right: 72px; }
+  .section-header { flex-wrap: wrap; gap: 8px; }
 }
 
 @media (max-width: 480px) {
-  .register-card {
-    padding: 1.5rem;
-  }
-  
-  .header-text h1 {
-    font-size: 1.6rem;
-  }
-  
-  .submit-button {
-    width: 100%;
-    padding: 14px 20px;
-    font-size: 1rem;
-  }
-  
-  .form-input {
-    padding: 14px 14px 14px 44px;
-  }
-
-  .form-input {
-    padding: 14px 14px 14px 44px;
-  }
-  
-  .password-input {
-    padding-right: 70px;
-  }
-  
-  .input-action-btn {
-    padding: 3px;
-  }
-  
-  .input-action-btn svg {
-    width: 14px;
-    height: 14px;
-  }
+  .register-card { padding: 1.25rem; }
+  .header-text h1 { font-size: 1.3rem; }
+  .submit-button { width: 100%; }
 }
 </style>

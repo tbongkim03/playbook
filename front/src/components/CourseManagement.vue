@@ -1090,7 +1090,7 @@ onBeforeUnmount(() => {
   color: var(--pb-color-surface);
 }
 
-.delete-confirm-btn:hover:not(:disabled) { background: #b8271e; }
+.delete-confirm-btn:hover:not(:disabled) { background: var(--pb-color-danger-strong); }
 .delete-confirm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ── 삭제 경고 ── */

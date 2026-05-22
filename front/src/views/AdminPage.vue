@@ -247,7 +247,7 @@ onBeforeUnmount(() => {
 .admin-dashboard {
   min-height: 100vh;
   background: var(--pb-color-canvas);
-  padding: 12px 0 32px;
+  padding: 72px 0 48px;
 }
 
 .dashboard-content {

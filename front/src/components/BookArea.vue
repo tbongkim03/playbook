@@ -92,15 +92,13 @@ const placeholderStyle = computed(() => {
 .book-area {
     display: block;
     background: var(--pb-color-surface);
-    border: 1px solid var(--pb-color-border);
     border-radius: var(--pb-radius-md);
     text-decoration: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: box-shadow 0.15s;
     overflow: hidden;
 }
 
 .book-area:hover {
-    border-color: var(--pb-color-brand-muted);
     box-shadow: var(--pb-shadow-sm);
 }
 
@@ -339,7 +337,6 @@ const placeholderStyle = computed(() => {
     width: 100%;
     height: auto;
     background: var(--pb-color-surface-muted);
-    border: 1px solid var(--pb-color-border);
     border-radius: var(--pb-radius-sm);
     box-shadow: var(--pb-shadow-xs);
 }
@@ -351,7 +348,6 @@ const placeholderStyle = computed(() => {
 }
 
 .book-area:hover .img-area {
-    border-color: var(--pb-color-border-strong);
     box-shadow: var(--pb-shadow-sm);
 }
 

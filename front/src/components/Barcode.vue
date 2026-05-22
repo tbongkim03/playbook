@@ -501,8 +501,8 @@ const postPrintedBook = async (printCheckBook) => {
   justify-content: space-between;
   align-items: flex-start;
   padding: 1.5rem;
-  border-bottom: 1px solid #e9ecef;
-  background: #f8f9fa;
+  border-bottom: 1px solid var(--pb-color-border);
+  background: var(--pb-color-surface-subtle);
 }
 
 .header-content {
@@ -518,23 +518,22 @@ const postPrintedBook = async (printCheckBook) => {
   justify-content: center;
   width: 48px;
   height: 48px;
-  border-radius: 8px;
+  border-radius: var(--pb-radius-sm);
   flex-shrink: 0;
-  transition: all 0.3s ease;
 }
 
 .header-icon.success {
-  background: #007bff;
+  background: var(--pb-color-brand);
   color: white;
 }
 
 .header-icon.error {
-  background: #dc3545;
+  background: var(--pb-color-danger);
   color: white;
 }
 
 .header-icon:not(.success):not(.error) {
-  background: #6c757d;
+  background: var(--pb-color-text-muted);
   color: white;
 }
 
@@ -546,13 +545,13 @@ const postPrintedBook = async (printCheckBook) => {
 .modal-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #212529;
+  color: var(--pb-color-heading);
   margin: 0 0 0.5rem 0;
 }
 
 .book-title {
   font-size: 0.9rem;
-  color: #6c757d;
+  color: var(--pb-color-text-muted);
   margin: 0;
   word-break: break-word;
   line-height: 1.4;
@@ -565,23 +564,23 @@ const postPrintedBook = async (printCheckBook) => {
   width: 32px;
   height: 32px;
   border: none;
-  background: rgba(108, 117, 125, 0.1);
-  color: #6c757d;
-  border-radius: 6px;
+  background: var(--pb-color-surface-muted);
+  color: var(--pb-color-text-muted);
+  border-radius: var(--pb-radius-xs);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.15s, color 0.15s;
   flex-shrink: 0;
 }
 
 .close-btn:hover {
-  background: rgba(108, 117, 125, 0.2);
-  color: #495057;
+  background: var(--pb-color-border);
+  color: var(--pb-color-text);
 }
 
 /* 상태 섹션 */
 .status-section {
   padding: 1.5rem;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid var(--pb-color-border);
 }
 
 .status-message {
@@ -589,27 +588,26 @@ const postPrintedBook = async (printCheckBook) => {
   align-items: center;
   gap: 0.75rem;
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: var(--pb-radius-sm);
   font-weight: 500;
-  transition: all 0.3s ease;
 }
 
 .status-message.success {
-  background: rgba(40, 167, 69, 0.1);
-  color: #28a745;
-  border: 1px solid rgba(40, 167, 69, 0.2);
+  background: var(--pb-color-success-soft);
+  color: var(--pb-color-success);
+  border: 1px solid var(--pb-color-success);
 }
 
 .status-message.error {
-  background: rgba(220, 53, 69, 0.1);
-  color: #dc3545;
-  border: 1px solid rgba(220, 53, 69, 0.2);
+  background: var(--pb-color-danger-soft);
+  color: var(--pb-color-danger);
+  border: 1px solid var(--pb-color-danger);
 }
 
 .status-message.loading {
-  background: rgba(108, 117, 125, 0.1);
-  color: #6c757d;
-  border: 1px solid rgba(108, 117, 125, 0.2);
+  background: var(--pb-color-surface-subtle);
+  color: var(--pb-color-text-muted);
+  border: 1px solid var(--pb-color-border);
 }
 
 .status-icon {
@@ -623,8 +621,8 @@ const postPrintedBook = async (printCheckBook) => {
 /* 출력 설정 섹션 */
 .print-settings {
   padding: 1.5rem;
-  border-bottom: 1px solid #e9ecef;
-  background: #f8f9fa;
+  border-bottom: 1px solid var(--pb-color-border);
+  background: var(--pb-color-surface-subtle);
 }
 
 .setting-group {
@@ -639,30 +637,31 @@ const postPrintedBook = async (printCheckBook) => {
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
-  color: #495057;
+  color: var(--pb-color-text);
   font-size: 0.9rem;
 }
 
 .setting-select {
   padding: 0.75rem 1rem;
-  border: 1px solid #ced4da;
-  border-radius: 6px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-xs);
   font-size: 0.9rem;
-  background: white;
-  transition: all 0.3s ease;
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text);
+  transition: border-color 0.15s;
 }
 
 .setting-select:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  border-color: var(--pb-color-brand);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-soft);
 }
 
 /* 바코드 정보 */
 .barcode-info {
   padding: 1.5rem;
-  border-bottom: 1px solid #e9ecef;
-  background: white;
+  border-bottom: 1px solid var(--pb-color-border);
+  background: var(--pb-color-surface);
 }
 
 .info-row {
@@ -678,35 +677,35 @@ const postPrintedBook = async (printCheckBook) => {
 
 .info-label {
   font-weight: 500;
-  color: #6c757d;
+  color: var(--pb-color-text-muted);
   font-size: 0.9rem;
 }
 
 .info-value {
   font-weight: 600;
-  color: #495057;
+  color: var(--pb-color-text);
 }
 
 .barcode-text {
   font-family: 'Courier New', monospace;
   font-size: 0.85rem;
-  background: rgba(0, 123, 255, 0.1);
+  background: var(--pb-color-brand-soft);
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  color: #007bff;
+  border-radius: var(--pb-radius-xs);
+  color: var(--pb-color-brand);
 }
 
 /* 바코드 미리보기 */
 .barcode-preview {
   padding: 1.5rem;
   text-align: center;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid var(--pb-color-border);
 }
 
 .preview-label {
   font-size: 0.9rem;
   font-weight: 500;
-  color: #6c757d;
+  color: var(--pb-color-text-muted);
   margin-bottom: 1rem;
 }
 
@@ -715,9 +714,9 @@ const postPrintedBook = async (printCheckBook) => {
   justify-content: center;
   align-items: center;
   padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 2px dashed #dee2e6;
+  background: var(--pb-color-surface-subtle);
+  border-radius: var(--pb-radius-sm);
+  border: 2px dashed var(--pb-color-border);
 }
 
 .barcode-svg {
@@ -728,7 +727,7 @@ const postPrintedBook = async (printCheckBook) => {
 /* 액션 버튼 */
 .modal-actions {
  padding: 1.5rem;
- background: white;
+ background: var(--pb-color-surface);
 }
 
 .action-buttons {
@@ -744,49 +743,46 @@ const postPrintedBook = async (printCheckBook) => {
  gap: 0.5rem;
  padding: 0.75rem 1rem;
  border: none;
- border-radius: 6px;
+ border-radius: var(--pb-radius-xs);
  font-weight: 600;
  cursor: pointer;
- transition: all 0.3s ease;
+ transition: background 0.15s;
  font-size: 0.9rem;
  flex: 1;
 }
 
 .save-btn {
- background: #6c757d;
+ background: var(--pb-color-text-muted);
  color: white;
 }
 
 .save-btn:hover:not(:disabled) {
- background: #5a6268;
- transform: translateY(-1px);
+ background: var(--pb-color-text);
 }
 
 .print-btn {
- background: #007bff;
+ background: var(--pb-color-brand);
  color: white;
 }
 
 .print-btn:hover:not(:disabled) {
- background: #0056b3;
- transform: translateY(-1px);
+ background: var(--pb-color-brand-strong);
 }
 
 .close-btn-bottom {
- background: rgba(108, 117, 125, 0.1);
- color: #6c757d;
+ background: var(--pb-color-surface-subtle);
+ color: var(--pb-color-text-muted);
  width: 100%;
 }
 
 .close-btn-bottom:hover {
- background: rgba(108, 117, 125, 0.2);
- color: #495057;
+ background: var(--pb-color-surface-muted);
+ color: var(--pb-color-text);
 }
 
 .action-btn:disabled {
  opacity: 0.6;
  cursor: not-allowed;
- transform: none;
 }
 
 /* 반응형 디자인 */

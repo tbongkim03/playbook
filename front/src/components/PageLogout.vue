@@ -76,63 +76,29 @@ onMounted(async () => {
 
 <style scoped>
 .logout-container {
-  min-height: 100vh;
+  min-height: calc(100vh - var(--pb-header-height));
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 80px 20px 20px;
-  margin-top: -6rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.logout-container::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(
-    45deg,
-    rgba(255, 255, 255, 0.1) 0%,
-    transparent 50%,
-    rgba(255, 255, 255, 0.05) 100%
-  );
-  animation: shimmer 3s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  background: var(--pb-color-canvas);
+  padding: 2rem;
 }
 
 .logout-content {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-lg);
   padding: 3rem 2rem;
   text-align: center;
-  box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.1),
-    0 0 0 1px rgba(255, 255, 255, 0.2);
+  box-shadow: var(--pb-shadow-md);
   max-width: 400px;
   width: 100%;
-  animation: slideUp 0.6s ease-out;
-  position: relative;
-  z-index: 1;
+  animation: slideUp 0.4s ease-out;
 }
 
 @keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .logout-icon {
@@ -142,19 +108,7 @@ onMounted(async () => {
 }
 
 .logout-svg {
-  color: #dc2626;
-  animation: fadeIn 0.8s ease-out 0.2s both;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  color: var(--pb-color-danger);
 }
 
 .logout-message {
@@ -164,29 +118,26 @@ onMounted(async () => {
 .logout-title {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--pb-color-heading);
   margin-bottom: 0.5rem;
-  animation: fadeIn 0.8s ease-out 0.4s both;
 }
 
 .logout-description {
   font-size: 1rem;
-  color: #6b7280;
+  color: var(--pb-color-text-muted);
   margin: 0;
-  animation: fadeIn 0.8s ease-out 0.6s both;
 }
 
 .loading-spinner {
   display: flex;
   justify-content: center;
-  animation: fadeIn 0.8s ease-out 0.8s both;
 }
 
 .spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid #e5e7eb;
-  border-top: 3px solid #667eea;
+  border: 3px solid var(--pb-color-border);
+  border-top: 3px solid var(--pb-color-brand);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -196,63 +147,17 @@ onMounted(async () => {
   100% { transform: rotate(360deg); }
 }
 
-/* 반응형 디자인 */
 @media (max-width: 768px) {
-  .logout-container {
-    padding: 60px 15px 15px;
-  }
-  
-  .logout-content {
-    padding: 2rem 1.5rem;
-    border-radius: 16px;
-  }
-  
-  .logout-title {
-    font-size: 1.5rem;
-  }
-  
-  .logout-description {
-    font-size: 0.9rem;
-  }
-  
-  .logout-svg {
-    width: 48px;
-    height: 48px;
-  }
+  .logout-container { padding: 1.5rem; }
+  .logout-content { padding: 2rem 1.5rem; }
+  .logout-title { font-size: 1.5rem; }
+  .logout-description { font-size: 0.9rem; }
+  .logout-svg { width: 48px; height: 48px; }
 }
 
 @media (max-width: 480px) {
-  .logout-content {
-    padding: 1.5rem 1rem;
-  }
-  
-  .logout-title {
-    font-size: 1.25rem;
-  }
-  
-  .logout-svg {
-    width: 40px;
-    height: 40px;
-  }
-}
-
-/* 다크모드 대응 */
-@media (prefers-color-scheme: dark) {
-  .logout-content {
-    background: rgba(31, 41, 55, 0.95);
-  }
-  
-  .logout-title {
-    color: #f9fafb;
-  }
-  
-  .logout-description {
-    color: #d1d5db;
-  }
-  
-  .spinner {
-    border-color: #4b5563;
-    border-top-color: #667eea;
-  }
+  .logout-content { padding: 1.5rem 1rem; }
+  .logout-title { font-size: 1.25rem; }
+  .logout-svg { width: 40px; height: 40px; }
 }
 </style>

@@ -1053,7 +1053,7 @@ onBeforeUnmount(() => {
 }
 
 .delete-confirm-btn:hover:not(:disabled) {
-  background: #b8271e;
+  background: var(--pb-color-danger-strong);
 }
 
 .delete-confirm-btn:disabled {

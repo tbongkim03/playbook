@@ -1,29 +1,34 @@
 <template>
   <div class="return-container">
     <div class="header">
-      <button class="back-btn" @click="goBack">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <button class="back-btn" @click="goBack" title="홈으로 돌아가기">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        뒤로가기
       </button>
       <h1 class="title">도서 반납</h1>
     </div>
 
     <div class="content">
       <div class="scan-area">
-        <div class="scan-icon">
-          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M15 7L12 10L9 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <div class="scan-icon-wrap">
+          <svg width="120" height="120" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="4" width="2" height="16" rx="0.5" fill="currentColor"/>
+            <rect x="5" y="4" width="1" height="16" rx="0.5" fill="currentColor"/>
+            <rect x="7" y="4" width="2" height="16" rx="0.5" fill="currentColor"/>
+            <rect x="10" y="4" width="1" height="16" rx="0.5" fill="currentColor"/>
+            <rect x="12" y="4" width="3" height="16" rx="0.5" fill="currentColor"/>
+            <rect x="16" y="4" width="1" height="16" rx="0.5" fill="currentColor"/>
+            <rect x="18" y="4" width="2" height="16" rx="0.5" fill="currentColor"/>
+            <rect x="21" y="4" width="1" height="16" rx="0.5" fill="currentColor"/>
           </svg>
         </div>
-        <h2 class="scan-title">반납할 도서의 바코드를 스캔해주세요</h2>
+
+        <h2 class="scan-title">바코드를 스캔해주세요</h2>
         <p class="scan-description">바코드 리더기로 반납할 도서의 바코드를 스캔하면 자동으로 반납 처리됩니다.</p>
-        
+
         <!-- 숨겨진 입력 필드 -->
-        <input 
+        <input
           ref="barcodeInput"
           v-model="barcodeBuffer"
           type="text"
@@ -408,76 +413,91 @@ onUnmounted(() => {
   min-height: 100vh;
   background: var(--pb-color-canvas);
   color: var(--pb-color-text);
-  padding: 20px;
+  padding: 24px 20px;
 }
 
 .header {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 40px;
+  gap: 12px;
+  margin-bottom: 36px;
 }
 
 .back-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: var(--pb-color-surface);
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: none;
   border: 1px solid var(--pb-color-border);
-  border-radius: 6px;
-  color: var(--pb-color-text);
+  border-radius: var(--pb-radius-sm);
+  color: var(--pb-color-text-muted);
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 14px;
-  box-shadow: 0 1px 3px rgba(15, 15, 15, 0.1);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
 }
 
 .back-btn:hover {
-  background: var(--pb-color-surface-muted);
+  background: var(--pb-color-surface);
   border-color: var(--pb-color-border-strong);
+  color: var(--pb-color-text);
 }
 
 .title {
-  font-size: 2.5rem;
+  font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
-  color: var(--pb-color-text);
+  color: var(--pb-color-heading);
 }
 
 .content {
-  max-width: 800px;
+  max-width: 960px;
   margin: 0 auto;
 }
 
+/* ── 스캔 영역 ── */
 .scan-area {
   background: var(--pb-color-surface);
   border: 1px solid var(--pb-color-border);
-  border-radius: 8px;
+  border-radius: var(--pb-radius-lg);
   padding: 60px 40px;
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
   position: relative;
-  box-shadow: 0 1px 3px rgba(15, 15, 15, 0.1);
 }
 
-.scan-icon {
-  color: #6b7280;
-  margin-bottom: 24px;
+.scan-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 55%;
+  max-width: 520px;
+  min-width: 240px;
+  aspect-ratio: 5 / 2;
+  background: var(--pb-color-surface-subtle);
+  border-radius: var(--pb-radius-md);
+  color: var(--pb-color-text-muted);
+  margin-bottom: 44px;
 }
 
 .scan-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0 0 12px 0;
-  color: var(--pb-color-text);
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 16px;
+  color: var(--pb-color-heading);
 }
 
 .scan-description {
-  font-size: 1rem;
-  color: #6b7280;
+  font-size: 1.05rem;
+  color: var(--pb-color-text-muted);
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.8;
 }
 
 .barcode-input {
@@ -558,7 +578,7 @@ onUnmounted(() => {
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--pb-color-text-muted);
 }
 
 .message {
@@ -573,15 +593,15 @@ onUnmounted(() => {
 }
 
 .message.success {
-  background: #d1f2eb;
-  border: 1px solid #a7f3d0;
-  color: #047857;
+  background: var(--pb-color-success-soft);
+  border: 1px solid var(--pb-color-success);
+  color: var(--pb-color-success);
 }
 
 .message.error {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #dc2626;
+  background: var(--pb-color-danger-soft);
+  border: 1px solid var(--pb-color-danger);
+  color: var(--pb-color-danger);
 }
 
 @keyframes slideIn {

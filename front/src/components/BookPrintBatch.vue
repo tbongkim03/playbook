@@ -498,8 +498,8 @@ const printAll = async () => {
 /* 필터 정보 섹션 추가 */
 .filter-info {
   padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, #e3f2fd 0%, #f1f8e9 100%);
-  border-bottom: 1px solid #e9ecef;
+  background: var(--pb-color-brand-soft);
+  border-bottom: 1px solid var(--pb-color-border);
 }
 
 .filter-badge-container {
@@ -511,7 +511,7 @@ const printAll = async () => {
 
 .filter-label {
   font-weight: 600;
-  color: #1976d2;
+  color: var(--pb-color-brand-strong);
   font-size: 0.9rem;
   white-space: nowrap;
 }
@@ -532,15 +532,15 @@ const printAll = async () => {
 }
 
 .filter-badge.search {
-  background: linear-gradient(135deg, #bbdefb 0%, #e1f5fe 100%);
-  color: #0d47a1;
-  border: 1px solid #90caf9;
+  background: var(--pb-color-brand-soft);
+  color: var(--pb-color-brand-strong);
+  border: 1px solid var(--pb-color-brand-muted);
 }
 
 .filter-badge.category {
-  background: linear-gradient(135deg, #c8e6c9 0%, #e8f5e8 100%);
-  color: #2e7d32;
-  border: 1px solid #a5d6a7;
+  background: var(--pb-color-success-soft);
+  color: var(--pb-color-success);
+  border: 1px solid var(--pb-color-success);
 }
 
 /* 모달 헤더 */
@@ -549,8 +549,8 @@ const printAll = async () => {
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  border-bottom: 1px solid #e9ecef;
-  background: #f8f9fa;
+  border-bottom: 1px solid var(--pb-color-border);
+  background: var(--pb-color-surface-subtle);
 }
 
 .header-content {
@@ -565,8 +565,8 @@ const printAll = async () => {
   justify-content: center;
   width: 48px;
   height: 48px;
-  background: #007bff;
-  color: white;
+  background: var(--pb-color-brand);
+  color: var(--pb-color-surface);
   border-radius: 8px;
 }
 
@@ -577,13 +577,13 @@ const printAll = async () => {
 .modal-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #212529;
+  color: var(--pb-color-heading);
   margin: 0 0 0.25rem 0;
 }
 
 .modal-subtitle {
   font-size: 0.9rem;
-  color: #6c757d;
+  color: var(--pb-color-text-muted);
   margin: 0;
 }
 
@@ -594,23 +594,23 @@ const printAll = async () => {
   width: 40px;
   height: 40px;
   border: none;
-  background: rgba(108, 117, 125, 0.1);
-  color: #6c757d;
+  background: var(--pb-color-surface-muted);
+  color: var(--pb-color-text-muted);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .close-btn:hover {
-  background: rgba(108, 117, 125, 0.2);
-  color: #495057;
+  background: var(--pb-color-surface-subtle);
+  color: var(--pb-color-text);
 }
 
 /* 설정 섹션 */
 .settings-section {
   padding: 1.5rem;
-  border-bottom: 1px solid #e9ecef;
-  background: white;
+  border-bottom: 1px solid var(--pb-color-border);
+  background: var(--pb-color-surface);
 }
 
 .settings-grid {
@@ -631,30 +631,30 @@ const printAll = async () => {
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
-  color: #495057;
+  color: var(--pb-color-text);
   font-size: 0.9rem;
 }
 
 .setting-select {
   padding: 0.75rem 1rem;
-  border: 1px solid #ced4da;
+  border: 1px solid var(--pb-color-border);
   border-radius: 6px;
   font-size: 0.9rem;
-  background: white;
+  background: var(--pb-color-surface);
   transition: all 0.3s ease;
 }
 
 .setting-select:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  border-color: var(--pb-color-brand);
+  box-shadow: 0 0 0 0.2rem var(--pb-color-brand-soft);
 }
 
 .stats-info {
   display: flex;
   gap: 2rem;
   padding: 1rem;
-  background: #f8f9fa;
+  background: var(--pb-color-surface-subtle);
   border-radius: 8px;
 }
 
@@ -667,14 +667,14 @@ const printAll = async () => {
 
 .stat-label {
   font-size: 0.8rem;
-  color: #6c757d;
+  color: var(--pb-color-text-muted);
   font-weight: 500;
 }
 
 .stat-value {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #007bff;
+  color: var(--pb-color-brand);
 }
 
 /* 미리보기 섹션 */
@@ -690,8 +690,8 @@ const printAll = async () => {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #e9ecef;
-  background: white;
+  border-bottom: 1px solid var(--pb-color-border);
+  background: var(--pb-color-surface);
 }
 
 .preview-title {
@@ -700,20 +700,20 @@ const printAll = async () => {
   gap: 0.5rem;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #495057;
+  color: var(--pb-color-text);
   margin: 0;
 }
 
 .preview-count {
   font-size: 0.9rem;
-  color: #6c757d;
+  color: var(--pb-color-text-muted);
 }
 
 .preview-content {
   flex: 1;
   overflow-y: auto;
   padding: 1.5rem;
-  background: #f8f9fa;
+  background: var(--pb-color-surface-subtle);
 }
 
 .barcode-grid {
@@ -723,11 +723,11 @@ const printAll = async () => {
 }
 
 .barcode-card {
-  background: white;
+  background: var(--pb-color-surface);
   border-radius: 8px;
   padding: 1rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--pb-color-border);
   transition: all 0.3s ease;
 }
 
@@ -741,7 +741,7 @@ const printAll = async () => {
   justify-content: center;
   align-items: center;
   padding: 0.5rem;
-  background: #f8f9fa;
+  background: var(--pb-color-surface-subtle);
   border-radius: 6px;
   margin-bottom: 0.75rem;
 }
@@ -758,14 +758,14 @@ const printAll = async () => {
 .barcode-code {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #495057;
+  color: var(--pb-color-text);
   font-family: 'Courier New', monospace;
   margin-bottom: 0.25rem;
 }
 
 .barcode-title {
   font-size: 0.8rem;
-  color: #6c757d;
+  color: var(--pb-color-text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -779,7 +779,7 @@ const printAll = async () => {
   justify-content: center;
   padding: 3rem;
   text-align: center;
-  color: #6c757d;
+  color: var(--pb-color-text-muted);
 }
 
 .empty-state svg {
@@ -791,7 +791,7 @@ const printAll = async () => {
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: #495057;
+  color: var(--pb-color-text);
 }
 
 .empty-state p {
@@ -805,8 +805,8 @@ const printAll = async () => {
   justify-content: flex-end;
   gap: 1rem;
   padding: 1.5rem;
-  border-top: 1px solid #e9ecef;
-  background: white;
+  border-top: 1px solid var(--pb-color-border);
+  background: var(--pb-color-surface);
 }
 
 .action-btn {
@@ -823,22 +823,22 @@ const printAll = async () => {
 }
 
 .cancel-btn {
-  background: #6c757d;
-  color: white;
+  background: var(--pb-color-text-muted);
+  color: var(--pb-color-surface);
 }
 
 .cancel-btn:hover {
-  background: #5a6268;
+  background: var(--pb-color-text);
   transform: translateY(-1px);
 }
 
 .print-btn {
-  background: #007bff;
-  color: white;
+  background: var(--pb-color-brand);
+  color: var(--pb-color-surface);
 }
 
 .print-btn:hover:not(:disabled) {
-  background: #0056b3;
+  background: var(--pb-color-brand-strong);
   transform: translateY(-1px);
 }
 

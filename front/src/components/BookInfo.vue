@@ -457,7 +457,7 @@ onMounted(async () => {
 .img-container, .book-img {
     width: 70%;
     height: auto;
-    border: 1px solid #e1e3e5;
+    border: 1px solid var(--pb-color-border);
     object-fit: contain;
 }
 
@@ -616,50 +616,50 @@ onMounted(async () => {
 
 .author {
     font-size: 14px;
-    color: #666;
+    color: var(--pb-color-text-muted);
     margin-bottom: 4px;
 }
 
 .publisher {
     font-size: 12px;
-    color: #888;
+    color: var(--pb-color-text-soft);
     margin-bottom: 4px;
 }
 
 .publish-date {
     font-size: 12px;
-    color: #888;
+    color: var(--pb-color-text-soft);
 }
 
 /* 오른쪽 영역 스타일 */
 .book-info {
-    border-bottom: 1px solid #e1e3e5;
+    border-bottom: 1px solid var(--pb-color-border);
     padding-bottom: 1.5rem;
 }
 
 .book-title {
     font-size: 2rem;
     font-weight: bold;
-    color: #1a1a1a;
+    color: var(--pb-color-heading);
     margin-bottom: 0.5rem;
     line-height: 1.2;
 }
 
 .book-author {
     font-size: 1.25rem;
-    color: #666;
+    color: var(--pb-color-text-muted);
     margin-bottom: 0.25rem;
 }
 
 .book-publisher {
     font-size: 1rem;
-    color: #888;
+    color: var(--pb-color-text-soft);
     margin-bottom: 0.25rem;
 }
 
 .book-date {
     font-size: 0.95rem;
-    color: #999;
+    color: var(--pb-color-text-soft);
 }
 
 .detail-info {
@@ -676,14 +676,14 @@ onMounted(async () => {
 
 .label {
     font-weight: 600;
-    color: #374151;
+    color: var(--pb-color-text);
     min-width: 80px;
 }
 
 .value {
     font-family: 'Courier New', monospace;
-    color: #1f2937;
-    background-color: #f9fafb;
+    color: var(--pb-color-heading);
+    background-color: var(--pb-color-surface-subtle);
     padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
     font-size: 0.9rem;
@@ -691,8 +691,8 @@ onMounted(async () => {
 
 .campus-value {
     font-family: inherit;
-    color: #3b82f6;
-    background-color: #eff6ff;
+    color: var(--pb-color-brand);
+    background-color: var(--pb-color-brand-soft);
     font-weight: 600;
 }
 

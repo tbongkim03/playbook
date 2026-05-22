@@ -156,8 +156,9 @@ const navigateTo = async (r) => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   text-align: center;
-  padding: 36px 24px;
+  padding: 64px 24px;
   border-radius: var(--pb-radius-lg);
   cursor: pointer;
   transition: background 0.12s ease, border-color 0.12s ease;
@@ -182,7 +183,7 @@ const navigateTo = async (r) => {
 
 .return-card {
   background: var(--pb-color-success-soft);
-  border-color: #a3d9c0;
+  border-color: var(--pb-color-success);
   color: var(--pb-color-success);
 }
 .return-card:hover {
@@ -215,9 +216,9 @@ const navigateTo = async (r) => {
   gap: 8px;
   padding: 10px 14px;
   background: var(--pb-color-warning-soft);
-  border: 1px solid #f0d9a8;
+  border: 1px solid var(--pb-color-warning-muted);
   border-radius: var(--pb-radius-md);
-  color: #c2410c;
+  color: var(--pb-color-warning);
   font-size: 0.9rem;
   font-weight: 500;
   margin-bottom: 20px;

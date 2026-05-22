@@ -39,7 +39,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/users/course")
                 .addPathPatterns("/users/validate", "/admin/validate")
                 .addPathPatterns("/admin/list")
-                .addPathPatterns("/naver/book-search", "/national-library/isbn", "/work24/course")
+                .addPathPatterns("/naver/book-search", "/national-library/isbn")
                 .addPathPatterns("/favor")
                 .addPathPatterns("/history/me")
                 // books 관련 관리자 전용 경로들 추가
