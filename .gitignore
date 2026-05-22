@@ -74,6 +74,9 @@ db/.env.dev
 db/.env.prod
 front/.env
 
+# 목업 디렉토리
+front_mok/
+
 # Claude Code 관련 파일
 MEMORY.md
 responsehandlerExample.md

@@ -326,14 +326,14 @@ const fetchUserList = async () => {
     isLoading.value = true
     const response = await axios.get(`/api/users/list${getCampusParam()}`)
 
-    userList.value = response.data.data.map(userArray => ({
-      nameUser: userArray[0],
-      idUser: userArray[1], 
-      statusUser: formatStatus(userArray[2]),
-      createdAt: userArray[3],
-      courseName: userArray[4],
-      courseStartDt: userArray[5],
-      courseEndDt: userArray[6]
+    userList.value = response.data.data.map(u => ({
+      nameUser: u.nameUser ?? u[0],
+      idUser: u.idUser ?? u[1],
+      statusUser: formatStatus(u.email ?? u[2]),
+      createdAt: u.registeredAt ?? u[3],
+      courseName: u.courseName ?? u[4],
+      courseStartDt: u.courseStartDt ?? u[5],
+      courseEndDt: u.courseEndDt ?? u[6],
     }))
     
     filteredUserList.value = [...userList.value]
@@ -506,126 +506,138 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+/* ── 루트 ── */
 .student-account-management {
   max-width: 100%;
+  font-size: 13px;
+  color: var(--pb-color-text);
 }
 
+/* ── 섹션 헤더 ── */
 .section-header {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .section-title {
-  font-size: 1.25rem;
+  font-size: 15px;
   font-weight: 700;
   color: var(--pb-color-heading);
-  margin-bottom: 4px;
+  margin: 0 0 3px;
 }
 
 .section-description {
-  font-size: 0.9rem;
+  font-size: 13px;
   color: var(--pb-color-text-muted);
   margin: 0;
 }
 
+/* ── 통계 카드 ── */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
 .stat-card {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 20px;
-  background: var(--pb-color-brand-soft);
-  border-radius: var(--pb-radius-md);
-  color: var(--pb-color-text);
+  gap: 14px;
+  padding: 16px 18px;
+  background: var(--pb-color-surface);
   border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-lg);
+  box-shadow: var(--pb-shadow-xs);
 }
 
 .stat-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  background: var(--pb-color-surface);
+  width: 36px;
+  height: 36px;
+  background: var(--pb-color-accent-soft);
   border-radius: var(--pb-radius-md);
-  color: var(--pb-color-brand);
+  color: var(--pb-color-accent);
+  flex-shrink: 0;
 }
 
 .stat-number {
-  font-size: 1.75rem;
+  font-size: 24px;
   font-weight: 700;
   line-height: 1;
   color: var(--pb-color-heading);
 }
 
 .stat-label {
-  font-size: 0.875rem;
-  color: var(--pb-color-text-muted);
+  font-size: 12px;
+  color: var(--pb-color-text-soft);
+  margin-top: 2px;
 }
 
+/* ── 필터 바 ── */
 .filter-bar {
   display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 20px;
+  gap: 8px;
+  align-items: flex-end;
+  margin-bottom: 16px;
   flex-wrap: wrap;
 }
 
 .search-box {
   position: relative;
   flex: 1;
-  min-width: 300px;
+  min-width: 260px;
 }
 
 .search-box svg {
   position: absolute;
-  left: 12px;
+  left: 10px;
   top: 50%;
-  transform: translateY(-50%);
-  color: var(--pb-color-text-muted);
+  translate: 0 -50%;
+  color: var(--pb-color-text-soft);
+  pointer-events: none;
 }
 
 .search-box input {
   width: 100%;
-  padding: 10px 14px 10px 40px;
+  height: 34px;
+  padding: 0 12px 0 36px;
   border: 1px solid var(--pb-color-border);
   border-radius: var(--pb-radius-sm);
-  font-size: 0.9rem;
-  transition: border-color 0.15s;
-  box-sizing: border-box;
+  font-size: 13px;
   background: var(--pb-color-surface);
+  color: var(--pb-color-text);
+  box-sizing: border-box;
+  transition: border-color 0.15s;
 }
 
 .search-box input:focus {
   outline: none;
   border-color: var(--pb-color-brand);
-  box-shadow: 0 0 0 3px rgba(47, 111, 78, 0.12);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-muted);
 }
 
 .filter-group {
   display: flex;
-  gap: 8px;
-  align-items: center;
   flex-direction: column;
+  gap: 4px;
 }
 
 .filter-label {
+  font-size: 11px;
   font-weight: 500;
-  color: var(--pb-color-text-muted);
-  font-size: 0.875rem;
-  white-space: nowrap;
+  color: var(--pb-color-text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .status-filter {
-  padding: 10px 14px;
+  height: 34px;
+  padding: 0 10px;
   border: 1px solid var(--pb-color-border);
   border-radius: var(--pb-radius-sm);
-  font-size: 0.9rem;
+  font-size: 13px;
   background: var(--pb-color-surface);
   color: var(--pb-color-text);
   cursor: pointer;
@@ -635,42 +647,44 @@ onBeforeUnmount(() => {
 .status-filter:focus {
   outline: none;
   border-color: var(--pb-color-brand);
-  box-shadow: 0 0 0 3px rgba(47, 111, 78, 0.12);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-muted);
 }
 
+/* ── 테이블 컨테이너 ── */
 .student-table-container {
   background: var(--pb-color-surface);
-  border-radius: var(--pb-radius-md);
-  overflow: hidden;
-  box-shadow: var(--pb-shadow-sm);
+  border-radius: var(--pb-radius-lg);
   border: 1px solid var(--pb-color-border);
+  box-shadow: var(--pb-shadow-sm);
+  overflow: hidden;
 }
 
 .table-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
+  padding: 14px 20px;
   border-bottom: 1px solid var(--pb-color-border);
   background: var(--pb-color-surface-muted);
 }
 
 .table-header h3 {
-  font-size: 1rem;
+  font-size: 13px;
   font-weight: 600;
   color: var(--pb-color-heading);
   margin: 0;
 }
 
 .table-info {
-  font-size: 0.875rem;
-  color: var(--pb-color-text-muted);
+  font-size: 12px;
+  color: var(--pb-color-text-soft);
 }
 
 .table-wrapper {
   overflow-x: auto;
 }
 
+/* ── 테이블 ── */
 .student-table {
   width: 100%;
   border-collapse: collapse;
@@ -678,24 +692,26 @@ onBeforeUnmount(() => {
 
 .student-table th {
   text-align: left;
-  padding: 14px 20px;
-  background: var(--pb-color-surface-muted);
-  color: var(--pb-color-heading);
+  padding: 9px 16px;
+  background: var(--pb-color-surface-subtle);
+  color: var(--pb-color-text-soft);
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   border-bottom: 1px solid var(--pb-color-border);
   white-space: nowrap;
 }
 
 .student-table td {
-  padding: 14px 20px;
+  padding: 10px 16px;
   border-bottom: 1px solid var(--pb-color-border);
   color: var(--pb-color-text);
-  font-size: 0.9rem;
-  vertical-align: top;
+  font-size: 13px;
+  vertical-align: middle;
 }
 
-.student-row:hover {
+.student-row:hover td {
   background: var(--pb-color-surface-muted);
 }
 
@@ -704,14 +720,15 @@ onBeforeUnmount(() => {
   color: var(--pb-color-heading);
 }
 
+/* ── 상태 배지 ── */
 .status-badge {
   display: inline-block;
-  padding: 4px 10px;
+  padding: 2px 8px;
   border-radius: var(--pb-radius-xs);
-  font-size: 0.8rem;
+  font-size: 11px;
   font-weight: 600;
   text-align: center;
-  min-width: 56px;
+  min-width: 48px;
 }
 
 .status-active {
@@ -734,23 +751,23 @@ onBeforeUnmount(() => {
   color: var(--pb-color-text-muted);
 }
 
+/* ── 과정 기간 ── */
 .course-period {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .period-dates {
-  font-size: 0.875rem;
+  font-size: 12px;
   color: var(--pb-color-text);
 }
 
 .period-status {
-  font-size: 0.75rem;
+  font-size: 11px;
   font-weight: 600;
-  padding: 2px 8px;
+  padding: 1px 7px;
   border-radius: var(--pb-radius-xs);
-  text-align: center;
   width: fit-content;
 }
 
@@ -769,59 +786,52 @@ onBeforeUnmount(() => {
   color: var(--pb-color-text-muted);
 }
 
+/* ── 액션 버튼 ── */
 .student-actions {
   display: flex;
-  gap: 6px;
+  gap: 4px;
 }
 
-.view-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--pb-color-border);
-  border-radius: var(--pb-radius-sm);
-  cursor: pointer;
-  transition: background 0.15s;
-  background: var(--pb-color-brand-soft);
-  color: var(--pb-color-brand);
-}
-
-.view-btn:hover {
-  background: var(--pb-color-brand);
-  color: white;
-  border-color: var(--pb-color-brand);
-}
-
+.view-btn,
 .delete-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--pb-color-border);
+  width: 30px;
+  height: 30px;
   border-radius: var(--pb-radius-sm);
+  border: 1px solid var(--pb-color-border);
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.view-btn {
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text-muted);
+}
+
+.view-btn:hover {
+  background: var(--pb-color-surface-muted);
+  color: var(--pb-color-text);
+  border-color: var(--pb-color-border-strong);
+}
+
+.delete-btn {
   background: var(--pb-color-danger-soft);
   color: var(--pb-color-danger);
 }
 
 .delete-btn:hover {
   background: var(--pb-color-danger);
-  color: white;
+  color: var(--pb-color-surface);
   border-color: var(--pb-color-danger);
 }
 
-/* 모달 스타일 */
+/* ── 모달 ── */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.4);
+  inset: 0;
+  background: rgba(30, 31, 29, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -830,10 +840,10 @@ onBeforeUnmount(() => {
 
 .modal-content {
   background: var(--pb-color-surface);
-  border-radius: var(--pb-radius-md);
+  border-radius: var(--pb-radius-lg);
   width: 90%;
   max-width: 500px;
-  box-shadow: var(--pb-shadow-md);
+  box-shadow: var(--pb-shadow-popover);
   border: 1px solid var(--pb-color-border);
   max-height: 90vh;
   overflow-y: auto;
@@ -847,12 +857,12 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 20px 0 20px;
-  margin-bottom: 20px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--pb-color-border);
 }
 
 .modal-header h3 {
-  font-size: 1.125rem;
+  font-size: 14px;
   font-weight: 600;
   color: var(--pb-color-heading);
   margin: 0;
@@ -862,27 +872,28 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border: 1px solid var(--pb-color-border);
   background: var(--pb-color-surface-muted);
   border-radius: var(--pb-radius-sm);
-  color: var(--pb-color-text-muted);
+  color: var(--pb-color-text-soft);
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.12s;
 }
 
 .modal-close:hover {
-  background: var(--pb-color-border);
+  background: var(--pb-color-surface-subtle);
   color: var(--pb-color-text);
 }
 
+/* ── 상세 내용 ── */
 .detail-content {
-  padding: 0 20px 20px 20px;
+  padding: 20px;
 }
 
 .detail-section {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .detail-section:last-child {
@@ -890,132 +901,140 @@ onBeforeUnmount(() => {
 }
 
 .detail-section h4 {
-  font-size: 1rem;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--pb-color-heading);
-  margin: 0 0 12px 0;
-  padding-bottom: 8px;
+  color: var(--pb-color-text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 10px;
+  padding-bottom: 6px;
   border-bottom: 1px solid var(--pb-color-border);
 }
 
 .detail-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
 }
 
 .detail-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
+  padding: 10px 12px;
+  background: var(--pb-color-surface-subtle);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-md);
 }
 
 .detail-item label {
-  font-size: 0.8rem;
+  font-size: 11px;
   font-weight: 500;
-  color: var(--pb-color-text-muted);
+  color: var(--pb-color-text-soft);
 }
 
 .detail-item span {
-  font-size: 0.9rem;
-  color: var(--pb-color-text);
+  font-size: 13px;
+  color: var(--pb-color-heading);
   font-weight: 500;
 }
 
+/* ── 삭제 경고 ── */
 .delete-warning {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px 20px 28px 20px;
+  padding: 24px 20px;
   text-align: center;
 }
 
 .warning-icon {
   color: var(--pb-color-danger);
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  margin-bottom: 14px;
 }
 
 .warning-icon svg {
-  width: 56px;
-  height: 56px;
-  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
 }
 
 .warning-content h4 {
-  font-size: 1.1rem;
+  font-size: 14px;
   font-weight: 600;
   color: var(--pb-color-heading);
-  margin: 0 0 8px 0;
+  margin: 0 0 6px;
 }
 
 .warning-content p {
+  font-size: 13px;
   color: var(--pb-color-text-muted);
-  margin: 0 0 16px 0;
+  margin: 0 0 14px;
   line-height: 1.5;
-  font-size: 0.9rem;
 }
 
 .student-info {
-  padding: 10px 14px;
+  padding: 8px 12px;
   background: var(--pb-color-danger-soft);
   border: 1px solid var(--pb-color-danger);
   border-radius: var(--pb-radius-sm);
   color: var(--pb-color-danger);
-  font-size: 0.875rem;
+  font-size: 12px;
 }
 
+/* ── 모달 폼 / 액션 ── */
 .modal-form {
-  padding: 0 20px 20px 20px;
+  padding: 0 20px 20px;
 }
 
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
+  font-size: 12px;
   font-weight: 500;
-  font-size: 0.9rem;
-  color: var(--pb-color-text);
+  color: var(--pb-color-text-muted);
 }
 
 .form-group input {
   width: 100%;
-  padding: 10px 14px;
+  height: 34px;
+  padding: 0 12px;
   border: 1px solid var(--pb-color-border);
   border-radius: var(--pb-radius-sm);
-  font-size: 0.9rem;
-  transition: border-color 0.15s;
-  box-sizing: border-box;
+  font-size: 13px;
   background: var(--pb-color-surface);
+  color: var(--pb-color-text);
+  box-sizing: border-box;
+  transition: border-color 0.15s;
 }
 
 .form-group input:focus {
   outline: none;
   border-color: var(--pb-color-brand);
-  box-shadow: 0 0 0 3px rgba(47, 111, 78, 0.12);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-muted);
 }
 
 .modal-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   justify-content: flex-end;
-  margin-top: 20px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--pb-color-border);
 }
 
 .cancel-btn,
 .delete-confirm-btn {
-  padding: 10px 18px;
-  border: none;
+  height: 32px;
+  padding: 0 16px;
   border-radius: var(--pb-radius-sm);
+  font-size: 13px;
   font-weight: 600;
-  font-size: 0.9rem;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.12s;
+  border: none;
 }
 
 .cancel-btn {
@@ -1030,96 +1049,32 @@ onBeforeUnmount(() => {
 
 .delete-confirm-btn {
   background: var(--pb-color-danger);
-  color: white;
+  color: var(--pb-color-surface);
 }
 
 .delete-confirm-btn:hover:not(:disabled) {
-  filter: brightness(0.9);
+  background: #b8271e;
 }
 
 .delete-confirm-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* 반응형 디자인 */
+/* ── 반응형 ── */
 @media (max-width: 768px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .filter-bar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .search-box {
-    min-width: unset;
-  }
-
-  .student-table th,
-  .student-table td {
-    padding: 12px 14px;
-    font-size: 0.875rem;
-  }
-
-  .modal-content {
-    width: 95%;
-    margin: 20px;
-  }
-
-  .modal-header,
-  .detail-content,
-  .modal-form {
-    padding: 16px;
-  }
-
-  .modal-actions {
-    flex-direction: column;
-  }
-
-  .cancel-btn,
-  .delete-confirm-btn {
-    width: 100%;
-  }
-
-  .detail-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .course-period {
-    align-items: flex-start;
-  }
-
-  .period-status {
-    width: auto;
-  }
+  .stats-grid { grid-template-columns: 1fr; }
+  .filter-bar { flex-direction: column; align-items: stretch; }
+  .search-box { min-width: unset; }
+  .student-table th, .student-table td { padding: 9px 12px; }
+  .modal-content { width: 95%; }
+  .modal-actions { flex-direction: column; }
+  .cancel-btn, .delete-confirm-btn { width: 100%; }
+  .detail-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 480px) {
-  .student-table {
-    font-size: 0.8rem;
-  }
-
-  .student-actions {
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .view-btn,
-  .delete-btn {
-    width: 28px;
-    height: 28px;
-  }
-
-  .status-badge {
-    font-size: 0.7rem;
-    padding: 3px 7px;
-    min-width: 48px;
-  }
-
-  .period-dates {
-    font-size: 0.8rem;
-  }
+  .student-actions { flex-direction: column; gap: 3px; }
+  .view-btn, .delete-btn { width: 28px; height: 28px; }
 }
 </style>

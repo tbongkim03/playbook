@@ -1,260 +1,542 @@
 <template>
-    <form action="" class="search-form" @submit.prevent="onSubmit" ref="searchForm">
-        <div class="input-group mb-3 inpg" id="inputArea">
-            <input 
-                type="text" 
-                class="form-control" 
-                placeholder="도서명" 
-                aria-label="bookTitle" 
-                aria-describedby="basic-addon1" 
-                v-model="query" 
-                @input="onInput" 
-                @focus="onFocus" 
-                @blur="onBlur" 
-                @keydown="handleKeyDown"
-                autocomplete="off" 
-                ref="searchInput"
-            />
-            <span class="icon" @click="onSubmit">&#x1F50D;</span>
-    
-            <ul class="autocomplete-list" v-if="isFocused && suggestions.length">
-                <li 
-                    v-for="(item, index) in suggestions" 
-                    :key="`suggestion-${index}`" 
-                    :class="{ 
-                        'active': index === selectedIndex,
-                        'keyboard-selected': index === selectedIndex 
-                    }"
-                    @mousedown.prevent="selectSuggestion(item)"
-                    @mouseenter="onMouseEnter(index)"
-                >
-                    {{ item }}
-                </li>
-            </ul>
-        </div>
-    </form>
+  <div class="search-root" ref="searchRoot">
+
+    <!-- ── 통합 검색 바 ── -->
+    <div class="search-bar" :class="{ 'is-focused': isFocused, 'has-value': !!query }">
+
+      <!-- 검색 타입 드롭다운 -->
+      <div class="type-select" ref="typeSelect">
+        <button
+          type="button"
+          class="type-btn"
+          @click.stop="toggleTypeMenu"
+          :aria-expanded="typeMenuOpen"
+        >
+          <span class="type-label">{{ currentType.label }}</span>
+          <svg class="chevron" :class="{ open: typeMenuOpen }"
+            width="12" height="12" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+
+        <ul v-if="typeMenuOpen" class="type-menu" role="listbox">
+          <li
+            v-for="t in searchTypes"
+            :key="t.value"
+            class="type-menu-item"
+            :class="{ selected: t.value === currentType.value }"
+            role="option"
+            :aria-selected="t.value === currentType.value"
+            @mousedown.prevent="selectType(t)"
+          >
+            <svg v-if="t.value === currentType.value"
+              class="check-icon" width="12" height="12" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <span v-else class="check-placeholder"></span>
+            {{ t.label }}
+          </li>
+        </ul>
+      </div>
+
+      <!-- 구분선 -->
+      <span class="search-divider"></span>
+
+      <!-- 검색 아이콘 -->
+      <span class="search-icon-wrap">
+        <svg v-if="!isLoading" width="15" height="15" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <span v-else class="spinner"></span>
+      </span>
+
+      <!-- 입력 필드 -->
+      <input
+        ref="searchInput"
+        type="text"
+        class="search-input"
+        :placeholder="`${currentType.label} 검색`"
+        v-model="query"
+        @input="onInput"
+        @focus="onFocus"
+        @blur="onBlur"
+        @keydown="handleKeyDown"
+        autocomplete="off"
+        spellcheck="false"
+      />
+
+      <!-- 지우기 버튼 -->
+      <button
+        v-if="query"
+        type="button"
+        class="clear-btn"
+        @mousedown.prevent="clearQuery"
+        aria-label="검색어 지우기"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- ── 연관검색어 드롭다운 ── -->
+    <ul
+      v-if="isFocused && suggestions.length"
+      class="suggestions"
+      role="listbox"
+      ref="suggestionList"
+    >
+      <li class="suggestions-header">
+        <span>연관 도서</span>
+      </li>
+      <li
+        v-for="(item, idx) in suggestions"
+        :key="`s-${idx}`"
+        class="suggestion-item"
+        :class="{ active: idx === selectedIndex }"
+        role="option"
+        @mousedown.prevent="selectSuggestion(item)"
+        @mouseenter="selectedIndex = idx"
+      >
+        <svg class="suggestion-icon" width="13" height="13" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <span class="suggestion-text" v-html="highlight(item)"></span>
+      </li>
+      <li v-if="query" class="suggestion-search-all" @mousedown.prevent="submitSearch">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <span><strong>{{ query }}</strong> 전체 검색</span>
+      </li>
+    </ul>
+
+    <!-- 입력값 있고 포커스지만 결과 없을 때 -->
+    <ul v-else-if="isFocused && query && !isLoading && suggestions.length === 0" class="suggestions">
+      <li class="suggestions-empty">결과 없음</li>
+    </ul>
+
+  </div>
 </template>
 
 <script>
 import { swAlert } from '@/utils/sweetAlert'
+
+const SEARCH_TYPES = [
+  { value: 'title',     label: '도서명' },
+  { value: 'author',    label: '저자' },
+  { value: 'isbn',      label: 'ISBN' },
+  { value: 'publisher', label: '출판사' },
+]
+
 export default {
-    name: 'BookSearch',
-    emits: ['search'],
-    data() {
-        return {
-            query: '',
-            suggestions: [],
-            isFocused: false,
-            selectedIndex: -1, // 선택된 항목의 인덱스
-        };
+  name: 'BookSearch',
+  emits: ['search'],
+  data() {
+    return {
+      searchTypes: SEARCH_TYPES,
+      currentType: SEARCH_TYPES[0],
+      typeMenuOpen: false,
+      query: '',
+      suggestions: [],
+      isFocused: false,
+      selectedIndex: -1,
+      isLoading: false,
+      debounceTimer: null,
+    }
+  },
+  mounted() {
+    document.addEventListener('mousedown', this.onOutsideClick)
+  },
+  beforeUnmount() {
+    document.removeEventListener('mousedown', this.onOutsideClick)
+  },
+  methods: {
+    toggleTypeMenu() {
+      this.typeMenuOpen = !this.typeMenuOpen
     },
-    methods: {
-        async fetchSuggestions() {
-            if (!this.query.trim()) {
-                this.suggestions = [];
-                this.selectedIndex = -1;
-                return;
-            }
-            try {
-                const axios = (await import('axios')).default;
-                const response = await axios.get(
-                    `/api/books/related?q=${encodeURIComponent(this.query)}`
-                );
-                const data = response.data.data;
-
-                // printCheckBook이 true인 항목들만 필터링
-                const availableBooks = data.filter(item => item.printCheckBook === true);
-
-                // 중복 제거
-                const uniqueTitles = Array.from(new Set(availableBooks.map(item => item.titleBook)));
-
-                this.suggestions = uniqueTitles;
-                this.selectedIndex = -1; // 새로운 검색 결과가 나올 때 선택 초기화
-            } catch (error) {
-                await swAlert('자동완성 요청에 실패했습니다.', 'error');
-                this.suggestions = [];
-                this.selectedIndex = -1;
-            }
-        },
-        selectSuggestion(suggestion) {
-            this.query = suggestion;
-            this.suggestions = [];
-            this.selectedIndex = -1;
-            this.isFocused = false;
-            // 포커스 해제
-            this.$refs.searchInput.blur();
-            this.$emit('search', { query: suggestion, exact: true });
-        },
-        onInput() {
-            this.fetchSuggestions();
-        },
-        onFocus() {
-            this.isFocused = true;
-            this.fetchSuggestions();
-        },
-        onBlur() {
-            setTimeout(() => {
-                this.isFocused = false;
-                this.suggestions = [];
-                this.selectedIndex = -1;
-            }, 200);
-        },
-        handleKeyDown(event) {
-            // 기존 JavaScript 입력 차단 로직 먼저 실행
-            this.blockJavascriptInput(event);
-            
-            // 자동완성 목록이 없으면 키보드 네비게이션 스킵
-            if (!this.suggestions.length) return;
-
-            switch (event.key) {
-                case 'ArrowDown':
-                    event.preventDefault();
-                    event.stopPropagation();
-                    this.selectedIndex = Math.min(this.selectedIndex + 1, this.suggestions.length - 1);
-                    this.scrollToSelected();
-                    break;
-                case 'ArrowUp':
-                    event.preventDefault();
-                    event.stopPropagation();
-                    this.selectedIndex = Math.max(this.selectedIndex - 1, -1);
-                    this.scrollToSelected();
-                    break;
-                case 'Enter':
-                    if (this.selectedIndex >= 0) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        // 선택된 항목이 있으면 해당 항목을 선택
-                        this.selectSuggestion(this.suggestions[this.selectedIndex]);
-                    }
-                    // selectedIndex가 -1이면 기본 폼 제출 동작 허용
-                    break;
-                case 'Escape':
-                    event.preventDefault();
-                    event.stopPropagation();
-                    this.suggestions = [];
-                    this.selectedIndex = -1;
-                    this.isFocused = false;
-                    this.$refs.searchInput.blur();
-                    break;
-            }
-        },
-        onMouseEnter(index) {
-            this.selectedIndex = index;
-        },
-        scrollToSelected() {
-            if (this.selectedIndex >= 0) {
-                this.$nextTick(() => {
-                    const listElement = document.querySelector('.autocomplete-list');
-                    const selectedElement = listElement?.children[this.selectedIndex];
-                    if (selectedElement) {
-                        selectedElement.scrollIntoView({
-                            block: 'nearest',
-                            behavior: 'smooth'
-                        });
-                    }
-                });
-            }
-        },
-        async onSubmit() {
-            this.suggestions = [];
-            this.selectedIndex = -1;
-            this.isFocused = false;
-            // 검색 후 포커스 해제
-            this.$refs.searchInput.blur();
-            this.$emit('search', { query: this.query, exact: false });
-        },
-        blockJavascriptInput(event) {
-            // 방향키와 Enter, Escape는 차단하지 않도록 수정
-            const allowedKeys = ['ArrowDown', 'ArrowUp', 'Enter', 'Escape', 'Backspace', 'Delete'];
-            if (allowedKeys.includes(event.key)) {
-                return; // 허용된 키는 차단하지 않음
-            }
-        },
+    selectType(type) {
+      this.currentType = type
+      this.typeMenuOpen = false
+      this.suggestions = []
+      this.selectedIndex = -1
+      this.$refs.searchInput?.focus()
+      if (this.query) this.fetchSuggestions()
     },
-};
+    onOutsideClick(e) {
+      if (!this.$refs.searchRoot?.contains(e.target)) {
+        this.typeMenuOpen = false
+        this.isFocused = false
+        this.suggestions = []
+        this.selectedIndex = -1
+      }
+    },
+    highlight(text) {
+      if (!this.query) return text
+      const escaped = this.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      return text.replace(
+        new RegExp(`(${escaped})`, 'gi'),
+        '<mark>$1</mark>'
+      )
+    },
+    async fetchSuggestions() {
+      if (!this.query.trim()) {
+        this.suggestions = []
+        this.selectedIndex = -1
+        return
+      }
+      this.isLoading = true
+      try {
+        const axios = (await import('axios')).default
+        const res = await axios.get('/api/books/related', {
+          params: { q: this.query, type: this.currentType.value }
+        })
+        const data = res.data.data || []
+        const fieldMap = { title: 'titleBook', author: 'authorBook', isbn: 'isbnBook', publisher: 'publisherBook' }
+        const field = fieldMap[this.currentType.value] || 'titleBook'
+        const available = data.filter(b => b.printCheckBook === true)
+        const unique = [...new Set(available.map(b => b[field]).filter(Boolean))]
+        this.suggestions = unique.slice(0, 7)
+        this.selectedIndex = -1
+      } catch {
+        this.suggestions = []
+      } finally {
+        this.isLoading = false
+      }
+    },
+    selectSuggestion(text) {
+      this.query = text
+      this.suggestions = []
+      this.selectedIndex = -1
+      this.isFocused = false
+      this.$refs.searchInput?.blur()
+      this.$emit('search', { query: text, type: this.currentType.value, exact: true })
+    },
+    submitSearch() {
+      this.suggestions = []
+      this.selectedIndex = -1
+      this.isFocused = false
+      this.$refs.searchInput?.blur()
+      this.$emit('search', { query: this.query, type: this.currentType.value, exact: false })
+    },
+    clearQuery() {
+      this.query = ''
+      this.suggestions = []
+      this.selectedIndex = -1
+      this.$refs.searchInput?.focus()
+      this.$emit('search', { query: '', type: this.currentType.value, exact: false })
+    },
+    onInput() {
+      clearTimeout(this.debounceTimer)
+      this.debounceTimer = setTimeout(() => this.fetchSuggestions(), 220)
+    },
+    onFocus() {
+      this.isFocused = true
+      this.typeMenuOpen = false
+      if (this.query) this.fetchSuggestions()
+    },
+    onBlur() {
+      // onOutsideClick handles close; keep brief delay for click on suggestion
+    },
+    handleKeyDown(event) {
+      if (this.typeMenuOpen) {
+        if (event.key === 'Escape') { this.typeMenuOpen = false }
+        return
+      }
+      if (!this.suggestions.length) {
+        if (event.key === 'Enter') { event.preventDefault(); this.submitSearch() }
+        return
+      }
+      switch (event.key) {
+        case 'ArrowDown':
+          event.preventDefault()
+          this.selectedIndex = Math.min(this.selectedIndex + 1, this.suggestions.length - 1)
+          this.scrollToSelected()
+          break
+        case 'ArrowUp':
+          event.preventDefault()
+          this.selectedIndex = Math.max(this.selectedIndex - 1, -1)
+          this.scrollToSelected()
+          break
+        case 'Enter':
+          event.preventDefault()
+          if (this.selectedIndex >= 0) {
+            this.selectSuggestion(this.suggestions[this.selectedIndex])
+          } else {
+            this.submitSearch()
+          }
+          break
+        case 'Escape':
+          event.preventDefault()
+          this.suggestions = []
+          this.selectedIndex = -1
+          this.isFocused = false
+          this.$refs.searchInput?.blur()
+          break
+      }
+    },
+    scrollToSelected() {
+      this.$nextTick(() => {
+        const list = this.$refs.suggestionList
+        const item = list?.children[this.selectedIndex + 1] // +1 for header li
+        item?.scrollIntoView({ block: 'nearest' })
+      })
+    },
+  },
+}
 </script>
 
-<style>
-.search-form {
-    display: grid;
-    column-gap: 10px;
-    width: 100%;
+<style scoped>
+/* ── 루트 ── */
+.search-root {
+  position: relative;
+  width: 100%;
 }
 
-#inputArea {
-    position: relative;
-    display: flex;
-    width: 100%;
-    height: 95%;
+/* ── 검색 바 ── */
+.search-bar {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-md);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+  overflow: visible;
+  position: relative;
+}
+.search-bar.is-focused {
+  border-color: var(--pb-color-brand);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-soft);
 }
 
-#inputArea input {
-    width: 100%;
-    padding: 10px 40px 10px 20px;
-    border: 1px solid var(--pb-color-border);
-    border-radius: var(--pb-radius-sm);
-    box-sizing: border-box;
-    z-index: 0;
-    position: relative;
-    background-color: white;
-    color: var(--pb-color-text);
-    font-size: 0.95rem;
+/* ── 타입 드롭다운 ── */
+.type-select {
+  position: relative;
+  flex-shrink: 0;
+}
+.type-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 34px;
+  padding: 0 10px 0 12px;
+  border: none;
+  background: transparent;
+  color: var(--pb-color-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  border-radius: var(--pb-radius-md) 0 0 var(--pb-radius-md);
+  transition: background 0.1s ease;
+}
+.type-btn:hover {
+  background: var(--pb-color-surface-muted);
+  color: var(--pb-color-text);
+}
+.type-label { letter-spacing: 0; }
+.chevron {
+  transition: transform 0.15s ease;
+  color: var(--pb-color-text-soft);
+}
+.chevron.open { transform: rotate(180deg); }
+
+/* 타입 메뉴 */
+.type-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 108px;
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-md);
+  box-shadow: var(--pb-shadow-popover);
+  list-style: none;
+  padding: 4px;
+  margin: 0;
+  z-index: 200;
+}
+.type-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  font-size: 12px;
+  color: var(--pb-color-text);
+  border-radius: var(--pb-radius-sm);
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+.type-menu-item:hover {
+  background: var(--pb-color-surface-muted);
+}
+.type-menu-item.selected {
+  color: var(--pb-color-brand);
+  font-weight: 500;
+}
+.check-icon { color: var(--pb-color-brand); flex-shrink: 0; }
+.check-placeholder { width: 12px; flex-shrink: 0; }
+
+/* ── 구분선 ── */
+.search-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--pb-color-border);
+  flex-shrink: 0;
 }
 
-#inputArea input:focus {
-    border-color: var(--pb-color-brand);
-    box-shadow: 0 0 0 3px rgba(47, 111, 78, 0.14);
-    outline: none;
+/* ── 검색 아이콘 ── */
+.search-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px 0 10px;
+  color: var(--pb-color-text-soft);
+  flex-shrink: 0;
 }
 
-#inputArea .icon {
-    cursor: pointer;
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    font-size: 18px;
-    color: #555;
-    pointer-events: auto;
+/* 로딩 스피너 */
+.spinner {
+  width: 13px;
+  height: 13px;
+  border: 2px solid var(--pb-color-border);
+  border-top-color: var(--pb-color-brand);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── 입력 필드 ── */
+.search-input {
+  flex: 1;
+  height: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 13px;
+  color: var(--pb-color-text);
+  min-width: 0;
+  padding: 0;
+}
+.search-input::placeholder {
+  color: var(--pb-color-text-soft);
 }
 
-.autocomplete-list {
-    position: absolute;
-    top: calc(100% - 7px);
-    left: 1px;
-    right: 0;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    border: 1px solid var(--pb-color-border);
-    border-top: none;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    border-bottom-left-radius: var(--pb-radius-sm);
-    border-bottom-right-radius: var(--pb-radius-sm);
-    background-color: var(--pb-color-surface);
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 1;
-    box-sizing: border-box;
-    box-shadow: var(--pb-shadow-sm);
+/* ── 지우기 버튼 ── */
+.clear-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--pb-color-text-soft);
+  border-radius: var(--pb-radius-xs);
+  cursor: pointer;
+  margin-right: 6px;
+  flex-shrink: 0;
+  transition: background 0.1s ease, color 0.1s ease;
+}
+.clear-btn:hover {
+  background: var(--pb-color-surface-muted);
+  color: var(--pb-color-text);
 }
 
-.autocomplete-list li {
-    padding: 10px 12px;
-    color: var(--pb-color-text);
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+/* ── 연관검색어 드롭다운 ── */
+.suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-md);
+  box-shadow: var(--pb-shadow-popover);
+  list-style: none;
+  padding: 4px;
+  margin: 0;
+  z-index: 150;
+  max-height: 280px;
+  overflow-y: auto;
 }
 
-.autocomplete-list li.active,
-.autocomplete-list li.keyboard-selected {
-    background-color: var(--pb-color-brand-soft) !important;
-    color: var(--pb-color-brand-strong) !important;
-    font-weight: 500;
+.suggestions-header {
+  padding: 6px 10px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--pb-color-text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: default;
 }
 
-.autocomplete-list li:hover:not(.keyboard-selected) {
-    background-color: var(--pb-color-surface-muted);
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: var(--pb-radius-sm);
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+.suggestion-item:hover,
+.suggestion-item.active {
+  background: var(--pb-color-surface-muted);
+}
+.suggestion-icon {
+  color: var(--pb-color-text-soft);
+  flex-shrink: 0;
+}
+.suggestion-text {
+  font-size: 13px;
+  color: var(--pb-color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.suggestion-text :deep(mark) {
+  background: none;
+  color: var(--pb-color-brand);
+  font-weight: 600;
+}
+
+.suggestion-search-all {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: var(--pb-radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--pb-color-text-muted);
+  border-top: 1px solid var(--pb-color-border);
+  margin-top: 2px;
+  transition: background 0.1s ease;
+}
+.suggestion-search-all:hover { background: var(--pb-color-surface-muted); }
+.suggestion-search-all strong { color: var(--pb-color-text); font-weight: 600; }
+.suggestion-search-all svg { color: var(--pb-color-text-soft); flex-shrink: 0; }
+
+.suggestions-empty {
+  padding: 16px 10px;
+  font-size: 13px;
+  color: var(--pb-color-text-soft);
+  text-align: center;
+  cursor: default;
 }
 </style>

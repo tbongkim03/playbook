@@ -406,8 +406,8 @@ onUnmounted(() => {
 <style scoped>
 .return-container {
   min-height: 100vh;
-  background: #f7f6f3;
-  color: #37352f;
+  background: var(--pb-color-canvas);
+  color: var(--pb-color-text);
   padding: 20px;
 }
 
@@ -423,10 +423,10 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: #ffffff;
-  border: 1px solid #e9e5e3;
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
   border-radius: 6px;
-  color: #37352f;
+  color: var(--pb-color-text);
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 14px;
@@ -434,15 +434,15 @@ onUnmounted(() => {
 }
 
 .back-btn:hover {
-  background: #f1f1ef;
-  border-color: #d9d5d2;
+  background: var(--pb-color-surface-muted);
+  border-color: var(--pb-color-border-strong);
 }
 
 .title {
   font-size: 2.5rem;
   font-weight: 700;
   margin: 0;
-  color: #37352f;
+  color: var(--pb-color-text);
 }
 
 .content {
@@ -451,8 +451,8 @@ onUnmounted(() => {
 }
 
 .scan-area {
-  background: #ffffff;
-  border: 1px solid #e9e5e3;
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
   border-radius: 8px;
   padding: 60px 40px;
   text-align: center;
@@ -470,7 +470,7 @@ onUnmounted(() => {
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0 0 12px 0;
-  color: #37352f;
+  color: var(--pb-color-text);
 }
 
 .scan-description {
@@ -493,8 +493,8 @@ onUnmounted(() => {
   align-items: center;
   gap: 16px;
   padding: 40px;
-  background: #ffffff;
-  border: 1px solid #e9e5e3;
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
   border-radius: 8px;
   margin-bottom: 30px;
   box-shadow: 0 1px 3px rgba(15, 15, 15, 0.1);
@@ -503,8 +503,8 @@ onUnmounted(() => {
 .spinner {
   width: 24px;
   height: 24px;
-  border: 2px solid #e9e5e3;
-  border-left: 2px solid #37352f;
+  border: 2px solid var(--pb-color-border);
+  border-left: 2px solid var(--pb-color-text);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -515,8 +515,8 @@ onUnmounted(() => {
 }
 
 .last-scan {
-  background: #ffffff;
-  border: 1px solid #e9e5e3;
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
   border-radius: 8px;
   padding: 30px;
   margin-bottom: 30px;
@@ -526,13 +526,13 @@ onUnmounted(() => {
 .last-scan h3 {
   margin: 0 0 20px 0;
   font-size: 1.125rem;
-  color: #37352f;
+  color: var(--pb-color-text);
   font-weight: 600;
 }
 
 .barcode-info {
-  background: #f7f6f3;
-  border: 1px solid #e9e5e3;
+  background: var(--pb-color-canvas);
+  border: 1px solid var(--pb-color-border);
   border-radius: 6px;
   padding: 20px;
 }
@@ -543,7 +543,7 @@ onUnmounted(() => {
   font-weight: 500;
   margin: 0 0 16px 0;
   letter-spacing: 1px;
-  color: #37352f;
+  color: var(--pb-color-text);
 }
 
 .barcode-details {
@@ -553,8 +553,8 @@ onUnmounted(() => {
 }
 
 .barcode-details span {
-  background: #ffffff;
-  border: 1px solid #e9e5e3;
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 0.875rem;

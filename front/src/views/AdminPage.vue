@@ -1,20 +1,21 @@
 <template>
   <div class="admin-dashboard">
-    <div class="dashboard-header">
-      <h1 class="dashboard-title">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        관리자 대시보드
-      </h1>
-      <p class="dashboard-subtitle">시스템 관리 및 모니터링</p>
-    </div>
-
     <div class="dashboard-content">
       <!-- 네비게이션 메뉴 -->
       <nav class="admin-nav">
+        <div class="sidebar-header">
+          <div class="sidebar-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <div class="sidebar-title">관리자 대시보드</div>
+            <div class="sidebar-subtitle">시스템 관리 및 모니터링</div>
+          </div>
+        </div>
         <div class="nav-section">
           <h3 class="nav-title">관리 메뉴</h3>
           <ul class="nav-list">
@@ -246,62 +247,74 @@ onBeforeUnmount(() => {
 .admin-dashboard {
   min-height: 100vh;
   background: var(--pb-color-canvas);
-  padding: 80px 0 40px;
-}
-
-.dashboard-header {
-  margin-bottom: 24px;
-  padding: 0 20px;
-}
-
-.dashboard-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--pb-color-heading);
-  margin-bottom: 4px;
-}
-
-.dashboard-subtitle {
-  font-size: 0.9rem;
-  color: var(--pb-color-text-muted);
-  margin: 0;
+  padding: 12px 0 32px;
 }
 
 .dashboard-content {
-  width: 98%;
+  width: min(100% - 48px, var(--pb-content-max));
   margin: 0 auto;
-  padding: 0.7rem;
   display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 24px;
-  max-width: none;
+  grid-template-columns: 220px 1fr;
+  gap: 20px;
+  align-items: start;
 }
 
 .admin-nav {
   background: var(--pb-color-surface);
   border-radius: var(--pb-radius-md);
-  padding: 20px;
-  box-shadow: var(--pb-shadow-sm);
+  padding: 0;
+  box-shadow: var(--pb-shadow-xs);
   border: 1px solid var(--pb-color-border);
   height: fit-content;
+  overflow: hidden;
+}
+
+/* 사이드바 헤더 */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--pb-color-border);
+}
+
+.sidebar-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--pb-radius-sm);
+  background: var(--pb-color-accent-soft);
+  color: var(--pb-color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pb-color-heading);
+  line-height: 1.3;
+}
+
+.sidebar-subtitle {
+  font-size: 11px;
+  color: var(--pb-color-text-soft);
+  line-height: 1.3;
 }
 
 .nav-section {
-  margin-bottom: 8px;
+  padding: 8px;
 }
 
 .nav-title {
-  font-size: 0.75rem;
+  font-size: 10px;
   font-weight: 600;
-  color: var(--pb-color-text-muted);
-  margin-bottom: 8px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--pb-color-border);
+  color: var(--pb-color-text-soft);
+  margin-bottom: 4px;
+  padding: 4px 6px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
 .nav-list {

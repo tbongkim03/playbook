@@ -335,16 +335,14 @@ async function blockJavascriptInput(event) {
 
 <style scoped>
 .login-wrapper {
-  min-height: 100vh;
+  min-height: calc(100vh - var(--pb-header-height));
   width: 100%;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  background: var(--pb-color-canvas);
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 2rem;
-  margin-top: -6rem;
   position: relative;
-  overflow: hidden;
 }
 
 .login-container {

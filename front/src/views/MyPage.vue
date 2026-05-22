@@ -1033,8 +1033,8 @@ async function changePassword() {
 <style scoped>
 .mypage-wrapper {
   min-height: 100vh;
-  background: #fafafa;
-  padding: 2rem 0;
+  background: var(--pb-color-canvas);
+  padding: 20px 0 40px;
 }
 
 .mypage-container {

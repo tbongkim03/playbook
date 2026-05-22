@@ -475,40 +475,35 @@
     </div>
 
     <!-- 페이지네이션 -->
-    <div class="pagination-section" v-if="totalPages > 1">
-      <div class="pagination">
+    <div class="gl-pagination" v-if="totalPages > 1">
+      <span class="gl-pagination-info">{{ paginationInfo }}</span>
+      <nav class="gl-pagination-nav">
         <button
-          @click="currentPage = Math.max(1, currentPage - 1)"
+          class="gl-page-btn prev-btn"
           :disabled="currentPage === 1"
-          class="page-btn prev-btn"
+          @click="currentPage = Math.max(1, currentPage - 1)"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <polyline points="15,18 9,12 15,6" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          이전
         </button>
-        
+        <template v-for="item in paginationItems" :key="item + '-' + Math.random()">
+          <span v-if="item === '...'" class="gl-page-ellipsis">…</span>
+          <button
+            v-else
+            class="gl-page-btn"
+            :class="{ active: item === currentPage }"
+            @click="currentPage = item"
+          >{{ item }}</button>
+        </template>
         <button
-          v-for="page in visiblePages"
-          :key="page"
-          @click="currentPage = page"
-          :class="[
-            'page-btn',
-            { 'active': page === currentPage }
-          ]"
-        >
-          {{ page }}
-        </button>
-        
-        <button
-          @click="currentPage = Math.min(totalPages, currentPage + 1)"
+          class="gl-page-btn next-btn"
           :disabled="currentPage === totalPages"
-          class="page-btn next-btn"
+          @click="currentPage = Math.min(totalPages, currentPage + 1)"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <polyline points="9,18 15,12 9,6" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          다음
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
-      </div>
+      </nav>
     </div>
   </div>
 </template>
@@ -816,28 +811,25 @@ const paginatedBooks = computed(() => {
   return filteredBooks.value.slice(start, end)
 })
 
-// 페이지네이션 표시 페이지 번호들
-const visiblePages = computed(() => {
+const paginationItems = computed(() => {
   const total = totalPages.value
   const current = currentPage.value
-  const delta = 2
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const items = [1]
+  if (current > 3) items.push('...')
+  const start = Math.max(2, current - 1)
+  const end = Math.min(total - 1, current + 1)
+  for (let i = start; i <= end; i++) items.push(i)
+  if (current < total - 2) items.push('...')
+  items.push(total)
+  return items
+})
 
-  let start = Math.max(1, current - delta)
-  let end = Math.min(total, current + delta)
-
-  if (end - start < 4) {
-    if (start === 1) {
-      end = Math.min(total, start + 4)
-    } else {
-      start = Math.max(1, end - 4)
-    }
-  }
-
-  const pages = []
-  for (let i = start; i <= end; i++) {
-    pages.push(i)
-  }
-  return pages
+const paginationInfo = computed(() => {
+  const total = filteredBooks.value.length
+  const start = (currentPage.value - 1) * pageSize + 1
+  const end = Math.min(currentPage.value * pageSize, total)
+  return `${start}–${end} / 전체 ${total}건`
 })
 
 // 선택 가능한 도서인지 확인 (미출력이고 분류가 완료된 도서)
@@ -1164,126 +1156,120 @@ const refreshBooks = async () => {
 </script>
 
 <style scoped>
+/* ─── 레이아웃 ─── */
 .book-management-container {
   min-height: 100vh;
   padding: 20px 0;
+  font-size: 13px;
+  color: var(--pb-color-text);
 }
 
+/* ─── 페이지 헤더 ─── */
 .page-header {
-  margin-bottom: 1.5rem;
+  margin-bottom: 16px;
 }
 
 .header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
 }
 
-.title-section {
-  flex: 1;
-}
+.title-section { flex: 1; }
 
 .page-title {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 1.5rem;
+  gap: 8px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--pb-color-heading);
-  margin-bottom: 4px;
+  margin: 0 0 3px;
 }
 
 .page-subtitle {
+  font-size: 13px;
   color: var(--pb-color-text-muted);
   margin: 0;
-  font-size: 0.9rem;
 }
 
-.header-actions {
-  display: flex;
-  gap: 1rem;
-}
+.header-actions { display: flex; gap: 8px; }
 
+/* ─── 버튼 공통 ─── */
 .register-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
   background: var(--pb-color-brand);
-  color: white;
+  color: #fff;
   border: none;
   border-radius: var(--pb-radius-sm);
+  font-size: 13px;
   font-weight: 600;
-  font-size: 0.9rem;
   cursor: pointer;
   transition: background 0.15s;
   text-decoration: none;
+  white-space: nowrap;
 }
+.register-btn:hover { background: var(--pb-color-brand-strong); }
 
-.register-btn:hover {
-  background: var(--pb-color-brand-strong);
-}
-
-/* 필터 섹션 */
-.filter-section {
-  margin: 0 0 1.5rem 0;
-}
+/* ─── 필터 카드 ─── */
+.filter-section { margin-bottom: 14px; }
 
 .filter-card {
   background: var(--pb-color-surface);
-  border-radius: var(--pb-radius-md);
-  box-shadow: var(--pb-shadow-sm);
   border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--pb-shadow-xs);
 }
 
 .filter-content {
-  padding: 20px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 10px;
 }
 
 .filter-row {
   display: flex;
   align-items: flex-end;
-  gap: 1rem;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
-.primary-filters {
-  flex: 1;
-}
+.primary-filters { flex: 1; }
 
 .action-controls {
   justify-content: space-between;
   align-items: center;
   border-top: 1px solid var(--pb-color-border);
-  padding-top: 1rem;
-  margin-top: 0;
+  padding-top: 10px;
 }
 
-.control-group {
-  display: flex;
-  gap: 1rem;
-}
+.control-group { display: flex; gap: 8px; }
 
 .filter-group {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  min-width: 140px;
+  gap: 3px;
+  min-width: 130px;
 }
 
-.search-group {
-  min-width: 280px;
-}
+.search-group { min-width: 260px; }
 
 .filter-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--pb-color-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--pb-color-text-soft);
 }
 
+/* 검색 인풋 */
 .search-input-wrapper {
   position: relative;
   display: flex;
@@ -1292,118 +1278,121 @@ const refreshBooks = async () => {
 
 .search-icon {
   position: absolute;
-  left: 12px;
-  color: var(--pb-color-text-muted);
+  left: 10px;
+  color: var(--pb-color-text-soft);
+  pointer-events: none;
   z-index: 1;
 }
 
 .search-input {
   width: 100%;
-  padding: 10px 10px 10px 38px;
+  height: 34px;
+  padding: 0 32px 0 34px;
   border: 1px solid var(--pb-color-border);
   border-radius: var(--pb-radius-sm);
-  font-size: 0.9rem;
+  font-size: 13px;
   background: var(--pb-color-surface);
-  transition: border-color 0.15s;
+  color: var(--pb-color-text);
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-
+.search-input::placeholder { color: var(--pb-color-text-soft); }
 .search-input:focus {
   outline: none;
   border-color: var(--pb-color-brand);
-  box-shadow: 0 0 0 3px rgba(47, 111, 78, 0.12);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-soft);
 }
 
 .clear-search-btn {
   position: absolute;
-  right: 8px;
+  right: 7px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border: none;
   background: transparent;
-  color: var(--pb-color-text-muted);
+  color: var(--pb-color-text-soft);
   cursor: pointer;
   border-radius: var(--pb-radius-xs);
-  transition: background 0.15s;
+  transition: background 0.15s, color 0.15s;
 }
-
 .clear-search-btn:hover {
   background: var(--pb-color-surface-muted);
   color: var(--pb-color-text);
 }
 
+/* 셀렉트 */
 .filter-select {
-  padding: 10px 12px;
+  height: 34px;
+  padding: 0 10px;
   border: 1px solid var(--pb-color-border);
   border-radius: var(--pb-radius-sm);
-  font-size: 0.9rem;
+  font-size: 13px;
   background: var(--pb-color-surface);
-  transition: border-color 0.15s;
-  min-width: 120px;
+  color: var(--pb-color-text);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  min-width: 110px;
 }
-
 .filter-select:focus {
   outline: none;
   border-color: var(--pb-color-brand);
-  box-shadow: 0 0 0 3px rgba(47, 111, 78, 0.12);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-soft);
 }
-
 .filter-select:disabled {
   background: var(--pb-color-surface-muted);
-  opacity: 0.6;
+  color: var(--pb-color-text-soft);
+  opacity: 0.7;
 }
 
+/* 초기화 버튼 */
 .reset-filters-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 14px;
-  background: var(--pb-color-danger);
-  color: white;
-  border: none;
+  gap: 5px;
+  height: 32px;
+  padding: 0 12px;
+  background: var(--pb-color-surface);
+  color: var(--pb-color-danger);
+  border: 1px solid var(--pb-color-border);
   border-radius: var(--pb-radius-sm);
-  font-size: 0.875rem;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s;
 }
-
 .reset-filters-btn:hover {
-  filter: brightness(0.9);
+  background: var(--pb-color-danger-soft);
+  border-color: var(--pb-color-danger);
 }
 
+/* 프린트 컨트롤 */
 .print-controls {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 10px;
 }
 
-.print-toggle {
-  display: flex;
-  align-items: center;
-}
+.print-toggle { display: flex; align-items: center; }
 
 .toggle-label {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 8px;
   cursor: pointer;
   user-select: none;
 }
 
-.toggle-input {
-  display: none;
-}
+.toggle-input { display: none; }
 
 .toggle-slider {
   position: relative;
-  width: 44px;
-  height: 24px;
+  width: 40px;
+  height: 22px;
   background: var(--pb-color-border);
-  border-radius: 24px;
+  border-radius: 22px;
   transition: background 0.2s;
+  flex-shrink: 0;
 }
 
 .toggle-slider::before {
@@ -1411,152 +1400,124 @@ const refreshBooks = async () => {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 20px;
-  height: 20px;
-  background: white;
+  width: 18px;
+  height: 18px;
+  background: var(--pb-color-surface);
   border-radius: 50%;
   transition: transform 0.2s;
   box-shadow: var(--pb-shadow-xs);
 }
 
-.toggle-input:checked + .toggle-slider {
-  background: var(--pb-color-brand);
-}
-
-.toggle-input:checked + .toggle-slider::before {
-  transform: translateX(20px);
-}
+.toggle-input:checked + .toggle-slider { background: var(--pb-color-brand); }
+.toggle-input:checked + .toggle-slider::before { transform: translateX(18px); }
 
 .toggle-text {
+  font-size: 13px;
   font-weight: 500;
-  font-size: 0.9rem;
   color: var(--pb-color-text);
   white-space: nowrap;
 }
 
 .batch-print-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 9px 16px;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
   background: var(--pb-color-brand);
-  color: white;
+  color: #fff;
   border: none;
   border-radius: var(--pb-radius-sm);
+  font-size: 13px;
   font-weight: 500;
-  font-size: 0.875rem;
   cursor: pointer;
   transition: background 0.15s;
   white-space: nowrap;
 }
-
-.batch-print-btn:hover:not(:disabled) {
-  background: var(--pb-color-brand-strong);
-}
-
-.batch-print-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.batch-print-btn:hover:not(:disabled) { background: var(--pb-color-brand-strong); }
+.batch-print-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .count-badge {
-  background: rgba(255, 255, 255, 0.25);
-  padding: 2px 7px;
+  background: rgba(255,255,255,0.22);
+  border: 1px solid rgba(255,255,255,0.3);
+  padding: 1px 6px;
   border-radius: var(--pb-radius-xs);
-  font-size: 0.8rem;
+  font-size: 12px;
   font-weight: 600;
 }
 
+/* ─── 통계 섹션 ─── */
 .stats-section {
-  margin: 0 0 1.25rem 0;
   display: flex;
-  gap: 1rem;
+  gap: 10px;
   flex-wrap: wrap;
+  margin-bottom: 14px;
 }
 
 .stat-card {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 16px;
+  gap: 12px;
+  padding: 12px 14px;
   background: var(--pb-color-surface);
-  border-radius: var(--pb-radius-md);
-  box-shadow: var(--pb-shadow-sm);
   border: 1px solid var(--pb-color-border);
-  min-width: 160px;
+  border-radius: var(--pb-radius-md);
+  box-shadow: var(--pb-shadow-xs);
+  min-width: 140px;
   flex: 1;
 }
 
-.stat-card.total-books .stat-icon {
-  background: var(--pb-color-brand-soft);
-  color: var(--pb-color-brand);
-}
-
-.stat-card.borrowed-books .stat-icon {
-  background: var(--pb-color-danger-soft);
-  color: var(--pb-color-danger);
-}
-
-.stat-card.available-books .stat-icon {
-  background: var(--pb-color-success-soft);
-  color: var(--pb-color-success);
-}
-
-.stat-card.unavailable-books .stat-icon {
-  background: var(--pb-color-danger-soft);
-  color: var(--pb-color-danger);
-}
-
-.stat-card.print-ready .stat-icon {
-  background: var(--pb-color-brand-soft);
-  color: var(--pb-color-brand);
-}
+.stat-card.total-books .stat-icon    { background: var(--pb-color-accent-soft);  color: var(--pb-color-accent); }
+.stat-card.borrowed-books .stat-icon { background: var(--pb-color-danger-soft);  color: var(--pb-color-danger); }
+.stat-card.available-books .stat-icon{ background: var(--pb-color-success-soft); color: var(--pb-color-success); }
+.stat-card.unavailable-books .stat-icon{ background: var(--pb-color-warning-soft); color: var(--pb-color-warning); }
+.stat-card.print-ready .stat-icon    { background: var(--pb-color-surface-muted); color: var(--pb-color-text-muted); }
 
 .stat-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--pb-radius-md);
   flex-shrink: 0;
 }
 
 .stat-number {
-  font-size: 1.5rem;
+  font-size: 20px;
   font-weight: 700;
   color: var(--pb-color-heading);
   line-height: 1;
 }
 
 .stat-label {
-  font-size: 0.875rem;
+  font-size: 12px;
   color: var(--pb-color-text-muted);
+  margin-top: 2px;
 }
 
-.table-section {
-  margin: 0;
-}
+/* ─── 테이블 섹션 ─── */
+.table-section { margin: 0; }
 
 .table-card {
   background: var(--pb-color-surface);
-  border-radius: var(--pb-radius-md);
-  box-shadow: var(--pb-shadow-sm);
   border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-lg);
   overflow: hidden;
+  box-shadow: var(--pb-shadow-xs);
 }
 
 .table-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--pb-color-border);
-  background: var(--pb-color-surface-muted);
+  background: var(--pb-color-surface-subtle);
 }
 
 .table-header h3 {
-  font-size: 1rem;
+  font-size: 13px;
   font-weight: 600;
   color: var(--pb-color-heading);
   margin: 0;
@@ -1565,53 +1526,45 @@ const refreshBooks = async () => {
 .table-actions {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 10px;
 }
 
 .refresh-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  background: var(--pb-color-surface-muted);
+  gap: 5px;
+  height: 30px;
+  padding: 0 12px;
+  background: var(--pb-color-surface);
   border: 1px solid var(--pb-color-border);
-  color: var(--pb-color-text);
+  color: var(--pb-color-text-muted);
   border-radius: var(--pb-radius-sm);
-  font-size: 0.875rem;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, color 0.15s;
 }
-
 .refresh-btn:hover:not(:disabled) {
-  background: var(--pb-color-border);
+  background: var(--pb-color-surface-muted);
+  color: var(--pb-color-text);
 }
-
-.refresh-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.refresh-btn .spinning {
-  animation: spin 1s linear infinite;
-}
+.refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.refresh-btn .spinning { animation: spin 1s linear infinite; }
 
 @keyframes spin {
   from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  to   { transform: rotate(360deg); }
 }
 
 .result-count {
-  color: var(--pb-color-text-muted);
-  font-size: 0.875rem;
+  font-size: 12px;
+  color: var(--pb-color-text-soft);
   white-space: nowrap;
 }
 
-.table-wrapper {
-  overflow-x: auto;
-}
+.table-wrapper { overflow-x: auto; }
 
-/* 테이블 컬럼 너비 최적화 */
+/* ─── 테이블 ─── */
 .books-table {
   width: 100%;
   border-collapse: collapse;
@@ -1619,99 +1572,90 @@ const refreshBooks = async () => {
   min-width: 1000px;
 }
 
-.books-table th,
-.books-table td {
-  padding: 8px 4px;
-  border-bottom: 1px solid var(--pb-color-border);
-  font-size: 0.75rem;
-  vertical-align: middle;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .books-table th {
+  padding: 9px 6px;
   background: var(--pb-color-surface-muted);
-  color: var(--pb-color-heading);
+  border-bottom: 1px solid var(--pb-color-border);
+  color: var(--pb-color-text-soft);
+  font-size: 11px;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   text-align: left;
   position: sticky;
   top: 0;
   z-index: 10;
-  font-size: 0.7rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* 컬럼별 너비 설정 */
-.col-checkbox { width: 40px; text-align: center; }
-.col-title { width: 180px; }
-.col-isbn { width: 85px; }
-.col-author { width: 80px; }
-.col-publisher { width: 80px; }
-.col-date { width: 70px; }
-.col-category { width: 75px; }
-.col-count { width: 45px; }
-.col-status { width: 70px; }
-.col-barcode { width: 120px; }
-.col-actions { width: 65px; }
-
-.book-row:hover {
-  background: var(--pb-color-surface-muted);
-}
-
-.book-row.active-row {
-  background: var(--pb-color-brand-soft);
-  border-left: 3px solid var(--pb-color-brand);
-}
-
-.book-row.active-row:hover {
-  background: var(--pb-color-brand-soft);
-}
-
-/* 프린트 모드 선택 관련 스타일 */
-.book-row.selectable-row {
-  cursor: pointer;
-}
-
-.book-row.selected-row {
-  background: var(--pb-color-brand-soft);
-  border-left: 3px solid var(--pb-color-brand);
-}
-
-.book-row.selected-row:hover {
-  filter: brightness(0.97);
-}
-
-.checkbox-input {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-  accent-color: var(--pb-color-brand);
-}
-
-.checkbox-input:disabled {
-  cursor: not-allowed;
-  opacity: 0.4;
-}
-
-.print-selection-info {
-  display: flex;
-  align-items: center;
-  padding: 0.4rem 0.75rem;
-  background: var(--pb-color-surface-muted);
-  border-radius: var(--pb-radius-sm);
-  font-size: 0.875rem;
+.books-table td {
+  padding: 7px 6px;
+  border-bottom: 1px solid var(--pb-color-border);
+  font-size: 13px;
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--pb-color-text);
 }
 
-.selection-count {
-  font-weight: 500;
+/* 컬럼 너비 */
+.col-checkbox { width: 38px; text-align: center; }
+.col-title    { width: 178px; }
+.col-isbn     { width: 84px; }
+.col-author   { width: 78px; }
+.col-publisher{ width: 78px; }
+.col-date     { width: 68px; }
+.col-category { width: 74px; }
+.col-count    { width: 44px; }
+.col-status   { width: 70px; }
+.col-barcode  { width: 118px; }
+.col-actions  { width: 64px; }
+
+/* 행 상태 */
+.book-row:hover td { background: var(--pb-color-surface-muted); }
+
+.book-row.active-row td {
+  background: var(--pb-color-surface-subtle);
+}
+.book-row.active-row td:first-child { border-left: 2px solid var(--pb-color-brand); }
+.book-row.active-row:hover td { background: var(--pb-color-surface-muted); }
+
+.book-row.selectable-row { cursor: pointer; }
+
+.book-row.selected-row td {
+  background: var(--pb-color-surface-subtle);
+}
+.book-row.selected-row td:first-child { border-left: 2px solid var(--pb-color-brand); }
+.book-row.selected-row:hover td { background: var(--pb-color-surface-muted); }
+
+/* 체크박스 */
+.checkbox-input {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  accent-color: var(--pb-color-brand);
+}
+.checkbox-input:disabled { cursor: not-allowed; opacity: 0.35; }
+
+/* 선택 정보 */
+.print-selection-info {
+  display: flex;
+  align-items: center;
+  padding: 3px 10px;
+  background: var(--pb-color-surface-muted);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
+  font-size: 12px;
+  color: var(--pb-color-text-muted);
 }
 
-.selection-count strong {
-  color: var(--pb-color-brand);
-  font-weight: 700;
-}
+.selection-count { font-weight: 500; }
+.selection-count strong { color: var(--pb-color-brand); font-weight: 700; }
 
+/* 제목 셀 */
 .book-title .title-text {
   font-weight: 500;
   color: var(--pb-color-heading);
@@ -1720,75 +1664,71 @@ const refreshBooks = async () => {
   text-overflow: ellipsis;
 }
 
+/* 인라인 셀렉트 */
 .category-select {
   width: 100%;
-  padding: 3px 4px;
+  height: 26px;
+  padding: 0 4px;
   border: 1px solid var(--pb-color-border);
   border-radius: var(--pb-radius-xs);
-  font-size: 0.65rem;
+  font-size: 12px;
   background: var(--pb-color-surface);
-  transition: border-color 0.15s;
+  color: var(--pb-color-text);
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-
 .category-select:focus {
   outline: none;
   border-color: var(--pb-color-brand);
-  box-shadow: 0 0 0 2px rgba(47, 111, 78, 0.12);
+  box-shadow: 0 0 0 2px var(--pb-color-brand-soft);
 }
-
 .category-select:disabled {
   background: var(--pb-color-surface-muted);
-  opacity: 0.6;
+  color: var(--pb-color-text-soft);
+  opacity: 0.65;
 }
 
+/* 번호 인풋 */
 .count-input {
   width: 100%;
-  padding: 3px 4px;
+  height: 26px;
+  padding: 0 4px;
   border: 1px solid var(--pb-color-border);
   border-radius: var(--pb-radius-xs);
-  font-size: 0.65rem;
+  font-size: 12px;
   text-align: center;
   background: var(--pb-color-surface);
-  transition: border-color 0.15s;
+  color: var(--pb-color-text);
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-
 .count-input:focus {
   outline: none;
   border-color: var(--pb-color-brand);
-  box-shadow: 0 0 0 2px rgba(47, 111, 78, 0.12);
+  box-shadow: 0 0 0 2px var(--pb-color-brand-soft);
 }
 
+/* 상태 배지 */
 .status-badge {
   display: inline-block;
-  padding: 2px 6px;
-  border-radius: var(--pb-radius-xs);
-  font-size: 0.65rem;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 11px;
   font-weight: 600;
   text-align: center;
   white-space: nowrap;
+  letter-spacing: 0.01em;
 }
+.status-borrowed  { background: var(--pb-color-danger-soft);  color: var(--pb-color-danger); }
+.status-available { background: var(--pb-color-success-soft); color: var(--pb-color-success); }
+.status-unavailable { background: var(--pb-color-surface-muted); color: var(--pb-color-text-muted); }
 
-.status-borrowed {
-  background: var(--pb-color-danger-soft);
-  color: var(--pb-color-danger);
-}
-
-.status-available {
-  background: var(--pb-color-brand-soft);
-  color: var(--pb-color-brand);
-}
-
-.status-unavailable {
-  background: var(--pb-color-danger-soft);
-  color: var(--pb-color-danger);
-}
-
+/* 바코드 인풋 */
 .barcode-input {
   width: 100%;
-  padding: 3px 4px;
+  height: 26px;
+  padding: 0 4px;
   border: 1px solid var(--pb-color-border);
   border-radius: var(--pb-radius-xs);
-  font-size: 0.6rem;
+  font-size: 11px;
   background: var(--pb-color-surface-muted);
   font-family: 'Courier New', monospace;
   color: var(--pb-color-text-muted);
@@ -1796,244 +1736,167 @@ const refreshBooks = async () => {
   text-overflow: ellipsis;
 }
 
-.action-buttons {
-  display: flex;
-  gap: 2px;
-  justify-content: center;
-}
+/* 액션 버튼 */
+.action-buttons { display: flex; gap: 3px; justify-content: center; }
 
 .action-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  border: none;
+  width: 24px;
+  height: 24px;
+  border: 1px solid transparent;
   border-radius: var(--pb-radius-xs);
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
+
+.action-btn svg { width: 11px; height: 11px; }
 
 .barcode-btn {
-  background: var(--pb-color-brand-soft);
-  color: var(--pb-color-brand);
+  background: var(--pb-color-surface);
+  border-color: var(--pb-color-border);
+  color: var(--pb-color-text-muted);
 }
-
 .barcode-btn:hover {
-  background: var(--pb-color-brand);
-  color: white;
+  background: var(--pb-color-surface-muted);
+  border-color: var(--pb-color-border-strong);
 }
 
 .delete-btn {
   background: var(--pb-color-danger-soft);
+  border-color: rgba(217, 48, 37, 0.25);
   color: var(--pb-color-danger);
 }
-
 .delete-btn:hover {
   background: var(--pb-color-danger);
-  color: white;
+  border-color: var(--pb-color-danger);
+  color: #fff;
 }
 
-.action-btn svg {
-  width: 10px;
-  height: 10px;
-}
-
+/* ─── 빈 상태 ─── */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
-  color: var(--pb-color-text-muted);
+  padding: 56px 24px;
+  color: var(--pb-color-text-soft);
   text-align: center;
 }
-
 .empty-state svg {
-  margin-bottom: 1.25rem;
-  opacity: 0.4;
-  color: var(--pb-color-text-muted);
+  margin-bottom: 16px;
+  opacity: 0.35;
+  color: var(--pb-color-text-soft);
 }
-
 .empty-state h3 {
-  font-size: 1.125rem;
+  font-size: 15px;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin: 0 0 6px;
   color: var(--pb-color-heading);
 }
+.empty-state p { margin: 0; font-size: 13px; color: var(--pb-color-text-muted); }
 
-.empty-state p {
-  margin: 0;
-  opacity: 0.8;
-}
-
-.pagination-section {
-  margin: 1.5rem 0 0 0;
-}
-
-.pagination {
+/* ─── 페이지네이션 (GitLab Offset style) ─── */
+.gl-pagination {
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  padding: 12px 4px;
+  margin-top: 8px;
 }
-
-.page-btn {
-  padding: 8px 12px;
+.gl-pagination-info {
+  font-size: 13px;
+  color: var(--pb-color-text-muted);
+}
+.gl-pagination-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.gl-page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
   border: 1px solid var(--pb-color-border);
   background: var(--pb-color-surface);
   color: var(--pb-color-text);
   border-radius: var(--pb-radius-sm);
   cursor: pointer;
-  transition: background 0.15s;
-  font-size: 0.875rem;
-  min-width: 40px;
-  text-align: center;
-  display: flex;
+  font-size: 13px;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+.gl-page-btn:hover:not(:disabled):not(.active) {
+  background: var(--pb-color-surface-muted);
+  border-color: var(--pb-color-border-strong);
+}
+.gl-page-btn.active {
+  background: var(--pb-color-brand);
+  color: #fff;
+  border-color: var(--pb-color-brand);
+  font-weight: 600;
+}
+.gl-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.gl-page-btn.prev-btn,
+.gl-page-btn.next-btn { padding: 0 10px; }
+.gl-page-ellipsis {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 32px;
+  height: 32px;
+  font-size: 13px;
+  color: var(--pb-color-text-soft);
+  cursor: default;
+  user-select: none;
 }
 
-.page-btn:hover:not(:disabled) {
-  background: var(--pb-color-surface-muted);
-}
-
-.page-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.page-btn.active {
-  background: var(--pb-color-brand);
-  color: white;
-  border-color: var(--pb-color-brand);
-}
-
-.prev-btn,
-.next-btn {
-  padding: 8px 10px;
-}
-
-/* 반응형 디자인 */
+/* ─── 반응형 ─── */
 @media (max-width: 1400px) {
-  .filter-row {
-    flex-wrap: wrap;
-  }
-
-  .primary-filters {
-    width: 100%;
-    margin-bottom: 0.5rem;
-  }
-
+  .filter-row { flex-wrap: wrap; }
+  .primary-filters { width: 100%; }
   .action-controls {
     width: 100%;
-    padding-top: 1rem;
+    padding-top: 10px;
     border-top: 1px solid var(--pb-color-border);
   }
 }
 
 @media (max-width: 1200px) {
-  .header-content {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-  }
-
-  .filter-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .filter-group {
-    width: 100%;
-    min-width: auto;
-  }
-
-  .search-group {
-    min-width: auto;
-  }
-
-  .action-controls {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-  }
-
-  .print-controls {
-    justify-content: space-between;
-  }
-
-  .stats-section {
-    flex-direction: column;
-  }
+  .header-content { flex-direction: column; align-items: stretch; gap: 10px; }
+  .filter-row { flex-direction: column; align-items: stretch; }
+  .filter-group { width: 100%; min-width: auto; }
+  .search-group { min-width: auto; }
+  .action-controls { flex-direction: column; gap: 10px; align-items: stretch; }
+  .print-controls { justify-content: space-between; }
+  .stats-section { flex-direction: column; }
 }
 
 @media (max-width: 768px) {
-  .book-management-container {
-    padding: 20px 0;
-  }
-
-  .page-title {
-    font-size: 1.25rem;
-  }
-
-  .filter-content {
-    padding: 14px;
-  }
-
-  .table-header {
-    padding: 14px 16px;
-  }
-
-  .books-table th,
-  .books-table td {
-    padding: 8px 4px;
-    font-size: 0.75rem;
-  }
-
-  .books-table th {
-    font-size: 0.7rem;
-  }
-
-  .books-table {
-    min-width: 850px;
-  }
-
-  .action-btn {
-    width: 20px;
-    height: 20px;
-  }
-
-  .action-btn svg {
-    width: 8px;
-    height: 8px;
-  }
-
-  /* 컬럼별 너비 재조정 */
-  .col-title { width: 140px; }
-  .col-isbn { width: 70px; }
-  .col-author { width: 65px; }
-  .col-publisher { width: 65px; }
-  .col-date { width: 60px; }
-  .col-category { width: 60px; }
-  .col-count { width: 40px; }
-  .col-status { width: 60px; }
-  .col-barcode { width: 100px; }
-  .col-actions { width: 55px; }
+  .page-title { font-size: 16px; }
+  .filter-content { padding: 12px; }
+  .table-header { padding: 10px 14px; }
+  .books-table { min-width: 850px; }
+  .col-title     { width: 138px; }
+  .col-isbn      { width: 70px; }
+  .col-author    { width: 64px; }
+  .col-publisher { width: 64px; }
+  .col-date      { width: 58px; }
+  .col-category  { width: 58px; }
+  .col-count     { width: 40px; }
+  .col-status    { width: 60px; }
+  .col-barcode   { width: 96px; }
+  .col-actions   { width: 52px; }
 }
 
 @media (max-width: 480px) {
-  .toggle-text {
-    display: none;
-  }
-
-  .batch-print-btn {
-    padding: 7px 12px;
-    font-size: 0.8rem;
-  }
-
-  .result-count {
-    font-size: 0.8rem;
-  }
+  .toggle-text { display: none; }
+  .batch-print-btn { padding: 0 10px; font-size: 12px; }
+  .result-count { font-size: 12px; }
 }
 </style>

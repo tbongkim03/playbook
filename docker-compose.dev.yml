@@ -56,6 +56,16 @@ services:
     networks:
       - dev-network
 
+  front-mok:
+    build:
+      context: ./front_mok
+      dockerfile: DevDockerfile
+    container_name: front-mok
+    ports:
+      - "8888:80"
+    networks:
+      - dev-network
+
 volumes:
   db-dev-data:
 

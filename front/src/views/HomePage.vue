@@ -10,7 +10,7 @@
           @mouseleave="hoveringWrapper = false"
           >
           <!-- 대분류 네비게이션 포함 -->
-          <nav class="nav-bar" style="top: 72px; z-index: 1030;">
+          <nav class="nav-bar" style="top: var(--pb-header-height); z-index: 1030;">
               <!-- 왼쪽: 카테고리 목록 -->
               <div class="nav-left">
                   <ul class="nav">
@@ -147,36 +147,22 @@
           </template>
 
           <!-- 페이지네이션 -->
-          <div class="pagination-area" v-if="!isLoading && totalCount > 0">
-            <div class="pagination-wrapper">
-              <button 
-                class="pagination-btn prev-btn" 
-                :disabled="currentPage === 1"
-                @click="goToPage(currentPage - 1)"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+          <div class="gl-pagination" v-if="!isLoading && totalPages > 1">
+            <span class="gl-pagination-info">{{ paginationInfo }}</span>
+            <nav class="gl-pagination-nav">
+              <button class="gl-page-btn prev-btn" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 이전
               </button>
-              
-              <div class="page-info">
-                <span class="current-page">{{ currentPage }}</span>
-                <span class="page-divider">/</span>
-                <span class="total-pages">{{ Math.ceil(totalCount / ITEMS_PER_PAGE) }}</span>
-              </div>
-              
-              <button 
-                class="pagination-btn next-btn"
-                :disabled="currentPage >= Math.ceil(totalCount / ITEMS_PER_PAGE)"
-                @click="goToPage(currentPage + 1)"
-              >
+              <template v-for="item in paginationItems" :key="String(item) + '-hp'">
+                <span v-if="item === '...'" class="gl-page-ellipsis">…</span>
+                <button v-else class="gl-page-btn" :class="{ active: item === currentPage }" @click="goToPage(item)">{{ item }}</button>
+              </template>
+              <button class="gl-page-btn next-btn" :disabled="currentPage >= totalPages" @click="goToPage(currentPage + 1)">
                 다음
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
-            </div>
+            </nav>
           </div>
         </div>
       </div>
@@ -210,6 +196,30 @@ const ITEMS_PER_PAGE = 20
 const bookList = ref([])
 const totalCount = ref(0)
 const currentPage = ref(1)
+
+const totalPages = computed(() => Math.ceil(totalCount.value / ITEMS_PER_PAGE))
+
+const paginationItems = computed(() => {
+  const total = totalPages.value
+  const current = currentPage.value
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const items = [1]
+  if (current > 3) items.push('...')
+  const start = Math.max(2, current - 1)
+  const end = Math.min(total - 1, current + 1)
+  for (let i = start; i <= end; i++) items.push(i)
+  if (current < total - 2) items.push('...')
+  items.push(total)
+  return items
+})
+
+const paginationInfo = computed(() => {
+  const total = totalCount.value
+  if (!total) return ''
+  const start = (currentPage.value - 1) * ITEMS_PER_PAGE + 1
+  const end = Math.min(currentPage.value * ITEMS_PER_PAGE, total)
+  return `${start}–${end} / 전체 ${total}건`
+})
 
 // 캠퍼스 필터 관련
 const campuses = ref([])
@@ -630,57 +640,55 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+/* ────────────────────────────────────────────────
+   레이아웃 기반
+──────────────────────────────────────────────── */
 .mainpage-bg-wrapper {
   position: relative;
   width: 100%;
   min-height: 100vh;
-  /* background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); */
-  background: linear-gradient(135deg, #f5f7fa 0%, #EDEFEF 100%);
+  background: var(--pb-color-canvas);
+  overflow-x: hidden;
 }
 
 .mainpage-area {
   width: 100%;
   min-height: 98%;
-  overflow-x: hidden;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
   align-items: center;
 }
 
-/* 데스크톱에서는 최소 너비 유지 */
-@media (min-width: 769px) {
-  .mainpage-area {
-    min-width: 1450px;
-  }
-}
-
+/* ────────────────────────────────────────────────
+   카테고리 네비바
+──────────────────────────────────────────────── */
 .nav-bar {
   position: fixed;
-  top: 72px;
+  top: var(--pb-header-height);
   left: 0;
   width: 100%;
+  height: var(--pb-toolbar-height);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 32px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  padding: 0 max(24px, calc((100vw - var(--pb-content-max)) / 2));
+  background: var(--pb-color-canvas);
+  border-bottom: 1px solid var(--pb-color-border);
   z-index: 1030;
 }
 
 .nav-left {
   display: flex;
   flex: 1;
+  overflow: hidden;
 }
 
 .nav {
   display: flex;
   align-items: center;
+  gap: 4px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -694,129 +702,135 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  min-width: 280px;
+  min-width: 320px;
 }
 
 .search-component {
-  width: 280px;
+  width: 320px;
 }
 
+/* ────────────────────────────────────────────────
+   nav 링크
+──────────────────────────────────────────────── */
 .nav-link {
   display: inline-block;
-  padding: 12px 20px;
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: #64748b;
+  padding: 7px 14px;
+  font-weight: 500;
+  font-size: 0.92rem;
+  color: var(--pb-color-text-muted);
   text-decoration: none;
   cursor: pointer;
-  margin: 0 4px;
-  border-radius: 12px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.nav-link::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
-}
-
-.nav-link:hover::before {
-  left: 100%;
+  border-radius: 999px;
+  transition: background 0.12s ease, color 0.12s ease;
 }
 
 .nav-link:hover {
-  color: #475569;
-  background: rgba(100, 116, 139, 0.1);
-  transform: translateY(-2px);
+  color: var(--pb-color-text);
+  background: var(--pb-color-surface-muted);
 }
 
 .nav-link.active {
-  color: #ffffff;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-  transform: translateY(-2px);
+  color: var(--pb-color-surface);
+  background: var(--pb-color-brand);
 }
 
+/* ────────────────────────────────────────────────
+   중분류 드롭다운
+──────────────────────────────────────────────── */
 .dropdown-menu-custom {
   list-style: none;
-  padding: 20px 32px;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 12px max(24px, calc((100vw - var(--pb-content-max)) / 2));
+  background: var(--pb-color-canvas);
+  border-bottom: 1px solid var(--pb-color-border);
   margin: 0;
   position: fixed;
-  top: 168px;
+  top: calc(var(--pb-header-height) + var(--pb-toolbar-height));
   left: 0;
   width: 100%;
   z-index: 1029;
   display: flex;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .dropdown-item-custom {
-  padding: 10px 16px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 7px 13px;
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
+  border-radius: 999px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background 0.12s ease, border-color 0.12s ease;
   font-weight: 500;
-  color: #475569;
-  font-size: 0.9rem;
+  color: var(--pb-color-text-muted);
+  font-size: 0.88rem;
+  white-space: nowrap;
 }
 
 .dropdown-item-custom:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: var(--pb-color-surface-muted);
+  border-color: var(--pb-color-border-strong);
 }
 
 .dropdown-item-custom.active {
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-  color: white;
+  background: var(--pb-color-brand);
+  color: var(--pb-color-surface);
   border-color: transparent;
-  box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
 }
 
+/* ────────────────────────────────────────────────
+   본문 영역
+──────────────────────────────────────────────── */
 .main {
-  width: 100%;
-  padding: 32px;
-  transition: margin-top 0.3s ease;
+  width: min(100% - 48px, var(--pb-content-max));
+  padding: 28px 0 48px;
+  margin-left: auto;
+  margin-right: auto;
+  transition: margin-top 0.25s ease;
 }
 
+/* ────────────────────────────────────────────────
+   콘텐츠 헤더
+──────────────────────────────────────────────── */
 .content-header {
-  margin-bottom: 32px;
-  text-align: center;
+  margin-bottom: 24px;
+  text-align: left;
 }
 
 .header-top {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 0 16px;
-  gap: 24px;
-  position: relative;
+  gap: 16px;
 }
 
+.section-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--pb-color-heading);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  letter-spacing: 0;
+}
+
+.book-count {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--pb-color-text-muted);
+  background: var(--pb-color-surface-muted);
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+
+/* ────────────────────────────────────────────────
+   필터 영역
+──────────────────────────────────────────────── */
 .filter-area {
   display: flex;
   align-items: center;
-  gap: 16px;
-  position: absolute;
-  right: 16px;
+  gap: 12px;
 }
 
 .campus-filter {
@@ -827,267 +841,205 @@ onBeforeUnmount(() => {
 
 .filter-label {
   font-weight: 500;
-  color: #475569;
-  font-size: 0.9rem;
+  color: var(--pb-color-text-muted);
+  font-size: 0.88rem;
   white-space: nowrap;
 }
 
-.campus-select {
-  padding: 10px 16px;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  background: #ffffff;
-  color: #475569;
-  font-size: 0.95rem;
+.campus-select,
+.sort-select {
+  padding: 8px 12px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text);
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
-  min-width: 150px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.12s ease;
+  min-width: 140px;
 }
 
-.campus-select:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.campus-select:hover,
+.sort-select:hover {
+  border-color: var(--pb-color-border-strong);
 }
 
-.campus-select:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.section-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  flex: 0 0 auto;
-}
-
-.book-count {
-  font-size: 1.2rem;
-  font-weight: 500;
-  color: #64748b;
-  background: rgba(100, 116, 139, 0.1);
-  padding: 4px 12px;
-  border-radius: 20px;
+.campus-select:focus,
+.sort-select:focus {
+  border-color: var(--pb-color-brand);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-muted);
 }
 
 .sort-dropdown {
   display: flex;
   align-items: center;
-  gap: 8px;
 }
 
-.sort-select {
-  padding: 10px 16px;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  background: #ffffff;
-  color: #475569;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  outline: none;
-  min-width: 150px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.sort-select:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.sort-select:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.sort-select option {
-  padding: 8px;
-}
-
+/* ────────────────────────────────────────────────
+   도서 그리드
+──────────────────────────────────────────────── */
 .article-area {
   display: grid;
-  place-items: center;
+  align-items: start;
   width: 100%;
   grid-template-columns: repeat(5, 1fr);
-  gap: 32px;
+  gap: 20px 16px;
   padding: 0;
   min-height: 400px;
 }
 
 .book-item {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: none;
 }
 
-.book-item:hover {
-  transform: translateY(-8px);
-}
-
+/* ────────────────────────────────────────────────
+   도서 없음 메시지
+──────────────────────────────────────────────── */
 .no-books-message {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 500px;
+  min-height: 400px;
   width: 100%;
   padding: 2rem;
 }
 
 .no-books-content {
   text-align: center;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  padding: 4rem 3rem;
-  border-radius: 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  max-width: 500px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--pb-color-surface);
+  padding: 3.5rem 3rem;
+  border-radius: var(--pb-radius-lg);
+  border: 1px solid var(--pb-color-border);
+  max-width: 480px;
 }
 
 .no-books-icon {
-  color: #94a3b8;
-  margin-bottom: 24px;
+  color: var(--pb-color-text-soft);
+  margin-bottom: 20px;
   display: flex;
   justify-content: center;
 }
 
 .no-books-content h3 {
-  color: #475569;
-  margin-bottom: 16px;
-  font-size: 1.5rem;
+  color: var(--pb-color-text-muted);
+  margin-bottom: 12px;
+  font-size: 1.25rem;
   font-weight: 600;
 }
 
 .no-books-content p {
-  color: #64748b;
-  font-size: 1.1rem;
-  margin: 0;
-  font-weight: 400;
-}
-
-.pagination-area {
-  display: flex;
-  justify-content: center;
-  padding: 3rem 0;
-  margin-top: 2rem;
-}
-
-.pagination-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  padding: 16px 32px;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.pagination-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
-  color: #475569;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: 500;
+  color: var(--pb-color-text-soft);
   font-size: 0.95rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  min-width: 80px;
-  justify-content: center;
+  margin: 0;
 }
 
-.pagination-btn:hover:not(:disabled) {
-  background: #f8fafc;
-  border-color: #cbd5e1;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.pagination-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.page-info {
+/* ────────────────────────────────────────────────
+   페이지네이션 (GitLab Offset style)
+──────────────────────────────────────────────── */
+.gl-pagination {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  padding: 20px 0 28px;
+}
+.gl-pagination-info {
+  font-size: 13px;
+  color: var(--pb-color-text-muted);
+}
+.gl-pagination-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.gl-page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--pb-color-border);
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text);
+  border-radius: var(--pb-radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+.gl-page-btn:hover:not(:disabled):not(.active) {
+  background: var(--pb-color-surface-muted);
+  border-color: var(--pb-color-border-strong);
+}
+.gl-page-btn.active {
+  background: var(--pb-color-brand);
+  color: #fff;
+  border-color: var(--pb-color-brand);
   font-weight: 600;
-  color: #1e293b;
+}
+.gl-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.gl-page-btn.prev-btn,
+.gl-page-btn.next-btn { padding: 0 10px; }
+.gl-page-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  font-size: 13px;
+  color: var(--pb-color-text-soft);
+  cursor: default;
+  user-select: none;
 }
 
-.current-page {
-  font-size: 1.1rem;
-  color: #667eea;
-}
-
-.page-divider {
-  color: #cbd5e1;
-}
-
-.total-pages {
-  font-size: 1rem;
-  color: #64748b;
-}
-
-/* 로딩 스타일 */
+/* ────────────────────────────────────────────────
+   로딩
+──────────────────────────────────────────────── */
 .loading-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 500px;
+  min-height: 400px;
   width: 100%;
-  padding: 4rem 2rem;
+  padding: 3rem 2rem;
 }
 
 .loading-content {
   text-align: center;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  padding: 4rem 3rem;
-  border-radius: 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--pb-color-surface);
+  padding: 3.5rem 3rem;
+  border-radius: var(--pb-radius-lg);
+  border: 1px solid var(--pb-color-border);
 }
 
 .loading-spinner {
   position: relative;
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 24px;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 20px;
 }
 
 .spinner-ring {
   position: absolute;
   width: 100%;
   height: 100%;
-  border: 4px solid transparent;
-  border-top-color: #667eea;
+  border: 3px solid transparent;
+  border-top-color: var(--pb-color-brand);
   border-radius: 50%;
-  animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  animation: spin 1.1s linear infinite;
 }
 
 .spinner-ring:nth-child(1) {
-  animation-delay: -0.45s;
-  border-top-color: #667eea;
+  animation-delay: -0.4s;
+  border-top-color: var(--pb-color-brand);
 }
 
 .spinner-ring:nth-child(2) {
-  animation-delay: -0.3s;
-  border-top-color: #764ba2;
+  animation-delay: -0.27s;
+  border-top-color: var(--pb-color-brand-muted);
   width: 70%;
   height: 70%;
   top: 15%;
@@ -1095,8 +1047,8 @@ onBeforeUnmount(() => {
 }
 
 .spinner-ring:nth-child(3) {
-  animation-delay: -0.15s;
-  border-top-color: #11998e;
+  animation-delay: -0.13s;
+  border-top-color: var(--pb-color-accent);
   width: 50%;
   height: 50%;
   top: 25%;
@@ -1104,7 +1056,7 @@ onBeforeUnmount(() => {
 }
 
 .spinner-ring:nth-child(4) {
-  border-top-color: #38ef7d;
+  border-top-color: var(--pb-color-border-strong);
   width: 30%;
   height: 30%;
   top: 35%;
@@ -1112,39 +1064,56 @@ onBeforeUnmount(() => {
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .loading-text {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 500;
-  color: #475569;
+  color: var(--pb-color-text-muted);
   margin: 0;
   animation: pulse 2s ease-in-out infinite;
 }
 
 @keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
 }
 
-/* 반응형 디자인 */
-@media (max-width: 1200px) {
+/* ────────────────────────────────────────────────
+   반응형: 1024px 이하
+──────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .nav-bar {
+    padding-inline: 18px;
+  }
+
+  .nav-right,
+  .search-component {
+    min-width: 260px;
+    width: 260px;
+  }
+
+  .header-top {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .filter-area {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
   .article-area {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
+/* ────────────────────────────────────────────────
+   반응형: 768px 이하
+──────────────────────────────────────────────── */
 @media (max-width: 768px) {
   body {
     overflow-x: hidden !important;
@@ -1155,15 +1124,15 @@ onBeforeUnmount(() => {
   }
 
   .mainpage-area {
-    /* overflow-x: hidden !important;
-    max-width: 100vw !important; */
     max-width: 100%;
   }
 
   .nav-bar {
-    padding: 12px 16px;
+    height: auto;
+    min-height: 136px;
+    padding: 10px 14px;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     align-items: stretch;
     max-width: 100vw;
     box-sizing: border-box;
@@ -1186,7 +1155,6 @@ onBeforeUnmount(() => {
   .nav {
     flex-wrap: nowrap !important;
     white-space: nowrap;
-    gap: 8px;
     display: flex !important;
     flex-direction: row !important;
     width: max-content;
@@ -1198,51 +1166,37 @@ onBeforeUnmount(() => {
   }
 
   .nav-link {
-    padding: 8px 16px;
+    padding: 7px 13px;
     font-size: 0.85rem;
-    border-radius: 20px;
   }
 
-  .nav-link:hover {
-    transform: translateY(5px);
-  }
-
-  .nav-right {
-    width: 100%;
-    min-width: auto;
-    max-width: 100%;
-  }
-
+  .nav-right,
   .search-component {
     width: 100%;
-    max-width: 100%;
+    min-width: 0;
   }
 
-  /* 중분류 드롭다운 가로 스크롤 */
   ul.dropdown-menu-custom {
     position: fixed !important;
-    top: 214px !important;
+    top: calc(var(--pb-header-height) + 136px) !important;
     left: 0 !important;
     right: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
-    padding: 12px 16px !important;
+    padding: 10px 14px !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
     -webkit-overflow-scrolling: touch !important;
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
-    border-top: 1px solid rgba(0, 0, 0, 0.1) !important;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
-    background: rgba(255, 255, 255, 0.98) !important;
-    backdrop-filter: blur(10px) !important;
+    border-bottom: 1px solid var(--pb-color-border) !important;
+    background: var(--pb-color-canvas) !important;
     flex-wrap: nowrap !important;
     z-index: 1029 !important;
     display: flex !important;
     margin: 0 !important;
     list-style: none !important;
-    gap: 12px !important;
+    gap: 8px !important;
   }
 
   .dropdown-menu-custom::-webkit-scrollbar {
@@ -1251,327 +1205,8 @@ onBeforeUnmount(() => {
 
   .dropdown-item-custom {
     flex-shrink: 0 !important;
-    padding: 8px 14px;
+    padding: 6px 12px;
     font-size: 0.8rem;
-    border-radius: 16px;
-    white-space: nowrap;
-  }
-
-  /* 메인 컨텐츠 여백 조정 */
-  .main {
-    margin-top: 200px !important;
-    max-width: 100vw !important;
-    box-sizing: border-box !important;
-  }
-
-  /* 헤더 섹션 */
-  .header-top {
-    flex-direction: column;
-    gap: 12px;
-    padding: 0;
-  }
-
-  .section-title {
-    font-size: 1.3rem;
-    justify-content: center;
-  }
-
-  .book-count {
-    font-size: 0.9rem;
-    padding: 3px 10px;
-  }
-
-  .filter-area {
-    position: static;
-    width: 100%;
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .sort-dropdown {
-    width: 100%;
-  }
-  
-  .campus-filter {
-    width: 100%;
-    justify-content: space-between;
-  }
-  
-  .campus-select {
-    flex: 1;
-    min-width: auto;
-  }
-
-  .sort-select {
-    width: 100%;
-    max-width: 250px;
-    min-width: auto;
-    font-size: 0.9rem;
-    padding: 10px 14px;
-  }
-
-  /* 도서 그리드 */
-  .article-area {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-
-  .main {
-    padding: 16px;
-  }
-
-  /* 페이지네이션 */
-  .pagination-wrapper {
-    padding: 12px 16px;
-    gap: 12px;
-  }
-
-  .pagination-btn {
-    padding: 8px 14px;
-    min-width: 60px;
-    font-size: 0.85rem;
-  }
-
-  .page-info {
-    font-size: 0.9rem;
-  }
-}
-
-/* Playbook design baseline overrides */
-.mainpage-bg-wrapper {
-  background:
-    linear-gradient(180deg, rgba(245, 247, 244, 0.94), rgba(245, 247, 244, 1)),
-    var(--pb-color-canvas);
-}
-
-.mainpage-area {
-  min-width: 0;
-}
-
-@media (min-width: 769px) {
-  .mainpage-area {
-    min-width: 0;
-  }
-}
-
-.nav-bar {
-  top: var(--pb-header-height) !important;
-  min-height: var(--pb-toolbar-height);
-  padding: 14px max(24px, calc((100vw - var(--pb-content-max)) / 2));
-  background: rgba(255, 255, 255, 0.96);
-  border-bottom: 1px solid var(--pb-color-border);
-  box-shadow: 0 4px 18px rgba(19, 32, 24, 0.07);
-}
-
-.nav {
-  gap: 6px;
-}
-
-.nav-link {
-  padding: 9px 14px;
-  margin: 0;
-  border-radius: 999px;
-  color: var(--pb-color-text-muted);
-  font-size: 0.92rem;
-  letter-spacing: 0;
-}
-
-.nav-link::before {
-  display: none;
-}
-
-.nav-link:hover {
-  color: var(--pb-color-brand-strong);
-  background: var(--pb-color-brand-soft);
-  transform: none;
-}
-
-.nav-link.active {
-  color: #fff;
-  background: var(--pb-color-brand);
-  box-shadow: none;
-  transform: none;
-}
-
-.nav-right {
-  min-width: 340px;
-}
-
-.search-component {
-  width: 340px;
-}
-
-.dropdown-menu-custom {
-  top: calc(var(--pb-header-height) + var(--pb-toolbar-height)) !important;
-  padding: 14px max(24px, calc((100vw - var(--pb-content-max)) / 2));
-  background: rgba(255, 255, 255, 0.98);
-  border-top: 0;
-  border-bottom: 1px solid var(--pb-color-border);
-  box-shadow: 0 8px 24px rgba(19, 32, 24, 0.08);
-}
-
-.dropdown-item-custom {
-  padding: 8px 13px;
-  border-radius: 999px;
-  color: var(--pb-color-text-muted);
-  border-color: var(--pb-color-border);
-  box-shadow: none;
-}
-
-.dropdown-item-custom:hover {
-  background: var(--pb-color-surface-muted);
-  border-color: var(--pb-color-border-strong);
-  transform: none;
-  box-shadow: none;
-}
-
-.dropdown-item-custom.active {
-  color: var(--pb-color-brand-strong);
-  background: var(--pb-color-brand-soft);
-  border-color: rgba(47, 111, 78, 0.22);
-  box-shadow: none;
-}
-
-.main {
-  width: min(100% - 48px, var(--pb-content-max));
-  padding: 28px 0 48px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.header-top {
-  justify-content: space-between;
-  padding: 0;
-}
-
-.content-header {
-  margin-bottom: 24px;
-  text-align: left;
-}
-
-.section-title {
-  justify-content: flex-start;
-  color: var(--pb-color-heading);
-  font-size: 1.65rem;
-  letter-spacing: 0;
-}
-
-.book-count {
-  color: var(--pb-color-brand-strong);
-  background: var(--pb-color-brand-soft);
-  border-radius: 999px;
-}
-
-.filter-area {
-  position: static;
-}
-
-.filter-label {
-  color: var(--pb-color-text-muted);
-}
-
-.campus-select,
-.sort-select {
-  border-color: var(--pb-color-border);
-  border-radius: var(--pb-radius-sm);
-  color: var(--pb-color-text);
-  box-shadow: none;
-}
-
-.campus-select:focus,
-.sort-select:focus {
-  border-color: var(--pb-color-brand);
-  box-shadow: 0 0 0 3px rgba(47, 111, 78, 0.14);
-}
-
-.article-area {
-  align-items: start;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 28px 22px;
-}
-
-.book-item:hover {
-  transform: translateY(-4px);
-}
-
-.no-books-content,
-.loading-content,
-.pagination-wrapper {
-  border: 1px solid var(--pb-color-border);
-  border-radius: var(--pb-radius-lg);
-  box-shadow: var(--pb-shadow-sm);
-}
-
-.pagination-btn {
-  border-radius: var(--pb-radius-sm);
-  border-color: var(--pb-color-border);
-  color: var(--pb-color-text-muted);
-}
-
-.pagination-btn:hover:not(:disabled) {
-  transform: none;
-  box-shadow: var(--pb-shadow-xs);
-}
-
-.current-page {
-  color: var(--pb-color-brand);
-}
-
-.spinner-ring,
-.spinner-ring:nth-child(1),
-.spinner-ring:nth-child(2),
-.spinner-ring:nth-child(3),
-.spinner-ring:nth-child(4) {
-  border-top-color: var(--pb-color-brand);
-}
-
-@media (max-width: 1024px) {
-  .nav-bar {
-    padding-inline: 18px;
-  }
-
-  .nav-right,
-  .search-component {
-    min-width: 280px;
-    width: 280px;
-  }
-
-  .header-top {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .filter-area {
-    width: 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-}
-
-@media (max-width: 768px) {
-  .nav-bar {
-    min-height: 136px;
-    padding: 10px 14px;
-  }
-
-  .nav-link {
-    padding: 8px 13px;
-    border-radius: 999px;
-  }
-
-  .nav-link:hover {
-    transform: none;
-  }
-
-  .nav-right,
-  .search-component {
-    width: 100%;
-    min-width: 0;
-  }
-
-  ul.dropdown-menu-custom {
-    top: calc(var(--pb-header-height) + 136px) !important;
-    padding: 10px 14px !important;
   }
 
   .main {
@@ -1580,21 +1215,50 @@ onBeforeUnmount(() => {
     margin-top: 188px !important;
   }
 
+  .header-top {
+    flex-direction: column;
+    gap: 12px;
+  }
+
   .section-title {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
+    justify-content: flex-start;
+  }
+
+  .book-count {
+    font-size: 0.85rem;
   }
 
   .filter-area {
+    width: 100%;
+    flex-direction: column;
     align-items: stretch;
-  }
-
-  .campus-filter {
     gap: 10px;
   }
 
+  .sort-dropdown {
+    width: 100%;
+  }
+
+  .campus-filter {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .campus-select {
+    flex: 1;
+    min-width: auto;
+  }
+
+  .sort-select {
+    width: 100%;
+    min-width: auto;
+    font-size: 0.88rem;
+  }
+
   .article-area {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px 14px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px 10px;
   }
 
   .pagination-wrapper {
@@ -1602,6 +1266,16 @@ onBeforeUnmount(() => {
     justify-content: space-between;
     gap: 8px;
     padding: 10px 12px;
+  }
+
+  .pagination-btn {
+    padding: 7px 12px;
+    min-width: 60px;
+    font-size: 0.85rem;
+  }
+
+  .page-info {
+    font-size: 0.88rem;
   }
 }
 </style>
