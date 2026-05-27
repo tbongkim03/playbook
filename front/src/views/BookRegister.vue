@@ -171,7 +171,8 @@
 
 <script setup>
 import { reactive, ref, computed } from 'vue'
-import axios from 'axios'
+import * as bookApi from '@/api/book'
+import * as externalApi from '@/api/external'
 import { swAlert } from '@/utils/sweetAlert'
 
 // Props와 Emits
@@ -246,7 +247,7 @@ async function searchISBN() {
   isSearching.value = true
 
   try {
-    const res = await axios.post('/api/national-library/isbn', isbn)
+    const res = await externalApi.searchByIsbn(isbn)
     const data = res.data.data
 
     const doc = data?.docs?.[0] || null
@@ -330,7 +331,7 @@ async function submitBook() {
   try {
     isLoading.value = true
 
-    const response = await axios.post('/api/books', payload)
+    const response = await bookApi.create(payload)
     const data = response.data.data
 
     await swAlert(`도서 "${data?.titleBook || book.title}"가 성공적으로 등록되었습니다!`, 'success')
@@ -348,7 +349,7 @@ async function submitBook() {
 async function searchBookImageFromNaver() {
   if (book.isbn && String(book.isbn).trim()) {
     try {
-      const response = await axios.post('/api/naver/book-search', {
+      const response = await externalApi.searchNaver({
         isbn: String(book.isbn).trim(),
         display: 10
       })

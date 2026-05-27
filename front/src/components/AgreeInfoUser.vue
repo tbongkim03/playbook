@@ -30,7 +30,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import * as termsApi from '@/api/terms'
 
 defineProps({ isInfoAgree: { type: Boolean, required: true } })
 defineEmits(['update:isInfoAgree'])
@@ -39,7 +39,7 @@ const termsContent = ref('')
 
 onMounted(async () => {
     try {
-        const res = await axios.get('/api/terms/PRIVACY')
+        const res = await termsApi.getByType('PRIVACY')
         termsContent.value = res.data.data?.content || ''
     } catch {}
 })

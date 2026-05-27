@@ -171,7 +171,10 @@
 </template>
 
 <script setup>
-import axios from 'axios'
+import * as bookApi from '@/api/book'
+import * as sortApi from '@/api/sort'
+import * as campusApi from '@/api/campus'
+import * as adminApi from '@/api/admin'
 import BookArea from '@/components/BookArea.vue'
 import BookSearch from '@/components/BookSearch.vue'
 import BorrowReturn from '@/components/BorrowReturn.vue'
@@ -247,7 +250,7 @@ const selectedSort = ref('latest')
 
 const fetchLargeCategories = async () => {
   try {
-    const res = await axios.get('/api/subjects')
+    const res = await sortApi.getFirstCategories()
     largeCategories.value = res.data.data
   } catch (error) {
     console.warn('대분류 카테고리 조회 실패:', error.message)
@@ -256,7 +259,7 @@ const fetchLargeCategories = async () => {
 
 const fetchMediumCategories = async () => {
   try {
-    const res = await axios.get('/api/subtitles')
+    const res = await sortApi.getSecondCategories()
     mediumCategoriesAll.value = res.data.data
   } catch (error) {
     console.warn('중분류 카테고리 조회 실패:', error.message)
@@ -278,17 +281,12 @@ const loadBooks = async (page = 1) => {
     const sortBy = sortFieldMap[selectedSort.value] || 'seqBook'
     const sortDir = selectedSort.value === 'popular' ? 'desc' : (selectedSort.value === 'latest' ? 'desc' : 'asc')
     
-    let url = ''
-    // 캠퍼스 필터가 선택된 경우 쿼리 파라미터로 전달
-    const campusParam = (selectedCampus.value && showCampusFilter.value) ? `&campusId=${selectedCampus.value}` : ''
-    
-    if (selectedLargeCategory.value === '전체') {
-      url = `/api/books?page=${page}&size=${ITEMS_PER_PAGE}&sortBy=${sortBy}&sortDir=${sortDir}${campusParam}`
-    } else {
-      url = `/api/books/sortFirst?id=${selectedLargeCategorySeq.value}&page=${page}&size=${ITEMS_PER_PAGE}&sortBy=${sortBy}&sortDir=${sortDir}${campusParam}`
-    }
+    const campusId = (selectedCampus.value && showCampusFilter.value) ? selectedCampus.value : undefined
+    const params = { page, size: ITEMS_PER_PAGE, sortBy, sortDir, campusId }
 
-    const res = await axios.get(url)
+    const res = selectedLargeCategory.value === '전체'
+      ? await bookApi.getAll(params)
+      : await bookApi.getByCategory(selectedLargeCategorySeq.value, params)
     const data = res.data.data
 
     // 서버에서 이미 필터링된 데이터를 받음
@@ -520,13 +518,7 @@ const fetchBooks = async (query = '', exact = false) => {
   try {
     isLoading.value = true
     
-    let url;
     if (query && query.trim()) {
-      const params = new URLSearchParams();
-      params.set('q', query.trim());
-      params.set('exact', exact);
-      url = `/api/books/search?${params.toString()}`;
-
       // 검색 모드 활성화 및 쿼리 저장
       isSearchMode.value = true
       lastSearchQuery.value = query.trim()
@@ -538,7 +530,7 @@ const fetchBooks = async (query = '', exact = false) => {
       return;
     }
 
-    const res = await axios.get(url);
+    const res = await bookApi.search({ q: query.trim(), exact });
     const data = res.data.data;
 
     if (!data.content) {
@@ -571,7 +563,7 @@ const fetchBooks = async (query = '', exact = false) => {
 // 캠퍼스 목록 가져오기
 const fetchCampuses = async () => {
   try {
-    const res = await axios.get('/api/campus')
+    const res = await campusApi.getAll()
     campuses.value = res.data.data || []
   } catch (error) {
     console.error('캠퍼스 목록 조회 실패:', error)
@@ -592,9 +584,7 @@ const checkUserType = async () => {
 
   if (userType === 'admin') {
     try {
-      const response = await axios.get('/api/admin/me', {
-        validateStatus: () => true
-      })
+      const response = await adminApi.checkMe()
       
       if (response.status === 200) {
         // seqCampus가 null이면 전체 관리자

@@ -312,7 +312,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import * as historyApi from '@/api/history'
 import { swAlert } from '@/utils/sweetAlert'
 import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
 
@@ -467,7 +467,8 @@ const fetchRentalHistory = async () => {
   try {
     isLoading.value = true
     
-    const response = await axios.get(`/api/history/book${getCampusParam()}`)
+    const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : null
+    const response = await historyApi.getBooks(campusId)
     
     // 응답 데이터 구조 확인 및 처리 (HistoryBookResponseDto 기준)
     const responseData = response.data.data

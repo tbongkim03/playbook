@@ -77,7 +77,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import * as historyApi from '@/api/history'
 import { swAlert } from '@/utils/sweetAlert'
 
 const router = useRouter()
@@ -227,12 +227,7 @@ const borrowBook = async (barcode) => {
   isLoading.value = true
   
   try {
-    const response = await axios({
-      method: 'post',
-      url: '/api/history/borrow',
-      data: barcode,
-      headers: { 'Content-Type': 'text/plain' }
-    })
+    const response = await historyApi.borrow(barcode)
     
     // console.log('API 응답 성공:', response)
     showMessage('도서 대출이 완료되었습니다.', 'success')

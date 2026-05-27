@@ -52,15 +52,16 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import * as adminApi from '@/api/admin'
+import * as userApi from '@/api/user'
 
 const router = useRouter()
 
 onMounted(async () => {
   const userType = sessionStorage.getItem('userType')
   try {
-    const logoutUrl = userType === 'admin' ? '/api/admin/logout' : '/api/users/logout'
-    await axios.post(logoutUrl)
+    if (userType === 'admin') await adminApi.logout()
+    else await userApi.logout()
   } catch (e) {
     // 세션이 이미 만료된 경우 무시
   }

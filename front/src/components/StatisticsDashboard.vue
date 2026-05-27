@@ -180,9 +180,9 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
-import axios from 'axios'
+import * as courseApi from '@/api/course'
+import * as historyApi from '@/api/history'
 import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
-import { API_BASE } from '@/utils/constants'
 
 // Chart.js 등록
 Chart.register(...registerables)
@@ -235,7 +235,7 @@ async function getCourseList() {
   //   `&sort=ASC&sortCol=2`
 
   try {
-    const res = await axios.get('/api/work24/course')
+    const res = await courseApi.getWork24()
     const data = res.data.data
     const apiCoursesRaw = data?.srchList || []
 
@@ -253,13 +253,13 @@ async function getCourseList() {
       }
     })
 
-    const dbRes = await axios.get(`${API_BASE}/courses`)
+    const dbRes = await courseApi.getAll()
     const dbCourses = dbRes.data.data
 
     for (const apiItem of apiCourses) {
       const exists = dbCourses.find(dbItem => dbItem.nameCourse === apiItem.nameCourse)
       if (!exists) {
-        await axios.post(`${API_BASE}/courses`, {
+        await courseApi.create({
           nameCourse: apiItem.nameCourse,
           startDtCourse: apiItem.startDtCourse,
           finishDtCourse: apiItem.finishDtCourse
@@ -270,7 +270,7 @@ async function getCourseList() {
     for (const dbItem of dbCourses) {
       const exists = apiCourses.find(apiItem => apiItem.nameCourse === dbItem.nameCourse)
       if (!exists) {
-        await axios.delete(`${API_BASE}/courses/${dbItem.seqCourse}`)
+        await courseApi.remove(dbItem.seqCourse)
       }
     }
 
@@ -282,7 +282,7 @@ async function getCourseList() {
           dbItem.finishDtCourse !== apiItem.finishDtCourse
 
         if (isDifferent) {
-          await axios.put(`${API_BASE}/courses/${dbItem.seqCourse}`, {
+          await courseApi.update(dbItem.seqCourse, {
             nameCourse: apiItem.nameCourse,
             startDtCourse: apiItem.startDtCourse,
             finishDtCourse: apiItem.finishDtCourse
@@ -291,7 +291,7 @@ async function getCourseList() {
       }
     }
 
-    const finalDbRes = await axios.get(`${API_BASE}/courses`)
+    const finalDbRes = await courseApi.getAll()
     const finalDbCourses = finalDbRes.data.data
 
     courses.value = finalDbCourses
@@ -339,13 +339,8 @@ let userRankChartInstance = null
 // API 호출 함수들
 const fetchPopularFirstSort = async () => {
   try {
-    let url = selectedCourse.value
-      ? `${API_BASE}/history/popular/first/${selectedCourse.value}`
-      : `${API_BASE}/history/popular/first`
-    
-    url += getCampusParam()
-
-    const response = await axios.get(url)
+    const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : null
+    const response = await historyApi.getPopularFirst(selectedCourse.value || null, campusId)
     popularFirstSort.value = response.data.data
   } catch (err) {
     console.error('Popular first sort fetch error:', err)
@@ -355,13 +350,8 @@ const fetchPopularFirstSort = async () => {
 
 const fetchPopularSecondSort = async () => {
   try {
-    let url = selectedCourse.value
-      ? `${API_BASE}/history/popular/second/${selectedCourse.value}`
-      : `${API_BASE}/history/popular/second`
-    
-    url += getCampusParam()
-
-    const response = await axios.get(url)
+    const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : null
+    const response = await historyApi.getPopularSecond(selectedCourse.value || null, campusId)
     popularSecondSort.value = response.data.data
   } catch (err) {
     console.error('Popular second sort fetch error:', err)
@@ -371,13 +361,8 @@ const fetchPopularSecondSort = async () => {
 
 const fetchUserReadingRank = async () => {
   try {
-    let url = selectedCourse.value
-      ? `${API_BASE}/history/rank/${selectedCourse.value}`
-      : `${API_BASE}/history/rank`
-    
-    url += getCampusParam()
-
-    const response = await axios.get(url)
+    const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : null
+    const response = await historyApi.getUserRank(selectedCourse.value || null, campusId)
     userReadingRank.value = response.data.data
   } catch (err) {
     console.error('User reading rank fetch error:', err)

@@ -421,15 +421,14 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
-import axios from 'axios'
+import * as userApi from '@/api/user'
+import * as favorApi from '@/api/favor'
+import * as historyApi from '@/api/history'
+import * as courseApi from '@/api/course'
 import { useRouter } from 'vue-router'
 import { swAlert, swConfirm } from '@/utils/sweetAlert'
 
 const router = useRouter()
-
-
-// API 기본 URL
-const API_BASE_URL = '/api'
 
 // 유저 정보
 const userInfo = ref({
@@ -556,7 +555,7 @@ onBeforeUnmount(() => {
 // 유저 정보 로드
 async function loadUserData() {
   try {
-    const response = await axios.get(`${API_BASE_URL}/users/me`)
+    const response = await userApi.getMe()
     const data = response.data.data
     userInfo.value = data
 
@@ -585,7 +584,7 @@ async function loadUserData() {
 // 찜한 도서 목록 로드
 async function loadFavoriteBooks() {
   try {
-    const response = await axios.get(`${API_BASE_URL}/favor`)
+    const response = await favorApi.getAll()
     favoriteBooks.value = response.data.data || []
   } catch (error) {
     console.error('찜 목록 로드 실패:', error.response?.data?.msg)
@@ -595,7 +594,7 @@ async function loadFavoriteBooks() {
 // 대여 기록 로드
 async function loadRentalHistory() {
   try {
-    const response = await axios.get(`${API_BASE_URL}/history/me`)
+    const response = await historyApi.getMe()
     const data = response.data.data
     rentalHistory.value = data?.history || []
     rentalSummary.value = data?.summary || {
@@ -612,7 +611,7 @@ async function loadRentalHistory() {
 // 과정 목록 가져오기
 async function getCourseList() {
   try {
-    const res = await axios.get('/api/work24/course')
+    const res = await courseApi.getWork24()
     const data = res.data.data
     const apiCoursesRaw = data?.srchList || []
 
@@ -630,13 +629,13 @@ async function getCourseList() {
       }
     })
 
-    const dbRes = await axios.get(`${API_BASE_URL}/courses`)
+    const dbRes = await courseApi.getAll()
     const dbCourses = dbRes.data.data
 
     for (const apiItem of apiCourses) {
       const exists = dbCourses.find(dbItem => dbItem.nameCourse === apiItem.nameCourse)
       if (!exists) {
-        await axios.post(`${API_BASE_URL}/courses`, {
+        await courseApi.create({
           nameCourse: apiItem.nameCourse,
           startDtCourse: apiItem.startDtCourse,
           finishDtCourse: apiItem.finishDtCourse
@@ -647,7 +646,7 @@ async function getCourseList() {
     for (const dbItem of dbCourses) {
       const exists = apiCourses.find(apiItem => apiItem.nameCourse === dbItem.nameCourse)
       if (!exists) {
-        await axios.delete(`${API_BASE_URL}/courses/${dbItem.seqCourse}`)
+        await courseApi.remove(dbItem.seqCourse)
       }
     }
 
@@ -659,7 +658,7 @@ async function getCourseList() {
           dbItem.finishDtCourse !== apiItem.finishDtCourse
 
         if (isDifferent) {
-          await axios.put(`${API_BASE_URL}/courses/${dbItem.seqCourse}`, {
+          await courseApi.update(dbItem.seqCourse, {
             nameCourse: apiItem.nameCourse,
             startDtCourse: apiItem.startDtCourse,
             finishDtCourse: apiItem.finishDtCourse
@@ -668,7 +667,7 @@ async function getCourseList() {
       }
     }
 
-    const finalDbRes = await axios.get(`${API_BASE_URL}/courses`)
+    const finalDbRes = await courseApi.getAll()
     const finalDbCourses = finalDbRes.data.data
 
     courseList.value = finalDbCourses
@@ -712,10 +711,7 @@ async function removeFavorite(seqBook) {
       return
     }
 
-    const response = await axios.delete('/api/favor', {
-      headers: { 'Content-Type': 'application/json' },
-      data: seqBook
-    })
+    const response = await favorApi.remove(seqBook)
 
     if (response.status === 200) {
       favoriteBooks.value = favoriteBooks.value.filter(book => book.seqBook !== seqBook)
@@ -807,7 +803,7 @@ async function handleWithdraw() {
   withdrawLoading.value = true
 
   try {
-    await axios.delete(`${API_BASE_URL}/users`)
+    await userApi.deleteAccount()
 
     sessionStorage.removeItem('userType')
     sessionStorage.removeItem('campusId')
@@ -969,7 +965,7 @@ function handleKeydown(event) {
 // 비밀번호 검증
 async function validatePassword(password) {
   try {
-    const response = await axios.post(`${API_BASE_URL}/users/validate`, { password })
+    const response = await userApi.validatePassword(password)
     return response.data.data === true
   } catch (error) {
     console.error('비밀번호 검증 중 오류:', error)
@@ -1019,7 +1015,7 @@ async function changePassword() {
     }
 
     // 비밀번호 변경
-    await axios.put(`${API_BASE_URL}/users/password`, { newPassword: passwordForm.value.newPassword })
+    await userApi.updatePassword(passwordForm.value.newPassword)
     await swAlert('비밀번호가 성공적으로 변경되었습니다.', 'success')
     closePasswordModal()
   } catch (error) {

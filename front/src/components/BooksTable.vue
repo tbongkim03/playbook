@@ -510,11 +510,14 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watchEffect } from 'vue'
-import axios from 'axios'
+import * as bookApi from '@/api/book'
+import * as sortApi from '@/api/sort'
+import * as campusApi from '@/api/campus'
+import * as adminApi from '@/api/admin'
 import Barcode from './Barcode.vue'
 import PrintBatch from './BookPrintBatch.vue'
 import { swAlert, swConfirm } from '@/utils/sweetAlert'
-import { API_BASE, MAX_BARCODE_SELECTION } from '@/utils/constants'
+import { MAX_BARCODE_SELECTION } from '@/utils/constants'
 
 // emit 정의
 defineEmits(['open-register-modal'])
@@ -617,20 +620,20 @@ const getBookStatusClass = (book) => {
 
 // 대분류 데이터 가져오기
 const fetchLargeCategories = async () => {
-  const res = await axios.get('/api/subjects')
+  const res = await sortApi.getFirstCategories()
   largeCategories.value = res.data.data
 }
 
 // 중분류 데이터 가져오기
 const fetchMediumCategories = async () => {
-  const res = await axios.get('/api/subtitles')
+  const res = await sortApi.getSecondCategories()
   mediumCategoriesAll.value = res.data.data
 }
 
 // 캠퍼스 목록 가져오기
 const fetchCampuses = async () => {
   try {
-    const res = await axios.get('/api/campus')
+    const res = await campusApi.getAll()
     campuses.value = res.data.data || []
   } catch (error) {
     console.error('캠퍼스 목록 조회 실패:', error)
@@ -642,9 +645,7 @@ const checkUserType = async () => {
   try {
     if (!sessionStorage.getItem('userType')) return
 
-    const response = await axios.get('/api/admin/me', {
-      validateStatus: () => true
-    })
+    const response = await adminApi.checkMe()
 
     if (response.status === 200) {
       const data = response.data.data
@@ -704,9 +705,7 @@ const unavailableCount = computed(() =>
 
 // 모든 도서 데이터 가져오기 (페이지네이션 없이)
 const fetchBooks = async () => {
-  const url = `${API_BASE}/books/all`
-
-  const res = await axios.get(url)
+  const res = await bookApi.getAllForAdmin()
   const data = res.data.data
 
   if (!Array.isArray(data)) {
@@ -974,7 +973,7 @@ async function deleteBook(book) {
 
   try {
     setActiveRow(book.seqBook)
-    await axios.delete(`${API_BASE}/books/${book.seqBook}`)
+    await bookApi.remove(book.seqBook)
 
     allBooks.value = allBooks.value.filter(b => b.seqBook !== book.seqBook)
     activeRowId.value = null

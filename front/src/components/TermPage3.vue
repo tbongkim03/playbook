@@ -25,14 +25,14 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import * as termsApi from '@/api/terms'
 
 const router = useRouter()
 const dynamicContent = ref(null)
 
 onMounted(async () => {
     try {
-        const res = await axios.get('/api/terms/DISCORD')
+        const res = await termsApi.getByType('DISCORD')
         const content = res.data.data?.content
         if (content && content.trim()) dynamicContent.value = content
     } catch {

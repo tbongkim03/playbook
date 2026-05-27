@@ -320,7 +320,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import axios from 'axios'
+import * as adminApi from '@/api/admin'
 import { swAlert } from '@/utils/sweetAlert'
 import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
 
@@ -409,7 +409,7 @@ const deletingAdmin = ref({
 // 비밀번호 검증
 const validatePassword = async (idAdmin, password) => {
   try {
-    const response = await axios.post(`/api/admin/validate?id=${idAdmin}`, { password })
+    const response = await adminApi.validatePassword(idAdmin, password)
     return response.data.data
   } catch (error) {
     throw error
@@ -456,9 +456,7 @@ const validateId = async () => {
   }
 
   try {
-    const response = await axios.get(`/api/admin/register/validate`, {
-      params: { id: newAdmin.value.idAdmin }
-    })
+    const response = await adminApi.validateId(newAdmin.value.idAdmin)
 
     const data = response.data.data;
 
@@ -481,7 +479,8 @@ const validateId = async () => {
 const fetchAdminList = async () => {
   try {
     isLoading.value = true
-    const response = await axios.get(`/api/admin/list${getCampusParam()}`)
+    const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : null
+    const response = await adminApi.getList(campusId)
     adminList.value = response.data.data.content || response.data.data
   } catch (error) {
     if (error.response?.status === 403) {
@@ -510,7 +509,7 @@ const addAdmin = async () => {
 
   try {
     isLoading.value = true
-    const response = await axios.post('/api/admin/register', newAdmin.value)
+    const response = await adminApi.register(newAdmin.value)
 
     await swAlert('관리자가 성공적으로 추가되었습니다.', 'success')
     closeAddModal()
@@ -558,7 +557,7 @@ const updateAdmin = async () => {
       newDiscord: discordChanged ? newDiscordValue : null
     }
     
-    const response = await axios.put('/api/admin/update', updateData)
+    const response = await adminApi.update(updateData)
     
     const updatedFields = []
     if (updateData.newDiscord !== null) updatedFields.push('디스코드 ID')
@@ -604,9 +603,7 @@ const deleteAdmin = async (idAdmin) => {
 
     await validatePassword(idAdmin, deletePassword.value)
 
-    const response = await axios.delete('/api/admin', {
-      data: { idAdmin: deletingAdmin.value.idAdmin }
-    })
+    const response = await adminApi.remove(deletingAdmin.value.idAdmin)
 
     await swAlert('관리자가 성공적으로 삭제되었습니다.', 'success')
     closeDeleteModal()

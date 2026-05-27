@@ -362,7 +362,8 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import axios from 'axios'
+import * as courseApi from '@/api/course'
+import * as campusApi from '@/api/campus'
 import { swAlert } from '@/utils/sweetAlert'
 import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
 
@@ -445,7 +446,8 @@ const onCampusChange = () => {
 const fetchCourseList = async () => {
   try {
     isLoading.value = true
-    const response = await axios.get(`/api/courses${getCampusParam()}`)
+    const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : null
+    const response = await courseApi.getAll(campusId)
     courseList.value = response.data.data
   } catch (error) {
     console.error('과정 목록 로드 실패:', error)
@@ -469,7 +471,7 @@ const addCourse = async () => {
       startDtCourse: newCourse.value.startDtCourse,
       finishDtCourse: newCourse.value.finishDtCourse
     }
-    await axios.post('/api/courses', courseData)
+    await courseApi.create(courseData)
 
     await swAlert('과정이 성공적으로 추가되었습니다.', 'success')
     closeAddCourseModal()
@@ -506,7 +508,7 @@ const updateCourse = async () => {
       startDtCourse: editingCourse.value.startDtCourse,
       finishDtCourse: editingCourse.value.finishDtCourse
     }
-    await axios.put(`/api/courses/${editingCourse.value.seqCourse}`, courseData)
+    await courseApi.update(editingCourse.value.seqCourse, courseData)
 
     await swAlert('과정이 성공적으로 수정되었습니다.', 'success')
     closeEditCourseModal()
@@ -529,7 +531,7 @@ const confirmDeleteCourse = (course) => {
 const deleteCourse = async (courseId) => {
   try {
     isLoading.value = true
-    await axios.delete(`/api/courses/${courseId}`)
+    await courseApi.remove(courseId)
     
     await swAlert('과정이 성공적으로 삭제되었습니다.', 'success')
     closeDeleteCourseModal()
@@ -574,7 +576,7 @@ const closeDeleteCourseModal = () => {
 // 활성 캠퍼스 목록 조회 (과정 추가/수정 모달용)
 const fetchActiveCampusList = async () => {
   try {
-    const response = await axios.get('/api/campus')
+    const response = await campusApi.getAll()
     return response.data.data
   } catch (error) {
     console.error('활성 캠퍼스 목록 로드 실패:', error)
@@ -586,14 +588,14 @@ const fetchActiveCampusList = async () => {
 const fetchCampusList = async () => {
   try {
     isLoading.value = true
-    const response = await axios.get('/api/campus/all')
+    const response = await campusApi.getAllIncludeInactive()
     campusList.value = response.data.data
   } catch (error) {
     console.error('캠퍼스 목록 로드 실패:', error)
     if (error.response?.status === 403) {
       // 403 에러 시 활성 캠퍼스만이라도 가져오기
       try {
-        const activeResponse = await axios.get('/api/campus')
+        const activeResponse = await campusApi.getAll()
         campusList.value = activeResponse.data.data
       } catch (fallbackError) {
         console.error('활성 캠퍼스 목록 로드 실패:', fallbackError)

@@ -77,7 +77,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import * as historyApi from '@/api/history'
 import { swAlert } from '@/utils/sweetAlert'
 
 const router = useRouter()
@@ -226,12 +226,7 @@ const returnBook = async (barcode) => {
   isLoading.value = true
   
   try {
-    const response = await axios({
-      method: 'put',
-      url: '/api/history/return',
-      data: barcode,
-      headers: { 'Content-Type': 'text/plain' }
-    })
+    const response = await historyApi.returnBook(barcode)
     
     if (response.data.code === '0000') {
       showMessage(response.data.msg || '도서 반납이 완료되었습니다.', 'success')

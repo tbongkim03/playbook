@@ -261,7 +261,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import axios from 'axios'
+import * as userApi from '@/api/user'
 import { swAlert } from '@/utils/sweetAlert'
 import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
 
@@ -324,7 +324,8 @@ const onCampusChange = () => {
 const fetchUserList = async () => {
   try {
     isLoading.value = true
-    const response = await axios.get(`/api/users/list${getCampusParam()}`)
+    const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : null
+    const response = await userApi.getList(campusId)
 
     userList.value = response.data.data.map(u => ({
       nameUser: u.nameUser ?? u[0],
@@ -452,9 +453,7 @@ const deleteUser = async () => {
     isLoading.value = true
     
     // 학생 삭제
-    const response = await axios.delete('/api/users', {
-      data: { idUser: deletingUser.value.idUser }
-    })
+    const response = await userApi.removeByAdmin(deletingUser.value.idUser)
     
     await swAlert('학생 계정이 성공적으로 삭제되었습니다.', 'success')
     closeDeleteModal()

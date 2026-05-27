@@ -67,7 +67,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import * as termsApi from '@/api/terms'
 import { swAlert, swToast } from '@/utils/sweetAlert'
 
 const tabs = [
@@ -89,7 +89,7 @@ const previewHtml = computed(() =>
 const fetchTerms = async (type) => {
   loading.value = true
   try {
-    const res = await axios.get(`/api/terms/${type}`)
+    const res = await termsApi.getByType(type)
     currentContent.value = res.data.data?.content || ''
     originalContent.value = currentContent.value
   } catch (error) {
@@ -111,7 +111,7 @@ const saveTerms = async () => {
   if (!currentContent.value.trim()) return
   saving.value = true
   try {
-    await axios.put(`/api/terms/${activeType.value}`, { content: currentContent.value })
+    await termsApi.update(activeType.value, currentContent.value)
     originalContent.value = currentContent.value
     swToast('약관이 저장되었습니다.', 'success')
   } catch (error) {

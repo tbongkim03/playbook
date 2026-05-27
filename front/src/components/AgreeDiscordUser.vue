@@ -30,7 +30,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import * as termsApi from '@/api/terms'
 
 defineProps({ isDiscordAgree: { type: Boolean, required: true } })
 defineEmits(['update:isDiscordAgree'])
@@ -39,7 +39,7 @@ const termsContent = ref('')
 
 onMounted(async () => {
     try {
-        const res = await axios.get('/api/terms/DISCORD')
+        const res = await termsApi.getByType('DISCORD')
         termsContent.value = res.data.data?.content || ''
     } catch {}
 })

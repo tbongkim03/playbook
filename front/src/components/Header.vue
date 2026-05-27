@@ -54,7 +54,8 @@
 </template>
 
 <script setup>
-import axios from 'axios'
+import * as adminApi from '@/api/admin'
+import * as userApi from '@/api/user'
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -86,10 +87,8 @@ async function fetchUserInfo() {
   }
 
   try {
-    const axiosConfig = { validateStatus: () => true };
-
     if (userType === 'user') {
-      const userRes = await axios.get('/api/users/me', axiosConfig);
+      const userRes = await userApi.checkMe();
       if (userRes.status === 200) {
         const data = userRes.data.data;
         if (data.seqCampus) {
@@ -105,7 +104,7 @@ async function fetchUserInfo() {
         return;
       }
     } else if (userType === 'admin') {
-      const adminRes = await axios.get('/api/admin/me', axiosConfig);
+      const adminRes = await adminApi.checkMe();
       if (adminRes.status === 200) {
         const data = adminRes.data.data;
         if (data.seqCampus?.seqCampus) {

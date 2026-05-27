@@ -158,7 +158,9 @@
 <script setup>
 import { useRoute, useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import * as bookApi from '@/api/book'
+import * as adminApi from '@/api/admin'
+import * as favorApi from '@/api/favor'
 import noImage from '@/assets/free-icon-no-image-11542598.png'
 import { isMobile } from '@/utils/mobileDetect'
 import { swAlert } from '@/utils/sweetAlert'
@@ -259,18 +261,9 @@ const handleWishlist = async () => {
         let response
 
         if (isWishlisted.value) {
-            // 찜하기 해제 - DELETE 요청
-            response = await axios.delete('/api/favor', {
-                headers: { 'Content-Type': 'application/json' },
-                data: book.value.seqBook
-            })
+            response = await favorApi.remove(book.value.seqBook)
         } else {
-            // 찜하기 추가 - POST 요청
-            response = await axios.post('/api/favor', book.value.seqBook, {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
+            response = await favorApi.add(book.value.seqBook)
         }
         
         if (response.status === 200) {
@@ -313,8 +306,8 @@ const checkWishlistStatus = async () => {
     try {
         if (!sessionStorage.getItem('userType')) return
 
-        const response = await axios.get('/api/favor')
-        
+        const response = await favorApi.getAll()
+
         if (response.status === 200 && response.data.data) {
             const favorList = response.data.data
             isWishlisted.value = favorList.some(favor =>
@@ -349,10 +342,8 @@ const checkAdminStatus = async () => {
         isAdmin.value = true
         // 전체 관리자인지 확인
         try {
-            const response = await axios.get('/api/admin/me', {
-                validateStatus: () => true
-            })
-            
+            const response = await adminApi.checkMe()
+
             if (response.status === 200) {
                 // seqCampus가 null이면 전체 관리자
                 if (!response.data.data.seqCampus) {
@@ -374,12 +365,10 @@ const checkAdminStatus = async () => {
         }
         return
     }
-    
+
     // userType이 'user'인 경우
     try {
-        const response = await axios.get('/api/admin/me', {
-            validateStatus: () => true
-        })
+        const response = await adminApi.checkMe()
         
         if (response.status === 200) {
             isAdmin.value = true
@@ -411,7 +400,7 @@ onMounted(async () => {
     await checkAdminStatus()
     
     try {
-        const res = await axios.get(`/api/books/${bookId}`)
+        const res = await bookApi.getById(bookId)
         
         if (res.data.data) {
             book.value = res.data.data

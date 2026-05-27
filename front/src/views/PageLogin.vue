@@ -175,7 +175,8 @@
 </template>
 
 <script setup>
-import axios from 'axios'
+import * as adminApi from '@/api/admin'
+import * as userApi from '@/api/user'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { swAlert } from '@/utils/sweetAlert'
@@ -221,29 +222,18 @@ async function handleLogin() {
     let loginData, apiUrl
     
     if (isAdminMode.value) {
-      // 관리자 로그인
-      loginData = {
-        idAdmin: userId.value,
-        pwAdmin: password.value
-      }
-      apiUrl = '/api/admin/login'
+      loginData = { idAdmin: userId.value, pwAdmin: password.value }
+      await adminApi.login(loginData)
     } else {
-      // 일반 사용자 로그인
-      loginData = {
-        idUser: userId.value,
-        pwUser: password.value
-      }
-      apiUrl = '/api/users/login'
+      loginData = { idUser: userId.value, pwUser: password.value }
+      await userApi.login(loginData)
     }
-
-    await axios.post(apiUrl, loginData)
 
     sessionStorage.setItem('userType', isAdminMode.value ? 'admin' : 'user')
 
     // 사용자 정보 조회하여 캠퍼스 저장
     try {
-      const userInfoUrl = isAdminMode.value ? '/api/admin/me' : '/api/users/me'
-      const userInfo = await axios.get(userInfoUrl)
+      const userInfo = isAdminMode.value ? await adminApi.getMe() : await userApi.getMe()
 
       // 캠퍼스 정보가 있으면 저장
       if (userInfo.data.data) {

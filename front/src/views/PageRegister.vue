@@ -321,7 +321,8 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
+import * as userApi from '@/api/user'
+import * as courseApi from '@/api/course'
 import { swAlert } from '@/utils/sweetAlert'
 
 const route = useRoute()
@@ -431,7 +432,7 @@ async function getCourseList() {
 
   try {
     // 1. 외부 API에서 데이터 가져오기
-    const res = await axios.get('/api/work24/course')
+    const res = await courseApi.getWork24()
     const data = res.data.data
     const apiCoursesRaw = data?.srchList || []
 
@@ -454,14 +455,14 @@ async function getCourseList() {
     })
 
     // 3. DB 데이터 가져오기
-    const dbRes = await axios.get('/api/courses')
+    const dbRes = await courseApi.getAll()
     const dbCourses = dbRes.data.data
 
     // 4. 추가: API에는 있는데 DB에는 없는 과정 → INSERT
     for (const apiItem of apiCourses) {
       const exists = dbCourses.find(dbItem => dbItem.nameCourse === apiItem.nameCourse)
       if (!exists) {
-        await axios.post('/api/courses', {
+        await courseApi.create({
           nameCourse: apiItem.nameCourse,
           startDtCourse: apiItem.startDtCourse,
           finishDtCourse: apiItem.finishDtCourse
@@ -473,7 +474,7 @@ async function getCourseList() {
     for (const dbItem of dbCourses) {
       const exists = apiCourses.find(apiItem => apiItem.nameCourse === dbItem.nameCourse)
       if (!exists) {
-        await axios.delete(`/api/courses/${dbItem.seqCourse}`)
+        await courseApi.remove(dbItem.seqCourse)
       }
     }
 
@@ -486,7 +487,7 @@ async function getCourseList() {
           dbItem.finishDtCourse !== apiItem.finishDtCourse
 
         if (isDifferent) {
-          await axios.put(`/api/courses/${dbItem.seqCourse}`, {
+          await courseApi.update(dbItem.seqCourse, {
             nameCourse: apiItem.nameCourse,
             startDtCourse: apiItem.startDtCourse,
             finishDtCourse: apiItem.finishDtCourse
@@ -496,7 +497,7 @@ async function getCourseList() {
     }
 
     // 7. 모든 동기화 작업 완료 후 최신 DB 데이터를 다시 가져오기
-    const finalDbRes = await axios.get('/api/courses')
+    const finalDbRes = await courseApi.getAll()
     const finalDbCourses = finalDbRes.data.data
 
     // 8. 드롭다운 표시용 courseList 값 세팅
@@ -581,9 +582,7 @@ async function validateUsername() {
   }
 
   try {
-    const response = await axios.get(
-      `/api/users/register/validate?id=${encodeURIComponent(trimmedId)}`
-    )
+    const response = await userApi.validateId(trimmedId)
     const data = response.data.data
 
     if (data.flag === true) {
@@ -665,7 +664,7 @@ async function handleSubmit() {
   }
 
   try {
-    const response = await axios.post('/api/users/register', payload)
+    const response = await userApi.register(payload)
 
     if (response.data.code === '0000') {
       await swAlert('회원가입이 완료되었습니다!', 'success')

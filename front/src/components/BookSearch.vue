@@ -133,6 +133,7 @@
 
 <script>
 import { swAlert } from '@/utils/sweetAlert'
+import * as bookApi from '@/api/book'
 
 const SEARCH_TYPES = [
   { value: 'title',     label: '도서명' },
@@ -199,10 +200,7 @@ export default {
       }
       this.isLoading = true
       try {
-        const axios = (await import('axios')).default
-        const res = await axios.get('/api/books/related', {
-          params: { q: this.query, type: this.currentType.value }
-        })
+        const res = await bookApi.getRelated({ q: this.query, type: this.currentType.value })
         const data = res.data.data || []
         const fieldMap = { title: 'titleBook', author: 'authorBook', isbn: 'isbnBook', publisher: 'publisherBook' }
         const field = fieldMap[this.currentType.value] || 'titleBook'

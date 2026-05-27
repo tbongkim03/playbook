@@ -1,5 +1,6 @@
 import { ref } from 'vue'
-import axios from 'axios'
+import * as adminApi from '@/api/admin'
+import * as campusApi from '@/api/campus'
 
 /**
  * 관리자 캠퍼스 필터 상태와 admin/me 조회를 공통화한 composable.
@@ -14,7 +15,7 @@ export function useAdminCampusFilter({ showFilterForCampusAdmin = true } = {}) {
   const fetchAdminInfo = async () => {
     try {
       if (!sessionStorage.getItem('userType')) return null
-      const response = await axios.get('/api/admin/me')
+      const response = await adminApi.getMe()
       const data = response.data.data
 
       if (!data.seqCampus) {
@@ -37,7 +38,7 @@ export function useAdminCampusFilter({ showFilterForCampusAdmin = true } = {}) {
 
   const fetchCampuses = async () => {
     try {
-      const res = await axios.get('/api/campus')
+      const res = await campusApi.getAll()
       campuses.value = res.data.data || []
     } catch (error) {
       console.error('캠퍼스 목록 조회 실패:', error)
