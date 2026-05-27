@@ -23,3 +23,6 @@ export const remove = (idAdmin) =>
   axios.delete('/api/admin', { data: { idAdmin } })
 
 export const logout = () => axios.post('/api/admin/logout')
+
+export const exportExcel = (campusId) =>
+  axios.get('/api/admin/export', { params: campusId ? { campusId } : {}, responseType: 'blob' })

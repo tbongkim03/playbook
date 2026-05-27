@@ -25,3 +25,6 @@ export const getUserRank = (courseId, campusId) => {
   const url = courseId ? `/api/history/rank/${courseId}` : '/api/history/rank'
   return axios.get(url, { params: campusId ? { campusId } : {} })
 }
+
+export const exportExcel = (campusId) =>
+  axios.get('/api/history/export', { params: campusId ? { campusId } : {}, responseType: 'blob' })

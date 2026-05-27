@@ -39,6 +39,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.springframework.session:spring-session-data-redis'
     implementation("net.dv8tion:JDA:5.6.1")
+    implementation 'org.apache.poi:poi-ooxml:5.2.5'
 }
 
 bootRun {

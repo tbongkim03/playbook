@@ -10,3 +10,6 @@ export const update = (id, data) => axios.put(`/api/courses/${id}`, data)
 export const remove = (id) => axios.delete(`/api/courses/${id}`)
 
 export const getWork24 = () => axios.get('/api/work24/course')
+
+export const exportExcel = (campusId) =>
+  axios.get('/api/courses/export', { params: campusId ? { campusId } : {}, responseType: 'blob' })

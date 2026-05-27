@@ -23,6 +23,11 @@ import playbook.encore.back.common.response.ResponseHandler;
 import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.book.service.BookService;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
@@ -257,6 +262,24 @@ public class BookController {
             return ResponseEntity.ok(ResponseHandler.success(books));
         }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportExcel(
+            HttpServletRequest request,
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId
+    ) throws Exception {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (!LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        Integer campusId = requestCampusId != null ? requestCampusId : (Integer) request.getAttribute("campusId");
+        byte[] data = bookService.exportExcel(campusId);
+        String encoded = URLEncoder.encode("도서목록", StandardCharsets.UTF_8).replace("+", "%20");
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encoded + ".xlsx")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(data);
     }
 
     @PostMapping("/check/barcode")

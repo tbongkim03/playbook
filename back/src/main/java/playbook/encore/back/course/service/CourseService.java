@@ -14,5 +14,6 @@ public interface CourseService {
     CourseResponseDto changeCourse(Integer courseId, CourseRequestDto courseRequestDto);
 
     void deleteCourseById(Integer courseId);
-    
+
+    byte[] exportExcel(Integer campusId) throws java.io.IOException;
 }

@@ -501,17 +501,19 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('ko-KR')
 }
 
-const exportData = () => {
-  const rows = filteredUserList.value.map(u => ({
-    '학생명': u.nameUser,
-    'ID': u.idUser,
-    '상태': u.statusUser,
-    '가입일': formatDate(u.createdAt),
-    '과정명': u.courseName || '-',
-    '과정 시작일': formatDate(u.courseStartDt),
-    '과정 종료일': formatDate(u.courseEndDt),
-  }))
-  exportToXlsx(rows, '학생계정')
+const exportData = async () => {
+  try {
+    const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : null
+    const res = await userApi.exportExcel(campusId)
+    const url = URL.createObjectURL(res.data)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = '학생계정.xlsx'
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    console.error('엑셀 내보내기 실패:', e)
+  }
 }
 
 // 컴포넌트 마운트 시 데이터 로드

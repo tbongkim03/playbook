@@ -21,10 +21,15 @@ import playbook.encore.back.history.dao.HistoryRepository;
 import playbook.encore.back.history.entity.History;
 import playbook.encore.back.bookUser.service.BookUserService;
 import playbook.encore.back.favor.dao.FavorRepository;
+import playbook.encore.back.common.excel.ExcelUtil;
+import org.apache.poi.ss.usermodel.Workbook;
 
+import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -215,5 +220,26 @@ public class BookUserServiceImpl implements BookUserService{
         } catch (Exception e) {
             throw new IllegalArgumentException("회원 탈퇴에 실패하였습니다: " + e.getMessage());
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public byte[] exportExcel(Integer campusId) throws IOException {
+        log.info("[BookUserService] 학생계정 엑셀 내보내기 - campusId: {}", campusId);
+        List<Object[]> list = getBookUserList(campusId);
+
+        List<String> headers = Arrays.asList("학생명", "ID", "상태", "가입일", "과정명", "시작일", "종료일");
+        List<List<Object>> rows = list.stream().map(u -> Arrays.<Object>asList(
+                u[0],
+                u[1],
+                u[2] != null ? u[2].toString() : "-",
+                u[3] != null ? u[3].toString().substring(0, 10) : "-",
+                u[4] != null ? u[4] : "-",
+                u[5] != null ? u[5].toString() : "-",
+                u[6] != null ? u[6].toString() : "-"
+        )).collect(Collectors.toList());
+
+        Workbook wb = ExcelUtil.createWorkbook(headers, rows);
+        return ExcelUtil.toResponse(wb, "학생계정").getBody();
     }
 }

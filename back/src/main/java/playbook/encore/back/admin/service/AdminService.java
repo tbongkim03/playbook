@@ -22,4 +22,6 @@ public interface AdminService {
     AdminListResponseDto getAdminList(Integer campusId);
 
     boolean deleteAdmin(String idAdmin);
+
+    byte[] exportExcel(Integer campusId) throws java.io.IOException;
 }

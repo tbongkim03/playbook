@@ -26,6 +26,11 @@ import playbook.encore.back.campus.dao.CampusRepository;
 import playbook.encore.back.sort.dao.SortSecondRepository;
 import playbook.encore.back.book.service.BookService;
 
+import playbook.encore.back.common.excel.ExcelUtil;
+import org.apache.poi.ss.usermodel.Workbook;
+
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -445,6 +450,35 @@ public class BookServiceImpl implements BookService {
         }
 
         return new BookBarcodeUniqueResponseDto(isDuplicated, message);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public byte[] exportExcel(Integer campusId) throws IOException {
+        log.info("[BookService] 도서 목록 엑셀 내보내기 - campusId: {}", campusId);
+        List<Book> books = (campusId != null)
+                ? bookRepository.findAllWithCategoriesByCampus(campusId)
+                : bookRepository.findAllWithCategories();
+
+        List<String> headers = Arrays.asList(
+                "제목", "ISBN", "저자", "출판사", "출판일",
+                "대분류", "중분류", "수량", "대출상태", "바코드"
+        );
+        List<List<Object>> rows = books.stream().map(b -> Arrays.<Object>asList(
+                b.getTitleBook(),
+                b.getIsbnBook(),
+                b.getAuthorBook(),
+                b.getPublisherBook(),
+                b.getPublishDateBook() != null ? b.getPublishDateBook().toString() : "-",
+                b.getSeqSortSecond().getSeqSortFirst().getKorSortFirst(),
+                b.getSeqSortSecond().getKorSortSecond(),
+                b.getCntBook(),
+                b.isBookBorrowed() ? "대출중" : "대출가능",
+                b.getBarcodeBook() != null ? b.getBarcodeBook() : "-"
+        )).collect(Collectors.toList());
+
+        Workbook wb = ExcelUtil.createWorkbook(headers, rows);
+        return ExcelUtil.toResponse(wb, "도서목록").getBody();
     }
 
 }

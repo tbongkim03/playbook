@@ -24,8 +24,14 @@ import playbook.encore.back.campus.dao.CampusRepository;
 import playbook.encore.back.history.service.HistoryService;
 import playbook.encore.back.discord.DiscordNotificationService;
 
+import playbook.encore.back.common.excel.ExcelUtil;
+import org.apache.poi.ss.usermodel.Workbook;
+
+import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -400,6 +406,32 @@ public class HistoryServiceImpl implements HistoryService {
 
         RentalSummaryDto rentalSummaryDto = historyDAO.getMyRentalSummay(user);
         return new HistoryBookResponseDto(rentalSummaryDto, rentalHistoryDtoList);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public byte[] exportExcel(Integer campusId) throws IOException {
+        log.info("[HistoryService] 대출이력 엑셀 내보내기 - campusId: {}", campusId);
+        List<RentalHistoryDto> list = (campusId != null)
+                ? historyDAO.getRentalHistoryListByCampus(campusId)
+                : historyDAO.getRentalHistoryList();
+
+        List<String> headers = Arrays.asList("도서명", "저자", "ISBN", "바코드", "이름", "아이디", "과정", "대출일", "반납일", "상태");
+        List<List<Object>> rows = list.stream().map(h -> Arrays.<Object>asList(
+                h.getBookTitle(),
+                h.getBookAuthor(),
+                h.getBookIsbn(),
+                h.getBarcodeBook(),
+                h.getUserName(),
+                h.getUserId(),
+                h.getCourseName() != null ? h.getCourseName() : "-",
+                h.getBorrowDate() != null ? h.getBorrowDate().toString() : "-",
+                h.getReturnDate() != null ? h.getReturnDate().toString() : "-",
+                h.getStatus()
+        )).collect(Collectors.toList());
+
+        Workbook wb = ExcelUtil.createWorkbook(headers, rows);
+        return ExcelUtil.toResponse(wb, "대출이력").getBody();
     }
 
     // 연체 판단 메서드

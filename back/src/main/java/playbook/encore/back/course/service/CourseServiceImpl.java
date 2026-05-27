@@ -1,7 +1,13 @@
 package playbook.encore.back.course.service;
 
+import playbook.encore.back.common.excel.ExcelUtil;
+import org.apache.poi.ss.usermodel.Workbook;
+
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,6 +115,24 @@ public class CourseServiceImpl implements CourseService{
         CourseResponseDto courseResponseDto = convertToDto(changedCourse);
 
         return courseResponseDto;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public byte[] exportExcel(Integer campusId) throws IOException {
+        log.info("[CourseService] 과정 엑셀 내보내기 - campusId: {}", campusId);
+        List<CourseResponseDto> courses = getAllCourse(campusId);
+
+        List<String> headers = Arrays.asList("과정명", "캠퍼스", "시작일", "종료일");
+        List<List<Object>> rows = courses.stream().map(c -> Arrays.<Object>asList(
+                c.getNameCourse(),
+                c.getCampusName() != null ? c.getCampusName() : "-",
+                c.getStartDtCourse() != null ? c.getStartDtCourse().toString() : "-",
+                c.getFinishDtCourse() != null ? c.getFinishDtCourse().toString() : "-"
+        )).collect(Collectors.toList());
+
+        Workbook wb = ExcelUtil.createWorkbook(headers, rows);
+        return ExcelUtil.toResponse(wb, "과정목록").getBody();
     }
 
     @Override

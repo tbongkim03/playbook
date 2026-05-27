@@ -26,3 +26,6 @@ export const logout = () => axios.post('/api/users/logout')
 
 export const validateId = (id) =>
   axios.get('/api/users/register/validate', { params: { id } })
+
+export const exportExcel = (campusId) =>
+  axios.get('/api/users/export', { params: campusId ? { campusId } : {}, responseType: 'blob' })

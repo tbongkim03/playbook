@@ -1150,23 +1150,19 @@ function formatDate(dateString) {
   return date.toLocaleDateString('ko-KR')
 }
 
-const exportData = () => {
-  const rows = filteredBooks.value.map(b => {
-    const medium = mediumCategoriesAll.value.find(m => m.seqSortSecond === b.categoryMedium)
-    return {
-      '제목': b.titleBook,
-      'ISBN': b.isbnBook,
-      '저자': b.authorBook,
-      '출판사': b.publisherBook,
-      '출판일': formatDate(b.publishDateBook),
-      '대분류': b.categoryLarge || '-',
-      '중분류': medium?.korSortSecond || '-',
-      '번호': b.cntBook,
-      '대출상태': getBookStatusText(b),
-      '바코드': b.barcodeBook || '-',
-    }
-  })
-  exportToXlsx(rows, '도서목록')
+const exportData = async () => {
+  try {
+    const campusId = currentUserCampusId.value || null
+    const res = await bookApi.exportExcel(campusId)
+    const url = URL.createObjectURL(res.data)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = '도서목록.xlsx'
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    console.error('엑셀 내보내기 실패:', e)
+  }
 }
 
 // 도서 목록 새로고침

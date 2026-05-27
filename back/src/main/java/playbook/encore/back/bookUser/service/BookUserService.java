@@ -29,4 +29,6 @@ public interface BookUserService {
     boolean deleteUserByAdmin(String idUser);
 
     boolean deleteUserBySelf(BookUser user);
+
+    byte[] exportExcel(Integer campusId) throws java.io.IOException;
 }

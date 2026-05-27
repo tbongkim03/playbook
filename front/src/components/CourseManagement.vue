@@ -626,14 +626,19 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('ko-KR')
 }
 
-const exportData = () => {
-  const rows = courseList.value.map(c => ({
-    '과정명': c.nameCourse,
-    '캠퍼스': c.campusName || '-',
-    '시작일': formatDate(c.startDtCourse),
-    '종료일': formatDate(c.finishDtCourse),
-  }))
-  exportToXlsx(rows, '과정목록')
+const exportData = async () => {
+  try {
+    const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : null
+    const res = await courseApi.exportExcel(campusId)
+    const url = URL.createObjectURL(res.data)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = '과정목록.xlsx'
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    console.error('엑셀 내보내기 실패:', e)
+  }
 }
 
 // 탭 변경 핸들러

@@ -696,15 +696,19 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('ko-KR')
 }
 
-const exportData = () => {
-  const rows = adminList.value.map(a => ({
-    'ID': a.idAdmin,
-    '이름': a.nameAdmin,
-    '캠퍼스': a.campusName || '전체',
-    '디스코드 ID': a.dcAdmin || '-',
-    '생성일': formatDate(a.createdAt),
-  }))
-  exportToXlsx(rows, '관리자계정')
+const exportData = async () => {
+  try {
+    const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : null
+    const res = await adminApi.exportExcel(campusId)
+    const url = URL.createObjectURL(res.data)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = '관리자계정.xlsx'
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    console.error('엑셀 내보내기 실패:', e)
+  }
 }
 
 // 컴포넌트 마운트 시 데이터 로드

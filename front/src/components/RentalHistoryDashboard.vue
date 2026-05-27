@@ -606,19 +606,19 @@ const changePage = (page) => {
   }
 }
 
-const exportData = () => {
-  const rows = allFilteredRentals.value.map(rental => ({
-    '도서명': rental.bookTitle,
-    '저자': rental.bookAuthor,
-    '바코드': rental.barcodeBook || '-',
-    '사용자': rental.userName,
-    '과정': rental.courseDisplay,
-    '대출일': formatDate(rental.rentalDate),
-    '반납예정일': formatDate(rental.dueDate),
-    '반납일': rental.returnDate ? formatDate(rental.returnDate) : '-',
-    '상태': getStatusText(rental),
-  }))
-  exportToXlsx(rows, '대출이력')
+const exportData = async () => {
+  try {
+    const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : null
+    const res = await historyApi.exportExcel(campusId)
+    const url = URL.createObjectURL(res.data)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = '대출이력.xlsx'
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    console.error('엑셀 내보내기 실패:', e)
+  }
 }
 
 // 컴포넌트 마운트 시 데이터 로드

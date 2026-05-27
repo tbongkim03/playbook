@@ -50,6 +50,11 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/books/batch/print")
                 .addPathPatterns("/books/unprinted")
                 .addPathPatterns("/books/check/barcode")
+                .addPathPatterns("/books/export")
+                .addPathPatterns("/admin/export")
+                .addPathPatterns("/users/export")
+                .addPathPatterns("/history/export")
+                .addPathPatterns("/history/book/*")
                 // campus 관련 관리자 전용 경로 추가
                 .addPathPatterns("/campus/all") // 모든 캠퍼스 조회 (관리자 전용)
                 .addPathPatterns("/campus/*") // 캠퍼스 상세, 수정, 삭제 (관리자 전용)

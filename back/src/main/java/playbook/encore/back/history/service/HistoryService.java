@@ -22,4 +22,6 @@ public interface HistoryService {
     List<PopularLabelDto> findPopularSecondSortAll(Integer campusId);
     List<UserReadingRankDto> findUserReadingRankByCourse(int courseId);
     List<UserReadingRankDto> findUserReadingRankAll(Integer campusId);
+
+    byte[] exportExcel(Integer campusId) throws java.io.IOException;
 }

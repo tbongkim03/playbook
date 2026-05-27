@@ -15,7 +15,14 @@ import playbook.encore.back.campus.entity.Campus;
 import playbook.encore.back.campus.dao.CampusRepository;
 import playbook.encore.back.admin.service.AdminService;
 
+import playbook.encore.back.common.excel.ExcelUtil;
+import org.apache.poi.ss.usermodel.Workbook;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -192,5 +199,25 @@ public class AdminServiceImpl implements AdminService {
             throw new IllegalArgumentException("어드민 삭제에 실패하였습니다. 다시 시도해 주세요");
         }
         return true;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public byte[] exportExcel(Integer campusId) throws IOException {
+        log.info("[AdminService] 관리자 목록 엑셀 내보내기 - campusId: {}", campusId);
+        AdminListResponseDto result = adminDAO.getAdminList(campusId);
+        List<AdminResponseDto> admins = result.getContent();
+
+        List<String> headers = Arrays.asList("ID", "이름", "캠퍼스", "디스코드ID", "생성일");
+        List<List<Object>> rows = admins.stream().map(a -> Arrays.<Object>asList(
+                a.getIdAdmin(),
+                a.getNameAdmin(),
+                a.getCampusName(),
+                a.getDcAdmin() != null ? a.getDcAdmin() : "-",
+                a.getCreatedAt() != null ? a.getCreatedAt().toLocalDate().toString() : "-"
+        )).collect(Collectors.toList());
+
+        Workbook wb = ExcelUtil.createWorkbook(headers, rows);
+        return ExcelUtil.toResponse(wb, "관리자계정").getBody();
     }
 }
