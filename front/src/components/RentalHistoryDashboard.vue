@@ -312,6 +312,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { exportToXlsx } from '@/utils/exportSheet'
 import * as historyApi from '@/api/history'
 import { swAlert } from '@/utils/sweetAlert'
 import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
@@ -365,13 +366,13 @@ const formatCourseName = (courseName) => {
   return `${words[0]} ${words[words.length - 1]}`
 }
 
-// 계산된 속성
-const filteredRentals = computed(() => {
-  let filtered = rentalHistory.value
+// 필터만 적용 (페이지네이션 제외) — 내보내기 용
+const applyRentalFilters = (source) => {
+  let filtered = source
 
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(rental => 
+    filtered = filtered.filter(rental =>
       rental.bookTitle.toLowerCase().includes(query) ||
       (rental.bookAuthor && rental.bookAuthor.toLowerCase().includes(query)) ||
       rental.userName.toLowerCase().includes(query)
@@ -380,17 +381,12 @@ const filteredRentals = computed(() => {
 
   if (filters.value.status !== 'all') {
     filtered = filtered.filter(rental => {
-      if (filters.value.status === 'rented') {
-        return rental.status === 'rented'
-      } else if (filters.value.status === 'overdue') {
-        return rental.status === 'overdue'
-      } else {
-        return rental.status === filters.value.status
-      }
+      if (filters.value.status === 'rented') return rental.status === 'rented'
+      if (filters.value.status === 'overdue') return rental.status === 'overdue'
+      return rental.status === filters.value.status
     })
   }
 
-  // 기간 필터
   if (filters.value.period !== 'all') {
     const now = new Date()
     let startDate, endDate
@@ -400,11 +396,12 @@ const filteredRentals = computed(() => {
         startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
         endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
         break
-      case 'week':
+      case 'week': {
         const dayOfWeek = now.getDay()
         startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek)
         endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - dayOfWeek))
         break
+      }
       case 'month':
         startDate = new Date(now.getFullYear(), now.getMonth(), 1)
         endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1)
@@ -413,7 +410,7 @@ const filteredRentals = computed(() => {
         if (filters.value.startDate && filters.value.endDate) {
           startDate = new Date(filters.value.startDate)
           endDate = new Date(filters.value.endDate)
-          endDate.setDate(endDate.getDate() + 1) // 종료일 포함
+          endDate.setDate(endDate.getDate() + 1)
         }
         break
     }
@@ -426,6 +423,14 @@ const filteredRentals = computed(() => {
     }
   }
 
+  return filtered
+}
+
+const allFilteredRentals = computed(() => applyRentalFilters(rentalHistory.value))
+
+// 계산된 속성
+const filteredRentals = computed(() => {
+  const filtered = allFilteredRentals.value
   // 페이지네이션 적용
   const startIndex = (currentPage.value - 1) * itemsPerPage
   return filtered.slice(startIndex, startIndex + itemsPerPage)
@@ -602,26 +607,18 @@ const changePage = (page) => {
 }
 
 const exportData = () => {
-  const csvContent = [
-    ['도서명', '저자', '바코드', '사용자', '과정', '대출 일', '반납예정일', '반납 일', '상태'].join(','),
-    ...rentalHistory.value.map(rental => [
-      rental.bookTitle,
-      rental.bookAuthor,
-      rental.barcodeBook || '',
-      rental.userName,
-      rental.courseDisplay,
-      formatDate(rental.rentalDate),
-      formatDate(rental.dueDate),
-      rental.returnDate ? formatDate(rental.returnDate) : '',
-      getStatusText(rental)
-    ].join(','))
-  ].join('\n')
-
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = `rental_history_${new Date().toISOString().split('T')[0]}.csv`
-  link.click()
+  const rows = allFilteredRentals.value.map(rental => ({
+    '도서명': rental.bookTitle,
+    '저자': rental.bookAuthor,
+    '바코드': rental.barcodeBook || '-',
+    '사용자': rental.userName,
+    '과정': rental.courseDisplay,
+    '대출일': formatDate(rental.rentalDate),
+    '반납예정일': formatDate(rental.dueDate),
+    '반납일': rental.returnDate ? formatDate(rental.returnDate) : '-',
+    '상태': getStatusText(rental),
+  }))
+  exportToXlsx(rows, '대출이력')
 }
 
 // 컴포넌트 마운트 시 데이터 로드

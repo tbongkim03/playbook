@@ -84,6 +84,15 @@
           </option>
         </select>
       </div>
+
+      <button class="export-btn" @click="exportData">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2"/>
+          <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2"/>
+          <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        엑셀로 내보내기
+      </button>
     </div>
 
     <!-- 학생 목록 테이블 -->
@@ -261,6 +270,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { exportToXlsx } from '@/utils/exportSheet'
 import * as userApi from '@/api/user'
 import { swAlert } from '@/utils/sweetAlert'
 import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
@@ -491,6 +501,19 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('ko-KR')
 }
 
+const exportData = () => {
+  const rows = filteredUserList.value.map(u => ({
+    '학생명': u.nameUser,
+    'ID': u.idUser,
+    '상태': u.statusUser,
+    '가입일': formatDate(u.createdAt),
+    '과정명': u.courseName || '-',
+    '과정 시작일': formatDate(u.courseStartDt),
+    '과정 종료일': formatDate(u.courseEndDt),
+  }))
+  exportToXlsx(rows, '학생계정')
+}
+
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(async () => {
   await fetchCurrentUser()
@@ -582,6 +605,24 @@ onBeforeUnmount(() => {
   margin-bottom: 16px;
   flex-wrap: wrap;
 }
+
+.export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  background: #fff;
+  color: var(--pb-color-text-primary);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.export-btn:hover { background: var(--pb-color-bg-subtle); }
 
 .search-box {
   position: relative;

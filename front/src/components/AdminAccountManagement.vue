@@ -24,6 +24,14 @@
 
     <!-- 관리자 추가 버튼 -->
     <div class="action-bar">
+      <button class="export-btn" @click="exportData">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2"/>
+          <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2"/>
+          <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        엑셀로 내보내기
+      </button>
       <button class="add-admin-btn" @click="showAddModal = true">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
@@ -323,6 +331,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import * as adminApi from '@/api/admin'
 import { swAlert } from '@/utils/sweetAlert'
 import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
+import { exportToXlsx } from '@/utils/exportSheet'
 
 // 반응형 데이터
 const adminList = ref([])
@@ -687,6 +696,17 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('ko-KR')
 }
 
+const exportData = () => {
+  const rows = adminList.value.map(a => ({
+    'ID': a.idAdmin,
+    '이름': a.nameAdmin,
+    '캠퍼스': a.campusName || '전체',
+    '디스코드 ID': a.dcAdmin || '-',
+    '생성일': formatDate(a.createdAt),
+  }))
+  exportToXlsx(rows, '관리자계정')
+}
+
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(async () => {
   await fetchCurrentUser()
@@ -772,8 +792,27 @@ onBeforeUnmount(() => {
 .action-bar {
   display: flex;
   justify-content: flex-end;
+  gap: 8px;
   margin-bottom: 14px;
 }
+
+.export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  background: #fff;
+  color: var(--pb-color-text-primary);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.export-btn:hover { background: var(--pb-color-bg-subtle); }
 
 .add-admin-btn {
   display: inline-flex;

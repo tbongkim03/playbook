@@ -292,8 +292,16 @@
         <div class="table-header">
           <h3>도서 목록</h3>
           <div class="table-actions">
-            <button 
-              @click="refreshBooks" 
+            <button class="export-btn" @click="exportData">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2"/>
+                <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2"/>
+                <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              엑셀로 내보내기
+            </button>
+            <button
+              @click="refreshBooks"
               class="refresh-btn"
               :disabled="isRefreshing"
               title="목록 새로고침"
@@ -518,6 +526,7 @@ import Barcode from './Barcode.vue'
 import PrintBatch from './BookPrintBatch.vue'
 import { swAlert, swConfirm } from '@/utils/sweetAlert'
 import { MAX_BARCODE_SELECTION } from '@/utils/constants'
+import { exportToXlsx } from '@/utils/exportSheet'
 
 // emit 정의
 defineEmits(['open-register-modal'])
@@ -1141,6 +1150,25 @@ function formatDate(dateString) {
   return date.toLocaleDateString('ko-KR')
 }
 
+const exportData = () => {
+  const rows = filteredBooks.value.map(b => {
+    const medium = mediumCategoriesAll.value.find(m => m.seqSortSecond === b.categoryMedium)
+    return {
+      '제목': b.titleBook,
+      'ISBN': b.isbnBook,
+      '저자': b.authorBook,
+      '출판사': b.publisherBook,
+      '출판일': formatDate(b.publishDateBook),
+      '대분류': b.categoryLarge || '-',
+      '중분류': medium?.korSortSecond || '-',
+      '번호': b.cntBook,
+      '대출상태': getBookStatusText(b),
+      '바코드': b.barcodeBook || '-',
+    }
+  })
+  exportToXlsx(rows, '도서목록')
+}
+
 // 도서 목록 새로고침
 const refreshBooks = async () => {
   isRefreshing.value = true
@@ -1527,6 +1555,23 @@ const refreshBooks = async () => {
   align-items: center;
   gap: 10px;
 }
+
+.export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 12px;
+  background: #fff;
+  border: 1px solid var(--pb-color-border);
+  color: var(--pb-color-text-primary);
+  border-radius: var(--pb-radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.export-btn:hover { background: var(--pb-color-bg-subtle); }
 
 .refresh-btn {
   display: inline-flex;
