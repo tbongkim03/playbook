@@ -29,33 +29,35 @@ P1(개인정보 수정) → P2(아이디/비번 찾기) → P3(모바일 최적�
 
 ---
 
-## P1 — 유저/어드민 개인정보 수정 `[ ]`
+## P1 — 유저/어드민 개인정보 수정 `[✓ 완료]`
 
-**목표**: 학생 계정도 어드민처럼 개인정보를 수정할 수 있도록 완성
+> 커밋: `8d78914` — 2026-05-28
 
-**현황**:
-- 어드민: `PUT /admin/update`, `PUT /admin/password`, `PUT /admin/discord` 모두 구현됨
-- 학생: `PUT /users/password`만 있음, 이름·디스코드 수정 불가
-
-**작업 목록**:
-- [ ] 백엔드: `PUT /users/update` API 추가 (이름, 디스코드 ID 수정)
-- [ ] 백엔드: `UpdateUserRequestDto` 생성
-- [ ] 프론트: `MyPage.vue` 개인정보 수정 폼 추가
-- [ ] 어드민: `AdminAccountManagement.vue` 학생 정보 수정 기능 점검
-
-**주요 파일**:
-- `back/.../bookUser/controller/BookUserController.java`
-- `back/.../bookUser/service/BookUserService.java`
-- `front/src/views/MyPage.vue`
-- `front/src/components/AdminAccountManagement.vue`
-
-**예상 소요**: 반나절 ~ 1일
+**작업 완료**:
+- [x] 백엔드: `PUT /users/update` — 학생 이름·디스코드 ID 자기 수정
+- [x] 백엔드: `PUT /users/admin/reset-password` — 어드민의 학생 비밀번호 초기화
+- [x] `UpdateUserRequestDto`, `ResetUserPasswordRequestDto` 생성
+- [x] `MyPage.vue` — 이름·디스코드 ID 변경 모달 추가, 디스코드 항목 표시
+- [x] `UserAccountManagement.vue` — 학생 비밀번호 초기화 버튼·모달 추가
 
 ---
 
-## P2 — 아이디/비번 찾기 (디스코드 기반) `[ ]`
+## P2 — 아이디/비번 찾기 (디스코드 기반) `[✓ 완료]`
 
-**목표**: 이메일 대신 디스코드 채널을 통해 계정을 찾고 비밀번호를 초기화
+> 커밋: (아래 참조) — 2026-05-28
+
+**완료 내용** (옵션 A — Discord Bot 자동화):
+- [x] `PlaybookListener.java` — `/findid`, `/resetpw` 슬래시 커맨드 추가
+- [x] `onReady` 에서 커맨드 자동 등록
+- [x] `/findid` — Discord ID(snowflake 또는 username) 매칭 → ephemeral 응답으로 아이디 안내
+- [x] `/resetpw id:[아이디]` — 본인 확인 후 임시 비밀번호 생성·저장 → ephemeral 응답
+- [x] `DiscordBotInitializer` — `GUILD_MESSAGES` intent 추가
+- [x] `PageLogin.vue` — "아이디·비밀번호 찾기" 링크 + 명령어 안내 힌트 추가
+- [x] `front/.env` — `VITE_DISCORD_SERVER_URL` 환경변수 추가
+
+**⚠️ 운영 시 설정 필요**:
+- `front/.env`의 `VITE_DISCORD_SERVER_URL`에 실제 디스코드 서버 초대 링크 입력
+- 디스코드 봇이 서버에서 슬래시 커맨드 권한 보유 확인
 
 **방식**: 이미 디스코드 계정 연동이 구현됨 → Discord ID를 신원 확인 수단으로 활용
 
@@ -381,8 +383,8 @@ on:
 
 ## 전체 완료 체크리스트
 
-- [ ] P1: 유저/어드민 개인정보 수정
-- [ ] P2: 아이디/비번 찾기 (디스코드 기반)
+- [x] P1: 유저/어드민 개인정보 수정 (완료 `8d78914`)
+- [x] P2: 아이디/비번 찾기 (디스코드 봇 슬래시 커맨드)
 - [ ] P3: 모바일 디자인 최적화
 - [ ] P4: CI/CD 자동화
   - [ ] Dockerfile 개선

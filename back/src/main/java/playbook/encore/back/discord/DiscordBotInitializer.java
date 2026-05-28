@@ -30,7 +30,7 @@ public class DiscordBotInitializer {
         try {
             System.out.println("🤖 Discord 봇 초기화 중...");
             JDA jda = JDABuilder.createDefault(token)
-                    .enableIntents(GatewayIntent.GUILD_MEMBERS)
+                    .enableIntents(GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_MESSAGES)
                     .setActivity(Activity.playing("플북 📚 도서 관리"))
                     .addEventListeners(playbookListener)
                     .build();

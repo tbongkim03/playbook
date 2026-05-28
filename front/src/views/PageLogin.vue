@@ -154,6 +154,20 @@
                             </svg>
                             회원가입
                         </a>
+                        <span class="link-divider">|</span>
+                        <a :href="discordServerUrl" target="_blank" rel="noopener noreferrer" class="link-item find-account-link">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+                                <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            아이디 · 비밀번호 찾기
+                        </a>
+                    </div>
+                    <div class="find-account-hint">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        디스코드 서버에서 <code>/findid</code> · <code>/resetpw</code> 명령어로 찾으실 수 있습니다
                     </div>
                 </div>
 
@@ -186,6 +200,7 @@ const userId = ref('')
 const password = ref('')
 const isAdminMode = ref(false)
 const showPassword = ref(false)
+const discordServerUrl = import.meta.env.VITE_DISCORD_SERVER_URL || 'https://discord.com'
 
 function setLoginMode(adminMode) {
   isAdminMode.value = adminMode
@@ -570,6 +585,35 @@ async function blockJavascriptInput(event) {
 .signup-link:hover {
   color: var(--pb-color-brand-strong);
   background: var(--pb-color-brand-soft);
+}
+
+.link-divider {
+  color: var(--pb-color-border-strong);
+  font-size: 0.75rem;
+  user-select: none;
+}
+
+.find-account-link {
+  color: var(--pb-color-text-muted);
+}
+
+.find-account-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--pb-color-text-soft, var(--pb-color-text-muted));
+}
+
+.find-account-hint code {
+  background: var(--pb-color-surface-subtle);
+  border: 1px solid var(--pb-color-border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 0.75rem;
+  color: var(--pb-color-text);
 }
 
 .divider {
