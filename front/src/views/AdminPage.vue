@@ -466,15 +466,70 @@ onBeforeUnmount(() => {
 
   .dashboard-content {
     width: 100%;
-    padding: 0 10px;
+    padding: 0;
   }
 
+  /* 모바일: 사이드바 → 상단 가로 탭 전환 */
   .admin-nav {
-    padding: 16px;
+    order: 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    box-shadow: none;
+    padding: 0;
+    position: sticky;
+    top: var(--pb-header-height);
+    z-index: 100;
+  }
+
+  .admin-main {
+    order: 1;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .sidebar-header,
+  .nav-title {
+    display: none;
+  }
+
+  .nav-section {
+    padding: 0;
+  }
+
+  .nav-list {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    gap: 2px;
+    padding: 6px 8px;
+    white-space: nowrap;
+  }
+
+  .nav-list::-webkit-scrollbar {
+    display: none;
   }
 
   .nav-item {
-    padding: 10px 12px;
+    flex-direction: column;
+    flex-shrink: 0;
+    width: auto;
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    gap: 4px;
+    min-height: 56px;
+    text-align: center;
+    border-radius: var(--pb-radius-sm);
+    margin-bottom: 0;
+  }
+
+  .nav-item svg {
+    width: 18px;
+    height: 18px;
   }
 
   .modal-header {
@@ -486,8 +541,8 @@ onBeforeUnmount(() => {
   }
 
   .close-btn {
-    width: 28px;
-    height: 28px;
+    width: 44px;
+    height: 44px;
   }
 }
 

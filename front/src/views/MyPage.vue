@@ -1871,13 +1871,18 @@ async function changePassword() {
 
 @media (max-width: 768px) {
   .mypage-container { padding: 0 1rem; }
+  .header-content h1 { font-size: 1.75rem; }
   .user-info-section, .favorites-section, .rental-history-section { padding: 1.5rem; }
   .info-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
   .info-value { width: 100%; justify-content: space-between; }
+  .edit-button { min-height: 44px; padding: 10px 14px; }
+  .withdraw-button { min-height: 44px; }
   .books-grid { grid-template-columns: 1fr; }
   .modal-overlay { padding: 1rem; }
-  .modal-content { padding: 1.5rem; }
+  .modal-content { padding: 1.5rem; max-height: 90vh; }
+  .close-button { min-width: 44px; min-height: 44px; }
   .modal-actions { flex-direction: column; }
+  .cancel-button, .submit-button, .withdraw-confirm-button { width: 100%; justify-content: center; }
   .rental-stats { grid-template-columns: repeat(2, 1fr); }
   .history-details { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
 }

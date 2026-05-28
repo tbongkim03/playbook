@@ -1156,8 +1156,11 @@ onBeforeUnmount(() => {
   }
 
   .nav-link {
-    padding: 7px 13px;
+    padding: 10px 13px;
     font-size: 0.85rem;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
   }
 
   .nav-right,
@@ -1259,8 +1262,9 @@ onBeforeUnmount(() => {
   }
 
   .pagination-btn {
-    padding: 7px 12px;
+    padding: 10px 12px;
     min-width: 60px;
+    min-height: 44px;
     font-size: 0.85rem;
   }
 

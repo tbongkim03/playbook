@@ -267,5 +267,8 @@ onMounted(() => {
   .header-content { width: calc(100% - 32px); }
   .logo-img { height: 24px; }
   .username { display: none; }
+  .login-btn,
+  .logout-btn { height: 44px; padding: 0 16px; }
+  .user-info { min-height: 44px; }
 }
 </style>

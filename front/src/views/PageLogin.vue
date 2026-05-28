@@ -645,8 +645,9 @@ async function blockJavascriptInput(event) {
   .login-card { padding: 2rem; }
   .welcome-text h1 { font-size: 2rem; }
   .welcome-text p { font-size: 1rem; }
-  .toggle-btn { font-size: 0.8rem; padding: 10px 12px; }
+  .toggle-btn { font-size: 0.8rem; padding: 10px 12px; min-height: 44px; }
   .link-items { flex-direction: column; gap: 0.5rem; }
+  .link-item { min-height: 44px; }
   .divider { width: 80%; height: 1px; }
   .password-input { padding-right: 76px; }
   .password-actions { gap: 2px; }
@@ -658,7 +659,7 @@ async function blockJavascriptInput(event) {
   .form-input { padding: 14px 14px 14px 44px; }
   .password-input { padding-right: 70px; }
   .login-button { padding: 14px 20px; font-size: 1rem; }
-  .toggle-btn { font-size: 0.75rem; padding: 8px 10px; gap: 6px; }
+  .toggle-btn { font-size: 0.75rem; padding: 8px 10px; gap: 6px; min-height: 44px; }
   .toggle-btn svg { width: 16px; height: 16px; }
   .input-action-btn { padding: 3px; }
 
