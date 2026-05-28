@@ -17,6 +17,7 @@ import playbook.encore.back.common.response.ResponseCode;
 import playbook.encore.back.common.response.ResponseHandler;
 import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.admin.service.AdminService;
+import playbook.encore.back.discord.DiscordNotificationService;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -29,12 +30,15 @@ public class AdminController {
 
     private final AdminService adminService;
     private final RedisIndexedSessionRepository sessionRepository;
+    private final DiscordNotificationService discordNotificationService;
 
     @Autowired
     public AdminController(AdminService adminService,
-                           RedisIndexedSessionRepository sessionRepository) {
+                           RedisIndexedSessionRepository sessionRepository,
+                           DiscordNotificationService discordNotificationService) {
         this.adminService = adminService;
         this.sessionRepository = sessionRepository;
+        this.discordNotificationService = discordNotificationService;
     }
 
     // 회원가입 관련 부분
@@ -250,5 +254,18 @@ public class AdminController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
         }
+    }
+
+    @PostMapping("/discord/link-message")
+    public ResponseEntity<Response> postDiscordLinkMessage(
+            HttpServletRequest request,
+            @RequestParam("channelId") String channelId
+    ) {
+        Object roleAttr = request.getAttribute("ROLE");
+        if (!LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        }
+        discordNotificationService.sendLinkButtonMessage(channelId);
+        return ResponseEntity.ok(ResponseHandler.success());
     }
 }

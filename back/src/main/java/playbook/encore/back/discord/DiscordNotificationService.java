@@ -2,6 +2,7 @@ package playbook.encore.back.discord;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -217,6 +218,34 @@ public class DiscordNotificationService {
             """, titleBook, nameUser);
 
         sendDirectMessage(dcUser, nameUser, message);
+    }
+
+    // 연동 채널에 버튼 메시지 게시
+    public void sendLinkButtonMessage(String targetChannelId) {
+        log.info("[DiscordService] 연동 버튼 메시지 전송 - channelId: {}", targetChannelId);
+        if (!isBotAvailable()) {
+            System.out.println("⚠️ Discord 봇이 비활성화되어 있습니다.");
+            return;
+        }
+        try {
+            TextChannel channel = jda.getTextChannelById(targetChannelId);
+            if (channel == null) {
+                System.out.println("⚠️ 채널을 찾을 수 없습니다: " + targetChannelId);
+                return;
+            }
+            Button linkButton = Button.primary("playbook_discord_link", "플북 계정 연동하기 📚");
+            channel.sendMessage("""
+                    ## 📚 플북 디스코드 연동
+                    아래 버튼을 눌러 플북 계정과 디스코드를 연동하세요.
+                    연동 완료 후 도서 대출/반납/연체 알림을 DM으로 받을 수 있습니다.
+
+                    > ⚠️ 플북 회원가입 시 입력한 디스코드 아이디와 현재 계정이 일치해야 연동됩니다.
+                    """)
+                    .addActionRow(linkButton)
+                    .queue();
+        } catch (Exception e) {
+            System.err.println("⚠️ 연동 버튼 메시지 전송 실패: " + e.getMessage());
+        }
     }
 
     // Discord ID가 숫자인지 확인
