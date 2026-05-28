@@ -4,6 +4,7 @@ import playbook.encore.back.bookUser.dto.LoginUserRequestDto;
 import playbook.encore.back.bookUser.dto.RegisterIdValidateResponseDto;
 import playbook.encore.back.bookUser.dto.RegisterUserRequestDto;
 import playbook.encore.back.bookUser.dto.RegisterUserResponseDto;
+import playbook.encore.back.bookUser.dto.UpdateUserRequestDto;
 import playbook.encore.back.bookUser.entity.BookUser;
 
 import java.util.List;
@@ -19,6 +20,10 @@ public interface BookUserService {
     boolean validatePassword(BookUser user, String password);
 
     boolean updatePassword(BookUser user, String newPassword);
+
+    boolean updateUser(BookUser user, UpdateUserRequestDto dto);
+
+    boolean resetUserPassword(String idUser, String newPassword);
 
 //    boolean updateDiscord(BookUser user, String newDiscord);
 

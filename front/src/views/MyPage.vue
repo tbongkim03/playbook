@@ -24,6 +24,13 @@
             <label class="info-label">이름</label>
             <div class="info-value">
               <span class="value-text">{{ userInfo.nameUser }}</span>
+              <button @click="openNameModal" class="edit-button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2"/>
+                  <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                변경
+              </button>
             </div>
           </div>
 
@@ -31,6 +38,20 @@
             <label class="info-label">아이디</label>
             <div class="info-value">
               <span class="value-text">{{ userInfo.idUser }}</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <label class="info-label">디스코드 ID</label>
+            <div class="info-value">
+              <span class="value-text">{{ userInfo.dcUser || '-' }}</span>
+              <button @click="openDiscordModal" class="edit-button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2"/>
+                  <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                변경
+              </button>
             </div>
           </div>
 
@@ -378,6 +399,80 @@
       </div>
     </div>
 
+    <!-- 이름 변경 모달 -->
+    <div v-if="nameModal" class="modal-overlay" @click="closeNameModal">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>이름 변경</h3>
+          <button @click="closeNameModal" class="close-button">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </button>
+        </div>
+        <form @submit.prevent="changeName" class="modal-form">
+          <div class="input-group">
+            <label class="input-label">새 이름</label>
+            <div class="input-container">
+              <input
+                type="text"
+                v-model="nameForm.newName"
+                class="form-input"
+                :class="{ error: nameForm.errors.newName }"
+                placeholder="변경할 이름을 입력하세요"
+              >
+            </div>
+            <div v-if="nameForm.errors.newName" class="error-message">
+              {{ nameForm.errors.newName }}
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button type="button" @click="closeNameModal" class="cancel-button">취소</button>
+            <button type="submit" class="submit-button" :disabled="nameForm.loading">
+              {{ nameForm.loading ? '변경 중...' : '변경하기' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 디스코드 ID 변경 모달 -->
+    <div v-if="discordModal" class="modal-overlay" @click="closeDiscordModal">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>디스코드 ID 변경</h3>
+          <button @click="closeDiscordModal" class="close-button">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </button>
+        </div>
+        <form @submit.prevent="changeDiscord" class="modal-form">
+          <div class="input-group">
+            <label class="input-label">새 디스코드 ID</label>
+            <div class="input-container">
+              <input
+                type="text"
+                v-model="discordForm.newDiscord"
+                class="form-input"
+                :class="{ error: discordForm.errors.newDiscord }"
+                placeholder="변경할 디스코드 ID를 입력하세요"
+              >
+            </div>
+            <div v-if="discordForm.errors.newDiscord" class="error-message">
+              {{ discordForm.errors.newDiscord }}
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button type="button" @click="closeDiscordModal" class="cancel-button">취소</button>
+            <button type="submit" class="submit-button" :disabled="discordForm.loading">
+              {{ discordForm.loading ? '변경 중...' : '변경하기' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- 회원 탈퇴 모달 -->
     <div v-if="withdrawModal" class="modal-overlay" @click="closeWithdrawModal">
       <div class="modal-content" @click.stop>
@@ -422,6 +517,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
 import * as userApi from '@/api/user'
+import { updateProfile } from '@/api/user'
 import * as favorApi from '@/api/favor'
 import * as historyApi from '@/api/history'
 import * as courseApi from '@/api/course'
@@ -459,6 +555,7 @@ const rentalSummary = ref({
 // 모달 상태
 const passwordModal = ref(false)
 const discordModal = ref(false)
+const nameModal = ref(false)
 const courseModal = ref(false)
 const withdrawModal = ref(false)
 
@@ -487,12 +584,18 @@ const passwordForm = ref({
 })
 
 const discordForm = ref({
-  password: '',
   newDiscord: '',
   loading: false,
   errors: {
-    password: '',
     newDiscord: ''
+  }
+})
+
+const nameForm = ref({
+  newName: '',
+  loading: false,
+  errors: {
+    newName: ''
   }
 })
 
@@ -832,6 +935,16 @@ function closeDiscordModal() {
   resetDiscordForm()
 }
 
+function openNameModal() {
+  nameModal.value = true
+  nameForm.value = { newName: userInfo.value.nameUser, loading: false, errors: { newName: '' } }
+}
+
+function closeNameModal() {
+  nameModal.value = false
+  nameForm.value = { newName: '', loading: false, errors: { newName: '' } }
+}
+
 function openCourseModal() {
   courseModal.value = true
   resetCourseForm()
@@ -864,11 +977,9 @@ function resetPasswordForm() {
 
 function resetDiscordForm() {
   discordForm.value = {
-    password: '',
-    newDiscord: userInfo.value.dcUser,
+    newDiscord: userInfo.value.dcUser || '',
     loading: false,
     errors: {
-      password: '',
       newDiscord: ''
     }
   }
@@ -952,6 +1063,8 @@ function handleKeydown(event) {
     // 모달이 열려있으면 모달 닫기
     if (passwordModal.value) {
       closePasswordModal()
+    } else if (nameModal.value) {
+      closeNameModal()
     } else if (discordModal.value) {
       closeDiscordModal()
     } else if (courseModal.value) {
@@ -959,6 +1072,56 @@ function handleKeydown(event) {
     } else if (withdrawModal.value) {
       closeWithdrawModal()
     }
+  }
+}
+
+// 이름 변경
+async function changeName() {
+  nameForm.value.errors.newName = ''
+  const trimmed = nameForm.value.newName?.trim()
+  if (!trimmed) {
+    nameForm.value.errors.newName = '이름을 입력해주세요.'
+    return
+  }
+  if (trimmed === userInfo.value.nameUser) {
+    nameForm.value.errors.newName = '현재 이름과 동일합니다.'
+    return
+  }
+  nameForm.value.loading = true
+  try {
+    await updateProfile({ nameUser: trimmed })
+    userInfo.value.nameUser = trimmed
+    await swAlert('이름이 성공적으로 변경되었습니다.', 'success')
+    closeNameModal()
+  } catch (error) {
+    await swAlert(error.response?.data?.msg || '이름 변경 중 오류가 발생했습니다.', 'error')
+  } finally {
+    nameForm.value.loading = false
+  }
+}
+
+// 디스코드 ID 변경
+async function changeDiscord() {
+  discordForm.value.errors.newDiscord = ''
+  const trimmed = discordForm.value.newDiscord?.trim()
+  if (!trimmed) {
+    discordForm.value.errors.newDiscord = '디스코드 ID를 입력해주세요.'
+    return
+  }
+  if (trimmed === userInfo.value.dcUser) {
+    discordForm.value.errors.newDiscord = '현재 디스코드 ID와 동일합니다.'
+    return
+  }
+  discordForm.value.loading = true
+  try {
+    await updateProfile({ dcUser: trimmed })
+    userInfo.value.dcUser = trimmed
+    await swAlert('디스코드 ID가 성공적으로 변경되었습니다.', 'success')
+    closeDiscordModal()
+  } catch (error) {
+    await swAlert(error.response?.data?.msg || '디스코드 ID 변경 중 오류가 발생했습니다.', 'error')
+  } finally {
+    discordForm.value.loading = false
   }
 }
 

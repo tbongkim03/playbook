@@ -15,6 +15,11 @@ export const validatePassword = (password) =>
 export const updatePassword = (newPassword) =>
   axios.put('/api/users/password', { newPassword })
 
+export const updateProfile = (data) => axios.put('/api/users/update', data)
+
+export const adminResetPassword = (idUser, newPassword) =>
+  axios.put('/api/users/admin/reset-password', { idUser, newPassword })
+
 export const removeByAdmin = (idUser) =>
   axios.delete('/api/users', { data: { idUser } })
 

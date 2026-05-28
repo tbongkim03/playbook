@@ -140,6 +140,26 @@ public class BookUserController {
         }
     }
 
+    @PutMapping("/update")
+    public ResponseEntity<Response> updateUser(
+            HttpServletRequest request,
+            @RequestBody UpdateUserRequestDto dto
+    ) throws Exception {
+        try {
+            Object roleAttr = request.getAttribute("ROLE");
+            if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
+                BookUser user = (BookUser) request.getAttribute("user");
+                boolean result = bookUserService.updateUser(user, dto);
+                return ResponseEntity.ok(ResponseHandler.success(result));
+            }
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
+        }
+    }
+
     @PutMapping("/password")
     public ResponseEntity<Response> updatePassword(
             HttpServletRequest request,
@@ -150,6 +170,25 @@ public class BookUserController {
             if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
                 BookUser user = (BookUser) request.getAttribute("user");
                 boolean result = bookUserService.updatePassword(user, requestDto.getNewPassword());
+                return ResponseEntity.ok(ResponseHandler.success(result));
+            }
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
+        }
+    }
+
+    @PutMapping("/admin/reset-password")
+    public ResponseEntity<Response> resetUserPassword(
+            HttpServletRequest request,
+            @RequestBody @Valid ResetUserPasswordRequestDto dto
+    ) throws Exception {
+        try {
+            Object roleAttr = request.getAttribute("ROLE");
+            if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+                boolean result = bookUserService.resetUserPassword(dto.getIdUser(), dto.getNewPassword());
                 return ResponseEntity.ok(ResponseHandler.success(result));
             }
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());

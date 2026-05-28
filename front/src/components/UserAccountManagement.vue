@@ -146,6 +146,12 @@
                     <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
                   </svg>
                 </button>
+                <button class="reset-pw-btn" @click="confirmResetPassword(user)" title="비밀번호 초기화">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </button>
                 <button class="delete-btn" @click="confirmDeleteUser(user)">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <polyline points="3,6 5,6 21,6" stroke="currentColor" stroke-width="2"/>
@@ -265,6 +271,40 @@
         </form>
       </div>
     </div>
+    <!-- 학생 비밀번호 초기화 모달 -->
+    <div v-if="showResetModal" class="modal-overlay" @click="closeResetModal">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>비밀번호 초기화</h3>
+          <button class="modal-close" @click="closeResetModal">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
+              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </button>
+        </div>
+        <div class="reset-info">
+          <p>학생 <strong>{{ resetingUser.nameUser }} ({{ resetingUser.idUser }})</strong>의 비밀번호를 초기화합니다.</p>
+        </div>
+        <form @submit.prevent="resetUserPassword" class="modal-form">
+          <div class="form-group">
+            <label class="form-label">새 비밀번호 <span class="required-mark">*</span></label>
+            <input
+              type="password"
+              v-model="resetNewPassword"
+              class="form-input"
+              placeholder="새 비밀번호를 입력하세요 (4-8자, 영문+숫자)"
+            />
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="cancel-btn" @click="closeResetModal">취소</button>
+            <button type="submit" class="reset-confirm-btn" :disabled="isLoading">
+              {{ isLoading ? '초기화 중...' : '초기화' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -296,11 +336,14 @@ const {
 // 모달 상태
 const showDetailModal = ref(false)
 const showDeleteModal = ref(false)
+const showResetModal = ref(false)
 
 // 선택된 사용자 정보
 const selectedUser = ref({})
 const deletingUser = ref({})
 const deletePassword = ref('')
+const resetingUser = ref({})
+const resetNewPassword = ref('')
 
 // 현재 사용자 정보
 const currentUser = ref({
@@ -314,6 +357,9 @@ const handleKeydown = (event) => {
   }
   if (event.key === 'Escape' && showDeleteModal.value) {
     showDeleteModal.value = false
+  }
+  if (event.key === 'Escape' && showResetModal.value) {
+    closeResetModal()
   }
 }
 
@@ -492,6 +538,41 @@ const closeDeleteModal = () => {
   showDeleteModal.value = false
   deletePassword.value = ''
   deletingUser.value = {}
+}
+
+const confirmResetPassword = (user) => {
+  resetingUser.value = { ...user }
+  resetNewPassword.value = ''
+  showResetModal.value = true
+}
+
+const closeResetModal = () => {
+  showResetModal.value = false
+  resetNewPassword.value = ''
+  resetingUser.value = {}
+}
+
+const resetUserPassword = async () => {
+  const pw = resetNewPassword.value?.trim()
+  if (!pw) {
+    await swAlert('새 비밀번호를 입력해주세요.', 'warning')
+    return
+  }
+  const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9]).{4,8}$/
+  if (!passwordRegex.test(pw)) {
+    await swAlert('비밀번호는 4-8자의 영문자, 숫자를 포함해야 합니다.', 'warning')
+    return
+  }
+  try {
+    isLoading.value = true
+    await userApi.adminResetPassword(resetingUser.value.idUser, pw)
+    await swAlert(`${resetingUser.value.nameUser} 학생의 비밀번호가 초기화되었습니다.`, 'success')
+    closeResetModal()
+  } catch (error) {
+    await swAlert(error.response?.data?.msg || '비밀번호 초기화에 실패했습니다.', 'error')
+  } finally {
+    isLoading.value = false
+  }
 }
 
 // 날짜 포맷팅
@@ -835,6 +916,7 @@ onBeforeUnmount(() => {
 }
 
 .view-btn,
+.reset-pw-btn,
 .delete-btn {
   display: flex;
   align-items: center;
@@ -858,6 +940,18 @@ onBeforeUnmount(() => {
   border-color: var(--pb-color-border-strong);
 }
 
+.reset-pw-btn {
+  background: var(--pb-color-warning-soft, #fff7ed);
+  color: var(--pb-color-warning, #f59e0b);
+  border-color: var(--pb-color-warning-muted, #fde68a);
+}
+
+.reset-pw-btn:hover {
+  background: var(--pb-color-warning, #f59e0b);
+  color: white;
+  border-color: var(--pb-color-warning, #f59e0b);
+}
+
 .delete-btn {
   background: var(--pb-color-danger-soft);
   color: var(--pb-color-danger);
@@ -867,6 +961,35 @@ onBeforeUnmount(() => {
   background: var(--pb-color-danger);
   color: var(--pb-color-surface);
   border-color: var(--pb-color-danger);
+}
+
+.reset-info {
+  padding: 1rem 0;
+  color: var(--pb-color-text);
+  border-bottom: 1px solid var(--pb-color-border);
+  margin-bottom: 1rem;
+}
+
+.reset-confirm-btn {
+  padding: 10px 20px;
+  border-radius: var(--pb-radius-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  background: var(--pb-color-warning, #f59e0b);
+  border: 1px solid var(--pb-color-warning, #f59e0b);
+  color: white;
+}
+
+.reset-confirm-btn:hover:not(:disabled) {
+  background: #d97706;
+  border-color: #d97706;
+}
+
+.reset-confirm-btn:disabled {
+  background: var(--pb-color-border);
+  border-color: var(--pb-color-border);
+  cursor: not-allowed;
 }
 
 /* ── 모달 ── */
@@ -1117,6 +1240,6 @@ onBeforeUnmount(() => {
 
 @media (max-width: 480px) {
   .student-actions { flex-direction: column; gap: 3px; }
-  .view-btn, .delete-btn { width: 28px; height: 28px; }
+  .view-btn, .reset-pw-btn, .delete-btn { width: 28px; height: 28px; }
 }
 </style>

@@ -13,6 +13,7 @@ import playbook.encore.back.bookUser.dto.LoginUserRequestDto;
 import playbook.encore.back.bookUser.dto.RegisterIdValidateResponseDto;
 import playbook.encore.back.bookUser.dto.RegisterUserRequestDto;
 import playbook.encore.back.bookUser.dto.RegisterUserResponseDto;
+import playbook.encore.back.bookUser.dto.UpdateUserRequestDto;
 import playbook.encore.back.bookUser.entity.BookUser;
 import playbook.encore.back.course.entity.Course;
 import playbook.encore.back.bookUser.dao.BookUserRepository;
@@ -123,6 +124,41 @@ public class BookUserServiceImpl implements BookUserService{
         if (!isPasswordChanged) {
             throw new IllegalArgumentException("비밀번호 변경에 실패하였습니다. 다시 시도해 주세요");
         }
+        return true;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean updateUser(BookUser bookUser, UpdateUserRequestDto dto) {
+        log.info("[BookUserService] 사용자 정보 수정 - id: {}", bookUser.getIdUser());
+        BookUser target = bookUserRepository.findByIdUser(bookUser.getIdUser())
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        boolean updated = false;
+        if (dto.getNameUser() != null && !dto.getNameUser().trim().isEmpty()) {
+            target.setNameUser(dto.getNameUser().trim());
+            updated = true;
+        }
+        if (dto.getDcUser() != null && !dto.getDcUser().trim().isEmpty()) {
+            target.setDcUser(dto.getDcUser().trim());
+            updated = true;
+        }
+        if (!updated) {
+            throw new IllegalArgumentException("수정할 정보를 입력해주세요.");
+        }
+        bookUserRepository.save(target);
+        return true;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean resetUserPassword(String idUser, String newPassword) {
+        log.info("[BookUserService] 관리자에 의한 비밀번호 초기화 - id: {}", idUser);
+        BookUser target = bookUserRepository.findByIdUser(idUser)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+        String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+        target.setPwUser(hashedPassword);
+        bookUserRepository.save(target);
         return true;
     }
 
