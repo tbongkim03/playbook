@@ -180,8 +180,9 @@ import BookSearch from '@/components/BookSearch.vue'
 import BorrowReturn from '@/components/BorrowReturn.vue'
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { swAlert } from '@/utils/sweetAlert'
+import { isMobile } from '@/utils/mobileDetect'
 
-const isModalOpen = ref(true)
+const isModalOpen = ref(!isMobile())
 
 const largeCategories = ref([])
 const mediumCategoriesAll = ref([])

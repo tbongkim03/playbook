@@ -1203,6 +1203,7 @@ onMounted(async () => {
   .actions { flex-direction: column; gap: 3px; }
   .pagination { flex-wrap: wrap; gap: 3px; }
   .detail-grid { grid-template-columns: 1fr; }
+  .user-info-grid { grid-template-columns: 1fr 1fr !important; }
 }
 
 @media (max-width: 480px) {
@@ -1212,5 +1213,6 @@ onMounted(async () => {
   .book-author { max-width: 100px; }
   .user-name { max-width: 80px; }
   .modal-content { width: 95%; }
+  .user-info-grid { grid-template-columns: 1fr !important; }
 }
 </style>

@@ -525,6 +525,7 @@ onBeforeUnmount(() => {
     text-align: center;
     border-radius: var(--pb-radius-sm);
     margin-bottom: 0;
+    white-space: nowrap;
   }
 
   .nav-item svg {

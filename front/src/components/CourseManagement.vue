@@ -1180,11 +1180,14 @@ onBeforeUnmount(() => {
 /* ── 반응형 ── */
 @media (max-width: 768px) {
   .stats-grid { grid-template-columns: 1fr; }
-  .action-bar { justify-content: center; }
+  .action-bar { justify-content: center; flex-wrap: wrap; }
+  .action-filter-bar { flex-direction: column; align-items: stretch; }
+  .filter-group { min-width: unset; }
   .data-table th, .data-table td { padding: 9px 12px; }
   .modal-content { width: 95%; }
   .modal-actions { flex-direction: column; }
   .cancel-btn, .submit-btn, .delete-confirm-btn { width: 100%; }
+  .export-btn { width: 100%; justify-content: center; }
 }
 
 @media (max-width: 480px) {

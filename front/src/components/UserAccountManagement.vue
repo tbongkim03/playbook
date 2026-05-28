@@ -1236,6 +1236,8 @@ onBeforeUnmount(() => {
   .modal-actions { flex-direction: column; }
   .cancel-btn, .delete-confirm-btn { width: 100%; }
   .detail-grid { grid-template-columns: 1fr; }
+  .table-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .table-actions { width: 100%; justify-content: flex-end; }
 }
 
 @media (max-width: 480px) {

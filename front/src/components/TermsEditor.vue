@@ -323,9 +323,11 @@ onMounted(() => fetchTerms('SERVICE'))
   color: var(--pb-color-text);
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 768px) {
   .editor-body {
     grid-template-columns: 1fr;
   }
+  .content-textarea { min-height: 280px; }
+  .preview-content { min-height: 200px; }
 }
 </style>

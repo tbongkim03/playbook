@@ -1205,7 +1205,7 @@ onBeforeUnmount(() => {
 /* ─── 반응형 ─── */
 @media (max-width: 768px) {
   .stats-grid { grid-template-columns: 1fr; }
-  .action-bar { justify-content: center; }
+  .action-bar { justify-content: center; flex-wrap: wrap; }
 
   .admin-table th,
   .admin-table td { padding: 10px 12px; }
@@ -1216,6 +1216,7 @@ onBeforeUnmount(() => {
   .cancel-btn, .submit-btn, .delete-confirm-btn { width: 100%; justify-content: center; }
   .id-input-group { flex-direction: column; }
   .validate-btn { width: 100%; }
+  .export-btn, .add-admin-btn { width: 100%; justify-content: center; }
 }
 
 @media (max-width: 480px) {

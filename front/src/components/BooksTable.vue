@@ -1920,7 +1920,8 @@ const refreshBooks = async () => {
 @media (max-width: 768px) {
   .page-title { font-size: 16px; }
   .filter-content { padding: 12px; }
-  .table-header { padding: 10px 14px; }
+  .table-header { flex-direction: column; align-items: flex-start; gap: 8px; padding: 10px 14px; }
+  .table-actions { width: 100%; justify-content: flex-end; }
   .books-table { min-width: 850px; }
   .col-title     { width: 138px; }
   .col-isbn      { width: 70px; }
@@ -1932,6 +1933,7 @@ const refreshBooks = async () => {
   .col-status    { width: 60px; }
   .col-barcode   { width: 96px; }
   .col-actions   { width: 52px; }
+  .stat-card { min-width: unset; }
 }
 
 @media (max-width: 480px) {
