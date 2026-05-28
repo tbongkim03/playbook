@@ -4,6 +4,8 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -12,6 +14,9 @@ public class DiscordNotificationService {
 
     @Value("${DISCORD_CHANNEL_ID:discord-channel-id}")
     private String channelId;
+
+    @Value("${DISCORD_LINK_CHANNEL_ID:}")
+    private String linkChannelId;
 
     // 캠퍼스별 채널 ID
     @Value("${DISCORD_CHANNEL_SEOCHO:}")
@@ -218,6 +223,42 @@ public class DiscordNotificationService {
             """, titleBook, nameUser);
 
         sendDirectMessage(dcUser, nameUser, message);
+    }
+
+    // 서버 시작 시 연동 버튼 메시지 존재 여부 확인 후 없으면 발송
+    @EventListener(ApplicationReadyEvent.class)
+    public void checkAndSendLinkButtonOnStartup() {
+        if (linkChannelId == null || linkChannelId.isEmpty()) {
+            log.info("[DiscordService] DISCORD_LINK_CHANNEL_ID 미설정, 연동 메시지 체크 생략");
+            return;
+        }
+        if (!isBotAvailable()) {
+            log.warn("[DiscordService] 봇 비활성화 상태, 연동 메시지 체크 생략");
+            return;
+        }
+        try {
+            TextChannel channel = jda.getTextChannelById(linkChannelId);
+            if (channel == null) {
+                log.warn("[DiscordService] 연동 채널을 찾을 수 없음: {}", linkChannelId);
+                return;
+            }
+            channel.getHistory().retrievePast(50).queue(
+                messages -> {
+                    boolean exists = messages.stream().anyMatch(msg ->
+                        msg.getButtons().stream().anyMatch(btn -> "playbook_discord_link".equals(btn.getId()))
+                    );
+                    if (exists) {
+                        log.info("[DiscordService] 연동 버튼 메시지 이미 존재, 발송 생략");
+                    } else {
+                        log.info("[DiscordService] 연동 버튼 메시지 없음, 신규 발송");
+                        sendLinkButtonMessage(linkChannelId);
+                    }
+                },
+                error -> log.warn("[DiscordService] 메시지 이력 조회 실패 (권한 확인 필요): {}", error.getMessage())
+            );
+        } catch (Exception e) {
+            log.warn("[DiscordService] 연동 메시지 체크 중 오류 발생: {}", e.getMessage());
+        }
     }
 
     // 연동 채널에 버튼 메시지 게시
