@@ -60,6 +60,8 @@ public class FavorController {
             BookUser user = (BookUser) userAttr;
             favorService.addFavor(user, bookId);
             return ResponseEntity.ok(ResponseHandler.success());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
         }

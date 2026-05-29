@@ -26,11 +26,7 @@ public class FavorServiceImpl implements FavorService {
     @Transactional(readOnly = true)
     public List<FavorResponseDto> getFavorList(BookUser user) {
         log.info("[FavorService] 즐겨찾기 목록 조회 - userId: {}", user.getIdUser());
-        List<FavorResponseDto> favors = favorDAO.getFavors(user);
-        if (favors.isEmpty()) {
-            throw new IllegalArgumentException("즐겨찾기 목록이 비어 있습니다.");
-        }
-        return favors;
+        return favorDAO.getFavors(user);
     }
 
     @Override

@@ -26,11 +26,7 @@ public class FavorDAOImpl implements FavorDAO {
 
     @Override
     public List<FavorResponseDto> getFavors(BookUser user) {
-        List<FavorResponseDto> optionalFavors = favorRepository.findFavorsByUser(user);
-        if (optionalFavors.isEmpty()) {
-            throw new IllegalArgumentException("즐겨찾기 목록이 비어 있습니다.");
-        }
-        return optionalFavors;
+        return favorRepository.findFavorsByUser(user);
     }
 
     @Override
