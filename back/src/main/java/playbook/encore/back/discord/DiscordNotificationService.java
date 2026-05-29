@@ -225,6 +225,69 @@ public class DiscordNotificationService {
         sendDirectMessage(dcUser, nameUser, message);
     }
 
+    // 서버 시작 시 슬래시 커맨드 안내 메시지 존재 여부 확인 후 없으면 발송
+    @EventListener(ApplicationReadyEvent.class)
+    public void checkAndSendCmdGuideOnStartup() {
+        if (linkChannelId == null || linkChannelId.isEmpty()) {
+            log.info("[DiscordService] DISCORD_LINK_CHANNEL_ID 미설정, 커맨드 안내 메시지 체크 생략");
+            return;
+        }
+        if (!isBotAvailable()) {
+            log.warn("[DiscordService] 봇 비활성화 상태, 커맨드 안내 메시지 체크 생략");
+            return;
+        }
+        try {
+            TextChannel channel = jda.getTextChannelById(linkChannelId);
+            if (channel == null) {
+                log.warn("[DiscordService] 연동 채널을 찾을 수 없음: {}", linkChannelId);
+                return;
+            }
+            channel.getHistory().retrievePast(50).queue(
+                messages -> {
+                    boolean exists = messages.stream().anyMatch(msg ->
+                        msg.getAuthor().isBot() && msg.getContentRaw().contains("/findid")
+                    );
+                    if (exists) {
+                        log.info("[DiscordService] 커맨드 안내 메시지 이미 존재, 발송 생략");
+                    } else {
+                        log.info("[DiscordService] 커맨드 안내 메시지 없음, 신규 발송");
+                        sendCmdGuideMessage(linkChannelId);
+                    }
+                },
+                error -> log.warn("[DiscordService] 메시지 이력 조회 실패 (권한 확인 필요): {}", error.getMessage())
+            );
+        } catch (Exception e) {
+            log.warn("[DiscordService] 커맨드 안내 메시지 체크 중 오류 발생: {}", e.getMessage());
+        }
+    }
+
+    // 슬래시 커맨드 안내 메시지 게시
+    public void sendCmdGuideMessage(String targetChannelId) {
+        log.info("[DiscordService] 커맨드 안내 메시지 전송 - channelId: {}", targetChannelId);
+        if (!isBotAvailable()) {
+            log.warn("[DiscordService] 봇 비활성화 상태");
+            return;
+        }
+        try {
+            TextChannel channel = jda.getTextChannelById(targetChannelId);
+            if (channel == null) {
+                log.warn("[DiscordService] 채널을 찾을 수 없습니다: {}", targetChannelId);
+                return;
+            }
+            channel.sendMessage("""
+                    ## 🔍 아이디 · 비밀번호를 잊으셨나요?
+                    채팅창에 아래 명령어를 입력하면 바로 확인할 수 있습니다.
+
+                    `/findid` — 내 플북 아이디 찾기
+                    `/resetpw id:플북아이디` — 임시 비밀번호 발급 (본인 계정만 가능)
+
+                    > ⚠️ 명령어는 디스코드 계정과 플북 계정이 연동된 경우에만 사용할 수 있습니다.
+                    """).queue();
+        } catch (Exception e) {
+            log.warn("[DiscordService] 커맨드 안내 메시지 전송 실패: {}", e.getMessage());
+        }
+    }
+
     // 서버 시작 시 연동 버튼 메시지 존재 여부 확인 후 없으면 발송
     @EventListener(ApplicationReadyEvent.class)
     public void checkAndSendLinkButtonOnStartup() {

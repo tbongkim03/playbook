@@ -164,10 +164,10 @@
                         </a>
                     </div>
                     <div class="find-account-hint">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2"/>
                         </svg>
-                        디스코드 서버에서 <code>/findid</code> · <code>/resetpw</code> 명령어로 찾으실 수 있습니다
+                        <span>디스코드 서버에서 <code>/findid</code> · <code>/resetpw</code> 명령어로 임시 비밀번호를 발급받을 수 있습니다</span>
                     </div>
                 </div>
 
@@ -601,10 +601,12 @@ async function blockJavascriptInput(event) {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 6px;
   margin-top: 0.75rem;
   font-size: 0.8rem;
   color: var(--pb-color-text-soft, var(--pb-color-text-muted));
+  text-align: center;
 }
 
 .find-account-hint code {

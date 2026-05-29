@@ -44,7 +44,7 @@ public class PlaybookListener extends ListenerAdapter {
         ).queue();
 
         event.getJDA().upsertCommand(
-            Commands.slash(CMD_RESET_PW, "플북 비밀번호를 초기화합니다")
+            Commands.slash(CMD_RESET_PW, "플북 임시 비밀번호를 발급합니다")
                 .addOption(OptionType.STRING, "id", "플북 아이디를 입력하세요", true)
         ).queue();
     }
@@ -162,7 +162,7 @@ public class PlaybookListener extends ListenerAdapter {
         target.setPwUser(BCrypt.hashpw(tempPassword, BCrypt.gensalt()));
         bookUserRepository.save(target);
 
-        event.reply("✅ **비밀번호 초기화 완료**\n" +
+        event.reply("✅ **임시 비밀번호 발급 완료**\n" +
                 "임시 비밀번호: **`" + tempPassword + "`**\n\n" +
                 "> ⚠️ 로그인 후 마이페이지에서 반드시 비밀번호를 변경해주세요.\n" +
                 "> 이 메시지는 본인에게만 보입니다.")
