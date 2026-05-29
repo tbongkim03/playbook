@@ -38,5 +38,6 @@ public interface FavorRepository extends JpaRepository<Favor, Integer> {
     void softDeleteBySeqUser(@Param("user") BookUser user);
 
     /** 특정 도서를 즐겨찾기한 사용자 목록 조회 */
-    List<BookUser> findAllBySeqBook(Book book);
+    @Query("SELECT f.seqUser FROM Favor f WHERE f.seqBook = :book")
+    List<BookUser> findAllBySeqBook(@Param("book") Book book);
 }

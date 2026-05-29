@@ -148,6 +148,8 @@ public class HistoryController {
         } catch (IllegalArgumentException e) {
             // 상태는 OK, 메시지만 연체 or 잘못된 형식
             return ResponseEntity.ok(ResponseHandler.error(ResponseCode.FAIL_PROCESS, e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
         }
     }
 
