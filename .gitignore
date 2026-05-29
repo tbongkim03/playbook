@@ -82,8 +82,8 @@ MEMORY.md
 PLAN.md
 responsehandlerExample.md
 
-# 스크립트 디렉터리
-scripts/
+# 백업 파일 (스크립트가 생성하는 결과물)
+backups/
 
 # 리팩토링 문서
 리팩토링.md

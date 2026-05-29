@@ -1,0 +1,114 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*.*.*']        # v1.x.x 릴리즈 태그 push 시에도 이미지 빌드
+  workflow_dispatch:          # 수동 트리거
+
+env:
+  REGISTRY: ghcr.io
+  BACK_IMAGE: ghcr.io/tbongkim03/playbook-back
+  FRONT_IMAGE: ghcr.io/tbongkim03/playbook-front
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # Job 1: GHCR 이미지 빌드 및 푸시
+  # ─────────────────────────────────────────────────────────────────────────
+  build-and-push:
+    name: 이미지 빌드 및 GHCR 푸시
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write    # GHCR 푸시 권한
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: GHCR 로그인
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 태그 전략 ──────────────────────────────────────────────────────
+      # main push   → sha-{7자리}, latest
+      # v*.*.* push → sha-{7자리}, v1.x.x  (latest 제외)
+      # ──────────────────────────────────────────────────────────────────
+
+      - name: Backend 이미지 메타데이터
+        id: meta-back
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.BACK_IMAGE }}
+          tags: |
+            type=sha,prefix=sha-,format=short
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=semver,pattern={{version}}
+
+      - name: Frontend 이미지 메타데이터
+        id: meta-front
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.FRONT_IMAGE }}
+          tags: |
+            type=sha,prefix=sha-,format=short
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=semver,pattern={{version}}
+
+      - name: Backend 이미지 빌드 및 푸시
+        uses: docker/build-push-action@v5
+        with:
+          context: ./back
+          file: ./back/Dockerfile
+          push: true
+          tags: ${{ steps.meta-back.outputs.tags }}
+          labels: ${{ steps.meta-back.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Frontend 이미지 빌드 및 푸시
+        uses: docker/build-push-action@v5
+        with:
+          context: ./front
+          file: ./front/ProdDockerfile
+          push: true
+          tags: ${{ steps.meta-front.outputs.tags }}
+          labels: ${{ steps.meta-front.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Job 2: SSH 배포 (실제 서버 준비 후 활성화)
+  #
+  # 활성화 방법:
+  #   1. if: false  →  if: needs.build-and-push.result == 'success'  로 변경
+  #   2. GitHub Secrets에 아래 값 등록:
+  #      SSH_PRIVATE_KEY     서버 SSH 개인키
+  #      SERVER_HOST         배포 서버 IP 또는 도메인
+  #      SERVER_USER         SSH 접속 사용자명
+  #      SERVER_DEPLOY_PATH  서버 내 프로젝트 경로 (예: /home/ubuntu/playbook)
+  # ─────────────────────────────────────────────────────────────────────────
+  deploy:
+    name: 서버 배포 (비활성)
+    if: false
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH로 서버 배포
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ${{ secrets.SERVER_DEPLOY_PATH }}
+            docker compose -f docker-compose.prod.yml pull back front
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans back front
+            docker image prune -f
+

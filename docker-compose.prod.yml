@@ -1,8 +1,7 @@
 services:
   back:
-    build:
-      context: ./back
-      dockerfile: Dockerfile
+    # BACK_IMAGE 환경변수로 롤백 가능: BACK_IMAGE=ghcr.io/tbongkim03/playbook-back:sha-abc1234
+    image: ${BACK_IMAGE:-ghcr.io/tbongkim03/playbook-back:latest}
     container_name: back-prod
     env_file:
       - ./back/.env.prod
@@ -43,9 +42,8 @@ services:
       - prod-network
 
   front:
-    build:
-      context: ./front
-      dockerfile: ProdDockerfile
+    # FRONT_IMAGE 환경변수로 롤백 가능: FRONT_IMAGE=ghcr.io/tbongkim03/playbook-front:sha-abc1234
+    image: ${FRONT_IMAGE:-ghcr.io/tbongkim03/playbook-front:latest}
     container_name: front-prod
     ports:
       - "80:80"
@@ -54,12 +52,41 @@ services:
     networks:
       - prod-network
 
+  # ── 향후 HTTPS 적용 시 추가 ──────────────────────────────────────────────
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: nginx-prod
+  #   ports:
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - /etc/letsencrypt:/etc/letsencrypt:ro
+  #   depends_on:
+  #     - front
+  #     - back
+  #   networks:
+  #     - prod-network
+
+  # ── 향후 모니터링 추가 시 활성화 ─────────────────────────────────────────
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: prometheus-prod
+  #   volumes:
+  #     - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+  #   networks:
+  #     - prod-network
+
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: grafana-prod
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - prod-network
+
 volumes:
   db-data:
 
 networks:
   prod-network:
     driver: bridge
-
-
-
