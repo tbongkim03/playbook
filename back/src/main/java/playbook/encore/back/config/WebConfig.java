@@ -33,6 +33,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/users")
                 .addPathPatterns("/admin")
                 .addPathPatterns("/users/password", "/admin/password")
+                .addPathPatterns("/users/update", "/users/admin/reset-password")
                 .addPathPatterns("/admin/discord", "/admin/update")
                 .addPathPatterns("/users/list")
                 .addPathPatterns("/admin/register", "/admin/register/validate")

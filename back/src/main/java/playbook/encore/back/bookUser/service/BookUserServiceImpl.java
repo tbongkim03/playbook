@@ -57,6 +57,10 @@ public class BookUserServiceImpl implements BookUserService{
     @Transactional(rollbackFor = Exception.class)
     public RegisterUserResponseDto createUser(RegisterUserRequestDto registerUserRequestDto) {
         log.info("[BookUserService] 사용자 등록 - id: {}", registerUserRequestDto.getIdUser());
+        if (bookUserDAO.searchBookUserResultExact(registerUserRequestDto.getIdUser()).isPresent() ||
+                adminDAO.searchBookUserResultExact(registerUserRequestDto.getIdUser()).isPresent()) {
+            throw new IllegalArgumentException("이미 사용 중인 아이디입니다.");
+        }
         Course course = courseRepository.findById(registerUserRequestDto.getSeqCorse())
         .orElseThrow(() -> new IllegalArgumentException("해당 과정은 존재하지 않습니다."));
 

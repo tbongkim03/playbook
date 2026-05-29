@@ -1,6 +1,7 @@
 package playbook.encore.back.discord;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
+import org.springframework.beans.factory.annotation.Autowired;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,11 +29,8 @@ public class DiscordNotificationService {
     @Value("${DISCORD_CHANNEL_DONGJAK:}")
     private String channelIdDongjak;
 
-    private final JDA jda;
-
-    public DiscordNotificationService(JDA jda) {
-        this.jda = jda;
-    }
+    @Autowired(required = false)
+    private JDA jda;
 
     // 봇 상태 확인 메서드
     private boolean isBotAvailable() {

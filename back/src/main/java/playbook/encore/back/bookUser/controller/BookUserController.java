@@ -23,7 +23,9 @@ import org.springframework.http.MediaType;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/users")
 public class BookUserController {
@@ -41,8 +43,14 @@ public class BookUserController {
     // 회원가입 관련 부분
     @PostMapping("/register")
     public ResponseEntity<Response> registerUser(@RequestBody @Valid RegisterUserRequestDto registerUserRequestDto) throws Exception {
-        RegisterUserResponseDto registerUserResponseDto = bookUserService.createUser(registerUserRequestDto);
-        return ResponseEntity.ok(ResponseHandler.success(registerUserResponseDto));
+        try {
+            RegisterUserResponseDto registerUserResponseDto = bookUserService.createUser(registerUserRequestDto);
+            return ResponseEntity.ok(ResponseHandler.success(registerUserResponseDto));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
+        }
     }
 
     @GetMapping("/register/validate")

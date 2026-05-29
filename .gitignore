@@ -70,6 +70,7 @@ front/.vite/*
 #### ENV ###
 back/.env.dev
 back/.env.prod
+back/.env.test
 db/.env.dev
 db/.env.prod
 front/.env
@@ -80,6 +81,7 @@ front_mok/
 # Claude Code 관련 파일
 MEMORY.md
 PLAN.md
+TEST_PLAN.md
 responsehandlerExample.md
 
 # 백업 파일 (스크립트가 생성하는 결과물)
