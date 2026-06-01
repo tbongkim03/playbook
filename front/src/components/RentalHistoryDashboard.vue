@@ -299,6 +299,7 @@ import { ref, computed, onMounted } from 'vue'
 import { exportToXlsx } from '@/utils/exportSheet'
 import * as historyApi from '@/api/history'
 import { swAlert } from '@/utils/sweetAlert'
+import { formatDate } from '@/utils/dateFormatter'
 import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
 import DateRangePicker from './DateRangePicker.vue'
 
@@ -536,11 +537,6 @@ const getStatusText = (rental) => {
   }
 }
 
-const formatDate = (dateString) => {
-  if (!dateString) return '-'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('ko-KR')
-}
 
 const showRentalDetail = (rental) => {
   selectedRental.value = rental

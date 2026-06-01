@@ -349,6 +349,7 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import * as adminApi from '@/api/admin'
 import { swAlert } from '@/utils/sweetAlert'
+import { formatDate } from '@/utils/dateFormatter'
 import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
 import { exportToXlsx } from '@/utils/exportSheet'
 
@@ -747,11 +748,6 @@ const closeDeleteModal = () => {
 }
 
 // 날짜 포맷팅
-const formatDate = (dateString) => {
-  if (!dateString) return '-'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('ko-KR')
-}
 
 const exportData = async () => {
   try {

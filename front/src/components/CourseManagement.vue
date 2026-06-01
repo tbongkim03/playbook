@@ -392,6 +392,7 @@ import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import * as courseApi from '@/api/course'
 import * as campusApi from '@/api/campus'
 import { swAlert } from '@/utils/sweetAlert'
+import { formatDate } from '@/utils/dateFormatter'
 import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
 import { exportToXlsx } from '@/utils/exportSheet'
 
@@ -676,11 +677,6 @@ const fetchCampusList = async () => {
 
 
 // 날짜 포맷팅
-const formatDate = (dateString) => {
-  if (!dateString) return '-'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('ko-KR')
-}
 
 const exportData = async () => {
   try {

@@ -332,6 +332,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { exportToXlsx } from '@/utils/exportSheet'
 import * as userApi from '@/api/user'
 import { swAlert } from '@/utils/sweetAlert'
+import { formatDate } from '@/utils/dateFormatter'
 import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
 
 // 반응형 데이터
@@ -632,11 +633,6 @@ const resetUserPassword = async () => {
 }
 
 // 날짜 포맷팅
-const formatDate = (dateString) => {
-  if (!dateString) return '-'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('ko-KR')
-}
 
 const exportData = async () => {
   try {

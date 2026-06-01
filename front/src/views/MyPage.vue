@@ -523,6 +523,7 @@ import * as historyApi from '@/api/history'
 import * as courseApi from '@/api/course'
 import { useRouter } from 'vue-router'
 import { swAlert, swConfirm } from '@/utils/sweetAlert'
+import { formatDate } from '@/utils/dateFormatter'
 
 const router = useRouter()
 
@@ -845,11 +846,6 @@ async function removeFavorite(seqBook) {
 }
 
 // 날짜 포맷팅
-function formatDate(dateString) {
-  if (!dateString) return '-'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('ko-KR')
-}
 
 // 상태 텍스트 변환
 function getStatusText(status) {

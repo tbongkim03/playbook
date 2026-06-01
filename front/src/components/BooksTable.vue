@@ -534,6 +534,7 @@ import DateRangePicker from './DateRangePicker.vue'
 import { swAlert, swConfirm } from '@/utils/sweetAlert'
 import { MAX_BARCODE_SELECTION } from '@/utils/constants'
 import { exportToXlsx } from '@/utils/exportSheet'
+import { formatDate } from '@/utils/dateFormatter'
 
 // emit 정의
 defineEmits(['open-register-modal'])
@@ -1260,11 +1261,6 @@ async function printBarcodes() {
 }
 
 // 날짜 포맷팅
-function formatDate(dateString) {
-  if (!dateString) return '-'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('ko-KR')
-}
 
 const exportData = async () => {
   try {
