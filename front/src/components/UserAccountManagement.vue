@@ -122,8 +122,8 @@
               <td class="student-name">{{ user.nameUser }}</td>
               <td class="student-id">{{ user.idUser }}</td>
               <td class="student-status">
-                <span :class="['status-badge', getStatusClass(user.statusUser)]">
-                  {{ user.statusUser }}
+                <span :class="['status-badge', getUserStatusClass(user.statusUser)]">
+                  {{ getUserStatusText(user.statusUser) }}
                 </span>
               </td>
               <td class="student-date">{{ formatDate(user.createdAt) }}</td>
@@ -212,8 +212,8 @@
               </div>
               <div class="detail-item">
                 <label>상태</label>
-                <span :class="['status-badge', getStatusClass(selectedUser.statusUser)]">
-                  {{ selectedUser.statusUser }}
+                <span :class="['status-badge', getUserStatusClass(selectedUser.statusUser)]">
+                  {{ getUserStatusText(selectedUser.statusUser) }}
                 </span>
               </div>
               <div class="detail-item">
@@ -333,6 +333,7 @@ import { exportToXlsx } from '@/utils/exportSheet'
 import * as userApi from '@/api/user'
 import { swAlert } from '@/utils/sweetAlert'
 import { formatDate } from '@/utils/dateFormatter'
+import { getUserStatusText, getUserStatusClass } from '@/utils/statusMapper'
 import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
 
 // 반응형 데이터
@@ -442,7 +443,7 @@ const fetchUserList = async () => {
     userList.value = response.data.data.map(u => ({
       nameUser: u.nameUser ?? u[0],
       idUser: u.idUser ?? u[1],
-      statusUser: formatStatus(u.email ?? u[2]),
+      statusUser: u.email ?? u[2],
       createdAt: u.registeredAt ?? u[3],
       courseName: u.courseName ?? u[4],
       courseStartDt: u.courseStartDt ?? u[5],
@@ -464,34 +465,14 @@ const fetchUserList = async () => {
   }
 }
 
-// 상태 매핑
-const statusMap = {
-  'available': '정상',
-  'stop': '정지',
-  'overdue': '연체'
-}
-
-const formatStatus = (status) => {
-  return statusMap[status] || status
-}
-
-// 상태별 CSS 클래스
-const getStatusClass = (status) => {
-  const statusClasses = {
-    '정상': 'status-active',
-    '정지': 'status-stopped',
-    '연체': 'status-overdue'
-  }
-  return statusClasses[status] || 'status-default'
-}
 
 // 통계 계산
 const getActiveStudents = () => {
-  return userList.value.filter(user => user.statusUser === '정상').length
+  return userList.value.filter(user => user.statusUser === 'available').length
 }
 
 const getOverdueStudents = () => {
-  return userList.value.filter(user => user.statusUser === '연체').length
+  return userList.value.filter(user => user.statusUser === 'overdue').length
 }
 
 // 과정 기간 상태 확인
@@ -540,8 +521,7 @@ const filterUsers = () => {
   
   // 상태 필터링
   if (selectedStatus.value) {
-    const selectedStatusKorean = formatStatus(selectedStatus.value)
-    filtered = filtered.filter(user => user.statusUser === selectedStatusKorean)
+    filtered = filtered.filter(user => user.statusUser === selectedStatus.value)
   }
   
   filteredUserList.value = filtered

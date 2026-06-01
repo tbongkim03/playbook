@@ -223,7 +223,7 @@
               <div class="history-details">
                 <p class="history-date">대여일: {{ formatDate(record.borrowDate) }}</p>
                 <p v-if="record.returnDate" class="history-date">반납일: {{ formatDate(record.returnDate) }}</p>
-                <p class="history-status" :class="record.status">{{ getStatusText(record.status) }}</p>
+                <p class="history-status" :class="record.status">{{ getRentalStatusText(record.status) }}</p>
               </div>
             </div>
           </div>
@@ -524,6 +524,7 @@ import * as courseApi from '@/api/course'
 import { useRouter } from 'vue-router'
 import { swAlert, swConfirm } from '@/utils/sweetAlert'
 import { formatDate } from '@/utils/dateFormatter'
+import { getRentalStatusText } from '@/utils/statusMapper'
 
 const router = useRouter()
 
@@ -846,16 +847,6 @@ async function removeFavorite(seqBook) {
 }
 
 // 날짜 포맷팅
-
-// 상태 텍스트 변환
-function getStatusText(status) {
-  const statusMap = {
-    'booked': '대여중',
-    'returned': '반납완료',
-    'overdue': '연체'
-  }
-  return statusMap[status] || status
-}
 
 // 모달 열기/닫기 함수들
 function openPasswordModal() {

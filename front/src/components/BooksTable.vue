@@ -535,6 +535,7 @@ import { swAlert, swConfirm } from '@/utils/sweetAlert'
 import { MAX_BARCODE_SELECTION } from '@/utils/constants'
 import { exportToXlsx } from '@/utils/exportSheet'
 import { formatDate } from '@/utils/dateFormatter'
+import { getBookStatus, getBookStatusText, getBookStatusClass } from '@/utils/statusMapper'
 
 // emit 정의
 defineEmits(['open-register-modal'])
@@ -607,49 +608,6 @@ const handleKeydown = (event) => {
   }
 }
 
-// 도서 상태 관련 함수들
-const getBookStatus = (book) => {
-  // 바코드가 출력되지 않았으면 대출 불가
-  if (!book.printCheckBook) {
-    return 'unavailable'
-  }
-  
-  // 바코드가 출력되었고 대출 중이면 대출 중
-  if (book.bookBorrowed) {
-    return 'borrowed'
-  }
-  
-  // 바코드가 출력되었고 대출 중이 아니면 대출 가능
-  return 'available'
-}
-
-const getBookStatusText = (book) => {
-  const status = getBookStatus(book)
-  switch (status) {
-    case 'borrowed':
-      return '대출 중'
-    case 'available':
-      return '대출 가능'
-    case 'unavailable':
-      return '대출 불가'
-    default:
-      return '대출 불가'
-  }
-}
-
-const getBookStatusClass = (book) => {
-  const status = getBookStatus(book)
-  switch (status) {
-    case 'borrowed':
-      return 'status-borrowed'
-    case 'available':
-      return 'status-available'
-    case 'unavailable':
-      return 'status-unavailable'
-    default:
-      return 'status-unavailable'
-  }
-}
 
 // 대분류 데이터 가져오기
 const fetchLargeCategories = async () => {
