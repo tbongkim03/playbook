@@ -91,15 +91,9 @@ public class BookController {
             }
         }
 
-        try {
-            String mappedSortBy = mapSortField(sortBy);
-            BookListResponseDto bookListResponseDto = bookService.getBookListWithPagination(idUser, campusId, page, size, mappedSortBy, sortDir);
-            return ResponseEntity.ok(ResponseHandler.success(bookListResponseDto));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
-        }
+        String mappedSortBy = mapSortField(sortBy);
+        BookListResponseDto bookListResponseDto = bookService.getBookListWithPagination(idUser, campusId, page, size, mappedSortBy, sortDir);
+        return ResponseEntity.ok(ResponseHandler.success(bookListResponseDto));
     }
 
     private String mapSortField(String sortBy) {
@@ -126,12 +120,8 @@ public class BookController {
 
         Integer campusId = (Integer) request.getAttribute("campusId");
 
-        try {
-            List<BookResponseDto> booklist = bookService.getAllBooks(campusId);
-            return ResponseEntity.ok(ResponseHandler.success(booklist));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
-        }
+        List<BookResponseDto> booklist = bookService.getAllBooks(campusId);
+        return ResponseEntity.ok(ResponseHandler.success(booklist));
     }
 
     @GetMapping("/{id}")

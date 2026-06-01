@@ -36,19 +36,13 @@ public class HistoryController {
             HttpServletRequest request,
             @RequestParam(value = "campusId", required = false) Integer requestCampusId
     ) throws Exception {
-        try {
-            Object roleAttr = request.getAttribute("ROLE");
-            if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-                Integer campusId = requestCampusId != null ? requestCampusId : (Integer) request.getAttribute("campusId");
-                HistoryBookResponseDto result = historyService.getHistoryBooks(campusId);
-                return ResponseEntity.ok(ResponseHandler.success(result));
-            }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+            Integer campusId = requestCampusId != null ? requestCampusId : (Integer) request.getAttribute("campusId");
+            HistoryBookResponseDto result = historyService.getHistoryBooks(campusId);
+            return ResponseEntity.ok(ResponseHandler.success(result));
         }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
     }
 
     @DeleteMapping("/book/{historyId}")
@@ -56,18 +50,12 @@ public class HistoryController {
             HttpServletRequest request,
             @PathVariable int historyId
     ) throws Exception {
-        try {
-            Object roleAttr = request.getAttribute("ROLE");
-            if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-                historyService.deleteHistoryBook(historyId);
-                return ResponseEntity.ok(ResponseHandler.success());
-            }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+            historyService.deleteHistoryBook(historyId);
+            return ResponseEntity.ok(ResponseHandler.success());
         }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
     }
 
     @PostMapping("/borrow")
@@ -100,14 +88,8 @@ public class HistoryController {
 
         Integer campusId = (Integer) request.getAttribute("campusId");
 
-        try {
-            historyService.handleBookBorrow(user, barcodeBook, campusId);
-            return ResponseEntity.ok(ResponseHandler.success());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
-        }
+        historyService.handleBookBorrow(user, barcodeBook, campusId);
+        return ResponseEntity.ok(ResponseHandler.success());
     }
 
     @PutMapping("/return")
@@ -160,14 +142,8 @@ public class HistoryController {
 
         BookUser user = (BookUser) request.getAttribute("user");
 
-        try {
-            HistoryBookResponseDto result = historyService.getMyHistory(user);
-            return ResponseEntity.ok(ResponseHandler.success(result));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
-        }
+        HistoryBookResponseDto result = historyService.getMyHistory(user);
+        return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @GetMapping("/export")
@@ -193,14 +169,8 @@ public class HistoryController {
         if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         }
-        try {
-            List<PopularLabelDto> result = historyService.findPopularFirstSortByCourse(courseId);
-            return ResponseEntity.ok(ResponseHandler.success(result));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
-        }
+        List<PopularLabelDto> result = historyService.findPopularFirstSortByCourse(courseId);
+        return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @GetMapping("/popular/first")
@@ -209,15 +179,9 @@ public class HistoryController {
         if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         }
-        try {
-            Integer campusId = (Integer) request.getAttribute("campusId");
-            List<PopularLabelDto> result = historyService.findPopularFirstSortAll(campusId);
-            return ResponseEntity.ok(ResponseHandler.success(result));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
-        }
+        Integer campusId = (Integer) request.getAttribute("campusId");
+        List<PopularLabelDto> result = historyService.findPopularFirstSortAll(campusId);
+        return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @GetMapping("/popular/second/{courseId}")
@@ -229,14 +193,8 @@ public class HistoryController {
         if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         }
-        try {
-            List<PopularLabelDto> result = historyService.findPopularSecondSortByCourse(courseId);
-            return ResponseEntity.ok(ResponseHandler.success(result));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
-        }
+        List<PopularLabelDto> result = historyService.findPopularSecondSortByCourse(courseId);
+        return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @GetMapping("/popular/second")
@@ -248,15 +206,9 @@ public class HistoryController {
         if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         }
-        try {
-            Integer campusId = requestCampusId != null ? requestCampusId : (Integer) request.getAttribute("campusId");
-            List<PopularLabelDto> result = historyService.findPopularSecondSortAll(campusId);
-            return ResponseEntity.ok(ResponseHandler.success(result));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
-        }
+        Integer campusId = requestCampusId != null ? requestCampusId : (Integer) request.getAttribute("campusId");
+        List<PopularLabelDto> result = historyService.findPopularSecondSortAll(campusId);
+        return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @GetMapping("/rank/{courseId}")
@@ -268,14 +220,8 @@ public class HistoryController {
         if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         }
-        try {
-            List<UserReadingRankDto> result = historyService.findUserReadingRankByCourse(courseId);
-            return ResponseEntity.ok(ResponseHandler.success(result));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
-        }
+        List<UserReadingRankDto> result = historyService.findUserReadingRankByCourse(courseId);
+        return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @GetMapping("/rank")
@@ -287,14 +233,8 @@ public class HistoryController {
         if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         }
-        try {
-            Integer campusId = requestCampusId != null ? requestCampusId : (Integer) request.getAttribute("campusId");
-            List<UserReadingRankDto> result = historyService.findUserReadingRankAll(campusId);
-            return ResponseEntity.ok(ResponseHandler.success(result));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
-        }
+        Integer campusId = requestCampusId != null ? requestCampusId : (Integer) request.getAttribute("campusId");
+        List<UserReadingRankDto> result = historyService.findUserReadingRankAll(campusId);
+        return ResponseEntity.ok(ResponseHandler.success(result));
     }
 }

@@ -30,17 +30,13 @@ public class FavorController {
         if (roleAttr == null || !LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         }
-        try {
-            Object userAttr = request.getAttribute("user");
-            if (userAttr == null || !(userAttr instanceof BookUser)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.noSession("user"));
-            }
-            BookUser user = (BookUser) userAttr;
-            List<FavorResponseDto> favorData = favorService.getFavorList(user);
-            return ResponseEntity.ok(ResponseHandler.success(favorData));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
+        Object userAttr = request.getAttribute("user");
+        if (userAttr == null || !(userAttr instanceof BookUser)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.noSession("user"));
         }
+        BookUser user = (BookUser) userAttr;
+        List<FavorResponseDto> favorData = favorService.getFavorList(user);
+        return ResponseEntity.ok(ResponseHandler.success(favorData));
     }
 
     @PostMapping
@@ -52,19 +48,13 @@ public class FavorController {
         if (roleAttr == null || !LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         }
-        try {
-            Object userAttr = request.getAttribute("user");
-            if (userAttr == null || !(userAttr instanceof BookUser)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.noSession("user"));
-            }
-            BookUser user = (BookUser) userAttr;
-            favorService.addFavor(user, bookId);
-            return ResponseEntity.ok(ResponseHandler.success());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
+        Object userAttr = request.getAttribute("user");
+        if (userAttr == null || !(userAttr instanceof BookUser)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.noSession("user"));
         }
+        BookUser user = (BookUser) userAttr;
+        favorService.addFavor(user, bookId);
+        return ResponseEntity.ok(ResponseHandler.success());
     }
 
     @DeleteMapping
@@ -76,16 +66,12 @@ public class FavorController {
         if (roleAttr == null || !LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         }
-        try {
-            Object userAttr = request.getAttribute("user");
-            if (userAttr == null || !(userAttr instanceof BookUser)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.noSession("user"));
-            }
-            BookUser user = (BookUser) userAttr;
-            favorService.deleteFavor(user, bookId);
-            return ResponseEntity.ok(ResponseHandler.success());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
+        Object userAttr = request.getAttribute("user");
+        if (userAttr == null || !(userAttr instanceof BookUser)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.noSession("user"));
         }
+        BookUser user = (BookUser) userAttr;
+        favorService.deleteFavor(user, bookId);
+        return ResponseEntity.ok(ResponseHandler.success());
     }
 }

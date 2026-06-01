@@ -40,14 +40,8 @@ public class BookUserController {
     // 회원가입 관련 부분
     @PostMapping("/register")
     public ResponseEntity<Response> registerUser(@RequestBody @Valid RegisterUserRequestDto registerUserRequestDto) throws Exception {
-        try {
-            RegisterUserResponseDto registerUserResponseDto = bookUserService.createUser(registerUserRequestDto);
-            return ResponseEntity.ok(ResponseHandler.success(registerUserResponseDto));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
-        }
+        RegisterUserResponseDto registerUserResponseDto = bookUserService.createUser(registerUserRequestDto);
+        return ResponseEntity.ok(ResponseHandler.success(registerUserResponseDto));
     }
 
     @GetMapping("/register/validate")
@@ -121,19 +115,13 @@ public class BookUserController {
             HttpServletRequest request,
             @RequestBody @Valid PasswordValidateRequestDto requestDto
     ) throws Exception {
-        try {
-            Object roleAttr = request.getAttribute("ROLE");
-            if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
-                BookUser user = (BookUser) request.getAttribute("user");
-                boolean result = bookUserService.validatePassword(user, requestDto.getPassword());
-                return ResponseEntity.ok(ResponseHandler.success(result));
-            }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
+            BookUser user = (BookUser) request.getAttribute("user");
+            boolean result = bookUserService.validatePassword(user, requestDto.getPassword());
+            return ResponseEntity.ok(ResponseHandler.success(result));
         }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
     }
 
     @PutMapping("/update")
@@ -141,19 +129,13 @@ public class BookUserController {
             HttpServletRequest request,
             @RequestBody UpdateUserRequestDto dto
     ) throws Exception {
-        try {
-            Object roleAttr = request.getAttribute("ROLE");
-            if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
-                BookUser user = (BookUser) request.getAttribute("user");
-                boolean result = bookUserService.updateUser(user, dto);
-                return ResponseEntity.ok(ResponseHandler.success(result));
-            }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
+            BookUser user = (BookUser) request.getAttribute("user");
+            boolean result = bookUserService.updateUser(user, dto);
+            return ResponseEntity.ok(ResponseHandler.success(result));
         }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
     }
 
     @PutMapping("/password")
@@ -161,19 +143,13 @@ public class BookUserController {
             HttpServletRequest request,
             @RequestBody @Valid PasswordUpdateRequestDto requestDto
     ) throws Exception {
-        try {
-            Object roleAttr = request.getAttribute("ROLE");
-            if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
-                BookUser user = (BookUser) request.getAttribute("user");
-                boolean result = bookUserService.updatePassword(user, requestDto.getNewPassword());
-                return ResponseEntity.ok(ResponseHandler.success(result));
-            }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
+            BookUser user = (BookUser) request.getAttribute("user");
+            boolean result = bookUserService.updatePassword(user, requestDto.getNewPassword());
+            return ResponseEntity.ok(ResponseHandler.success(result));
         }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
     }
 
     @PutMapping("/admin/reset-password")
@@ -181,18 +157,12 @@ public class BookUserController {
             HttpServletRequest request,
             @RequestBody @Valid ResetUserPasswordRequestDto dto
     ) throws Exception {
-        try {
-            Object roleAttr = request.getAttribute("ROLE");
-            if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-                boolean result = bookUserService.resetUserPassword(dto.getIdUser(), dto.getNewPassword());
-                return ResponseEntity.ok(ResponseHandler.success(result));
-            }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+            boolean result = bookUserService.resetUserPassword(dto.getIdUser(), dto.getNewPassword());
+            return ResponseEntity.ok(ResponseHandler.success(result));
         }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
     }
 
     @GetMapping("/list")
@@ -200,21 +170,15 @@ public class BookUserController {
             HttpServletRequest request,
             @RequestParam(value = "campusId", required = false) Integer requestCampusId
     ) throws Exception {
-        try {
-            Object roleAttr = request.getAttribute("ROLE");
-            if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-                Integer campusId = requestCampusId;
-                if (campusId == null) {
-                    campusId = (Integer) request.getAttribute("campusId");
-                }
-                return ResponseEntity.ok(ResponseHandler.success(bookUserService.getBookUserList(campusId)));
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+            Integer campusId = requestCampusId;
+            if (campusId == null) {
+                campusId = (Integer) request.getAttribute("campusId");
             }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
+            return ResponseEntity.ok(ResponseHandler.success(bookUserService.getBookUserList(campusId)));
         }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
     }
 
     @GetMapping("/export")
@@ -236,25 +200,19 @@ public class BookUserController {
             HttpServletRequest request,
             @RequestBody(required = false) DeleteUserRequestDto deleteUserRequestDto
     ) throws Exception {
-        try {
-            Object roleAttr = request.getAttribute("ROLE");
+        Object roleAttr = request.getAttribute("ROLE");
 
-            if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-                if (deleteUserRequestDto == null || deleteUserRequestDto.getIdUser() == null) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam("idUser"));
-                }
-                boolean result = bookUserService.deleteUserByAdmin(deleteUserRequestDto.getIdUser());
-                return ResponseEntity.ok(ResponseHandler.success(result));
-            } else if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
-                BookUser user = (BookUser) request.getAttribute("user");
-                boolean result = bookUserService.deleteUserBySelf(user);
-                return ResponseEntity.ok(ResponseHandler.success(result));
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+            if (deleteUserRequestDto == null || deleteUserRequestDto.getIdUser() == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam("idUser"));
             }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
+            boolean result = bookUserService.deleteUserByAdmin(deleteUserRequestDto.getIdUser());
+            return ResponseEntity.ok(ResponseHandler.success(result));
+        } else if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
+            BookUser user = (BookUser) request.getAttribute("user");
+            boolean result = bookUserService.deleteUserBySelf(user);
+            return ResponseEntity.ok(ResponseHandler.success(result));
         }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
     }
 }

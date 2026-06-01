@@ -38,12 +38,6 @@ public class TermsController {
         if (session == null || !"admin".equalsIgnoreCase((String) session.getAttribute("role"))) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
         }
-        try {
-            return ResponseEntity.ok(ResponseHandler.success(termsService.updateTerms(type, dto)));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
-        }
+        return ResponseEntity.ok(ResponseHandler.success(termsService.updateTerms(type, dto)));
     }
 }

@@ -56,18 +56,12 @@ public class CampusController {
             HttpServletRequest request,
             @RequestBody @Valid CampusRequestDto campusRequestDto
     ) {
-        try {
-            Object roleAttr = request.getAttribute("ROLE");
-            if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-                CampusResponseDto campus = campusService.createCampus(campusRequestDto);
-                return ResponseEntity.status(HttpStatus.CREATED).body(ResponseHandler.success(campus));
-            }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+            CampusResponseDto campus = campusService.createCampus(campusRequestDto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(ResponseHandler.success(campus));
         }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
     }
 
     @PutMapping("/{id}")
@@ -76,18 +70,12 @@ public class CampusController {
             @PathVariable("id") Integer seqCampus,
             @RequestBody @Valid CampusRequestDto campusRequestDto
     ) {
-        try {
-            Object roleAttr = request.getAttribute("ROLE");
-            if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-                CampusResponseDto campus = campusService.updateCampus(seqCampus, campusRequestDto);
-                return ResponseEntity.ok(ResponseHandler.success(campus));
-            }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
+        Object roleAttr = request.getAttribute("ROLE");
+        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+            CampusResponseDto campus = campusService.updateCampus(seqCampus, campusRequestDto);
+            return ResponseEntity.ok(ResponseHandler.success(campus));
         }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
     }
 
     @DeleteMapping("/{id}")
