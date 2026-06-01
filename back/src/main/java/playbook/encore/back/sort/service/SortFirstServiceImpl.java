@@ -87,7 +87,7 @@ public class SortFirstServiceImpl implements SortFirstService {
         log.info("[SortFirstService] 대분류 삭제 - sortFirstId: {}", sortFirstId);
         Optional<SortFirst> optionalSortFirst = sortFirstRepository.findById(sortFirstId);
         if (optionalSortFirst.isPresent()) {
-            sortFirstRepository.deleteById(optionalSortFirst.get().getSeqSortFirst());
+            sortFirstDAO.deleteSortFirst(optionalSortFirst.get());
         } else {
             throw new Exception("삭제에 실패하였습니다. 해당 대분류는 존재하지 않습니다.");
         }

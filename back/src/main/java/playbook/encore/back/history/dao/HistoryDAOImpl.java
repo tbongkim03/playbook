@@ -188,7 +188,8 @@ public class HistoryDAOImpl implements HistoryDAO {
 
     @Override
     public void deleteHistory(History history) {
-        historyRepository.delete(history);
+        history.setUseYn("N");
+        historyRepository.save(history);
     }
 
     @Override
