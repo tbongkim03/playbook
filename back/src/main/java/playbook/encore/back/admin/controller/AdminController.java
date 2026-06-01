@@ -6,7 +6,6 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.data.redis.RedisIndexedSessionRepository;
 import org.springframework.web.bind.annotation.*;
 import playbook.encore.back.admin.dto.*;
@@ -20,6 +19,7 @@ import playbook.encore.back.admin.service.AdminService;
 import playbook.encore.back.discord.DiscordNotificationService;
 
 import playbook.encore.back.common.excel.ExcelUtil;
+import playbook.encore.back.common.util.SessionUtil;
 
 @RestController
 @RequestMapping("/admin")
@@ -67,16 +67,7 @@ public class AdminController {
         try {
             String adminId = adminService.loginServiceAdmin(loginAdminRequestDto);
 
-            // 기존 세션 만료 (중복 로그인 방지)
-            sessionRepository.findByIndexNameAndIndexValue(
-                    FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME, adminId)
-                    .keySet().forEach(sessionRepository::deleteById);
-
-            HttpSession session = request.getSession(true);
-            session.setAttribute("userId", adminId);
-            session.setAttribute("role", "admin");
-            session.setAttribute(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME, adminId);
-            session.setMaxInactiveInterval(3600);
+            SessionUtil.createSession(request, sessionRepository, adminId, "admin");
             return ResponseEntity.ok(ResponseHandler.success());
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
