@@ -31,25 +31,25 @@ public class Book extends BaseAuditEntity {
     @JoinColumn(name = "seq_sort_second", nullable = false)
     private SortSecond seqSortSecond;
 
-    @Column(name = "isbn_book", nullable = false)
+    @Column(name = "isbn_book", nullable = false, length = 20)
     private String isbnBook;
 
-    @Column(name = "title_book", nullable = false)
+    @Column(name = "title_book", nullable = false, length = 255)
     private String titleBook;
 
-    @Column(name = "author_book", nullable = false)
+    @Column(name = "author_book", nullable = false, length = 20)
     private String authorBook;
 
-    @Column(name = "publisher_book", nullable = false)
+    @Column(name = "publisher_book", nullable = false, length = 20)
     private String publisherBook;
 
     @Column(name = "publish_date_book", nullable = false)
     private LocalDate publishDateBook;
 
-    @Column(name = "img_url_book", nullable = false)
+    @Column(name = "img_url_book", nullable = false, length = 255)
     private String imgUrlBook;
 
-    @Column(name = "barcode_book")
+    @Column(name = "barcode_book", length = 30)
     private String barcodeBook;
 
     @Column(name = "cnt_book")

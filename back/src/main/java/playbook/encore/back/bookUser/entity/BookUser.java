@@ -24,16 +24,16 @@ public class BookUser extends BaseAuditEntity {
     @JoinColumn(name = "seq_course", nullable = true)
     private Course seqCourse;
 
-    @Column(name = "id_user", nullable = false)
+    @Column(name = "id_user", nullable = false, length = 30)
     private String idUser;
 
-    @Column(name = "pw_user", nullable = false)
+    @Column(name = "pw_user", nullable = false, length = 255)
     private String pwUser;
 
-    @Column(name = "name_user", nullable = false)
+    @Column(name = "name_user", nullable = false, length = 20)
     private String nameUser;
 
-    @Column(name = "dc_user", nullable = false)
+    @Column(name = "dc_user", nullable = false, length = 30)
     private String dcUser;
 
     @Column(name = "agree_terms_user", nullable = false)

@@ -26,7 +26,7 @@ public class Course extends BaseAuditEntity {
     @JoinColumn(name = "seq_campus", nullable = true)
     private Campus seqCampus;
 
-    @Column(name = "name_course", nullable = false)
+    @Column(name = "name_course", nullable = false, length = 30)
     private String nameCourse;
 
     @Column(name = "start_dt_course", nullable = false)

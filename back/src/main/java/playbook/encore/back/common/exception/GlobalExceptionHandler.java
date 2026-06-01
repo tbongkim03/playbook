@@ -1,6 +1,7 @@
 package playbook.encore.back.common.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -36,6 +37,21 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Response> handleNotAuthorized(NotAuthorizedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(ResponseHandler.notAuthorized());
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Response> handleDataIntegrity(DataIntegrityViolationException ex) {
+        String cause = ex.getMostSpecificCause().getMessage();
+        String userMessage;
+        if (cause != null && cause.contains("Duplicate entry")) {
+            userMessage = "이미 사용 중인 값입니다. 중복된 데이터를 확인하세요.";
+        } else if (cause != null && cause.contains("Data too long")) {
+            userMessage = "입력값이 허용 길이를 초과했습니다.";
+        } else {
+            userMessage = "데이터 제약 조건 위반이 발생했습니다.";
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ResponseHandler.invalidParam(userMessage));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

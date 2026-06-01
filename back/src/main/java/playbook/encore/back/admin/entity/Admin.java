@@ -24,16 +24,16 @@ public class Admin extends BaseAuditEntity {
     @JoinColumn(name = "seq_campus")
     private Campus seqCampus;
 
-    @Column(name = "id_admin", nullable = false)
+    @Column(name = "id_admin", nullable = false, length = 30)
     private String idAdmin;
 
-    @Column(name = "pw_admin", nullable = false)
+    @Column(name = "pw_admin", nullable = false, length = 255)
     private String pwAdmin;
 
-    @Column(name = "name_admin", nullable = false)
+    @Column(name = "name_admin", nullable = false, length = 20)
     private String nameAdmin;
 
-    @Column(name = "dc_admin", nullable = false)
+    @Column(name = "dc_admin", nullable = false, length = 30)
     private String dcAdmin;
 
     @Column(name = "agree_terms_admin", nullable = false)
