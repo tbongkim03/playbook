@@ -394,6 +394,7 @@ import * as campusApi from '@/api/campus'
 import { swAlert } from '@/utils/sweetAlert'
 import { formatDate } from '@/utils/dateFormatter'
 import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
+import { usePagination } from '@/composables/usePagination'
 import { exportToXlsx } from '@/utils/exportSheet'
 
 // 반응형 데이터
@@ -403,40 +404,8 @@ const campusList = ref([])
 const isLoading = ref(false)
 
 // 페이지네이션
-const currentPage = ref(1)
-const itemsPerPage = 20
-
-const totalPages = computed(() => Math.ceil(courseList.value.length / itemsPerPage))
-
-const pagedCourseList = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage
-  return courseList.value.slice(start, start + itemsPerPage)
-})
-
-const paginationItems = computed(() => {
-  const total = totalPages.value
-  const current = currentPage.value
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
-  const items = [1]
-  if (current > 3) items.push('...')
-  const start = Math.max(2, current - 1)
-  const end = Math.min(total - 1, current + 1)
-  for (let i = start; i <= end; i++) items.push(i)
-  if (current < total - 2) items.push('...')
-  items.push(total)
-  return items
-})
-
-const paginationInfo = computed(() => {
-  const total = courseList.value.length
-  const start = (currentPage.value - 1) * itemsPerPage + 1
-  const end = Math.min(currentPage.value * itemsPerPage, total)
-  return `${start}–${end} / 전체 ${total}건`
-})
-
-const changePage = (page) => {
-  if (page >= 1 && page <= totalPages.value) currentPage.value = page
-}
+const { currentPage, totalPages, pagedList: pagedCourseList,
+        paginationItems, paginationInfo, changePage } = usePagination(courseList, 20)
 
 // 캠퍼스 필터 관련 (과정 관리 탭용)
 const {

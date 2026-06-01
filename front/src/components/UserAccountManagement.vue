@@ -335,6 +335,7 @@ import { swAlert } from '@/utils/sweetAlert'
 import { formatDate } from '@/utils/dateFormatter'
 import { getUserStatusText, getUserStatusClass } from '@/utils/statusMapper'
 import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
+import { usePagination } from '@/composables/usePagination'
 
 // 반응형 데이터
 const userList = ref([])
@@ -344,40 +345,8 @@ const searchQuery = ref('')
 const selectedStatus = ref('')
 
 // 페이지네이션
-const currentPage = ref(1)
-const itemsPerPage = 20
-
-const totalPages = computed(() => Math.ceil(filteredUserList.value.length / itemsPerPage))
-
-const pagedUserList = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage
-  return filteredUserList.value.slice(start, start + itemsPerPage)
-})
-
-const paginationItems = computed(() => {
-  const total = totalPages.value
-  const current = currentPage.value
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
-  const items = [1]
-  if (current > 3) items.push('...')
-  const start = Math.max(2, current - 1)
-  const end = Math.min(total - 1, current + 1)
-  for (let i = start; i <= end; i++) items.push(i)
-  if (current < total - 2) items.push('...')
-  items.push(total)
-  return items
-})
-
-const paginationInfo = computed(() => {
-  const total = filteredUserList.value.length
-  const start = (currentPage.value - 1) * itemsPerPage + 1
-  const end = Math.min(currentPage.value * itemsPerPage, total)
-  return `${start}–${end} / 전체 ${total}명`
-})
-
-const changePage = (page) => {
-  if (page >= 1 && page <= totalPages.value) currentPage.value = page
-}
+const { currentPage, totalPages, pagedList: pagedUserList,
+        paginationItems, paginationInfo, changePage } = usePagination(filteredUserList, 20, '명')
 
 // 캠퍼스 필터 관련
 const {
