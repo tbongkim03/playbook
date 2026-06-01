@@ -118,7 +118,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="user in filteredUserList" :key="user.idUser" class="student-row">
+            <tr v-for="user in pagedUserList" :key="user.idUser" class="student-row">
               <td class="student-name">{{ user.nameUser }}</td>
               <td class="student-id">{{ user.idUser }}</td>
               <td class="student-status">
@@ -164,6 +164,25 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- 페이지네이션 -->
+      <div class="gl-pagination" v-if="totalPages > 1">
+        <span class="gl-pagination-info">{{ paginationInfo }}</span>
+        <nav class="gl-pagination-nav">
+          <button class="gl-page-btn prev-btn" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            이전
+          </button>
+          <template v-for="item in paginationItems" :key="String(item) + '-um'">
+            <span v-if="item === '...'" class="gl-page-ellipsis">…</span>
+            <button v-else class="gl-page-btn" :class="{ active: item === currentPage }" @click="changePage(item)">{{ item }}</button>
+          </template>
+          <button class="gl-page-btn next-btn" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">
+            다음
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </nav>
       </div>
     </div>
 
@@ -309,7 +328,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { exportToXlsx } from '@/utils/exportSheet'
 import * as userApi from '@/api/user'
 import { swAlert } from '@/utils/sweetAlert'
@@ -321,6 +340,42 @@ const filteredUserList = ref([])
 const isLoading = ref(false)
 const searchQuery = ref('')
 const selectedStatus = ref('')
+
+// 페이지네이션
+const currentPage = ref(1)
+const itemsPerPage = 20
+
+const totalPages = computed(() => Math.ceil(filteredUserList.value.length / itemsPerPage))
+
+const pagedUserList = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  return filteredUserList.value.slice(start, start + itemsPerPage)
+})
+
+const paginationItems = computed(() => {
+  const total = totalPages.value
+  const current = currentPage.value
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const items = [1]
+  if (current > 3) items.push('...')
+  const start = Math.max(2, current - 1)
+  const end = Math.min(total - 1, current + 1)
+  for (let i = start; i <= end; i++) items.push(i)
+  if (current < total - 2) items.push('...')
+  items.push(total)
+  return items
+})
+
+const paginationInfo = computed(() => {
+  const total = filteredUserList.value.length
+  const start = (currentPage.value - 1) * itemsPerPage + 1
+  const end = Math.min(currentPage.value * itemsPerPage, total)
+  return `${start}–${end} / 전체 ${total}명`
+})
+
+const changePage = (page) => {
+  if (page >= 1 && page <= totalPages.value) currentPage.value = page
+}
 
 // 캠퍼스 필터 관련
 const {
@@ -489,6 +544,7 @@ const filterUsers = () => {
   }
   
   filteredUserList.value = filtered
+  currentPage.value = 1
 }
 
 // 학생 상세 조회
@@ -1224,6 +1280,55 @@ onBeforeUnmount(() => {
 .delete-confirm-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ── 페이지네이션 ── */
+.gl-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-top: 1px solid var(--pb-color-border);
+}
+.gl-pagination-info { font-size: 13px; color: var(--pb-color-text-muted); }
+.gl-pagination-nav { display: flex; align-items: center; gap: 2px; }
+.gl-page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--pb-color-border);
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text);
+  border-radius: var(--pb-radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+.gl-page-btn:hover:not(:disabled):not(.active) {
+  background: var(--pb-color-surface-muted);
+  border-color: var(--pb-color-border-strong);
+}
+.gl-page-btn.active {
+  background: var(--pb-color-brand);
+  color: #fff;
+  border-color: var(--pb-color-brand);
+  font-weight: 600;
+}
+.gl-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.gl-page-btn.prev-btn, .gl-page-btn.next-btn { padding: 0 10px; }
+.gl-page-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  font-size: 13px;
+  color: var(--pb-color-text-soft);
 }
 
 /* ── 반응형 ── */
