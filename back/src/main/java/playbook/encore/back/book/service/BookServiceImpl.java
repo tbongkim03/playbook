@@ -262,6 +262,27 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional(readOnly = true)
+    public BookListResponseDto getBookListBySortSecondWithPagination(int sortSecondId, Integer campusId, int page, int size, String sortBy, String sortDir) {
+        log.info("[BookService] 중분류별 도서 페이징 조회 - sortSecondId: {}, campusId: {}, page: {}", sortSecondId, campusId, page);
+        Page<Book> bookPage = bookDAO.selectBookListBySortSecondWithPagination(sortSecondId, campusId, page, size, sortBy, sortDir);
+
+        List<BookResponseDto> content = bookPage.getContent().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+
+        if ("borrowCount".equals(sortBy)) {
+            content.sort((a, b) -> {
+                int compare = Integer.compare(b.getBorrowCount(), a.getBorrowCount());
+                return sortDir.equalsIgnoreCase("desc") ? compare : -compare;
+            });
+        }
+
+        int totalCount = (int) bookPage.getTotalElements();
+        return new BookListResponseDto(content, totalCount);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public BookResponseDto getBookById(int bookId, String idUser) throws Exception {
         log.info("[BookService] 도서 단건 조회 - bookId: {}", bookId);
         Book selectedBook = bookDAO.selectBookById(bookId, idUser);

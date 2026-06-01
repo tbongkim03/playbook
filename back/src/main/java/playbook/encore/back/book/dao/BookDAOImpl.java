@@ -351,4 +351,54 @@ public class BookDAOImpl implements BookDAO {
 
         return new PageImpl<>(books, pageRequest, total);
     }
+
+    @Override
+    public Page<Book> selectBookListBySortSecondWithPagination(int sortSecondId, Integer campusId, int page, int size, String sortBy, String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase("desc")
+            ? Sort.by(sortBy).descending()
+            : Sort.by(sortBy).ascending();
+        PageRequest pageRequest = PageRequest.of(page - 1, size, sort);
+
+        String jpql = "SELECT b FROM Book b " +
+                "JOIN FETCH b.seqCampus " +
+                "JOIN FETCH b.seqSortSecond ss " +
+                "WHERE ss.seqSortSecond = :sortSecondId AND b.printCheckBook = true";
+
+        String countJpql = "SELECT COUNT(b) FROM Book b " +
+                "JOIN b.seqSortSecond ss " +
+                "WHERE ss.seqSortSecond = :sortSecondId AND b.printCheckBook = true";
+
+        if (campusId != null) {
+            jpql += " AND b.seqCampus.seqCampus = :campusId";
+            countJpql += " AND b.seqCampus.seqCampus = :campusId";
+        }
+
+        if (sortBy.equals("seqBook")) {
+            jpql += " ORDER BY b.seqBook " + (sortDir.equalsIgnoreCase("desc") ? "DESC" : "ASC");
+        } else if (sortBy.equals("titleBook")) {
+            jpql += " ORDER BY b.titleBook " + (sortDir.equalsIgnoreCase("desc") ? "DESC" : "ASC");
+        } else if (sortBy.equals("authorBook")) {
+            jpql += " ORDER BY b.authorBook " + (sortDir.equalsIgnoreCase("desc") ? "DESC" : "ASC");
+        } else {
+            jpql += " ORDER BY b.seqBook DESC";
+        }
+
+        var query = entityManager.createQuery(jpql, Book.class)
+                .setParameter("sortSecondId", sortSecondId)
+                .setFirstResult((int) pageRequest.getOffset())
+                .setMaxResults(pageRequest.getPageSize());
+
+        var countQuery = entityManager.createQuery(countJpql, Long.class)
+                .setParameter("sortSecondId", sortSecondId);
+
+        if (campusId != null) {
+            query.setParameter("campusId", campusId);
+            countQuery.setParameter("campusId", campusId);
+        }
+
+        List<Book> books = query.getResultList();
+        Long total = countQuery.getSingleResult();
+
+        return new PageImpl<>(books, pageRequest, total);
+    }
 }

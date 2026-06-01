@@ -285,9 +285,11 @@ const loadBooks = async (page = 1) => {
     const campusId = (selectedCampus.value && showCampusFilter.value) ? selectedCampus.value : undefined
     const params = { page, size: ITEMS_PER_PAGE, sortBy, sortDir, campusId }
 
-    const res = selectedLargeCategory.value === '전체'
-      ? await bookApi.getAll(params)
-      : await bookApi.getByCategory(selectedLargeCategorySeq.value, params)
+    const res = selectedMediumCategory.value
+      ? await bookApi.getBySortSecond(selectedMediumCategory.value, params)
+      : selectedLargeCategory.value === '전체'
+        ? await bookApi.getAll(params)
+        : await bookApi.getByCategory(selectedLargeCategorySeq.value, params)
     const data = res.data.data
 
     // 서버에서 이미 필터링된 데이터를 받음
@@ -356,30 +358,15 @@ const currentLargeForMedium = computed(() => {
 })
 
 const filteredBookList = computed(() => {
-  let list = bookList.value;
-
-  if (selectedMediumCategory.value) {
-    list = list.filter(book => book.seqSortSecond === selectedMediumCategory.value);
-  }
-
   // 검색 모드는 전체 결과가 bookList에 있으므로 클라이언트 페이지네이션 적용
   if (isSearchMode.value) {
     const start = (currentPage.value - 1) * ITEMS_PER_PAGE;
-    return list.slice(start, start + ITEMS_PER_PAGE);
+    return bookList.value.slice(start, start + ITEMS_PER_PAGE);
   }
-
-  return list;
+  return bookList.value;
 });
 
-const displayCount = computed(() => {
-  if (selectedMediumCategory.value) {
-    // 중분류가 선택된 경우 현재 표시된 책의 개수 반환
-    return bookList.value.filter(book => 
-      book.seqSortSecond === selectedMediumCategory.value
-    ).length;
-  }
-  return totalCount.value;
-});
+const displayCount = computed(() => totalCount.value);
 
 const mainMarginTop = computed(() => {
   const baseMargin = shouldShowMediumDropdown.value ? '180px' : '120px'
@@ -424,25 +411,15 @@ function selectLargeCategory(categoryName, categorySeq = null) {
 function selectMediumCategory(mediumSeq, largeSeq) {
   selectedMediumCategory.value = mediumSeq
   selectedMediumCategoryLargeSeq.value = largeSeq
-  
-  // 해당하는 대분류로 선택 상태 변경
+
   const large = largeCategories.value.find(l => l.seqSortFirst === largeSeq)
   if (large) {
     selectedLargeCategory.value = large.nameSortFirst
     selectedLargeCategorySeq.value = large.seqSortFirst
   }
-  
-  // 중분류 선택 시 첫 페이지로 리셋하고 서버에서 데이터 요청
+
   currentPage.value = 1
-  loadBooks(1).then(() => {
-    // 중분류 필터링 적용 (클라이언트 사이드)
-    const mediumFilteredBooks = bookList.value.filter(book => 
-      book.seqSortSecond === mediumSeq
-    );
-    bookList.value = mediumFilteredBooks
-  })
-  
-  // 페이지 상단으로 스크롤 이동
+  loadBooks(1)
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 

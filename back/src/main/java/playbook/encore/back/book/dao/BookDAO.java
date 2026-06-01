@@ -51,5 +51,7 @@ public interface BookDAO {
     
     Page<Book> selectBookListBySortFirstWithPagination(int sortFirstId, Integer campusId, int page, int size, String sortBy, String sortDir);
 
+    Page<Book> selectBookListBySortSecondWithPagination(int sortSecondId, Integer campusId, int page, int size, String sortBy, String sortDir);
+
     Book bookStatusUpdate(Book book, boolean status) throws Exception;
 }

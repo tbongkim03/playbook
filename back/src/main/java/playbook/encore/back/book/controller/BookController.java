@@ -149,6 +149,22 @@ public class BookController {
         return ResponseEntity.ok(ResponseHandler.success(bookListResponseDto));
     }
 
+    @GetMapping("/sortSecond")
+    public ResponseEntity<Response> getBooksBySortSecondId(
+            HttpServletRequest request,
+            @RequestParam("id") int sortSecondId,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size,
+            @RequestParam(value = "sortBy", defaultValue = "seqBook") String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "desc") String sortDir,
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId
+    ) throws Exception {
+        Integer campusId = requestCampusId != null ? requestCampusId : resolveCampusId(request);
+        String mappedSortBy = mapSortField(sortBy);
+        BookListResponseDto result = bookService.getBookListBySortSecondWithPagination(sortSecondId, campusId, page, size, mappedSortBy, sortDir);
+        return ResponseEntity.ok(ResponseHandler.success(result));
+    }
+
     @PostMapping
     public ResponseEntity<Response> insertBook(
             HttpServletRequest request,

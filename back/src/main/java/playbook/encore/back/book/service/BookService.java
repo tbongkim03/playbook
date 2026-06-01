@@ -33,4 +33,6 @@ public interface BookService {
     BookListResponseDto getBookListBySortFirst(int sortFirstId, Integer campusId);
     BookListResponseDto getBookListBySortFirstWithPagination(int sortFirstId, Integer campusId, int page, int size, String sortBy, String sortDir);
 
+    BookListResponseDto getBookListBySortSecondWithPagination(int sortSecondId, Integer campusId, int page, int size, String sortBy, String sortDir);
+
 }
