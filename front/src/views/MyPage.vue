@@ -523,6 +523,7 @@ import * as historyApi from '@/api/history'
 import * as courseApi from '@/api/course'
 import { useRouter } from 'vue-router'
 import { swAlert, swConfirm } from '@/utils/sweetAlert'
+import { handleApiError } from '@/utils/apiErrorHandler'
 import { formatDate } from '@/utils/dateFormatter'
 import { getRentalStatusText } from '@/utils/statusMapper'
 
@@ -907,7 +908,7 @@ async function handleWithdraw() {
       window.location.replace('/')
     }
   } catch (error) {
-    await swAlert(error.response?.data?.msg || '회원 탈퇴 중 오류가 발생했습니다.', 'error')
+    await handleApiError(error, '회원 탈퇴 중 오류가 발생했습니다.')
     withdrawLoading.value = false
   }
 }
@@ -1081,7 +1082,7 @@ async function changeName() {
     await swAlert('이름이 성공적으로 변경되었습니다.', 'success')
     closeNameModal()
   } catch (error) {
-    await swAlert(error.response?.data?.msg || '이름 변경 중 오류가 발생했습니다.', 'error')
+    await handleApiError(error, '이름 변경 중 오류가 발생했습니다.')
   } finally {
     nameForm.value.loading = false
   }
@@ -1106,7 +1107,7 @@ async function changeDiscord() {
     await swAlert('디스코드 ID가 성공적으로 변경되었습니다.', 'success')
     closeDiscordModal()
   } catch (error) {
-    await swAlert(error.response?.data?.msg || '디스코드 ID 변경 중 오류가 발생했습니다.', 'error')
+    await handleApiError(error, '디스코드 ID 변경 중 오류가 발생했습니다.')
   } finally {
     discordForm.value.loading = false
   }
@@ -1169,7 +1170,7 @@ async function changePassword() {
     await swAlert('비밀번호가 성공적으로 변경되었습니다.', 'success')
     closePasswordModal()
   } catch (error) {
-    await swAlert(error.response?.data?.msg || '비밀번호 변경 중 오류가 발생했습니다.', 'error')
+    await handleApiError(error, '비밀번호 변경 중 오류가 발생했습니다.')
   } finally {
     passwordForm.value.loading = false
   }

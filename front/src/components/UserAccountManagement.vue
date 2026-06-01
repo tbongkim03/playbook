@@ -332,6 +332,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { exportToXlsx } from '@/utils/exportSheet'
 import * as userApi from '@/api/user'
 import { swAlert } from '@/utils/sweetAlert'
+import { handleApiError } from '@/utils/apiErrorHandler'
 import { formatDate } from '@/utils/dateFormatter'
 import { getUserStatusText, getUserStatusClass } from '@/utils/statusMapper'
 import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
@@ -422,13 +423,7 @@ const fetchUserList = async () => {
     filteredUserList.value = [...userList.value]
     
   } catch (error) {
-    if (error.response?.status === 403) {
-      await swAlert('관리자 권한이 필요합니다.', 'warning')
-    } else if (error.response?.status === 401) {
-      await swAlert('로그인이 필요합니다.', 'info')
-    } else {
-      await swAlert('학생 목록을 불러오는데 실패했습니다.', 'error')
-    }
+    await handleApiError(error, '학생 목록을 불러오는데 실패했습니다.')
   } finally {
     isLoading.value = false
   }
@@ -522,13 +517,7 @@ const deleteUser = async () => {
     await fetchUserList()
 
   } catch (error) {
-    if (error.response?.status === 403) {
-      await swAlert('관리자 권한이 필요합니다.', 'warning')
-    } else if (error.response?.status === 401) {
-      await swAlert(error.response?.data?.msg || '인증에 실패했습니다.', 'warning')
-    } else {
-      await swAlert(error.response?.data?.msg || '학생 삭제에 실패했습니다.', 'error')
-    }
+    await handleApiError(error, '학생 삭제에 실패했습니다.')
   } finally {
     isLoading.value = false
   }
@@ -575,7 +564,7 @@ const resetUserPassword = async () => {
     await swAlert(`${resetingUser.value.nameUser} 학생의 비밀번호가 초기화되었습니다.`, 'success')
     closeResetModal()
   } catch (error) {
-    await swAlert(error.response?.data?.msg || '비밀번호 초기화에 실패했습니다.', 'error')
+    await handleApiError(error, '비밀번호 초기화에 실패했습니다.')
   } finally {
     isLoading.value = false
   }

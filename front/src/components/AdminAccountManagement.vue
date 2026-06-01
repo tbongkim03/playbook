@@ -349,6 +349,7 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import * as adminApi from '@/api/admin'
 import { swAlert } from '@/utils/sweetAlert'
+import { handleApiError } from '@/utils/apiErrorHandler'
 import { formatDate } from '@/utils/dateFormatter'
 import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
 import { usePagination } from '@/composables/usePagination'
@@ -519,13 +520,7 @@ const fetchAdminList = async () => {
     const response = await adminApi.getList(campusId)
     adminList.value = response.data.data.content || response.data.data
   } catch (error) {
-    if (error.response?.status === 403) {
-      await swAlert('관리자 권한이 필요합니다.', 'warning')
-    } else if (error.response?.status === 401) {
-      await swAlert('로그인이 필요합니다.', 'info')
-    } else {
-      await swAlert('관리자 목록을 불러오는데 실패했습니다.', 'error')
-    }
+    await handleApiError(error, '관리자 목록을 불러오는데 실패했습니다.')
   } finally {
     isLoading.value = false
   }
@@ -551,13 +546,7 @@ const addAdmin = async () => {
     closeAddModal()
     await fetchAdminList()
   } catch (error) {
-    if (error.response?.status === 403) {
-      await swAlert('관리자만 접근 가능합니다.', 'warning')
-    } else if (error.response?.status === 401) {
-      await swAlert('인증에 실패했습니다.', 'warning')
-    } else {
-      await swAlert(error.response?.data?.msg || '관리자 추가에 실패했습니다.', 'error')
-    }
+    await handleApiError(error, '관리자 추가에 실패했습니다.')
   } finally {
     isLoading.value = false
   }
@@ -603,15 +592,7 @@ const updateAdmin = async () => {
     closeEditModal()
     await fetchAdminList()
   } catch (error) {
-    if (error.response?.status === 403) {
-      await swAlert('관리자만 접근 가능합니다.', 'warning')
-    } else if (error.response?.status === 401) {
-      await swAlert('비밀번호가 일치하지 않습니다.', 'warning')
-    } else if (error.response?.status === 400) {
-      await swAlert(error.response?.data?.msg || '입력 정보를 확인해주세요.', 'warning')
-    } else {
-      await swAlert(error.response?.data?.msg || '관리자 수정에 실패했습니다.', 'error')
-    }
+    await handleApiError(error, '관리자 수정에 실패했습니다.')
   } finally {
     isLoading.value = false
   }
@@ -646,13 +627,7 @@ const deleteAdmin = async (idAdmin) => {
     await fetchAdminList()
 
   } catch (error) {
-    if (error.response?.status === 403) {
-      await swAlert('관리자 권한이 필요합니다.', 'warning')
-    } else if (error.response?.status === 401) {
-      await swAlert('비밀번호가 일치하지 않습니다.', 'warning')
-    } else {
-      await swAlert(error.response?.data?.msg || '관리자 삭제에 실패했습니다.', 'error')
-    }
+    await handleApiError(error, '관리자 삭제에 실패했습니다.')
   } finally {
     isLoading.value = false
   }

@@ -532,6 +532,7 @@ import Barcode from './Barcode.vue'
 import PrintBatch from './BookPrintBatch.vue'
 import DateRangePicker from './DateRangePicker.vue'
 import { swAlert, swConfirm } from '@/utils/sweetAlert'
+import { handleApiError } from '@/utils/apiErrorHandler'
 import { MAX_BARCODE_SELECTION } from '@/utils/constants'
 import { exportToXlsx } from '@/utils/exportSheet'
 import { formatDate } from '@/utils/dateFormatter'
@@ -1063,7 +1064,7 @@ async function deleteBook(book) {
     await swAlert('삭제에 성공하였습니다.', 'success')
     await fetchAdminBooks(currentPage.value)
   } catch (error) {
-    await swAlert(`삭제 실패: ${error.response?.data?.msg || error.message}`, 'error')
+    await handleApiError(error, '도서 삭제에 실패했습니다.')
   }
 }
 
@@ -1242,7 +1243,7 @@ const refreshBooks = async () => {
     await fetchBooks()
     await fetchAdminBooks(currentPage.value)
   } catch (error) {
-    await swAlert('목록을 새로고침하는 중 오류가 발생했습니다.', 'error')
+    await handleApiError(error, '목록을 새로고침하는 중 오류가 발생했습니다.')
   } finally {
     isRefreshing.value = false
   }

@@ -174,6 +174,7 @@ import { reactive, ref, computed } from 'vue'
 import * as bookApi from '@/api/book'
 import * as externalApi from '@/api/external'
 import { swAlert } from '@/utils/sweetAlert'
+import { handleApiError } from '@/utils/apiErrorHandler'
 
 // Props와 Emits
 const emit = defineEmits(['book-registered', 'cancel'])
@@ -283,7 +284,7 @@ async function searchISBN() {
     hasSearched.value = true // 조회 완료 상태 설정
 
   } catch (err) {
-    await swAlert('도서 정보를 조회하는 중 오류가 발생했습니다.', 'error')
+    await handleApiError(err, '도서 정보를 조회하는 중 오류가 발생했습니다.')
   } finally {
     isSearching.value = false
   }
@@ -340,7 +341,7 @@ async function submitBook() {
     resetForm()
     
   } catch (err) {
-    await swAlert(`등록 실패: ${err.response?.data?.msg || err.message}`, 'error')
+    await handleApiError(err, '도서 등록에 실패했습니다.')
   } finally {
     isLoading.value = false
   }

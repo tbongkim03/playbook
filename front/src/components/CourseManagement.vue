@@ -392,6 +392,7 @@ import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import * as courseApi from '@/api/course'
 import * as campusApi from '@/api/campus'
 import { swAlert } from '@/utils/sweetAlert'
+import { handleApiError } from '@/utils/apiErrorHandler'
 import { formatDate } from '@/utils/dateFormatter'
 import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
 import { usePagination } from '@/composables/usePagination'
@@ -485,8 +486,7 @@ const fetchCourseList = async () => {
     const response = await courseApi.getAll(campusId)
     courseList.value = response.data.data
   } catch (error) {
-    console.error('과정 목록 로드 실패:', error)
-    await swAlert('과정 목록을 불러오는데 실패했습니다.', 'error')
+    await handleApiError(error, '과정 목록을 불러오는데 실패했습니다.')
   } finally {
     isLoading.value = false
   }
@@ -512,7 +512,7 @@ const addCourse = async () => {
     closeAddCourseModal()
     await fetchCourseList()
   } catch (error) {
-    await swAlert(error.response?.data?.msg || '과정 추가에 실패했습니다.', 'error')
+    await handleApiError(error, '과정 추가에 실패했습니다.')
   } finally {
     isLoading.value = false
   }
@@ -549,7 +549,7 @@ const updateCourse = async () => {
     closeEditCourseModal()
     await fetchCourseList()
   } catch (error) {
-    await swAlert(error.response?.data?.msg || '과정 수정에 실패했습니다.', 'error')
+    await handleApiError(error, '과정 수정에 실패했습니다.')
   } finally {
     isLoading.value = false
   }
@@ -572,7 +572,7 @@ const deleteCourse = async (courseId) => {
     closeDeleteCourseModal()
     await fetchCourseList()
   } catch (error) {
-    await swAlert(error.response?.data?.msg || '과정 삭제에 실패했습니다.', 'error')
+    await handleApiError(error, '과정 삭제에 실패했습니다.')
   } finally {
     isLoading.value = false
   }
