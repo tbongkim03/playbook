@@ -85,6 +85,7 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
         JOIN h.seqBook b
         JOIN b.seqSortSecond ss
         JOIN ss.seqSortFirst sf
+        WHERE h.seqUser IS NOT NULL
         GROUP BY sf.seqSortFirst, sf.nameSortFirst
         ORDER BY COUNT(h.seqHistory) DESC
     """)
@@ -108,6 +109,7 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
         FROM History h
         JOIN h.seqBook b
         JOIN b.seqSortSecond ss
+        WHERE h.seqUser IS NOT NULL
         GROUP BY ss.seqSortSecond, ss.nameSortSecond
         ORDER BY COUNT(h.seqHistory) DESC
     """)
@@ -179,7 +181,8 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
         JOIN h.seqBook b
         JOIN b.seqSortSecond ss
         JOIN ss.seqSortFirst sf
-        WHERE h.seqCampus.seqCampus = :campusId
+        WHERE h.seqUser IS NOT NULL
+          AND h.seqCampus.seqCampus = :campusId
         GROUP BY sf.seqSortFirst, sf.nameSortFirst
         ORDER BY COUNT(h.seqHistory) DESC
     """)
@@ -210,7 +213,8 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
         FROM History h
         JOIN h.seqBook b
         JOIN b.seqSortSecond ss
-        WHERE h.seqCampus.seqCampus = :campusId
+        WHERE h.seqUser IS NOT NULL
+          AND h.seqCampus.seqCampus = :campusId
         GROUP BY ss.seqSortSecond, ss.nameSortSecond
         ORDER BY COUNT(h.seqHistory) DESC
     """)
