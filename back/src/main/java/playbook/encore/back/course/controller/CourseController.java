@@ -12,10 +12,7 @@ import playbook.encore.back.course.dto.CourseRequestDto;
 import playbook.encore.back.course.dto.CourseResponseDto;
 import playbook.encore.back.course.service.CourseService;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import playbook.encore.back.common.excel.ExcelUtil;
 
 @RestController
 @RequestMapping("/courses")
@@ -67,10 +64,6 @@ public class CourseController {
     ) throws Exception {
         Integer campusId = requestCampusId != null ? requestCampusId : (Integer) request.getAttribute("campusId");
         byte[] data = courseService.exportExcel(campusId);
-        String encoded = URLEncoder.encode("과정목록", StandardCharsets.UTF_8).replace("+", "%20");
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encoded + ".xlsx")
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                .body(data);
+        return ExcelUtil.toResponse(data, "과정목록");
     }
 }

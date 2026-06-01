@@ -56,11 +56,14 @@ public class ExcelUtil {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         wb.write(out);
         wb.close();
+        return toResponse(out.toByteArray(), filename);
+    }
 
+    public static ResponseEntity<byte[]> toResponse(byte[] data, String filename) {
         String encoded = URLEncoder.encode(filename, StandardCharsets.UTF_8).replace("+", "%20");
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encoded + ".xlsx")
                 .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                .body(out.toByteArray());
+                .body(data);
     }
 }

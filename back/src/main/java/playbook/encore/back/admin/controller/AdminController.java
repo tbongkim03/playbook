@@ -19,10 +19,7 @@ import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.admin.service.AdminService;
 import playbook.encore.back.discord.DiscordNotificationService;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import playbook.encore.back.common.excel.ExcelUtil;
 
 @RestController
 @RequestMapping("/admin")
@@ -230,11 +227,7 @@ public class AdminController {
         }
         Integer campusId = requestCampusId != null ? requestCampusId : (Integer) request.getAttribute("campusId");
         byte[] data = adminService.exportExcel(campusId);
-        String encoded = URLEncoder.encode("관리자계정", StandardCharsets.UTF_8).replace("+", "%20");
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encoded + ".xlsx")
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                .body(data);
+        return ExcelUtil.toResponse(data, "관리자계정");
     }
 
     @DeleteMapping

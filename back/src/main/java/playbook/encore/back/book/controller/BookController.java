@@ -23,11 +23,8 @@ import playbook.encore.back.common.response.ResponseHandler;
 import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.book.service.BookService;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import playbook.encore.back.common.excel.ExcelUtil;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
@@ -275,11 +272,7 @@ public class BookController {
         }
         Integer campusId = requestCampusId != null ? requestCampusId : (Integer) request.getAttribute("campusId");
         byte[] data = bookService.exportExcel(campusId);
-        String encoded = URLEncoder.encode("도서목록", StandardCharsets.UTF_8).replace("+", "%20");
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encoded + ".xlsx")
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                .body(data);
+        return ExcelUtil.toResponse(data, "도서목록");
     }
 
     @PostMapping("/check/barcode")
