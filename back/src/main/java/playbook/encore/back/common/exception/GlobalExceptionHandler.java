@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import playbook.encore.back.common.response.Response;
 import playbook.encore.back.common.response.ResponseHandler;
+import playbook.encore.back.common.exception.NotAuthorizedException;
 
 import java.util.stream.Collectors;
 
@@ -29,6 +30,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Response> handleMessageNotReadable(HttpMessageNotReadableException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ResponseHandler.invalidParamType(ex.getMessage()));
+    }
+
+    @ExceptionHandler(NotAuthorizedException.class)
+    public ResponseEntity<Response> handleNotAuthorized(NotAuthorizedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ResponseHandler.notAuthorized());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

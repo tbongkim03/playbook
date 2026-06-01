@@ -2,14 +2,13 @@ package playbook.encore.back.favor.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import playbook.encore.back.bookUser.entity.BookUser;
 import playbook.encore.back.common.response.Response;
 import playbook.encore.back.common.response.ResponseHandler;
 import playbook.encore.back.favor.dto.FavorResponseDto;
-import playbook.encore.back.interceptor.LoginCheckInterceptor;
+import playbook.encore.back.common.util.AuthUtil;
 import playbook.encore.back.favor.service.FavorService;
 
 import java.util.List;
@@ -26,15 +25,7 @@ public class FavorController {
 
     @GetMapping
     public ResponseEntity<Response> getFavor(HttpServletRequest request) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (roleAttr == null || !LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        }
-        Object userAttr = request.getAttribute("user");
-        if (userAttr == null || !(userAttr instanceof BookUser)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.noSession("user"));
-        }
-        BookUser user = (BookUser) userAttr;
+        BookUser user = AuthUtil.getUser(request);
         List<FavorResponseDto> favorData = favorService.getFavorList(user);
         return ResponseEntity.ok(ResponseHandler.success(favorData));
     }
@@ -44,15 +35,7 @@ public class FavorController {
             HttpServletRequest request,
             @RequestBody int bookId
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (roleAttr == null || !LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        }
-        Object userAttr = request.getAttribute("user");
-        if (userAttr == null || !(userAttr instanceof BookUser)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.noSession("user"));
-        }
-        BookUser user = (BookUser) userAttr;
+        BookUser user = AuthUtil.getUser(request);
         favorService.addFavor(user, bookId);
         return ResponseEntity.ok(ResponseHandler.success());
     }
@@ -62,15 +45,7 @@ public class FavorController {
             HttpServletRequest request,
             @RequestBody int bookId
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (roleAttr == null || !LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        }
-        Object userAttr = request.getAttribute("user");
-        if (userAttr == null || !(userAttr instanceof BookUser)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.noSession("user"));
-        }
-        BookUser user = (BookUser) userAttr;
+        BookUser user = AuthUtil.getUser(request);
         favorService.deleteFavor(user, bookId);
         return ResponseEntity.ok(ResponseHandler.success());
     }

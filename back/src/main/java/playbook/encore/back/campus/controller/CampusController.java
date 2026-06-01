@@ -10,7 +10,7 @@ import playbook.encore.back.campus.dto.CampusRequestDto;
 import playbook.encore.back.campus.dto.CampusResponseDto;
 import playbook.encore.back.common.response.Response;
 import playbook.encore.back.common.response.ResponseHandler;
-import playbook.encore.back.interceptor.LoginCheckInterceptor;
+import playbook.encore.back.common.util.AuthUtil;
 import playbook.encore.back.campus.service.CampusService;
 
 @RestController
@@ -27,11 +27,8 @@ public class CampusController {
 
     @GetMapping("/all")
     public ResponseEntity<Response> getAllCampuses(HttpServletRequest request) {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            return ResponseEntity.ok(ResponseHandler.success(campusService.getAllCampuses()));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        AuthUtil.requireAdmin(request);
+        return ResponseEntity.ok(ResponseHandler.success(campusService.getAllCampuses()));
     }
 
     @GetMapping("/{id}")
@@ -39,13 +36,10 @@ public class CampusController {
             HttpServletRequest request,
             @PathVariable("id") Integer seqCampus
     ) {
+        AuthUtil.requireAdmin(request);
         try {
-            Object roleAttr = request.getAttribute("ROLE");
-            if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-                CampusResponseDto campus = campusService.getCampusById(seqCampus);
-                return ResponseEntity.ok(ResponseHandler.success(campus));
-            }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+            CampusResponseDto campus = campusService.getCampusById(seqCampus);
+            return ResponseEntity.ok(ResponseHandler.success(campus));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ResponseHandler.noData());
         }
@@ -56,12 +50,9 @@ public class CampusController {
             HttpServletRequest request,
             @RequestBody @Valid CampusRequestDto campusRequestDto
     ) {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            CampusResponseDto campus = campusService.createCampus(campusRequestDto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ResponseHandler.success(campus));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        AuthUtil.requireAdmin(request);
+        CampusResponseDto campus = campusService.createCampus(campusRequestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ResponseHandler.success(campus));
     }
 
     @PutMapping("/{id}")
@@ -70,12 +61,9 @@ public class CampusController {
             @PathVariable("id") Integer seqCampus,
             @RequestBody @Valid CampusRequestDto campusRequestDto
     ) {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            CampusResponseDto campus = campusService.updateCampus(seqCampus, campusRequestDto);
-            return ResponseEntity.ok(ResponseHandler.success(campus));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        AuthUtil.requireAdmin(request);
+        CampusResponseDto campus = campusService.updateCampus(seqCampus, campusRequestDto);
+        return ResponseEntity.ok(ResponseHandler.success(campus));
     }
 
     @DeleteMapping("/{id}")
@@ -83,17 +71,12 @@ public class CampusController {
             HttpServletRequest request,
             @PathVariable("id") Integer seqCampus
     ) {
+        AuthUtil.requireAdmin(request);
         try {
-            Object roleAttr = request.getAttribute("ROLE");
-            if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-                campusService.deleteCampus(seqCampus);
-                return ResponseEntity.ok(ResponseHandler.success());
-            }
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+            campusService.deleteCampus(seqCampus);
+            return ResponseEntity.ok(ResponseHandler.success());
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ResponseHandler.noData());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
         }
     }
 }

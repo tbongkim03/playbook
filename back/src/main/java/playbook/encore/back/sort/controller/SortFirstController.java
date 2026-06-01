@@ -10,7 +10,7 @@ import playbook.encore.back.common.response.Response;
 import playbook.encore.back.common.response.ResponseHandler;
 import playbook.encore.back.sort.dto.SortFirstRequestDto;
 import playbook.encore.back.sort.dto.SortFirstResponseDto;
-import playbook.encore.back.interceptor.LoginCheckInterceptor;
+import playbook.encore.back.common.util.AuthUtil;
 import playbook.encore.back.sort.service.SortFirstService;
 
 import java.util.List;
@@ -37,12 +37,9 @@ public class SortFirstController {
             HttpServletRequest request,
             @RequestBody @Valid SortFirstRequestDto sortFirstRequestDto
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            SortFirstResponseDto sortFirstResponseDto = sortFirstService.insertSortFirst(sortFirstRequestDto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ResponseHandler.success(sortFirstResponseDto));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        AuthUtil.requireAdmin(request);
+        SortFirstResponseDto sortFirstResponseDto = sortFirstService.insertSortFirst(sortFirstRequestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ResponseHandler.success(sortFirstResponseDto));
     }
 
     @PutMapping("/{id}")
@@ -51,12 +48,9 @@ public class SortFirstController {
             @PathVariable("id") Integer sortFirstId,
             @RequestBody @Valid SortFirstRequestDto sortFirstRequestDto
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            SortFirstResponseDto sortFirstResponseDto = sortFirstService.changeSortFirst(sortFirstId, sortFirstRequestDto);
-            return ResponseEntity.ok(ResponseHandler.success(sortFirstResponseDto));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        AuthUtil.requireAdmin(request);
+        SortFirstResponseDto sortFirstResponseDto = sortFirstService.changeSortFirst(sortFirstId, sortFirstRequestDto);
+        return ResponseEntity.ok(ResponseHandler.success(sortFirstResponseDto));
     }
 
     @DeleteMapping("/{id}")
@@ -64,11 +58,8 @@ public class SortFirstController {
             HttpServletRequest request,
             @PathVariable("id") Integer sortFirstId
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            sortFirstService.deleteSortFirstById(sortFirstId);
-            return ResponseEntity.ok(ResponseHandler.success());
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        AuthUtil.requireAdmin(request);
+        sortFirstService.deleteSortFirstById(sortFirstId);
+        return ResponseEntity.ok(ResponseHandler.success());
     }
 }

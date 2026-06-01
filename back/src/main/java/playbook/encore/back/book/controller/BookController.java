@@ -20,10 +20,10 @@ import playbook.encore.back.admin.dao.AdminRepository;
 import playbook.encore.back.bookUser.dao.BookUserRepository;
 import playbook.encore.back.common.response.Response;
 import playbook.encore.back.common.response.ResponseHandler;
-import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.book.service.BookService;
 
 import playbook.encore.back.common.excel.ExcelUtil;
+import playbook.encore.back.common.util.AuthUtil;
 
 import java.util.List;
 import java.util.Optional;
@@ -113,13 +113,8 @@ public class BookController {
 
     @GetMapping("/all")
     public ResponseEntity<Response> getAllBooks(HttpServletRequest request) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        }
-
-        Integer campusId = (Integer) request.getAttribute("campusId");
-
+        AuthUtil.requireAdmin(request);
+        Integer campusId = AuthUtil.getCampusId(request, null);
         List<BookResponseDto> booklist = bookService.getAllBooks(campusId);
         return ResponseEntity.ok(ResponseHandler.success(booklist));
     }
@@ -159,12 +154,9 @@ public class BookController {
             HttpServletRequest request,
             @RequestBody @Valid BookRequestDto bookRequestDto
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            BookResponseDto bookResponseDto = bookService.insertBook(bookRequestDto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ResponseHandler.success(bookResponseDto));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        AuthUtil.requireAdmin(request);
+        BookResponseDto bookResponseDto = bookService.insertBook(bookRequestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ResponseHandler.success(bookResponseDto));
     }
 
     @PutMapping("/{id}")
@@ -173,12 +165,9 @@ public class BookController {
             @PathVariable("id") int bookId,
             @RequestBody @Valid BookSortAndBarcodeRequestDto bookSortAndBarcodeRequestDto
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            BookResponseDto bookResponseDto = bookService.changeBook(bookId, bookSortAndBarcodeRequestDto);
-            return ResponseEntity.ok(ResponseHandler.success(bookResponseDto));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        AuthUtil.requireAdmin(request);
+        BookResponseDto bookResponseDto = bookService.changeBook(bookId, bookSortAndBarcodeRequestDto);
+        return ResponseEntity.ok(ResponseHandler.success(bookResponseDto));
     }
 
     @DeleteMapping("/{id}")
@@ -186,12 +175,9 @@ public class BookController {
             HttpServletRequest request,
             @PathVariable("id") int bookId
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            bookService.deleteBookById(bookId);
-            return ResponseEntity.ok(ResponseHandler.success());
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        AuthUtil.requireAdmin(request);
+        bookService.deleteBookById(bookId);
+        return ResponseEntity.ok(ResponseHandler.success());
     }
 
     @GetMapping("/count")
@@ -199,12 +185,9 @@ public class BookController {
             HttpServletRequest request,
             @RequestParam("isbn") String isbn
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            BookCountResponseDto bookCountResponseDto = bookService.getBookCount(isbn);
-            return ResponseEntity.ok(ResponseHandler.success(bookCountResponseDto));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        AuthUtil.requireAdmin(request);
+        BookCountResponseDto bookCountResponseDto = bookService.getBookCount(isbn);
+        return ResponseEntity.ok(ResponseHandler.success(bookCountResponseDto));
     }
 
     @GetMapping("/related")
@@ -233,22 +216,16 @@ public class BookController {
             HttpServletRequest request,
             @RequestBody List<Integer> bookIds
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            bookService.markBooksAsPrinted(bookIds);
-            return ResponseEntity.ok(ResponseHandler.success());
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        AuthUtil.requireAdmin(request);
+        bookService.markBooksAsPrinted(bookIds);
+        return ResponseEntity.ok(ResponseHandler.success());
     }
 
     @GetMapping("/unprinted")
     public ResponseEntity<Response> getUnprintedBooks(HttpServletRequest request) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            List<BookUnprintedResponseDto> books = bookService.findUnprintedBooks();
-            return ResponseEntity.ok(ResponseHandler.success(books));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        AuthUtil.requireAdmin(request);
+        List<BookUnprintedResponseDto> books = bookService.findUnprintedBooks();
+        return ResponseEntity.ok(ResponseHandler.success(books));
     }
 
     @GetMapping("/export")
@@ -256,11 +233,8 @@ public class BookController {
             HttpServletRequest request,
             @RequestParam(value = "campusId", required = false) Integer requestCampusId
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (!LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        Integer campusId = requestCampusId != null ? requestCampusId : (Integer) request.getAttribute("campusId");
+        AuthUtil.requireAdmin(request);
+        Integer campusId = AuthUtil.getCampusId(request, requestCampusId);
         byte[] data = bookService.exportExcel(campusId);
         return ExcelUtil.toResponse(data, "도서목록");
     }
@@ -270,11 +244,8 @@ public class BookController {
             HttpServletRequest request,
             @RequestBody @Valid BookBarcodeUniqueRequestDto bookBarcodeUniqueRequestDto
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            BookBarcodeUniqueResponseDto bookBarcodeUniqueResponseDto = bookService.checkDuplicated(bookBarcodeUniqueRequestDto);
-            return ResponseEntity.ok(ResponseHandler.success(bookBarcodeUniqueResponseDto));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        AuthUtil.requireAdmin(request);
+        BookBarcodeUniqueResponseDto bookBarcodeUniqueResponseDto = bookService.checkDuplicated(bookBarcodeUniqueRequestDto);
+        return ResponseEntity.ok(ResponseHandler.success(bookBarcodeUniqueResponseDto));
     }
 }

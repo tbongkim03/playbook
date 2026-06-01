@@ -17,6 +17,7 @@ import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.history.service.HistoryService;
 
 import playbook.encore.back.common.excel.ExcelUtil;
+import playbook.encore.back.common.util.AuthUtil;
 
 import java.util.List;
 
@@ -36,13 +37,10 @@ public class HistoryController {
             HttpServletRequest request,
             @RequestParam(value = "campusId", required = false) Integer requestCampusId
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            Integer campusId = requestCampusId != null ? requestCampusId : (Integer) request.getAttribute("campusId");
-            HistoryBookResponseDto result = historyService.getHistoryBooks(campusId);
-            return ResponseEntity.ok(ResponseHandler.success(result));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        AuthUtil.requireAdmin(request);
+        Integer campusId = AuthUtil.getCampusId(request, requestCampusId);
+        HistoryBookResponseDto result = historyService.getHistoryBooks(campusId);
+        return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @DeleteMapping("/book/{historyId}")
@@ -50,12 +48,9 @@ public class HistoryController {
             HttpServletRequest request,
             @PathVariable int historyId
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            historyService.deleteHistoryBook(historyId);
-            return ResponseEntity.ok(ResponseHandler.success());
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        AuthUtil.requireAdmin(request);
+        historyService.deleteHistoryBook(historyId);
+        return ResponseEntity.ok(ResponseHandler.success());
     }
 
     @PostMapping("/borrow")
@@ -135,13 +130,7 @@ public class HistoryController {
 
     @GetMapping("/me")
     public ResponseEntity<Response> getMyHistory(HttpServletRequest request) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (roleAttr == null || roleAttr != LoginCheckInterceptor.RoleType.USER) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        }
-
-        BookUser user = (BookUser) request.getAttribute("user");
-
+        BookUser user = AuthUtil.getUser(request);
         HistoryBookResponseDto result = historyService.getMyHistory(user);
         return ResponseEntity.ok(ResponseHandler.success(result));
     }
@@ -151,11 +140,8 @@ public class HistoryController {
             HttpServletRequest request,
             @RequestParam(value = "campusId", required = false) Integer requestCampusId
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (!LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        Integer campusId = requestCampusId != null ? requestCampusId : (Integer) request.getAttribute("campusId");
+        AuthUtil.requireAdmin(request);
+        Integer campusId = AuthUtil.getCampusId(request, requestCampusId);
         byte[] data = historyService.exportExcel(campusId);
         return ExcelUtil.toResponse(data, "대출이력");
     }
@@ -165,21 +151,15 @@ public class HistoryController {
             HttpServletRequest request,
             @PathVariable int courseId
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        }
+        AuthUtil.requireAdmin(request);
         List<PopularLabelDto> result = historyService.findPopularFirstSortByCourse(courseId);
         return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @GetMapping("/popular/first")
     public ResponseEntity<Response> getPopularFirstSortAll(HttpServletRequest request) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        }
-        Integer campusId = (Integer) request.getAttribute("campusId");
+        AuthUtil.requireAdmin(request);
+        Integer campusId = AuthUtil.getCampusId(request, null);
         List<PopularLabelDto> result = historyService.findPopularFirstSortAll(campusId);
         return ResponseEntity.ok(ResponseHandler.success(result));
     }
@@ -189,10 +169,7 @@ public class HistoryController {
             HttpServletRequest request,
             @PathVariable int courseId
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        }
+        AuthUtil.requireAdmin(request);
         List<PopularLabelDto> result = historyService.findPopularSecondSortByCourse(courseId);
         return ResponseEntity.ok(ResponseHandler.success(result));
     }
@@ -202,11 +179,8 @@ public class HistoryController {
             HttpServletRequest request,
             @RequestParam(value = "campusId", required = false) Integer requestCampusId
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        }
-        Integer campusId = requestCampusId != null ? requestCampusId : (Integer) request.getAttribute("campusId");
+        AuthUtil.requireAdmin(request);
+        Integer campusId = AuthUtil.getCampusId(request, requestCampusId);
         List<PopularLabelDto> result = historyService.findPopularSecondSortAll(campusId);
         return ResponseEntity.ok(ResponseHandler.success(result));
     }
@@ -216,10 +190,7 @@ public class HistoryController {
             HttpServletRequest request,
             @PathVariable int courseId
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        }
+        AuthUtil.requireAdmin(request);
         List<UserReadingRankDto> result = historyService.findUserReadingRankByCourse(courseId);
         return ResponseEntity.ok(ResponseHandler.success(result));
     }
@@ -229,11 +200,8 @@ public class HistoryController {
             HttpServletRequest request,
             @RequestParam(value = "campusId", required = false) Integer requestCampusId
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (roleAttr == null || !LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        }
-        Integer campusId = requestCampusId != null ? requestCampusId : (Integer) request.getAttribute("campusId");
+        AuthUtil.requireAdmin(request);
+        Integer campusId = AuthUtil.getCampusId(request, requestCampusId);
         List<UserReadingRankDto> result = historyService.findUserReadingRankAll(campusId);
         return ResponseEntity.ok(ResponseHandler.success(result));
     }

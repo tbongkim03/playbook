@@ -14,11 +14,11 @@ import playbook.encore.back.admin.entity.Admin;
 import playbook.encore.back.common.response.Response;
 import playbook.encore.back.common.response.ResponseCode;
 import playbook.encore.back.common.response.ResponseHandler;
-import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.admin.service.AdminService;
 import playbook.encore.back.discord.DiscordNotificationService;
 
 import playbook.encore.back.common.excel.ExcelUtil;
+import playbook.encore.back.common.util.AuthUtil;
 import playbook.encore.back.common.util.SessionUtil;
 
 @RestController
@@ -44,13 +44,9 @@ public class AdminController {
             HttpServletRequest request,
             @RequestBody @Valid RegisterAdminRequestDto registerAdminRequestDto
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            Admin user = (Admin) request.getAttribute("admin");
-            RegisterAdminResponseDto registerAdminResponseDto = adminService.createAdmin(user, registerAdminRequestDto);
-            return ResponseEntity.ok(ResponseHandler.success(registerAdminResponseDto));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        Admin user = AuthUtil.getAdmin(request);
+        RegisterAdminResponseDto registerAdminResponseDto = adminService.createAdmin(user, registerAdminRequestDto);
+        return ResponseEntity.ok(ResponseHandler.success(registerAdminResponseDto));
     }
 
     @GetMapping("/register/validate")
@@ -66,7 +62,6 @@ public class AdminController {
             @RequestBody @Valid LoginAdminRequestDto loginAdminRequestDto) throws Exception {
         try {
             String adminId = adminService.loginServiceAdmin(loginAdminRequestDto);
-
             SessionUtil.createSession(request, sessionRepository, adminId, "admin");
             return ResponseEntity.ok(ResponseHandler.success());
         } catch (IllegalArgumentException e) {
@@ -89,18 +84,14 @@ public class AdminController {
     // 회원정보 관련 부분
     @GetMapping("/me")
     public ResponseEntity<Response> getAdminInfo(HttpServletRequest request) {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            Admin user = (Admin) request.getAttribute("admin");
-            LoginAdminDataResponseDto loginAdminDataResponseDto = new LoginAdminDataResponseDto(
-                user.getSeqCampus(),
-                user.getIdAdmin(),
-                user.getNameAdmin(),
-                user.getDcAdmin()
-            );
-            return ResponseEntity.ok(ResponseHandler.success(loginAdminDataResponseDto));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        Admin user = AuthUtil.getAdmin(request);
+        LoginAdminDataResponseDto loginAdminDataResponseDto = new LoginAdminDataResponseDto(
+            user.getSeqCampus(),
+            user.getIdAdmin(),
+            user.getNameAdmin(),
+            user.getDcAdmin()
+        );
+        return ResponseEntity.ok(ResponseHandler.success(loginAdminDataResponseDto));
     }
 
     @PostMapping("/validate")
@@ -109,13 +100,9 @@ public class AdminController {
             @RequestParam("id") String idAdmin,
             @RequestBody @Valid AdminPasswordValidateRequestDto dto
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            Admin user = (Admin) request.getAttribute("admin");
-            boolean result = adminService.validatePassword(user, idAdmin, dto.getPassword());
-            return ResponseEntity.ok(ResponseHandler.success(result));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        Admin user = AuthUtil.getAdmin(request);
+        boolean result = adminService.validatePassword(user, idAdmin, dto.getPassword());
+        return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @PutMapping("/password")
@@ -123,13 +110,9 @@ public class AdminController {
             HttpServletRequest request,
             @RequestBody @Valid AdminPasswordUpdateRequestDto dto
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            Admin user = (Admin) request.getAttribute("admin");
-            boolean result = adminService.updatePassword(user, dto.getNewPassword());
-            return ResponseEntity.ok(ResponseHandler.success(result));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        Admin user = AuthUtil.getAdmin(request);
+        boolean result = adminService.updatePassword(user, dto.getNewPassword());
+        return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @PutMapping("/discord")
@@ -137,13 +120,9 @@ public class AdminController {
             HttpServletRequest request,
             @RequestBody AdminDiscordUpdateRequestDto dto
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            Admin user = (Admin) request.getAttribute("admin");
-            boolean result = adminService.updateDiscord(user, dto.getNewDiscord());
-            return ResponseEntity.ok(ResponseHandler.success(result));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        Admin user = AuthUtil.getAdmin(request);
+        boolean result = adminService.updateDiscord(user, dto.getNewDiscord());
+        return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @PutMapping("/update")
@@ -151,13 +130,9 @@ public class AdminController {
             HttpServletRequest request,
             @RequestBody @Valid UpdateAdminRequestDto updateRequest
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            Admin user = (Admin) request.getAttribute("admin");
-            boolean result = adminService.updateAdmin(user, updateRequest);
-            return ResponseEntity.ok(ResponseHandler.success(result));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        Admin user = AuthUtil.getAdmin(request);
+        boolean result = adminService.updateAdmin(user, updateRequest);
+        return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @GetMapping("/list")
@@ -165,16 +140,10 @@ public class AdminController {
             HttpServletRequest request,
             @RequestParam(value = "campusId", required = false) Integer requestCampusId
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            Integer campusId = requestCampusId;
-            if (campusId == null) {
-                campusId = (Integer) request.getAttribute("campusId");
-            }
-            AdminListResponseDto adminListResponseDto = adminService.getAdminList(campusId);
-            return ResponseEntity.ok(ResponseHandler.success(adminListResponseDto));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        AuthUtil.requireAdmin(request);
+        Integer campusId = AuthUtil.getCampusId(request, requestCampusId);
+        AdminListResponseDto adminListResponseDto = adminService.getAdminList(campusId);
+        return ResponseEntity.ok(ResponseHandler.success(adminListResponseDto));
     }
 
     @GetMapping("/export")
@@ -182,11 +151,8 @@ public class AdminController {
             HttpServletRequest request,
             @RequestParam(value = "campusId", required = false) Integer requestCampusId
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (!LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        Integer campusId = requestCampusId != null ? requestCampusId : (Integer) request.getAttribute("campusId");
+        AuthUtil.requireAdmin(request);
+        Integer campusId = AuthUtil.getCampusId(request, requestCampusId);
         byte[] data = adminService.exportExcel(campusId);
         return ExcelUtil.toResponse(data, "관리자계정");
     }
@@ -196,12 +162,9 @@ public class AdminController {
             HttpServletRequest request,
             @RequestBody @Valid AdminDeleteRequestDto dto
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            boolean result = adminService.deleteAdmin(dto.getIdAdmin());
-            return ResponseEntity.ok(ResponseHandler.success(result));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        AuthUtil.requireAdmin(request);
+        boolean result = adminService.deleteAdmin(dto.getIdAdmin());
+        return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @PostMapping("/discord/link-message")
@@ -209,10 +172,7 @@ public class AdminController {
             HttpServletRequest request,
             @RequestParam("channelId") String channelId
     ) {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (!LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
-        }
+        AuthUtil.requireAdmin(request);
         discordNotificationService.sendLinkButtonMessage(channelId);
         return ResponseEntity.ok(ResponseHandler.success());
     }

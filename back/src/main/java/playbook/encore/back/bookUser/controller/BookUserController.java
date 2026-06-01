@@ -13,11 +13,12 @@ import playbook.encore.back.bookUser.dto.*;
 import playbook.encore.back.common.response.Response;
 import playbook.encore.back.common.response.ResponseCode;
 import playbook.encore.back.common.response.ResponseHandler;
-import playbook.encore.back.interceptor.LoginCheckInterceptor;
 import playbook.encore.back.bookUser.service.BookUserService;
 import playbook.encore.back.bookUser.entity.BookUser;
 
 import playbook.encore.back.common.excel.ExcelUtil;
+import playbook.encore.back.common.exception.NotAuthorizedException;
+import playbook.encore.back.common.util.AuthUtil;
 import playbook.encore.back.common.util.SessionUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +58,6 @@ public class BookUserController {
             @RequestBody @Valid LoginUserRequestDto loginUserRequestDto) throws Exception {
         try {
             String userId = bookUserService.loginServiceUser(loginUserRequestDto);
-
             SessionUtil.createSession(request, sessionRepository, userId, "user");
             return ResponseEntity.ok(ResponseHandler.success());
         } catch (IllegalArgumentException e) {
@@ -80,34 +80,30 @@ public class BookUserController {
     // 회원정보 관련 부분
     @GetMapping("/me")
     public ResponseEntity<Response> getUserInfo(HttpServletRequest request) {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
-            BookUser user = (BookUser) request.getAttribute("user");
+        BookUser user = AuthUtil.getUser(request);
 
-            Integer seqCourse = null;
-            Integer seqCampus = null;
-            String campusName = null;
+        Integer seqCourse = null;
+        Integer seqCampus = null;
+        String campusName = null;
 
-            if (user.getSeqCourse() != null) {
-                seqCourse = user.getSeqCourse().getSeqCourse();
-                if (user.getSeqCourse().getSeqCampus() != null) {
-                    seqCampus = user.getSeqCourse().getSeqCampus().getSeqCampus();
-                    campusName = user.getSeqCourse().getSeqCampus().getNameCampus();
-                }
+        if (user.getSeqCourse() != null) {
+            seqCourse = user.getSeqCourse().getSeqCourse();
+            if (user.getSeqCourse().getSeqCampus() != null) {
+                seqCampus = user.getSeqCourse().getSeqCampus().getSeqCampus();
+                campusName = user.getSeqCourse().getSeqCampus().getNameCampus();
             }
-
-            LoginUserDataResponseDto loginUserDataResponseDto = new LoginUserDataResponseDto(
-                seqCourse,
-                seqCampus,
-                campusName,
-                user.getIdUser(),
-                user.getNameUser(),
-                user.getDcUser(),
-                user.getStatusUser().toString()
-            );
-            return ResponseEntity.ok(ResponseHandler.success(loginUserDataResponseDto));
         }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+
+        LoginUserDataResponseDto loginUserDataResponseDto = new LoginUserDataResponseDto(
+            seqCourse,
+            seqCampus,
+            campusName,
+            user.getIdUser(),
+            user.getNameUser(),
+            user.getDcUser(),
+            user.getStatusUser().toString()
+        );
+        return ResponseEntity.ok(ResponseHandler.success(loginUserDataResponseDto));
     }
 
     @PostMapping("/validate")
@@ -115,13 +111,9 @@ public class BookUserController {
             HttpServletRequest request,
             @RequestBody @Valid PasswordValidateRequestDto requestDto
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
-            BookUser user = (BookUser) request.getAttribute("user");
-            boolean result = bookUserService.validatePassword(user, requestDto.getPassword());
-            return ResponseEntity.ok(ResponseHandler.success(result));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        BookUser user = AuthUtil.getUser(request);
+        boolean result = bookUserService.validatePassword(user, requestDto.getPassword());
+        return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @PutMapping("/update")
@@ -129,13 +121,9 @@ public class BookUserController {
             HttpServletRequest request,
             @RequestBody UpdateUserRequestDto dto
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
-            BookUser user = (BookUser) request.getAttribute("user");
-            boolean result = bookUserService.updateUser(user, dto);
-            return ResponseEntity.ok(ResponseHandler.success(result));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        BookUser user = AuthUtil.getUser(request);
+        boolean result = bookUserService.updateUser(user, dto);
+        return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @PutMapping("/password")
@@ -143,13 +131,9 @@ public class BookUserController {
             HttpServletRequest request,
             @RequestBody @Valid PasswordUpdateRequestDto requestDto
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
-            BookUser user = (BookUser) request.getAttribute("user");
-            boolean result = bookUserService.updatePassword(user, requestDto.getNewPassword());
-            return ResponseEntity.ok(ResponseHandler.success(result));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        BookUser user = AuthUtil.getUser(request);
+        boolean result = bookUserService.updatePassword(user, requestDto.getNewPassword());
+        return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @PutMapping("/admin/reset-password")
@@ -157,12 +141,9 @@ public class BookUserController {
             HttpServletRequest request,
             @RequestBody @Valid ResetUserPasswordRequestDto dto
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            boolean result = bookUserService.resetUserPassword(dto.getIdUser(), dto.getNewPassword());
-            return ResponseEntity.ok(ResponseHandler.success(result));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        AuthUtil.requireAdmin(request);
+        boolean result = bookUserService.resetUserPassword(dto.getIdUser(), dto.getNewPassword());
+        return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @GetMapping("/list")
@@ -170,15 +151,9 @@ public class BookUserController {
             HttpServletRequest request,
             @RequestParam(value = "campusId", required = false) Integer requestCampusId
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            Integer campusId = requestCampusId;
-            if (campusId == null) {
-                campusId = (Integer) request.getAttribute("campusId");
-            }
-            return ResponseEntity.ok(ResponseHandler.success(bookUserService.getBookUserList(campusId)));
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        AuthUtil.requireAdmin(request);
+        Integer campusId = AuthUtil.getCampusId(request, requestCampusId);
+        return ResponseEntity.ok(ResponseHandler.success(bookUserService.getBookUserList(campusId)));
     }
 
     @GetMapping("/export")
@@ -186,11 +161,8 @@ public class BookUserController {
             HttpServletRequest request,
             @RequestParam(value = "campusId", required = false) Integer requestCampusId
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-        if (!LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        Integer campusId = requestCampusId != null ? requestCampusId : (Integer) request.getAttribute("campusId");
+        AuthUtil.requireAdmin(request);
+        Integer campusId = AuthUtil.getCampusId(request, requestCampusId);
         byte[] data = bookUserService.exportExcel(campusId);
         return ExcelUtil.toResponse(data, "학생계정");
     }
@@ -200,19 +172,17 @@ public class BookUserController {
             HttpServletRequest request,
             @RequestBody(required = false) DeleteUserRequestDto deleteUserRequestDto
     ) throws Exception {
-        Object roleAttr = request.getAttribute("ROLE");
-
-        if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
+        if (AuthUtil.isAdmin(request)) {
             if (deleteUserRequestDto == null || deleteUserRequestDto.getIdUser() == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam("idUser"));
             }
             boolean result = bookUserService.deleteUserByAdmin(deleteUserRequestDto.getIdUser());
             return ResponseEntity.ok(ResponseHandler.success(result));
-        } else if (LoginCheckInterceptor.RoleType.USER.equals(roleAttr)) {
+        } else if (AuthUtil.isUser(request)) {
             BookUser user = (BookUser) request.getAttribute("user");
             boolean result = bookUserService.deleteUserBySelf(user);
             return ResponseEntity.ok(ResponseHandler.success(result));
         }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        throw new NotAuthorizedException();
     }
 }
