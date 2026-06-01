@@ -502,4 +502,21 @@ public class BookServiceImpl implements BookService {
         return ExcelUtil.toResponse(wb, "도서목록").getBody();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public BookListResponseDto getAdminBookList(
+            Integer campusId, String search, Integer seqSortFirst, Integer seqSortSecond,
+            String borrowStatus, Integer registerYear, Integer registerMonth,
+            java.time.LocalDate registerStartDate, java.time.LocalDate registerEndDate,
+            int page, int size, String sortBy, String sortDir) {
+        log.info("[BookService] 관리자 도서 검색 - campusId: {}, search: {}, page: {}", campusId, search, page);
+        Page<Book> bookPage = bookDAO.selectAdminBookListWithFilters(
+                campusId, search, seqSortFirst, seqSortSecond, borrowStatus,
+                registerYear, registerMonth, registerStartDate, registerEndDate,
+                page, size, sortBy, sortDir);
+        List<BookResponseDto> content = bookPage.getContent().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+        return new BookListResponseDto(content, (int) bookPage.getTotalElements());
+    }
 }

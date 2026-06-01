@@ -5,6 +5,7 @@ import playbook.encore.back.history.dto.PopularLabelDto;
 import playbook.encore.back.history.dto.UserReadingRankDto;
 import playbook.encore.back.bookUser.entity.BookUser;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface HistoryService {
@@ -12,16 +13,17 @@ public interface HistoryService {
     void handleBookReturn(Object user, String barcodeBook, Integer campusId);
 
     HistoryBookResponseDto getHistoryBooks(Integer campusId);
+    HistoryBookResponseDto getHistoryBooks(Integer campusId, LocalDate startDate, LocalDate endDate);
     void deleteHistoryBook(int historyId);
 
     HistoryBookResponseDto getMyHistory(BookUser user);
 
-    List<PopularLabelDto> findPopularFirstSortByCourse(int courseId);
-    List<PopularLabelDto> findPopularFirstSortAll(Integer campusId);
-    List<PopularLabelDto> findPopularSecondSortByCourse(int courseId);
-    List<PopularLabelDto> findPopularSecondSortAll(Integer campusId);
-    List<UserReadingRankDto> findUserReadingRankByCourse(int courseId);
-    List<UserReadingRankDto> findUserReadingRankAll(Integer campusId);
+    List<PopularLabelDto> findPopularFirstSortByCourse(int courseId, LocalDate startDate, LocalDate endDate);
+    List<PopularLabelDto> findPopularFirstSortAll(Integer campusId, LocalDate startDate, LocalDate endDate);
+    List<PopularLabelDto> findPopularSecondSortByCourse(int courseId, LocalDate startDate, LocalDate endDate);
+    List<PopularLabelDto> findPopularSecondSortAll(Integer campusId, LocalDate startDate, LocalDate endDate);
+    List<UserReadingRankDto> findUserReadingRankByCourse(int courseId, LocalDate startDate, LocalDate endDate);
+    List<UserReadingRankDto> findUserReadingRankAll(Integer campusId, LocalDate startDate, LocalDate endDate);
 
     byte[] exportExcel(Integer campusId) throws java.io.IOException;
 }

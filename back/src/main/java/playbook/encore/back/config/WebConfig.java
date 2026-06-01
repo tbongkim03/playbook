@@ -51,6 +51,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/books/batch/print")
                 .addPathPatterns("/books/unprinted")
                 .addPathPatterns("/books/check/barcode")
+                .addPathPatterns("/books/admin/list")
                 .addPathPatterns("/books/export")
                 .addPathPatterns("/admin/export")
                 .addPathPatterns("/admin/discord/link-message")

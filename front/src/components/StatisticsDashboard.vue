@@ -18,7 +18,7 @@
         <label for="courseSelect">과정 선택:</label>
         <select id="courseSelect" v-model="selectedCourse" @change="fetchData" class="filter-select">
           <option value="">전체 과정</option>
-          <option 
+          <option
             v-for="(course, index) in courses"
             :key="index"
             :value="course.seqCourse"
@@ -27,7 +27,7 @@
           </option>
         </select>
       </div>
-      
+
       <!-- 캠퍼스 필터 (전체 관리자만 표시) -->
       <div v-if="showCampusFilter" class="filter-group">
         <label for="campusSelect">캠퍼스 선택:</label>
@@ -42,7 +42,13 @@
           </option>
         </select>
       </div>
-      
+
+      <!-- 기간 필터 -->
+      <div class="filter-group">
+        <label>기간 선택:</label>
+        <DateRangePicker ref="datePickerRef" @change="onDateRangeChange" />
+      </div>
+
       <button @click="refreshData" class="refresh-btn" :disabled="loading">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M1 4V10H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -183,6 +189,7 @@ import { Chart, registerables } from 'chart.js'
 import * as courseApi from '@/api/course'
 import * as historyApi from '@/api/history'
 import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
+import DateRangePicker from './DateRangePicker.vue'
 
 // Chart.js 등록
 Chart.register(...registerables)
@@ -191,6 +198,15 @@ Chart.register(...registerables)
 const loading = ref(false)
 const error = ref(null)
 const selectedCourse = ref('')
+
+// 기간 필터
+const datePickerRef = ref(null)
+const activeDateRange = ref({ startDate: null, endDate: null })
+
+const onDateRangeChange = (range) => {
+  activeDateRange.value = range
+  fetchData()
+}
 
 // 캠퍼스 필터 관련 (캠퍼스 관리자는 자기 캠퍼스 고정, 필터 숨김)
 const {
@@ -340,7 +356,8 @@ let userRankChartInstance = null
 const fetchPopularFirstSort = async () => {
   try {
     const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : null
-    const response = await historyApi.getPopularFirst(selectedCourse.value || null, campusId)
+    const { startDate, endDate } = activeDateRange.value
+    const response = await historyApi.getPopularFirst(selectedCourse.value || null, campusId, startDate, endDate)
     popularFirstSort.value = response.data.data
   } catch (err) {
     console.error('Popular first sort fetch error:', err)
@@ -351,7 +368,8 @@ const fetchPopularFirstSort = async () => {
 const fetchPopularSecondSort = async () => {
   try {
     const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : null
-    const response = await historyApi.getPopularSecond(selectedCourse.value || null, campusId)
+    const { startDate, endDate } = activeDateRange.value
+    const response = await historyApi.getPopularSecond(selectedCourse.value || null, campusId, startDate, endDate)
     popularSecondSort.value = response.data.data
   } catch (err) {
     console.error('Popular second sort fetch error:', err)
@@ -362,7 +380,8 @@ const fetchPopularSecondSort = async () => {
 const fetchUserReadingRank = async () => {
   try {
     const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : null
-    const response = await historyApi.getUserRank(selectedCourse.value || null, campusId)
+    const { startDate, endDate } = activeDateRange.value
+    const response = await historyApi.getUserRank(selectedCourse.value || null, campusId, startDate, endDate)
     userReadingRank.value = response.data.data
   } catch (err) {
     console.error('User reading rank fetch error:', err)

@@ -35,4 +35,9 @@ public interface BookService {
 
     BookListResponseDto getBookListBySortSecondWithPagination(int sortSecondId, Integer campusId, int page, int size, String sortBy, String sortDir);
 
+    BookListResponseDto getAdminBookList(
+            Integer campusId, String search, Integer seqSortFirst, Integer seqSortSecond,
+            String borrowStatus, Integer registerYear, Integer registerMonth,
+            java.time.LocalDate registerStartDate, java.time.LocalDate registerEndDate,
+            int page, int size, String sortBy, String sortDir);
 }

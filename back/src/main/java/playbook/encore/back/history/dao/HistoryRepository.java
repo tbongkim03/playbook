@@ -139,6 +139,87 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
 
     boolean existsBySeqBook_SeqBookAndSeqUser_SeqUserAndReturnDtIsNull(int bookId, int userSeq);
 
+    /** 인기 대분류 (전체, 날짜 범위) */
+    @Query("""
+        SELECT new playbook.encore.back.history.dto.PopularLabelDto(sf.korSortFirst, COUNT(h.seqHistory))
+        FROM History h JOIN h.seqBook b JOIN b.seqSortSecond ss JOIN ss.seqSortFirst sf
+        WHERE h.seqUser IS NOT NULL AND h.bookDt BETWEEN :startDate AND :endDate
+        GROUP BY sf.seqSortFirst, sf.nameSortFirst ORDER BY COUNT(h.seqHistory) DESC
+    """)
+    List<PopularLabelDto> findPopularFirstSortAllByDateRange(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    /** 인기 대분류 (캠퍼스, 날짜 범위) */
+    @Query("""
+        SELECT new playbook.encore.back.history.dto.PopularLabelDto(sf.korSortFirst, COUNT(h.seqHistory))
+        FROM History h JOIN h.seqBook b JOIN b.seqSortSecond ss JOIN ss.seqSortFirst sf
+        WHERE h.seqUser IS NOT NULL AND h.seqCampus.seqCampus = :campusId AND h.bookDt BETWEEN :startDate AND :endDate
+        GROUP BY sf.seqSortFirst, sf.nameSortFirst ORDER BY COUNT(h.seqHistory) DESC
+    """)
+    List<PopularLabelDto> findPopularFirstSortAllByCampusAndDateRange(@Param("campusId") int campusId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    /** 인기 대분류 (특정 과정, 날짜 범위) */
+    @Query("""
+        SELECT new playbook.encore.back.history.dto.PopularLabelDto(sf.korSortFirst, COUNT(h))
+        FROM History h JOIN h.seqBook b JOIN b.seqSortSecond ss JOIN ss.seqSortFirst sf
+        WHERE h.seqCourse.seqCourse = :courseId AND h.bookDt BETWEEN :startDate AND :endDate
+        GROUP BY sf.seqSortFirst, sf.nameSortFirst ORDER BY COUNT(h.seqHistory) DESC
+    """)
+    List<PopularLabelDto> findPopularFirstSortByCourseAndDateRange(@Param("courseId") int courseId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    /** 인기 중분류 (전체, 날짜 범위) */
+    @Query("""
+        SELECT new playbook.encore.back.history.dto.PopularLabelDto(ss.korSortSecond, COUNT(h.seqHistory))
+        FROM History h JOIN h.seqBook b JOIN b.seqSortSecond ss
+        WHERE h.seqUser IS NOT NULL AND h.bookDt BETWEEN :startDate AND :endDate
+        GROUP BY ss.seqSortSecond, ss.nameSortSecond ORDER BY COUNT(h.seqHistory) DESC
+    """)
+    List<PopularLabelDto> findPopularSecondSortAllByDateRange(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    /** 인기 중분류 (캠퍼스, 날짜 범위) */
+    @Query("""
+        SELECT new playbook.encore.back.history.dto.PopularLabelDto(ss.korSortSecond, COUNT(h.seqHistory))
+        FROM History h JOIN h.seqBook b JOIN b.seqSortSecond ss
+        WHERE h.seqUser IS NOT NULL AND h.seqCampus.seqCampus = :campusId AND h.bookDt BETWEEN :startDate AND :endDate
+        GROUP BY ss.seqSortSecond, ss.nameSortSecond ORDER BY COUNT(h.seqHistory) DESC
+    """)
+    List<PopularLabelDto> findPopularSecondSortAllByCampusAndDateRange(@Param("campusId") int campusId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    /** 인기 중분류 (특정 과정, 날짜 범위) */
+    @Query("""
+        SELECT new playbook.encore.back.history.dto.PopularLabelDto(ss.korSortSecond, COUNT(h.seqHistory))
+        FROM History h JOIN h.seqBook b JOIN b.seqSortSecond ss
+        WHERE h.seqCourse.seqCourse = :courseId AND h.bookDt BETWEEN :startDate AND :endDate
+        GROUP BY ss.seqSortSecond, ss.nameSortSecond ORDER BY COUNT(h.seqHistory) DESC
+    """)
+    List<PopularLabelDto> findPopularSecondSortByCourseAndDateRange(@Param("courseId") int courseId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    /** 다독 순위 (전체, 날짜 범위) */
+    @Query("""
+        SELECT new playbook.encore.back.history.dto.UserReadingRankDto(u.nameUser, COUNT(h.seqHistory))
+        FROM History h JOIN h.seqUser u
+        WHERE h.returnDt IS NOT NULL AND h.bookDt BETWEEN :startDate AND :endDate
+        GROUP BY u.seqUser, u.nameUser ORDER BY COUNT(h.seqHistory) DESC
+    """)
+    List<UserReadingRankDto> findUserReadingRankAllByDateRange(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    /** 다독 순위 (캠퍼스, 날짜 범위) */
+    @Query("""
+        SELECT new playbook.encore.back.history.dto.UserReadingRankDto(u.nameUser, COUNT(h.seqHistory))
+        FROM History h JOIN h.seqUser u
+        WHERE h.returnDt IS NOT NULL AND h.seqCampus.seqCampus = :campusId AND h.bookDt BETWEEN :startDate AND :endDate
+        GROUP BY u.seqUser, u.nameUser ORDER BY COUNT(h.seqHistory) DESC
+    """)
+    List<UserReadingRankDto> findUserReadingRankAllByCampusAndDateRange(@Param("campusId") int campusId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    /** 다독 순위 (특정 과정, 날짜 범위) */
+    @Query("""
+        SELECT new playbook.encore.back.history.dto.UserReadingRankDto(u.nameUser, COUNT(h.seqHistory))
+        FROM History h JOIN h.seqUser u
+        WHERE h.seqCourse.seqCourse = :courseId AND h.returnDt IS NOT NULL AND h.bookDt BETWEEN :startDate AND :endDate
+        GROUP BY u.seqUser, u.nameUser ORDER BY COUNT(h.seqHistory) DESC
+    """)
+    List<UserReadingRankDto> findUserReadingRankByCourseAndDateRange(@Param("courseId") int courseId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
     @Query("SELECT h FROM History h WHERE h.bookDt = :bookDate AND h.returnDt IS NULL")
     List<History> findByBookDtAndReturnDtIsNull(@Param("bookDate") LocalDate bookDate);
 
@@ -281,4 +362,10 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
      * 캠퍼스별 히스토리 조회
      */
     List<History> findBySeqCampus_SeqCampus(Integer campusId);
+
+    /**
+     * 날짜 범위 히스토리 조회
+     */
+    List<History> findByBookDtBetween(LocalDate startDate, LocalDate endDate);
+    List<History> findBySeqCampus_SeqCampusAndBookDtBetween(Integer campusId, LocalDate startDate, LocalDate endDate);
 }

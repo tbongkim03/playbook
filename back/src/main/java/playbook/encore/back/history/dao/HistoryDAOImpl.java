@@ -258,38 +258,104 @@ public class HistoryDAOImpl implements HistoryDAO {
     }
 
     @Override
-    public List<PopularLabelDto> findPopularFirstSortByCourse(int courseId) {
+    public List<PopularLabelDto> findPopularFirstSortByCourse(int courseId, LocalDate startDate, LocalDate endDate) {
+        if (startDate != null && endDate != null)
+            return historyRepository.findPopularFirstSortByCourseAndDateRange(courseId, startDate, endDate);
         return historyRepository.findPopularFirstSortByCourse(courseId);
     }
 
     @Override
-    public List<PopularLabelDto> findPopularFirstSortAll() {
+    public List<PopularLabelDto> findPopularFirstSortAll(LocalDate startDate, LocalDate endDate) {
+        if (startDate != null && endDate != null)
+            return historyRepository.findPopularFirstSortAllByDateRange(startDate, endDate);
         return historyRepository.findPopularFirstSortAll();
     }
 
     @Override
-    public List<PopularLabelDto> findPopularSecondSortAll() {
+    public List<PopularLabelDto> findPopularSecondSortAll(LocalDate startDate, LocalDate endDate) {
+        if (startDate != null && endDate != null)
+            return historyRepository.findPopularSecondSortAllByDateRange(startDate, endDate);
         return historyRepository.findPopularSecondSortAll();
     }
 
     @Override
-    public List<PopularLabelDto> findPopularSecondSortByCourse(int courseId) {
+    public List<PopularLabelDto> findPopularSecondSortByCourse(int courseId, LocalDate startDate, LocalDate endDate) {
+        if (startDate != null && endDate != null)
+            return historyRepository.findPopularSecondSortByCourseAndDateRange(courseId, startDate, endDate);
         return historyRepository.findPopularSecondSortByCourse(courseId);
     }
 
     @Override
-    public List<UserReadingRankDto> findUserReadingRankByCourse(int courseId) {
+    public List<UserReadingRankDto> findUserReadingRankByCourse(int courseId, LocalDate startDate, LocalDate endDate) {
+        if (startDate != null && endDate != null)
+            return historyRepository.findUserReadingRankByCourseAndDateRange(courseId, startDate, endDate);
         return historyRepository.findUserReadingRankByCourse(courseId);
     }
 
     @Override
-    public List<UserReadingRankDto> findUserReadingRankAll() {
+    public List<UserReadingRankDto> findUserReadingRankAll(LocalDate startDate, LocalDate endDate) {
+        if (startDate != null && endDate != null)
+            return historyRepository.findUserReadingRankAllByDateRange(startDate, endDate);
         return historyRepository.findUserReadingRankAll();
     }
 
     @Override
     public boolean existsByBookIdAndSeqUserAndReturnDateIsNull(int bookId, int userSeq) {
         boolean result = historyRepository.existsBySeqBook_SeqBookAndSeqUser_SeqUserAndReturnDtIsNull(bookId, userSeq);
+        return result;
+    }
+
+    @Override
+    public List<RentalHistoryDto> getRentalHistoryListByDateRange(LocalDate startDate, LocalDate endDate) {
+        List<History> historyList = historyRepository.findByBookDtBetween(startDate, endDate);
+        return convertHistoryList(historyList);
+    }
+
+    @Override
+    public List<RentalHistoryDto> getRentalHistoryListByCampusAndDateRange(Integer campusId, LocalDate startDate, LocalDate endDate) {
+        List<History> historyList = historyRepository.findBySeqCampus_SeqCampusAndBookDtBetween(campusId, startDate, endDate);
+        return convertHistoryList(historyList);
+    }
+
+    private List<RentalHistoryDto> convertHistoryList(List<History> historyList) {
+        List<RentalHistoryDto> result = new ArrayList<>();
+        for (History history : historyList) {
+            if (history.getSeqBook() == null) continue;
+            String userName;
+            String userId;
+            String courseName = null;
+            if (history.getSeqUser() != null) {
+                userName = history.getSeqUser().getNameUser();
+                userId = history.getSeqUser().getIdUser();
+                courseName = history.getSeqUser().getSeqCourse() != null ?
+                        history.getSeqUser().getSeqCourse().getNameCourse() : "종료된 과정";
+            } else if (history.getSeqAdmin() != null) {
+                userName = history.getSeqAdmin().getNameAdmin();
+                userId = history.getSeqAdmin().getIdAdmin();
+            } else {
+                userName = "탈퇴 사용자";
+                userId = "unknown";
+            }
+            LocalDate borrowDate = history.getBookDt();
+            LocalDate returnDate = history.getReturnDt();
+            LocalDate dueDate = borrowDate.plusDays(7);
+            History.StatusType status;
+            if (returnDate != null) {
+                status = History.StatusType.returned;
+            } else if (dueDate.isBefore(LocalDate.now())) {
+                status = History.StatusType.overdue;
+            } else {
+                status = History.StatusType.booked;
+            }
+            result.add(new RentalHistoryDto(
+                    history.getSeqBook().getTitleBook(),
+                    history.getSeqBook().getAuthorBook(),
+                    history.getSeqBook().getIsbnBook(),
+                    history.getSeqBook().getBarcodeBook(),
+                    userName, userId, courseName,
+                    borrowDate, returnDate, status.toString()
+            ));
+        }
         return result;
     }
 }

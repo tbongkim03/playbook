@@ -4,9 +4,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 import playbook.encore.back.book.dto.BookBarcodeUniqueRequestDto;
 import playbook.encore.back.book.dto.BookBarcodeUniqueResponseDto;
 import playbook.encore.back.book.dto.BookCountResponseDto;
@@ -109,6 +112,32 @@ public class BookController {
             default:
                 return "seqBook";
         }
+    }
+
+    @GetMapping("/admin/list")
+    public ResponseEntity<Response> getAdminBookList(
+            HttpServletRequest request,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "15") int size,
+            @RequestParam(value = "sortBy", defaultValue = "seqBook") String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "desc") String sortDir,
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId,
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "seqSortFirst", required = false) Integer seqSortFirst,
+            @RequestParam(value = "seqSortSecond", required = false) Integer seqSortSecond,
+            @RequestParam(value = "borrowStatus", required = false) String borrowStatus,
+            @RequestParam(value = "registerYear", required = false) Integer registerYear,
+            @RequestParam(value = "registerMonth", required = false) Integer registerMonth,
+            @RequestParam(value = "registerStartDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate registerStartDate,
+            @RequestParam(value = "registerEndDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate registerEndDate
+    ) {
+        AuthUtil.requireAdmin(request);
+        Integer campusId = AuthUtil.getCampusId(request, requestCampusId);
+        BookListResponseDto result = bookService.getAdminBookList(
+                campusId, search, seqSortFirst, seqSortSecond, borrowStatus,
+                registerYear, registerMonth, registerStartDate, registerEndDate,
+                page, size, sortBy, sortDir);
+        return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @GetMapping("/all")

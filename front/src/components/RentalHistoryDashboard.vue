@@ -65,23 +65,7 @@
       <div class="filter-row">
         <div class="filter-group">
           <label>기간 선택</label>
-          <select v-model="filters.period" @change="applyFilters">
-            <option value="all">전체 기간</option>
-            <option value="today">오늘</option>
-            <option value="week">이번 주</option>
-            <option value="month">이번 달</option>
-            <option value="custom">사용자 지정</option>
-          </select>
-        </div>
-
-        <div class="filter-group" v-if="filters.period === 'custom'">
-          <label>시작 일</label>
-          <input type="date" v-model="filters.startDate" @change="applyFilters">
-        </div>
-
-        <div class="filter-group" v-if="filters.period === 'custom'">
-          <label>종료 일</label>
-          <input type="date" v-model="filters.endDate" @change="applyFilters">
+          <DateRangePicker ref="datePickerRef" @change="onDateRangeChange" />
         </div>
 
         <div class="filter-group">
@@ -316,6 +300,7 @@ import { exportToXlsx } from '@/utils/exportSheet'
 import * as historyApi from '@/api/history'
 import { swAlert } from '@/utils/sweetAlert'
 import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
+import DateRangePicker from './DateRangePicker.vue'
 
 // 반응형 데이터
 const rentalHistory = ref([])
@@ -342,11 +327,18 @@ const stats = ref({
   overdueRentals: 0   // overdueCount
 })
 
+// DateRangePicker 참조 및 날짜 상태
+const datePickerRef = ref(null)
+const activeDateRange = ref({ period: 'all', startDate: null, endDate: null })
+
+const onDateRangeChange = (range) => {
+  activeDateRange.value = range
+  currentPage.value = 1
+  fetchRentalHistory()
+}
+
 // 필터 및 검색
 const filters = ref({
-  period: 'all',
-  startDate: '',
-  endDate: '',
   status: 'all'
 })
 
@@ -385,42 +377,6 @@ const applyRentalFilters = (source) => {
       if (filters.value.status === 'overdue') return rental.status === 'overdue'
       return rental.status === filters.value.status
     })
-  }
-
-  if (filters.value.period !== 'all') {
-    const now = new Date()
-    let startDate, endDate
-
-    switch (filters.value.period) {
-      case 'today':
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-        endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
-        break
-      case 'week': {
-        const dayOfWeek = now.getDay()
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek)
-        endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - dayOfWeek))
-        break
-      }
-      case 'month':
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1)
-        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1)
-        break
-      case 'custom':
-        if (filters.value.startDate && filters.value.endDate) {
-          startDate = new Date(filters.value.startDate)
-          endDate = new Date(filters.value.endDate)
-          endDate.setDate(endDate.getDate() + 1)
-        }
-        break
-    }
-
-    if (startDate && endDate) {
-      filtered = filtered.filter(rental => {
-        const rentalDate = new Date(rental.rentalDate)
-        return rentalDate >= startDate && rentalDate < endDate
-      })
-    }
   }
 
   return filtered
@@ -467,13 +423,13 @@ const onCampusChange = () => {
   applyFilters()
 }
 
-// 메서드
 const fetchRentalHistory = async () => {
   try {
     isLoading.value = true
-    
+
     const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : null
-    const response = await historyApi.getBooks(campusId)
+    const { startDate, endDate } = activeDateRange.value
+    const response = await historyApi.getBooks(campusId, startDate, endDate)
     
     // 응답 데이터 구조 확인 및 처리 (HistoryBookResponseDto 기준)
     const responseData = response.data.data
@@ -597,7 +553,8 @@ const closeDetailModal = () => {
 }
 
 const applyFilters = () => {
-  currentPage.value = 1 // 필터 적용 시 첫 페이지로 이동
+  currentPage.value = 1
+  fetchRentalHistory()
 }
 
 const changePage = (page) => {

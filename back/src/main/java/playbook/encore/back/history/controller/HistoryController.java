@@ -19,6 +19,9 @@ import playbook.encore.back.history.service.HistoryService;
 import playbook.encore.back.common.excel.ExcelUtil;
 import playbook.encore.back.common.util.AuthUtil;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -35,11 +38,15 @@ public class HistoryController {
     @GetMapping("/book")
     public ResponseEntity<Response> getHistoryBook(
             HttpServletRequest request,
-            @RequestParam(value = "campusId", required = false) Integer requestCampusId
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) throws Exception {
         AuthUtil.requireAdmin(request);
         Integer campusId = AuthUtil.getCampusId(request, requestCampusId);
-        HistoryBookResponseDto result = historyService.getHistoryBooks(campusId);
+        HistoryBookResponseDto result = (startDate != null && endDate != null)
+                ? historyService.getHistoryBooks(campusId, startDate, endDate)
+                : historyService.getHistoryBooks(campusId);
         return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
@@ -149,60 +156,74 @@ public class HistoryController {
     @GetMapping("/popular/first/{courseId}")
     public ResponseEntity<Response> getPopularFirstSortByCourse(
             HttpServletRequest request,
-            @PathVariable int courseId
+            @PathVariable int courseId,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) throws Exception {
         AuthUtil.requireAdmin(request);
-        List<PopularLabelDto> result = historyService.findPopularFirstSortByCourse(courseId);
+        List<PopularLabelDto> result = historyService.findPopularFirstSortByCourse(courseId, startDate, endDate);
         return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @GetMapping("/popular/first")
-    public ResponseEntity<Response> getPopularFirstSortAll(HttpServletRequest request) throws Exception {
+    public ResponseEntity<Response> getPopularFirstSortAll(
+            HttpServletRequest request,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+    ) throws Exception {
         AuthUtil.requireAdmin(request);
         Integer campusId = AuthUtil.getCampusId(request, null);
-        List<PopularLabelDto> result = historyService.findPopularFirstSortAll(campusId);
+        List<PopularLabelDto> result = historyService.findPopularFirstSortAll(campusId, startDate, endDate);
         return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @GetMapping("/popular/second/{courseId}")
     public ResponseEntity<Response> getPopularSecondSortByCourse(
             HttpServletRequest request,
-            @PathVariable int courseId
+            @PathVariable int courseId,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) throws Exception {
         AuthUtil.requireAdmin(request);
-        List<PopularLabelDto> result = historyService.findPopularSecondSortByCourse(courseId);
+        List<PopularLabelDto> result = historyService.findPopularSecondSortByCourse(courseId, startDate, endDate);
         return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @GetMapping("/popular/second")
     public ResponseEntity<Response> getPopularSecondSortAll(
             HttpServletRequest request,
-            @RequestParam(value = "campusId", required = false) Integer requestCampusId
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) throws Exception {
         AuthUtil.requireAdmin(request);
         Integer campusId = AuthUtil.getCampusId(request, requestCampusId);
-        List<PopularLabelDto> result = historyService.findPopularSecondSortAll(campusId);
+        List<PopularLabelDto> result = historyService.findPopularSecondSortAll(campusId, startDate, endDate);
         return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @GetMapping("/rank/{courseId}")
     public ResponseEntity<Response> getUserReadingRankByCourse(
             HttpServletRequest request,
-            @PathVariable int courseId
+            @PathVariable int courseId,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) throws Exception {
         AuthUtil.requireAdmin(request);
-        List<UserReadingRankDto> result = historyService.findUserReadingRankByCourse(courseId);
+        List<UserReadingRankDto> result = historyService.findUserReadingRankByCourse(courseId, startDate, endDate);
         return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
     @GetMapping("/rank")
     public ResponseEntity<Response> getUserReadingRankAll(
             HttpServletRequest request,
-            @RequestParam(value = "campusId", required = false) Integer requestCampusId
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) throws Exception {
         AuthUtil.requireAdmin(request);
         Integer campusId = AuthUtil.getCampusId(request, requestCampusId);
-        List<UserReadingRankDto> result = historyService.findUserReadingRankAll(campusId);
+        List<UserReadingRankDto> result = historyService.findUserReadingRankAll(campusId, startDate, endDate);
         return ResponseEntity.ok(ResponseHandler.success(result));
     }
 }

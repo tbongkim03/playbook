@@ -4,6 +4,8 @@ export const getAll = (params) => axios.get('/api/books', { params })
 
 export const getAllForAdmin = () => axios.get('/api/books/all')
 
+export const getAdminList = (params) => axios.get('/api/books/admin/list', { params })
+
 export const getByCategory = (id, params) =>
   axios.get('/api/books/sortFirst', { params: { id, ...params } })
 

@@ -2,6 +2,7 @@ package playbook.encore.back.book.dao;
 
 import playbook.encore.back.book.entity.Book;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -54,4 +55,10 @@ public interface BookDAO {
     Page<Book> selectBookListBySortSecondWithPagination(int sortSecondId, Integer campusId, int page, int size, String sortBy, String sortDir);
 
     Book bookStatusUpdate(Book book, boolean status) throws Exception;
+
+    Page<Book> selectAdminBookListWithFilters(
+            Integer campusId, String search, Integer seqSortFirst, Integer seqSortSecond,
+            String borrowStatus, Integer registerYear, Integer registerMonth,
+            LocalDate registerStartDate, LocalDate registerEndDate,
+            int page, int size, String sortBy, String sortDir);
 }

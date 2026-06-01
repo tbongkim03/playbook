@@ -120,6 +120,20 @@ public class HistoryServiceImpl implements HistoryService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public HistoryBookResponseDto getHistoryBooks(Integer campusId, LocalDate startDate, LocalDate endDate) {
+        log.info("[HistoryService] 날짜 범위 대출/반납 내역 조회 - campusId: {}, startDate: {}, endDate: {}", campusId, startDate, endDate);
+        List<RentalHistoryDto> rentalHistoryDtoList;
+        if (campusId == null) {
+            rentalHistoryDtoList = historyDAO.getRentalHistoryListByDateRange(startDate, endDate);
+        } else {
+            rentalHistoryDtoList = historyDAO.getRentalHistoryListByCampusAndDateRange(campusId, startDate, endDate);
+        }
+        RentalSummaryDto summary = new RentalSummaryDto(rentalHistoryDtoList.size(), 0, 0, 0);
+        return new HistoryBookResponseDto(summary, rentalHistoryDtoList);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteHistoryBook(int historyId) {
         log.info("[HistoryService] 대출 기록 삭제 - historyId: {}", historyId);
@@ -169,20 +183,22 @@ public class HistoryServiceImpl implements HistoryService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PopularLabelDto> findPopularFirstSortByCourse(int courseId) {
+    public List<PopularLabelDto> findPopularFirstSortByCourse(int courseId, LocalDate startDate, LocalDate endDate) {
         log.info("[HistoryService] 과정별 대분류 인기 통계 - courseId: {}", courseId);
         if (!courseRepository.existsById(courseId)) {
             throw new IllegalArgumentException("유효하지 않은 과정 ID입니다.");
         }
-        return historyDAO.findPopularFirstSortByCourse(courseId);
+        return historyDAO.findPopularFirstSortByCourse(courseId, startDate, endDate);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<PopularLabelDto> findPopularFirstSortAll(Integer campusId) {
+    public List<PopularLabelDto> findPopularFirstSortAll(Integer campusId, LocalDate startDate, LocalDate endDate) {
         log.info("[HistoryService] 전체 대분류 인기 통계 - campusId: {}", campusId);
         if (campusId == null) {
-            return historyDAO.findPopularFirstSortAll();
+            return historyDAO.findPopularFirstSortAll(startDate, endDate);
+        } else if (startDate != null && endDate != null) {
+            return historyRepository.findPopularFirstSortAllByCampusAndDateRange(campusId, startDate, endDate);
         } else {
             return historyRepository.findPopularFirstSortAllByCampus(campusId);
         }
@@ -190,20 +206,22 @@ public class HistoryServiceImpl implements HistoryService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PopularLabelDto> findPopularSecondSortByCourse(int courseId) {
+    public List<PopularLabelDto> findPopularSecondSortByCourse(int courseId, LocalDate startDate, LocalDate endDate) {
         log.info("[HistoryService] 과정별 소분류 인기 통계 - courseId: {}", courseId);
         if (!courseRepository.existsById(courseId)) {
             throw new IllegalArgumentException("유효하지 않은 과정 ID입니다.");
         }
-        return historyDAO.findPopularSecondSortByCourse(courseId);
+        return historyDAO.findPopularSecondSortByCourse(courseId, startDate, endDate);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<PopularLabelDto> findPopularSecondSortAll(Integer campusId) {
+    public List<PopularLabelDto> findPopularSecondSortAll(Integer campusId, LocalDate startDate, LocalDate endDate) {
         log.info("[HistoryService] 전체 소분류 인기 통계 - campusId: {}", campusId);
         if (campusId == null) {
-            return historyDAO.findPopularSecondSortAll();
+            return historyDAO.findPopularSecondSortAll(startDate, endDate);
+        } else if (startDate != null && endDate != null) {
+            return historyRepository.findPopularSecondSortAllByCampusAndDateRange(campusId, startDate, endDate);
         } else {
             return historyRepository.findPopularSecondSortAllByCampus(campusId);
         }
@@ -211,20 +229,22 @@ public class HistoryServiceImpl implements HistoryService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserReadingRankDto> findUserReadingRankByCourse(int courseId) {
+    public List<UserReadingRankDto> findUserReadingRankByCourse(int courseId, LocalDate startDate, LocalDate endDate) {
         log.info("[HistoryService] 과정별 독서량 순위 - courseId: {}", courseId);
         if (!courseRepository.existsById(courseId)) {
             throw new IllegalArgumentException("유효하지 않은 과정 ID입니다.");
         }
-        return historyDAO.findUserReadingRankByCourse(courseId);
+        return historyDAO.findUserReadingRankByCourse(courseId, startDate, endDate);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserReadingRankDto> findUserReadingRankAll(Integer campusId) {
+    public List<UserReadingRankDto> findUserReadingRankAll(Integer campusId, LocalDate startDate, LocalDate endDate) {
         log.info("[HistoryService] 전체 독서량 순위 - campusId: {}", campusId);
         if (campusId == null) {
-            return historyDAO.findUserReadingRankAll();
+            return historyDAO.findUserReadingRankAll(startDate, endDate);
+        } else if (startDate != null && endDate != null) {
+            return historyRepository.findUserReadingRankAllByCampusAndDateRange(campusId, startDate, endDate);
         } else {
             return historyRepository.findUserReadingRankAllByCampus(campusId);
         }

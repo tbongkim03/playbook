@@ -13,7 +13,12 @@ import playbook.encore.back.book.dao.BookDAO;
 import playbook.encore.back.book.entity.Book;
 import playbook.encore.back.book.dao.BookRepository;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Component
@@ -397,6 +402,92 @@ public class BookDAOImpl implements BookDAO {
         }
 
         List<Book> books = query.getResultList();
+        Long total = countQuery.getSingleResult();
+
+        return new PageImpl<>(books, pageRequest, total);
+    }
+
+    @Override
+    public Page<Book> selectAdminBookListWithFilters(
+            Integer campusId, String search, Integer seqSortFirst, Integer seqSortSecond,
+            String borrowStatus, Integer registerYear, Integer registerMonth,
+            LocalDate registerStartDate, LocalDate registerEndDate,
+            int page, int size, String sortBy, String sortDir) {
+
+        StringBuilder whereClause = new StringBuilder(" WHERE 1=1");
+        Map<String, Object> params = new HashMap<>();
+
+        if (campusId != null) {
+            whereClause.append(" AND b.seqCampus.seqCampus = :campusId");
+            params.put("campusId", campusId);
+        }
+        if (search != null && !search.isBlank()) {
+            whereClause.append(" AND (LOWER(b.titleBook) LIKE :search OR LOWER(b.authorBook) LIKE :search OR LOWER(b.publisherBook) LIKE :search OR LOWER(b.isbnBook) LIKE :search)");
+            params.put("search", "%" + search.toLowerCase() + "%");
+        }
+        if (seqSortFirst != null) {
+            whereClause.append(" AND b.seqSortSecond.seqSortFirst.seqSortFirst = :seqSortFirst");
+            params.put("seqSortFirst", seqSortFirst);
+        }
+        if (seqSortSecond != null) {
+            whereClause.append(" AND b.seqSortSecond.seqSortSecond = :seqSortSecond");
+            params.put("seqSortSecond", seqSortSecond);
+        }
+        if (borrowStatus != null && !borrowStatus.isBlank()) {
+            switch (borrowStatus) {
+                case "borrowed":
+                    whereClause.append(" AND b.isBookBorrowed = true");
+                    break;
+                case "available":
+                    whereClause.append(" AND b.isBookBorrowed = false AND b.printCheckBook = true");
+                    break;
+                case "unavailable":
+                    whereClause.append(" AND b.printCheckBook = false");
+                    break;
+            }
+        }
+        if (registerYear != null) {
+            whereClause.append(" AND FUNCTION('YEAR', b.createdAt) = :registerYear");
+            params.put("registerYear", registerYear);
+        }
+        if (registerMonth != null) {
+            whereClause.append(" AND FUNCTION('MONTH', b.createdAt) = :registerMonth");
+            params.put("registerMonth", registerMonth);
+        }
+        if (registerStartDate != null) {
+            whereClause.append(" AND b.createdAt >= :registerStart");
+            params.put("registerStart", registerStartDate.atStartOfDay());
+        }
+        if (registerEndDate != null) {
+            whereClause.append(" AND b.createdAt < :registerEnd");
+            params.put("registerEnd", registerEndDate.plusDays(1).atStartOfDay());
+        }
+
+        String orderClause;
+        switch (sortBy) {
+            case "titleBook": orderClause = " ORDER BY b.titleBook " + (sortDir.equalsIgnoreCase("desc") ? "DESC" : "ASC"); break;
+            case "authorBook": orderClause = " ORDER BY b.authorBook " + (sortDir.equalsIgnoreCase("desc") ? "DESC" : "ASC"); break;
+            case "publisherBook": orderClause = " ORDER BY b.publisherBook " + (sortDir.equalsIgnoreCase("desc") ? "DESC" : "ASC"); break;
+            case "publishDateBook": orderClause = " ORDER BY b.publishDateBook " + (sortDir.equalsIgnoreCase("desc") ? "DESC" : "ASC"); break;
+            default: orderClause = " ORDER BY b.seqBook DESC";
+        }
+
+        String dataJpql = "SELECT b FROM Book b JOIN FETCH b.seqCampus JOIN FETCH b.seqSortSecond" + whereClause + orderClause;
+        String countJpql = "SELECT COUNT(b) FROM Book b" + whereClause;
+
+        PageRequest pageRequest = PageRequest.of(page - 1, size);
+
+        var dataQuery = entityManager.createQuery(dataJpql, Book.class)
+                .setFirstResult((int) pageRequest.getOffset())
+                .setMaxResults(pageRequest.getPageSize());
+        var countQuery = entityManager.createQuery(countJpql, Long.class);
+
+        for (Map.Entry<String, Object> entry : params.entrySet()) {
+            dataQuery.setParameter(entry.getKey(), entry.getValue());
+            countQuery.setParameter(entry.getKey(), entry.getValue());
+        }
+
+        List<Book> books = dataQuery.getResultList();
         Long total = countQuery.getSingleResult();
 
         return new PageImpl<>(books, pageRequest, total);

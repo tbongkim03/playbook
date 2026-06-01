@@ -134,6 +134,12 @@
               </select>
             </div>
             
+            <!-- 등록일 필터 -->
+            <div class="filter-group">
+              <label class="filter-label">등록일</label>
+              <DateRangePicker ref="datePickerRef" @change="onDateRangeChange" />
+            </div>
+
             <!-- 캠퍼스 필터 (전체 관리자만 표시) -->
             <div v-if="showCampusFilter" class="filter-group">
               <label class="filter-label">캠퍼스</label>
@@ -210,7 +216,7 @@
           </svg>
         </div>
         <div class="stat-content">
-          <div class="stat-number">{{ filteredBooks.length }}</div>
+          <div class="stat-number">{{ isPrint ? filteredBooks.length : totalCount }}</div>
           <div class="stat-label">표시된 도서</div>
         </div>
       </div>
@@ -489,24 +495,24 @@
         <button
           class="gl-page-btn prev-btn"
           :disabled="currentPage === 1"
-          @click="currentPage = Math.max(1, currentPage - 1)"
+          @click="goToPage(currentPage - 1)"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           이전
         </button>
-        <template v-for="item in paginationItems" :key="item + '-' + Math.random()">
+        <template v-for="item in paginationItems" :key="item + '-bt'">
           <span v-if="item === '...'" class="gl-page-ellipsis">…</span>
           <button
             v-else
             class="gl-page-btn"
             :class="{ active: item === currentPage }"
-            @click="currentPage = item"
+            @click="goToPage(item)"
           >{{ item }}</button>
         </template>
         <button
           class="gl-page-btn next-btn"
           :disabled="currentPage === totalPages"
-          @click="currentPage = Math.min(totalPages, currentPage + 1)"
+          @click="goToPage(currentPage + 1)"
         >
           다음
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -517,13 +523,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watchEffect } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, watchEffect } from 'vue'
 import * as bookApi from '@/api/book'
 import * as sortApi from '@/api/sort'
 import * as campusApi from '@/api/campus'
 import * as adminApi from '@/api/admin'
 import Barcode from './Barcode.vue'
 import PrintBatch from './BookPrintBatch.vue'
+import DateRangePicker from './DateRangePicker.vue'
 import { swAlert, swConfirm } from '@/utils/sweetAlert'
 import { MAX_BARCODE_SELECTION } from '@/utils/constants'
 import { exportToXlsx } from '@/utils/exportSheet'
@@ -563,6 +570,17 @@ const filters = ref({
   campus: '' // 캠퍼스 필터
 })
 
+// 날짜 필터 상태
+const datePickerRef = ref(null)
+const registerStartDate = ref('')
+const registerEndDate = ref('')
+
+const onDateRangeChange = (range) => {
+  registerStartDate.value = range.startDate || ''
+  registerEndDate.value = range.endDate || ''
+  fetchAdminBooks(1)
+}
+
 // 캠퍼스 필터 관련
 const campuses = ref([])
 const showCampusFilter = ref(false)
@@ -571,6 +589,11 @@ const currentUserCampusId = ref(null)
 // 페이지네이션 상태
 const currentPage = ref(1)
 const pageSize = 15
+
+// 서버사이드 페이지 데이터
+const pagedBooks = ref([])
+const totalCount = ref(0)
+const isLoadingBooks = ref(false)
 
 // 키보드 이벤트 핸들러
 const handleKeydown = (event) => {
@@ -734,6 +757,60 @@ const fetchBooks = async () => {
   })
 }
 
+// 정렬 파라미터 변환
+const parseSortBy = (sortByValue) => {
+  const map = {
+    'title_asc':      { sortBy: 'titleBook',       sortDir: 'asc'  },
+    'title_desc':     { sortBy: 'titleBook',       sortDir: 'desc' },
+    'author_asc':     { sortBy: 'authorBook',      sortDir: 'asc'  },
+    'author_desc':    { sortBy: 'authorBook',      sortDir: 'desc' },
+    'publisher_asc':  { sortBy: 'publisherBook',   sortDir: 'asc'  },
+    'publisher_desc': { sortBy: 'publisherBook',   sortDir: 'desc' },
+    'date_desc':      { sortBy: 'publishDateBook', sortDir: 'desc' },
+    'date_asc':       { sortBy: 'publishDateBook', sortDir: 'asc'  },
+  }
+  return map[sortByValue] || { sortBy: 'seqBook', sortDir: 'desc' }
+}
+
+// 서버사이드 도서 조회
+const fetchAdminBooks = async (page = 1) => {
+  if (isPrint.value) return  // 프린트 모드는 기존 방식 유지
+  try {
+    isLoadingBooks.value = true
+    const { sortBy, sortDir } = parseSortBy(filters.value.sortBy)
+    const params = {
+      page,
+      size: pageSize,
+      sortBy,
+      sortDir,
+    }
+    if (filters.value.campus) params.campusId = filters.value.campus
+    else if (currentUserCampusId.value) params.campusId = currentUserCampusId.value
+
+    if (filters.value.searchQuery.trim()) params.search = filters.value.searchQuery.trim()
+    if (filters.value.categoryLarge !== '') params.seqSortFirst = filters.value.categoryLarge
+    if (filters.value.categoryMedium !== '') params.seqSortSecond = filters.value.categoryMedium
+    if (filters.value.borrowStatus) params.borrowStatus = filters.value.borrowStatus
+
+    if (registerStartDate.value) params.registerStartDate = registerStartDate.value
+    if (registerEndDate.value) params.registerEndDate = registerEndDate.value
+
+    const res = await bookApi.getAdminList(params)
+    const data = res.data.data
+    pagedBooks.value = (data.content || []).map(book => {
+      const largeCode = findLargeCodeFromSeqSecond(book.seqSortSecond)
+      const mediumOptions = getMediumOptions(largeCode)
+      return { ...book, categoryLarge: largeCode, categoryMedium: book.seqSortSecond ?? '', mediumOptions }
+    })
+    totalCount.value = data.totalCount || 0
+    currentPage.value = page
+  } catch (error) {
+    console.error('도서 목록 조회 실패:', error)
+  } finally {
+    isLoadingBooks.value = false
+  }
+}
+
 // 한글 문자열 비교를 위한 함수
 const compareKorean = (a, b) => {
   return a.localeCompare(b, 'ko-KR')
@@ -811,12 +888,19 @@ const filteredBooks = computed(() => {
 })
 
 // 페이지네이션 계산
-const totalPages = computed(() => Math.ceil(filteredBooks.value.length / pageSize))
+const totalPages = computed(() =>
+  isPrint.value
+    ? Math.ceil(filteredBooks.value.length / pageSize)
+    : Math.ceil(totalCount.value / pageSize)
+)
 
 const paginatedBooks = computed(() => {
-  const start = (currentPage.value - 1) * pageSize
-  const end = start + pageSize
-  return filteredBooks.value.slice(start, end)
+  if (isPrint.value) {
+    const start = (currentPage.value - 1) * pageSize
+    const end = start + pageSize
+    return filteredBooks.value.slice(start, end)
+  }
+  return pagedBooks.value
 })
 
 const paginationItems = computed(() => {
@@ -834,7 +918,7 @@ const paginationItems = computed(() => {
 })
 
 const paginationInfo = computed(() => {
-  const total = filteredBooks.value.length
+  const total = isPrint.value ? filteredBooks.value.length : totalCount.value
   const start = (currentPage.value - 1) * pageSize + 1
   const end = Math.min(currentPage.value * pageSize, total)
   return `${start}–${end} / 전체 ${total}건`
@@ -879,7 +963,11 @@ const resetFilters = () => {
     campus: showCampusFilter.value ? '' : (currentUserCampusId.value ? String(currentUserCampusId.value) : ''),
     sortBy: 'title_asc'
   }
+  registerStartDate.value = ''
+  registerEndDate.value = ''
+  datePickerRef.value?.reset()
   currentPage.value = 1
+  fetchAdminBooks(1)
 }
 
 // 대분류 변경 시 중분류 초기화
@@ -894,14 +982,28 @@ watchEffect(() => {
   }
 })
 
-// 필터 변경 시 첫 페이지로 이동
-watchEffect(() => {
-  currentPage.value = 1
-}, { flush: 'sync' })
+// 필터 변경 시 서버 재조회 (검색은 디바운스)
+let searchTimer = null
+watch(() => filters.value.searchQuery, () => {
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => fetchAdminBooks(1), 400)
+})
 
-// 각 book의 categoryLarge가 바뀔 때 개별 감시
+watch([
+  () => filters.value.categoryLarge,
+  () => filters.value.categoryMedium,
+  () => filters.value.borrowStatus,
+  () => filters.value.sortBy,
+  () => filters.value.campus,
+], () => fetchAdminBooks(1))
+
+watch([registerStartDate, registerEndDate], () => {
+  fetchAdminBooks(1)
+})
+
+// 각 book의 categoryLarge가 바뀔 때 개별 감시 (인라인 편집용)
 watchEffect(() => {
-  allBooks.value.forEach(book => {
+  pagedBooks.value.forEach(book => {
     const largeCode = book.categoryLarge
     const oldOptions = book.mediumOptions?.map(m => m.seqSortSecond) || []
 
@@ -952,13 +1054,25 @@ watchEffect(() => {
   })
 })
 
+// 페이지 이동 (서버 재조회 포함)
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    if (isPrint.value) {
+      currentPage.value = page
+    } else {
+      fetchAdminBooks(page)
+    }
+  }
+}
+
 // 마운트 시 데이터 로드
 onMounted(async () => {
   await fetchLargeCategories()
   await fetchMediumCategories()
   await fetchCampuses()
   await checkUserType()
-  await fetchBooks()
+  await fetchBooks()         // stats + print mode용
+  await fetchAdminBooks(1)  // 테이블 서버사이드
   window.addEventListener('keydown', handleKeydown)
   // 드래그 중 마우스가 테이블 밖으로 나갔을 때 처리
   window.addEventListener('mouseup', handleMouseUp)
@@ -985,8 +1099,10 @@ async function deleteBook(book) {
     await bookApi.remove(book.seqBook)
 
     allBooks.value = allBooks.value.filter(b => b.seqBook !== book.seqBook)
+    pagedBooks.value = pagedBooks.value.filter(b => b.seqBook !== book.seqBook)
     activeRowId.value = null
     await swAlert('삭제에 성공하였습니다.', 'success')
+    await fetchAdminBooks(currentPage.value)
   } catch (error) {
     await swAlert(`삭제 실패: ${error.response?.data?.msg || error.message}`, 'error')
   }
@@ -1170,6 +1286,7 @@ const refreshBooks = async () => {
   isRefreshing.value = true
   try {
     await fetchBooks()
+    await fetchAdminBooks(currentPage.value)
   } catch (error) {
     await swAlert('목록을 새로고침하는 중 오류가 발생했습니다.', 'error')
   } finally {
@@ -1246,7 +1363,6 @@ const refreshBooks = async () => {
   background: var(--pb-color-surface);
   border: 1px solid var(--pb-color-border);
   border-radius: var(--pb-radius-lg);
-  overflow: hidden;
   box-shadow: var(--pb-shadow-xs);
 }
 
@@ -1366,6 +1482,23 @@ const refreshBooks = async () => {
   background: var(--pb-color-surface-muted);
   color: var(--pb-color-text-soft);
   opacity: 0.7;
+}
+
+.filter-input {
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
+  font-size: 12px;
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text);
+  width: 130px;
+  transition: border-color 0.15s;
+}
+.filter-input:focus {
+  outline: none;
+  border-color: var(--pb-color-brand);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-soft);
 }
 
 /* 초기화 버튼 */
