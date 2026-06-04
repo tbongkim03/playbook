@@ -100,6 +100,7 @@ public class HistoryDAOImpl implements HistoryDAO {
             }
 
             RentalHistoryDto rentalHistoryDto = new RentalHistoryDto(
+                    history.getSeqHistory(),
                     bookTitle,
                     bookAuthor,
                     bookIsbn,
@@ -168,6 +169,7 @@ public class HistoryDAOImpl implements HistoryDAO {
             }
 
             RentalHistoryDto rentalHistoryDto = new RentalHistoryDto(
+                    history.getSeqHistory(),
                     bookTitle,
                     bookAuthor,
                     bookIsbn,
@@ -226,6 +228,7 @@ public class HistoryDAOImpl implements HistoryDAO {
                     user.getSeqCourse().getNameCourse() : "종료한 과정";
 
             RentalHistoryDto rentalHistoryDto = new RentalHistoryDto(
+                    history.getSeqHistory(),
                     bookTitle,
                     bookAuthor,
                     bookIsbn,
@@ -349,6 +352,7 @@ public class HistoryDAOImpl implements HistoryDAO {
                 status = History.StatusType.booked;
             }
             result.add(new RentalHistoryDto(
+                    history.getSeqHistory(),
                     history.getSeqBook().getTitleBook(),
                     history.getSeqBook().getAuthorBook(),
                     history.getSeqBook().getIsbnBook(),

@@ -45,3 +45,6 @@ export const getUserRank = (courseId, campusId, startDate, endDate) => {
 
 export const exportExcel = (campusId) =>
   axios.get('/api/history/export', { params: campusId ? { campusId } : {}, responseType: 'blob' })
+
+export const deleteHistory = (historyId) =>
+  axios.delete(`/api/history/book/${historyId}`)

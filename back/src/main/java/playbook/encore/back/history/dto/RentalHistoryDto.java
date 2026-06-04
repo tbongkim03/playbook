@@ -7,6 +7,7 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 public class RentalHistoryDto {
+    private Integer seqHistory;
     private String bookTitle;
     private String bookAuthor;
     private String bookIsbn;

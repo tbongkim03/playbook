@@ -170,6 +170,9 @@
                 <button class="detail-btn" @click="showRentalDetail(rental)">
                   상세보기
                 </button>
+                <button class="delete-btn" @click="deleteHistoryItem(rental.seqHistory)">
+                  삭제
+                </button>
               </td>
             </tr>
           </tbody>
@@ -298,7 +301,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { exportToXlsx } from '@/utils/exportSheet'
 import * as historyApi from '@/api/history'
-import { swAlert } from '@/utils/sweetAlert'
+import { swAlert, swConfirm } from '@/utils/sweetAlert'
+import { handleApiError } from '@/utils/apiErrorHandler'
 import { formatDate } from '@/utils/dateFormatter'
 import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
 import DateRangePicker from './DateRangePicker.vue'
@@ -463,7 +467,8 @@ const fetchRentalHistory = async () => {
     // 3. 데이터 변환 및 설정 (RentalHistoryDto 기준)
     rentalHistory.value = historyList.map((item, index) => {      
       const mappedItem = {
-        id: index + 1, // ID 생성
+        id: index + 1,
+        seqHistory: item.seqHistory,
         bookTitle: item.bookTitle || '제목 없음',
         bookAuthor: item.bookAuthor || '저자 정보 없음',
         bookIsbn: item.bookIsbn || '',
@@ -546,6 +551,18 @@ const showRentalDetail = (rental) => {
 const closeDetailModal = () => {
   showDetailModal.value = false
   selectedRental.value = null
+}
+
+const deleteHistoryItem = async (historyId) => {
+  const confirmed = await swConfirm('이 대출 기록을 삭제하시겠습니까?', '삭제된 기록은 복구되지 않습니다.')
+  if (!confirmed) return
+  try {
+    await historyApi.deleteHistory(historyId)
+    rentalHistory.value = rentalHistory.value.filter(h => h.seqHistory !== historyId)
+    await swAlert('대출 기록이 삭제되었습니다.', 'success')
+  } catch (error) {
+    await handleApiError(error, '대출 기록 삭제에 실패했습니다.')
+  }
 }
 
 const applyFilters = () => {
@@ -911,6 +928,25 @@ onMounted(async () => {
 }
 
 .detail-btn:hover { background: var(--pb-color-border); }
+
+.delete-btn {
+  height: 26px;
+  padding: 0 9px;
+  margin-left: 4px;
+  border: 1px solid var(--pb-color-danger, #e53e3e);
+  border-radius: var(--pb-radius-sm);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  color: var(--pb-color-danger, #e53e3e);
+  transition: background 0.12s, color 0.12s;
+}
+
+.delete-btn:hover {
+  background: var(--pb-color-danger, #e53e3e);
+  color: #fff;
+}
 
 /* ── 로딩 / 빈 상태 ── */
 .loading-container,
