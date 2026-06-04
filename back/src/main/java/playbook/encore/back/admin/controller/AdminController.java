@@ -105,26 +105,6 @@ public class AdminController {
         return ResponseEntity.ok(ResponseHandler.success(result));
     }
 
-    @PutMapping("/password")
-    public ResponseEntity<Response> updatePassword(
-            HttpServletRequest request,
-            @RequestBody @Valid AdminPasswordUpdateRequestDto dto
-    ) throws Exception {
-        Admin user = AuthUtil.getAdmin(request);
-        boolean result = adminService.updatePassword(user, dto.getNewPassword());
-        return ResponseEntity.ok(ResponseHandler.success(result));
-    }
-
-    @PutMapping("/discord")
-    public ResponseEntity<Response> updateDiscord(
-            HttpServletRequest request,
-            @RequestBody AdminDiscordUpdateRequestDto dto
-    ) throws Exception {
-        Admin user = AuthUtil.getAdmin(request);
-        boolean result = adminService.updateDiscord(user, dto.getNewDiscord());
-        return ResponseEntity.ok(ResponseHandler.success(result));
-    }
-
     @PutMapping("/update")
     public ResponseEntity<Response> updateAdmin(
             HttpServletRequest request,

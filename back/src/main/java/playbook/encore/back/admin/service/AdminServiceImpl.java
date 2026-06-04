@@ -106,29 +106,6 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean updatePassword(Admin user, String newPassword) {
-        log.info("[AdminService] 비밀번호 변경 - id: {}", user.getIdAdmin());
-        String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
-        boolean isPasswordChanged = adminDAO.changePw(user, hashedPassword).isPresent();
-        if (!isPasswordChanged) {
-            throw new IllegalArgumentException("비밀번호 변경에 실패하였습니다. 다시 시도해 주세요");
-        }
-        return true;
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public boolean updateDiscord(Admin user, String newDiscord) {
-        log.info("[AdminService] 디스코드 변경 - id: {}", user.getIdAdmin());
-        boolean isDiscordChanged = adminDAO.changeDiscord(user, newDiscord).isPresent();
-        if (!isDiscordChanged) {
-            throw new IllegalArgumentException("과정 변경에 실패하였습니다. 다시 시도해 주세요");
-        }
-        return true;
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
     public boolean updateAdmin(Admin currentUser, UpdateAdminRequestDto updateRequest) {
         log.info("[AdminService] 관리자 정보 수정 - id: {}", updateRequest.getIdAdmin());
         // 전체 관리자 체크 (seqCampus가 null이면 전체 관리자)

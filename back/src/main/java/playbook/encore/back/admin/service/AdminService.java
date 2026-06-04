@@ -13,10 +13,6 @@ public interface AdminService {
 
     boolean validatePassword(Admin user, String idAdmin, String password);
 
-    boolean updatePassword(Admin user, String newPassword);
-
-    boolean updateDiscord(Admin user, String newDiscord);
-
     boolean updateAdmin(Admin currentUser, UpdateAdminRequestDto updateRequest);
 
     AdminListResponseDto getAdminList(Integer campusId);

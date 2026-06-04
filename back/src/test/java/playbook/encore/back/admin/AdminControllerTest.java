@@ -132,15 +132,6 @@ class AdminControllerTest extends BaseIntegrationTest {
         assertThat(res.getBody()).contains("true");
     }
 
-    @Test @Order(11)
-    void A11_비밀번호_변경_성공() {
-        ResponseEntity<String> res = putWithSession(
-                "/admin/password",
-                "{\"newPassword\":\"Test1234!\"}",
-                adminSession);
-        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
-    }
-
     // ─── 관리자 목록 ──────────────────────────────────────────
 
     @Test @Order(12)
