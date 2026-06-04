@@ -119,6 +119,18 @@
             <li>
               <button
                 class="nav-item"
+                :class="{ active: activeTab === 'category-management' }"
+                @click="setActiveTab('category-management')"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 6H20M4 10H20M4 14H14M4 18H10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                카테고리 관리
+              </button>
+            </li>
+            <li>
+              <button
+                class="nav-item"
                 :class="{ active: activeTab === 'terms-management' }"
                 @click="setActiveTab('terms-management')"
               >
@@ -168,6 +180,10 @@
         <div v-if="activeTab === 'campus-management'" class="content-section">
           <CampusManagement />
         </div>
+        <!-- 카테고리 관리 -->
+        <div v-if="activeTab === 'category-management'" class="content-section">
+          <CategoryManagement />
+        </div>
         <!-- 약관 관리 -->
         <div v-if="activeTab === 'terms-management'" class="content-section">
           <TermsEditor />
@@ -214,6 +230,7 @@ import BookRegister from './BookRegister.vue'
 import UserAccountManagement from '@/components/UserAccountManagement.vue'
 import CourseManagement from '@/components/CourseManagement.vue'
 import CampusManagement from '@/components/CampusManagement.vue'
+import CategoryManagement from '@/components/CategoryManagement.vue'
 import TermsEditor from '@/components/TermsEditor.vue'
 
 const router = useRouter()
