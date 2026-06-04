@@ -5,35 +5,8 @@
       <p class="section-description">과정을 관리하고 캠퍼스 정보를 조회할 수 있습니다.</p>
     </div>
 
-    <!-- 탭 메뉴 -->
-    <div class="tab-menu">
-      <button 
-        class="tab-btn" 
-        :class="{ active: activeTab === 'courses' }"
-        @click="activeTab = 'courses'"
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2"/>
-          <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2"/>
-          <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2"/>
-        </svg>
-        과정 관리
-      </button>
-      <button 
-        class="tab-btn" 
-        :class="{ active: activeTab === 'campuses' }"
-        @click="switchToCampusTab"
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z" stroke="currentColor" stroke-width="2"/>
-          <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
-        </svg>
-        캠퍼스 관리
-      </button>
-    </div>
-
     <!-- 과정 관리 탭 -->
-    <div v-if="activeTab === 'courses'" class="tab-content">
+    <div class="tab-content">
       <!-- 통계 카드 -->
       <div class="stats-grid">
         <div class="stat-card">
@@ -150,68 +123,6 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
           </nav>
-        </div>
-      </div>
-    </div>
-
-    <!-- 캠퍼스 관리 탭 -->
-    <div v-if="activeTab === 'campuses'" class="tab-content">
-      <!-- 통계 카드 -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z" stroke="currentColor" stroke-width="2"/>
-              <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
-            </svg>
-          </div>
-          <div class="stat-content">
-            <div class="stat-number">{{ campusList.length }}</div>
-            <div class="stat-label">총 캠퍼스</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2"/>
-              <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2"/>
-            </svg>
-          </div>
-          <div class="stat-content">
-            <div class="stat-number">{{ activeCampusCount }}</div>
-            <div class="stat-label">활성 캠퍼스</div>
-          </div>
-        </div>
-      </div>
-
-
-      <!-- 캠퍼스 목록 테이블 -->
-      <div class="table-container">
-        <div class="table-header">
-          <h3>캠퍼스 목록</h3>
-        </div>
-        
-        <div class="table-wrapper">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>캠퍼스명</th>
-                <th>위치</th>
-                <th>상태</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="campus in campusList" :key="campus.seqCampus" class="data-row">
-                <td class="campus-name">{{ campus.nameCampus }}</td>
-                <td class="campus-location">{{ campus.locationCampus || '-' }}</td>
-                <td class="campus-status">
-                  <span :class="['status-badge', campus.isActive ? 'active' : 'inactive']">
-                    {{ campus.isActive ? '활성' : '비활성' }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       </div>
     </div>
@@ -388,7 +299,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import * as courseApi from '@/api/course'
 import * as campusApi from '@/api/campus'
 import { swAlert } from '@/utils/sweetAlert'
@@ -399,9 +310,7 @@ import { usePagination } from '@/composables/usePagination'
 import { exportToXlsx } from '@/utils/exportSheet'
 
 // 반응형 데이터
-const activeTab = ref('courses')
 const courseList = ref([])
-const campusList = ref([])
 const isLoading = ref(false)
 
 // 페이지네이션
@@ -449,20 +358,8 @@ const deletingCourse = ref({
 const activeCampusListForSelect = ref([])
 
 // 계산된 속성
-const activeCampusList = computed(() => {
-  // 캠퍼스 관리 탭에서는 전체 목록에서 필터링
-  if (activeTab.value === 'campuses') {
-    return campusList.value.filter(c => c.isActive)
-  }
-  // 과정 관리 탭에서는 별도로 관리하는 활성 캠퍼스 목록 사용
-  return activeCampusListForSelect.value
-})
+const activeCampusList = computed(() => activeCampusListForSelect.value)
 
-const activeCampusCount = computed(() => {
-  return campusList.value.filter(c => c.isActive).length
-})
-
-// 키보드 이벤트 핸들러
 const handleKeydown = (event) => {
   if (event.key === 'Escape') {
     if (showAddCourseModal.value) closeAddCourseModal()
@@ -619,32 +516,6 @@ const fetchActiveCampusList = async () => {
   }
 }
 
-// 전체 캠퍼스 목록 조회 (캠퍼스 관리 탭용)
-const fetchCampusList = async () => {
-  try {
-    isLoading.value = true
-    const response = await campusApi.getAllIncludeInactive()
-    campusList.value = response.data.data
-  } catch (error) {
-    console.error('캠퍼스 목록 로드 실패:', error)
-    if (error.response?.status === 403) {
-      // 403 에러 시 활성 캠퍼스만이라도 가져오기
-      try {
-        const activeResponse = await campusApi.getAll()
-        campusList.value = activeResponse.data.data
-      } catch (fallbackError) {
-        console.error('활성 캠퍼스 목록 로드 실패:', fallbackError)
-        campusList.value = []
-      }
-    } else {
-      campusList.value = []
-    }
-  } finally {
-    isLoading.value = false
-  }
-}
-
-
 // 날짜 포맷팅
 
 const exportData = async () => {
@@ -662,37 +533,12 @@ const exportData = async () => {
   }
 }
 
-// 탭 변경 핸들러
-const switchToCampusTab = () => {
-  activeTab.value = 'campuses'
-  // 캠퍼스 관리 탭으로 전환 시 전체 목록 로드
-  if (campusList.value.length === 0) {
-    fetchCampusList()
-  }
-}
-
-// 탭 변경 감지
-watch(activeTab, (newTab) => {
-  if (newTab === 'campuses' && campusList.value.length === 0) {
-    // 캠퍼스 관리 탭으로 전환 시 전체 목록 로드
-    fetchCampusList()
-  }
-})
-
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(async () => {
-  // 활성 캠퍼스 목록 먼저 로드 (과정 추가/수정 모달용)
   activeCampusListForSelect.value = await fetchActiveCampusList()
-  // 사용자 타입 확인 및 캠퍼스 필터 설정
   await fetchAdminInfo()
-  // 캠퍼스 목록 가져오기 (과정 관리 탭 필터용)
   await fetchCampuses()
-  // 과정 목록 로드
   await fetchCourseList()
-  // 현재 탭에 따라 캠퍼스 목록 로드
-  if (activeTab.value === 'campuses') {
-    await fetchCampusList()
-  }
   window.addEventListener('keydown', handleKeydown)
 })
 

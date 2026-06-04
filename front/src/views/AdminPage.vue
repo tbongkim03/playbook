@@ -106,6 +106,19 @@
             <li>
               <button
                 class="nav-item"
+                :class="{ active: activeTab === 'campus-management' }"
+                @click="setActiveTab('campus-management')"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                캠퍼스 관리
+              </button>
+            </li>
+            <li>
+              <button
+                class="nav-item"
                 :class="{ active: activeTab === 'terms-management' }"
                 @click="setActiveTab('terms-management')"
               >
@@ -150,6 +163,10 @@
         <!-- 과정 관리 -->
         <div v-if="activeTab === 'course-management'" class="content-section">
           <CourseManagement />
+        </div>
+        <!-- 캠퍼스 관리 -->
+        <div v-if="activeTab === 'campus-management'" class="content-section">
+          <CampusManagement />
         </div>
         <!-- 약관 관리 -->
         <div v-if="activeTab === 'terms-management'" class="content-section">
@@ -196,6 +213,7 @@ import BooksTable from '@/components/BooksTable.vue'
 import BookRegister from './BookRegister.vue'
 import UserAccountManagement from '@/components/UserAccountManagement.vue'
 import CourseManagement from '@/components/CourseManagement.vue'
+import CampusManagement from '@/components/CampusManagement.vue'
 import TermsEditor from '@/components/TermsEditor.vue'
 
 const router = useRouter()
