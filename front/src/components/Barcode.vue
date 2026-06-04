@@ -139,6 +139,7 @@
 import { ref, watch, onMounted, nextTick } from 'vue'
 import JsBarcode from 'jsbarcode'
 import { swAlert } from '@/utils/sweetAlert'
+import * as bookApi from '@/api/book'
 
 const props = defineProps({
   seqBook: Number,
@@ -180,25 +181,13 @@ const generateBarcode = () => {
 
 const uniqueTest = async () => {
   try {
-    const response = await fetch(`/api/books/check/barcode`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        seqBook: props.seqBook,
-        barcodeBook: props.barcodeBook
-      })
+    const res = await bookApi.checkBarcode({
+      seqBook: props.seqBook,
+      barcodeBook: props.barcodeBook
     })
 
-    if (!response.ok) {
-      const errorMessage = await response.text()
-      throw new Error(errorMessage || `서버 오류: ${response.status}`)
-    }
-
-    const result = await response.json()
-    
-    isD.value = result.duplicated
-    msg.value = result.message
+    isD.value = res.data.data.duplicated
+    msg.value = res.data.data.message
 
     if (isD.value === false) {
       // 사용 가능: 바코드 생성하고 버튼 활성화
@@ -429,18 +418,7 @@ const postPrintedBook = async (printCheckBook) => {
       printCheckBook: printCheckBook
     }
 
-    const response = await fetch(`/api/books/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(bodyData)
-    })
-
-    if (!response.ok) {
-      throw new Error(`서버 오류: ${response.status}`)
-    }
-
-    const result = await response.json()
+    await bookApi.update(id, bodyData)
     await swAlert('저장하였습니다.', 'success')
     close()
 

@@ -151,6 +151,7 @@
 import { ref, watch, computed, onMounted, nextTick } from 'vue'
 import JsBarcode from 'jsbarcode'
 import { swAlert } from '@/utils/sweetAlert'
+import * as bookApi from '@/api/book'
 
 const props = defineProps({
   books: {
@@ -424,18 +425,7 @@ const printAll = async () => {
   try {
     const ids = displayedBooks.value.map(book => book.seqBook)
 
-    const res = await fetch('/api/books/batch/print', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(ids)
-    })
-
-    if (!res.ok) {
-      const errorMessage = await res.text()
-      throw new Error(errorMessage || `서버 오류: ${res.status}`)
-    }
-
+    await bookApi.batchPrint(ids)
     await swAlert('인쇄 완료 상태로 저장되었습니다.', 'success')
 
     // 부모 컴포넌트에 새로고침 이벤트 발생

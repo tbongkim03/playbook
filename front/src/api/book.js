@@ -24,3 +24,9 @@ export const getRelated = (params) => axios.get('/api/books/related', { params }
 
 export const exportExcel = (campusId) =>
   axios.get('/api/books/export', { params: campusId ? { campusId } : {}, responseType: 'blob' })
+
+export const update = (id, data) => axios.put(`/api/books/${id}`, data)
+
+export const checkBarcode = (data) => axios.post('/api/books/check/barcode', data)
+
+export const batchPrint = (ids) => axios.put('/api/books/batch/print', ids)
