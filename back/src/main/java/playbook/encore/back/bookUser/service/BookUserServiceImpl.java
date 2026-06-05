@@ -94,15 +94,12 @@ public class BookUserServiceImpl implements BookUserService{
 
     @Override
     @Transactional(readOnly = true)
-    public String loginServiceUser(LoginUserRequestDto loginUserRequestDto) {
+    public BookUser loginServiceUser(LoginUserRequestDto loginUserRequestDto) {
         log.info("[BookUserService] 사용자 로그인 시도 - id: {}", loginUserRequestDto.getIdUser());
         String id = loginUserRequestDto.getIdUser();
         String pw = loginUserRequestDto.getPwUser();
-        boolean isLoginSuccess = bookUserDAO.loginIdPwCheck(id, pw).isPresent();
-        if (!isLoginSuccess) {
-            throw new IllegalArgumentException("로그인에 실패하였습니다. 아이디와 비밀번호를 확인해 주세요.");
-        }
-        return id;
+        return bookUserDAO.loginIdPwCheck(id, pw)
+                .orElseThrow(() -> new IllegalArgumentException("로그인에 실패하였습니다. 아이디와 비밀번호를 확인해 주세요."));
     }
 
     @Override

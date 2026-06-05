@@ -15,7 +15,7 @@ public interface BookUserService {
 
     RegisterIdValidateResponseDto checkUserId(String idUser);
 
-    String loginServiceUser(LoginUserRequestDto loginUserRequestDto);
+    BookUser loginServiceUser(LoginUserRequestDto loginUserRequestDto);
 
     boolean validatePassword(BookUser user, String password);
 

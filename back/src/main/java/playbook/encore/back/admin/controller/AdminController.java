@@ -17,9 +17,12 @@ import playbook.encore.back.common.response.ResponseHandler;
 import playbook.encore.back.admin.service.AdminService;
 import playbook.encore.back.discord.DiscordNotificationService;
 
+import org.springframework.context.ApplicationEventPublisher;
+import playbook.encore.back.accesslog.event.LoginEvent;
 import playbook.encore.back.common.excel.ExcelUtil;
 import playbook.encore.back.common.util.AuthUtil;
 import playbook.encore.back.common.util.SessionUtil;
+import playbook.encore.back.common.util.WebUtil;
 
 @RestController
 @RequestMapping("/admin")
@@ -28,14 +31,17 @@ public class AdminController {
     private final AdminService adminService;
     private final RedisIndexedSessionRepository sessionRepository;
     private final DiscordNotificationService discordNotificationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Autowired
     public AdminController(AdminService adminService,
                            RedisIndexedSessionRepository sessionRepository,
-                           DiscordNotificationService discordNotificationService) {
+                           DiscordNotificationService discordNotificationService,
+                           ApplicationEventPublisher eventPublisher) {
         this.adminService = adminService;
         this.sessionRepository = sessionRepository;
         this.discordNotificationService = discordNotificationService;
+        this.eventPublisher = eventPublisher;
     }
 
     // 회원가입 관련 부분
@@ -60,11 +66,14 @@ public class AdminController {
     public ResponseEntity<Response> loginUser(
             HttpServletRequest request,
             @RequestBody @Valid LoginAdminRequestDto loginAdminRequestDto) throws Exception {
+        String ip = WebUtil.getClientIp(request);
         try {
-            String adminId = adminService.loginServiceAdmin(loginAdminRequestDto);
-            SessionUtil.createSession(request, sessionRepository, adminId, "admin");
+            Admin admin = adminService.loginServiceAdmin(loginAdminRequestDto);
+            SessionUtil.createSession(request, sessionRepository, admin.getIdAdmin(), "admin");
+            eventPublisher.publishEvent(LoginEvent.success("ADMIN", admin.getSeqAdmin().longValue(), admin.getIdAdmin(), ip));
             return ResponseEntity.ok(ResponseHandler.success());
         } catch (IllegalArgumentException e) {
+            eventPublisher.publishEvent(LoginEvent.fail("ADMIN", loginAdminRequestDto.getIdAdmin(), ip, e.getMessage()));
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ResponseHandler.error(ResponseCode.NOT_AUTHENTICATED, e.getMessage()));
         } catch (Exception e) {

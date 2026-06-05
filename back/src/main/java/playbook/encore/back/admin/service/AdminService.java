@@ -9,7 +9,7 @@ public interface AdminService {
 
     RegisterIdValidateResponseDto checkUserId(String idAdmin);
 
-    String loginServiceAdmin(LoginAdminRequestDto loginAdminRequestDto);
+    Admin loginServiceAdmin(LoginAdminRequestDto loginAdminRequestDto);
 
     boolean validatePassword(Admin user, String idAdmin, String password);
 

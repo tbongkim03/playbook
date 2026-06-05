@@ -21,14 +21,27 @@ public class TermsDataInitializer implements CommandLineRunner {
         initTerms("DISCORD", DISCORD_CONTENT);
     }
 
+    // 버전 마커 — 내용 변경 시 올려서 기존 DB도 자동 갱신
+    private static final String TERMS_VERSION = "v2";
+
     private void initTerms(String type, String defaultContent) {
-        if (termsRepository.findByTermsType(type).isEmpty()) {
-            log.info("[TermsDataInitializer] 약관 초기 데이터 생성 - type: {}", type);
-            termsRepository.save(Terms.builder()
-                    .termsType(type)
-                    .content(defaultContent)
-                    .build());
-        }
+        String versionedContent = "<!-- " + TERMS_VERSION + " -->" + defaultContent;
+        termsRepository.findByTermsType(type).ifPresentOrElse(
+            existing -> {
+                if (!existing.getContent().startsWith("<!-- " + TERMS_VERSION + " -->")) {
+                    log.info("[TermsDataInitializer] 약관 내용 갱신 ({}) - {}", TERMS_VERSION, type);
+                    existing.setContent(versionedContent);
+                    termsRepository.save(existing);
+                }
+            },
+            () -> {
+                log.info("[TermsDataInitializer] 약관 초기 데이터 생성 - type: {}", type);
+                termsRepository.save(Terms.builder()
+                        .termsType(type)
+                        .content(versionedContent)
+                        .build());
+            }
+        );
     }
 
     private static final String SERVICE_CONTENT =
@@ -91,7 +104,18 @@ public class TermsDataInitializer implements CommandLineRunner {
         "<p>② 다음 각 호에 해당하는 경우 회원 탈퇴가 제한될 수 있습니다.</p>" +
         "<ul><li>대출 중인 도서가 있는 경우</li><li>연체 중인 도서가 있는 경우</li></ul>" +
         "<p>③ 회원 탈퇴 시 모든 개인정보, 찜 목록, 대출 기록 등 관련 데이터가 즉시 삭제되며 복구할 수 없습니다.</p>" +
-        "<p>④ 회원 탈퇴 후 재가입 시 이전 데이터는 복구되지 않습니다.</p>";
+        "<p>④ 회원 탈퇴 후 재가입 시 이전 데이터는 복구되지 않습니다.</p>" +
+
+        "<h3>제14조 (접속 기록 및 시스템 보안)</h3>" +
+        "<p>① 서비스는 안전한 운영을 위해 회원의 로그인 시 다음 정보를 자동으로 기록합니다.</p>" +
+        "<ul>" +
+        "<li>접속 IP 주소</li>" +
+        "<li>접속 일시</li>" +
+        "<li>로그인 성공 또는 실패 여부</li>" +
+        "</ul>" +
+        "<p>② 위 정보는 계정 도용, 비정상적인 반복 로그인 시도 등 보안 위협을 탐지하고 서비스를 보호할 목적으로만 사용됩니다.</p>" +
+        "<p>③ 비밀번호 원문, 세션 토큰, 쿠키 값 등 민감한 인증 정보는 기록하지 않습니다.</p>" +
+        "<p>④ 접속 기록은 수집일로부터 1년간 보관 후 파기하며, 보안 조사 등 정당한 사유가 있을 경우에만 열람됩니다.</p>";
 
     private static final String PRIVACY_CONTENT =
         "<h2>개인정보 수집·이용 동의서</h2>" +
@@ -102,8 +126,9 @@ public class TermsDataInitializer implements CommandLineRunner {
         "<ul>" +
         "<li><strong>이름:</strong> 회원 식별 및 서비스 이용을 위한 기본 정보</li>" +
         "<li><strong>아이디(ID):</strong> 로그인 및 계정 관리를 위한 고유 식별자</li>" +
-        "<li><strong>비밀번호:</strong> 계정 보안 및 본인 인증을 위한 정보</li>" +
+        "<li><strong>비밀번호:</strong> 계정 보안 및 본인 인증을 위한 정보 (암호화 저장, 원문 보관 안 함)</li>" +
         "<li><strong>디스코드 아이디:</strong> 도서 대출/반납 알림 메시지 발송을 위한 연락처</li>" +
+        "<li><strong>접속 기록 (서비스 운영 목적):</strong> 로그인 시 접속 IP 주소, 접속 일시, 로그인 성공/실패 여부. 비밀번호 원문 및 세션 정보는 수집하지 않습니다.</li>" +
         "</ul>" +
 
         "<h3>2. 수집·이용 목적</h3>" +
@@ -112,10 +137,14 @@ public class TermsDataInitializer implements CommandLineRunner {
         "<li><strong>회원 식별 및 관리:</strong> 서비스 이용자 확인, 계정 관리, 회원 서비스 제공</li>" +
         "<li><strong>도서 대출 및 반납 서비스 제공:</strong> 도서 대출 신청 처리, 대여 현황 관리, 반납 처리</li>" +
         "<li><strong>디스코드를 통한 알림 서비스:</strong> 대출 완료, 반납 예정일, 연체 발생 등 중요 사항 알림</li>" +
+        "<li><strong>서비스 보안 및 비정상 접근 탐지:</strong> 접속 기록을 바탕으로 무단 접근, 계정 도용, 비정상적인 반복 로그인 시도를 감지하고 서비스 안전을 유지합니다.</li>" +
         "</ul>" +
 
         "<h3>3. 보유 및 이용 기간</h3>" +
-        "<p>회원 탈퇴 시까지 보유 및 이용합니다. 회원이 서비스를 이용하는 동안 개인정보를 보유하며, 탈퇴 즉시 모든 개인정보를 삭제합니다.</p>" +
+        "<ul>" +
+        "<li><strong>회원 정보 (이름, 아이디, 디스코드 아이디):</strong> 회원 탈퇴 시까지. 탈퇴 즉시 삭제합니다.</li>" +
+        "<li><strong>접속 기록 (IP 주소, 접속 일시):</strong> 수집일로부터 1년간 보관 후 파기합니다. 서비스 보안 목적으로만 이용되며, 개인 식별 목적으로 사용하지 않습니다.</li>" +
+        "</ul>" +
         "<p>단, 관련 법령에 따라 보존할 필요가 있는 경우 해당 법령에 따릅니다.</p>" +
 
         "<h3>4. 동의를 거부할 권리 및 불이익</h3>" +
@@ -128,7 +157,8 @@ public class TermsDataInitializer implements CommandLineRunner {
 
         "<h3>개인정보 보호 방침</h3>" +
         "<ul>" +
-        "<li><strong>보안 조치:</strong> 수집된 개인정보는 암호화하여 안전하게 보관됩니다.</li>" +
+        "<li><strong>보안 조치:</strong> 수집된 개인정보는 암호화하여 안전하게 보관됩니다. 비밀번호는 단방향 암호화(BCrypt)로만 저장하며 원문을 보관하지 않습니다.</li>" +
+        "<li><strong>최소 수집 원칙:</strong> 서비스 운영에 필요한 최소한의 정보만 수집합니다.</li>" +
         "<li><strong>제3자 제공 금지:</strong> 동의 없이 개인정보를 제3자에게 제공하지 않습니다.</li>" +
         "<li><strong>목적 외 사용 금지:</strong> 명시된 목적 이외의 용도로 개인정보를 사용하지 않습니다.</li>" +
         "</ul>";

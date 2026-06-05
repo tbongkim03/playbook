@@ -16,10 +16,13 @@ import playbook.encore.back.common.response.ResponseHandler;
 import playbook.encore.back.bookUser.service.BookUserService;
 import playbook.encore.back.bookUser.entity.BookUser;
 
+import org.springframework.context.ApplicationEventPublisher;
+import playbook.encore.back.accesslog.event.LoginEvent;
 import playbook.encore.back.common.excel.ExcelUtil;
 import playbook.encore.back.common.exception.NotAuthorizedException;
 import playbook.encore.back.common.util.AuthUtil;
 import playbook.encore.back.common.util.SessionUtil;
+import playbook.encore.back.common.util.WebUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,12 +33,15 @@ public class BookUserController {
 
     private final BookUserService bookUserService;
     private final RedisIndexedSessionRepository sessionRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Autowired
     public BookUserController(BookUserService bookUserService,
-                              RedisIndexedSessionRepository sessionRepository) {
+                              RedisIndexedSessionRepository sessionRepository,
+                              ApplicationEventPublisher eventPublisher) {
         this.bookUserService = bookUserService;
         this.sessionRepository = sessionRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     // 회원가입 관련 부분
@@ -56,11 +62,14 @@ public class BookUserController {
     public ResponseEntity<Response> loginUser(
             HttpServletRequest request,
             @RequestBody @Valid LoginUserRequestDto loginUserRequestDto) throws Exception {
+        String ip = WebUtil.getClientIp(request);
         try {
-            String userId = bookUserService.loginServiceUser(loginUserRequestDto);
-            SessionUtil.createSession(request, sessionRepository, userId, "user");
+            BookUser user = bookUserService.loginServiceUser(loginUserRequestDto);
+            SessionUtil.createSession(request, sessionRepository, user.getIdUser(), "user");
+            eventPublisher.publishEvent(LoginEvent.success("USER", user.getSeqUser().longValue(), user.getIdUser(), ip));
             return ResponseEntity.ok(ResponseHandler.success());
         } catch (IllegalArgumentException e) {
+            eventPublisher.publishEvent(LoginEvent.fail("USER", loginUserRequestDto.getIdUser(), ip, e.getMessage()));
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ResponseHandler.error(ResponseCode.NOT_AUTHENTICATED, e.getMessage()));
         } catch (Exception e) {

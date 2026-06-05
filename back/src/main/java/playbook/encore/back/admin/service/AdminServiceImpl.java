@@ -82,15 +82,12 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(readOnly = true)
-    public String loginServiceAdmin(LoginAdminRequestDto loginAdminRequestDto) {
+    public Admin loginServiceAdmin(LoginAdminRequestDto loginAdminRequestDto) {
         log.info("[AdminService] 관리자 로그인 시도 - id: {}", loginAdminRequestDto.getIdAdmin());
         String id = loginAdminRequestDto.getIdAdmin();
         String pw = loginAdminRequestDto.getPwAdmin();
-        boolean isLoginSuccess = adminDAO.loginIdPwCheck(id, pw).isPresent();
-        if (!isLoginSuccess) {
-            throw new IllegalArgumentException("로그인에 실패하였습니다. 아이디와 비밀번호를 확인해 주세요.");
-        }
-        return id;
+        return adminDAO.loginIdPwCheck(id, pw)
+                .orElseThrow(() -> new IllegalArgumentException("로그인에 실패하였습니다. 아이디와 비밀번호를 확인해 주세요."));
     }
 
     @Override
