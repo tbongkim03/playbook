@@ -157,7 +157,7 @@ public class TermsDataInitializer implements CommandLineRunner {
 
         "<h3>개인정보 보호 방침</h3>" +
         "<ul>" +
-        "<li><strong>보안 조치:</strong> 수집된 개인정보는 암호화하여 안전하게 보관됩니다. 비밀번호는 단방향 암호화(BCrypt)로만 저장하며 원문을 보관하지 않습니다.</li>" +
+        "<li><strong>보안 조치:</strong> 수집된 개인정보는 암호화하여 안전하게 보관됩니다. 비밀번호는 복호화할 수 없는 형태로만 저장하며 원문을 보관하지 않습니다.</li>" +
         "<li><strong>최소 수집 원칙:</strong> 서비스 운영에 필요한 최소한의 정보만 수집합니다.</li>" +
         "<li><strong>제3자 제공 금지:</strong> 동의 없이 개인정보를 제3자에게 제공하지 않습니다.</li>" +
         "<li><strong>목적 외 사용 금지:</strong> 명시된 목적 이외의 용도로 개인정보를 사용하지 않습니다.</li>" +
