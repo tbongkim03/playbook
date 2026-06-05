@@ -11,5 +11,6 @@ import org.springframework.web.context.annotation.RequestScope;
 @Setter
 public class AuditContext {
     private Long actorId;
+    private String actorName;
     private String actorType; // "USER" or "ADMIN"
 }

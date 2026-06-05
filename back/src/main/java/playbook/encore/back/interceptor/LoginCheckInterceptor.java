@@ -60,6 +60,7 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
             request.setAttribute("ROLE", RoleType.ADMIN);
             request.setAttribute("campusId", admin.getSeqCampus() != null ? admin.getSeqCampus().getSeqCampus() : null);
             auditContext.setActorId(admin.getSeqAdmin().longValue());
+            auditContext.setActorName(admin.getNameAdmin());
             auditContext.setActorType("ADMIN");
         } else if ("user".equalsIgnoreCase(role)) {
             Optional<BookUser> userOpt = bookUserRepository.findByIdUserWithCourseAndCampus(userId);
@@ -77,6 +78,7 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
                     : null;
             request.setAttribute("campusId", campusId);
             auditContext.setActorId(user.getSeqUser().longValue());
+            auditContext.setActorName(user.getNameUser());
             auditContext.setActorType("USER");
         } else {
             setUtf8Response(response);
