@@ -22,7 +22,7 @@ public class TermsDataInitializer implements CommandLineRunner {
     }
 
     // 버전 마커 — 내용 변경 시 올려서 기존 DB도 자동 갱신
-    private static final String TERMS_VERSION = "v2";
+    private static final String TERMS_VERSION = "v3";
 
     private void initTerms(String type, String defaultContent) {
         String versionedContent = "<!-- " + TERMS_VERSION + " -->" + defaultContent;
@@ -109,6 +109,7 @@ public class TermsDataInitializer implements CommandLineRunner {
         "<h3>제14조 (접속 기록 및 시스템 보안)</h3>" +
         "<p>① 서비스는 안전한 운영을 위해 회원의 로그인 시 다음 정보를 자동으로 기록합니다.</p>" +
         "<ul>" +
+        "<li>로그인 아이디</li>" +
         "<li>접속 IP 주소</li>" +
         "<li>접속 일시</li>" +
         "<li>로그인 성공 또는 실패 여부</li>" +
@@ -128,7 +129,7 @@ public class TermsDataInitializer implements CommandLineRunner {
         "<li><strong>아이디(ID):</strong> 로그인 및 계정 관리를 위한 고유 식별자</li>" +
         "<li><strong>비밀번호:</strong> 계정 보안 및 본인 인증을 위한 정보 (암호화 저장, 원문 보관 안 함)</li>" +
         "<li><strong>디스코드 아이디:</strong> 도서 대출/반납 알림 메시지 발송을 위한 연락처</li>" +
-        "<li><strong>접속 기록 (서비스 운영 목적):</strong> 로그인 시 접속 IP 주소, 접속 일시, 로그인 성공/실패 여부. 비밀번호 원문 및 세션 정보는 수집하지 않습니다.</li>" +
+        "<li><strong>접속 기록 (서비스 운영 목적):</strong> 로그인 시 로그인 아이디, 접속 IP 주소, 접속 일시, 로그인 성공/실패 여부. 비밀번호 원문 및 세션 정보는 수집하지 않습니다.</li>" +
         "</ul>" +
 
         "<h3>2. 수집·이용 목적</h3>" +
