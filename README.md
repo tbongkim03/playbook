@@ -56,6 +56,7 @@ Docker Compose
 - **세션 기반 인증**: Spring Session + Redis, 중복 로그인 방지, 인터셉터로 공통 인증 체크
 - **공통 응답 형식**: `ResponseHandler`로 전 API 응답 통일 (코드/메시지/데이터)
 - **공통 감사 컬럼**: `BaseAuditEntity` — 생성자/수정자/일시 자동 기록, Soft Delete(`use_yn`)
+- **접속이력·감사로그**: Spring Event + AOP(@AuditAction)로 로그인/관리자 작업 이력 자동 기록, 1년 파기 스케줄러
 - **스케줄러 기반 운영 자동화**: 반납 기한/과정 종료에 맞춰 Discord 알림 발송
 - **도메인 중심 설계**: 대분류/중분류, 과정, 대출 이력 등 핵심 개념을 엔터티로 모델링
 
@@ -87,6 +88,7 @@ Docker Compose
 - **대출/반납**: 바코드 스캔 기반 처리 (PC 전용), 대출 현황/연체 관리, 모바일 접근 제한
 - **대시보드/통계**: 대출 비율, 인기 도서, 기간/분야별 통계(Chart.js)
 - **알림**: 반납 기한 전 Discord 멘션 알림, 과정 종료 시 반납 리마인더
+- **접속이력·감사로그**: 로그인 접속이력(성공/실패), 도서·계정·캠퍼스·과정 CRUD 감사로그, 1년 자동 파기
 - **약관 관리**: 관리자 약관 수정 에디터, 회원가입 약관 동의 플로우
 - **관리 자동화**: 최초 실행 시 마스터 관리자 계정/설정 초기화 스크립트
 
@@ -104,6 +106,9 @@ Docker Compose
 - [x] 공통 응답 형식 (ResponseHandler / Response / ResponseCode)
 - [x] DTO Validation (@Valid, GlobalExceptionHandler)
 - [x] 공통 감사 컬럼 (BaseAuditEntity — createdBy, updatedAt 등)
+- [x] 접속이력 (로그인 성공/실패, Spring Event + @Async)
+- [x] 감사로그 (관리자 주요 작업 AOP 자동 기록, @AuditAction)
+- [x] 접속이력 1년 자동 파기 (매일 새벽 2시 스케줄러)
 - [x] 트랜잭션 롤백 보장 (rollbackFor, readOnly)
 - [x] SweetAlert2 공통 alert/confirm
 - [x] 관리자 약관 수정 페이지
