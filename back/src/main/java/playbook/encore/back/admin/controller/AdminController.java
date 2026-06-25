@@ -18,7 +18,12 @@ import playbook.encore.back.admin.service.AdminService;
 import playbook.encore.back.discord.DiscordNotificationService;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import playbook.encore.back.accesslog.dto.AccessLogResponseDto;
 import playbook.encore.back.accesslog.event.LoginEvent;
+import playbook.encore.back.accesslog.service.AccessLogService;
+import playbook.encore.back.auditlog.dto.AuditLogResponseDto;
+import playbook.encore.back.auditlog.service.AuditLogService;
 import playbook.encore.back.common.excel.ExcelUtil;
 import playbook.encore.back.common.util.AuthUtil;
 import playbook.encore.back.common.util.SessionUtil;
@@ -32,16 +37,22 @@ public class AdminController {
     private final RedisIndexedSessionRepository sessionRepository;
     private final DiscordNotificationService discordNotificationService;
     private final ApplicationEventPublisher eventPublisher;
+    private final AccessLogService accessLogService;
+    private final AuditLogService auditLogService;
 
     @Autowired
     public AdminController(AdminService adminService,
                            RedisIndexedSessionRepository sessionRepository,
                            DiscordNotificationService discordNotificationService,
-                           ApplicationEventPublisher eventPublisher) {
+                           ApplicationEventPublisher eventPublisher,
+                           AccessLogService accessLogService,
+                           AuditLogService auditLogService) {
         this.adminService = adminService;
         this.sessionRepository = sessionRepository;
         this.discordNotificationService = discordNotificationService;
         this.eventPublisher = eventPublisher;
+        this.accessLogService = accessLogService;
+        this.auditLogService = auditLogService;
     }
 
     // 회원가입 관련 부분
@@ -154,6 +165,32 @@ public class AdminController {
         AuthUtil.requireAdmin(request);
         boolean result = adminService.deleteAdmin(dto.getIdAdmin());
         return ResponseEntity.ok(ResponseHandler.success(result));
+    }
+
+    @GetMapping("/access-log")
+    public ResponseEntity<Response> getAccessLogs(
+            HttpServletRequest request,
+            @RequestParam(required = false) String actorType,
+            @RequestParam(required = false) String result,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        AuthUtil.requireAdmin(request);
+        Page<AccessLogResponseDto> data = accessLogService.getAccessLogs(actorType, result, page, size);
+        return ResponseEntity.ok(ResponseHandler.success(data));
+    }
+
+    @GetMapping("/audit-log")
+    public ResponseEntity<Response> getAuditLogs(
+            HttpServletRequest request,
+            @RequestParam(required = false) String action,
+            @RequestParam(required = false) String targetType,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        AuthUtil.requireAdmin(request);
+        Page<AuditLogResponseDto> data = auditLogService.getAuditLogs(action, targetType, page, size);
+        return ResponseEntity.ok(ResponseHandler.success(data));
     }
 
     @PostMapping("/discord/link-message")

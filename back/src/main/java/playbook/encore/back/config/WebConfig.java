@@ -62,6 +62,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/campus/all") // 모든 캠퍼스 조회 (관리자 전용)
                 .addPathPatterns("/campus/*") // 캠퍼스 상세, 수정, 삭제 (관리자 전용)
                 .addPathPatterns("/campus") // POST 요청 (캠퍼스 생성, 관리자 전용)
+                .addPathPatterns("/admin/access-log")
+                .addPathPatterns("/admin/audit-log")
                 .excludePathPatterns("/users/login", "/users/register");
     }
 }
