@@ -26,6 +26,7 @@ import playbook.encore.back.campus.dao.CampusRepository;
 import playbook.encore.back.sort.dao.SortSecondRepository;
 import playbook.encore.back.book.service.BookService;
 
+import playbook.encore.back.auditlog.annotation.AuditAction;
 import playbook.encore.back.common.excel.ExcelUtil;
 import org.apache.poi.ss.usermodel.Workbook;
 
@@ -80,6 +81,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @AuditAction(action = "BOOK_CREATE", targetType = "BOOK")
     @Transactional(rollbackFor = Exception.class)
     public BookResponseDto insertBook(BookRequestDto bookRequestDto) {
         log.info("[BookService] 도서 등록 - title: {}", bookRequestDto.getTitleBook());
@@ -313,6 +315,7 @@ public class BookServiceImpl implements BookService {
 
     // 프린트 함, 분류, 책 권수, 바코드 값 넣기.
     @Override
+    @AuditAction(action = "BOOK_UPDATE", targetType = "BOOK")
     @Transactional(rollbackFor = Exception.class)
     public BookResponseDto changeBook(int bookId, BookSortAndBarcodeRequestDto bookSortAndBarcodeRequestDto) throws Exception {
         log.info("[BookService] 도서 수정 - bookId: {}", bookId);
@@ -343,6 +346,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @AuditAction(action = "BOOK_DELETE", targetType = "BOOK")
     @Transactional(rollbackFor = Exception.class)
     public void deleteBookById(int bookId) throws Exception {
         log.info("[BookService] 도서 삭제 - bookId: {}", bookId);

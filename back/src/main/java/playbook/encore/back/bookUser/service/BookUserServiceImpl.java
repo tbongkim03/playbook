@@ -22,6 +22,7 @@ import playbook.encore.back.history.dao.HistoryRepository;
 import playbook.encore.back.history.entity.History;
 import playbook.encore.back.bookUser.service.BookUserService;
 import playbook.encore.back.favor.dao.FavorRepository;
+import playbook.encore.back.auditlog.annotation.AuditAction;
 import playbook.encore.back.common.excel.ExcelUtil;
 import org.apache.poi.ss.usermodel.Workbook;
 
@@ -152,6 +153,7 @@ public class BookUserServiceImpl implements BookUserService{
     }
 
     @Override
+    @AuditAction(action = "USER_RESET_PW", targetType = "USER")
     @Transactional(rollbackFor = Exception.class)
     public boolean resetUserPassword(String idUser, String newPassword) {
         log.info("[BookUserService] 관리자에 의한 비밀번호 초기화 - id: {}", idUser);
@@ -195,6 +197,7 @@ public class BookUserServiceImpl implements BookUserService{
     }
 
     @Override
+    @AuditAction(action = "USER_DELETE", targetType = "USER")
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteUserByAdmin(String idUser) {
         log.info("[BookUserService] 관리자에 의한 사용자 삭제 - id: {}", idUser);

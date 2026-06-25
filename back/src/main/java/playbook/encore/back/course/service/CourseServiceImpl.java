@@ -22,6 +22,7 @@ import playbook.encore.back.campus.entity.Campus;
 import playbook.encore.back.course.dao.CourseRepository;
 import playbook.encore.back.campus.dao.CampusRepository;
 import playbook.encore.back.course.service.CourseService;
+import playbook.encore.back.auditlog.annotation.AuditAction;
 
 @Slf4j
 @Service
@@ -72,6 +73,7 @@ public class CourseServiceImpl implements CourseService{
     }
 
     @Override
+    @AuditAction(action = "COURSE_CREATE", targetType = "COURSE")
     @Transactional(rollbackFor = Exception.class)
     public CourseResponseDto insertCourse(CourseRequestDto courseRequestDto) {
         log.info("[CourseService] 과정 등록 - name: {}", courseRequestDto.getNameCourse());
@@ -93,6 +95,7 @@ public class CourseServiceImpl implements CourseService{
     }
 
     @Override
+    @AuditAction(action = "COURSE_UPDATE", targetType = "COURSE")
     @Transactional(rollbackFor = Exception.class)
     public CourseResponseDto changeCourse(Integer courseId, CourseRequestDto courseRequestDto) {
         log.info("[CourseService] 과정 수정 - courseId: {}", courseId);
@@ -136,6 +139,7 @@ public class CourseServiceImpl implements CourseService{
     }
 
     @Override
+    @AuditAction(action = "COURSE_DELETE", targetType = "COURSE")
     @Transactional(rollbackFor = Exception.class)
     public void deleteCourseById(Integer courseId) {
         log.info("[CourseService] 과정 삭제 - courseId: {}", courseId);

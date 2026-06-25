@@ -15,6 +15,7 @@ import playbook.encore.back.campus.entity.Campus;
 import playbook.encore.back.campus.dao.CampusRepository;
 import playbook.encore.back.admin.service.AdminService;
 
+import playbook.encore.back.auditlog.annotation.AuditAction;
 import playbook.encore.back.common.excel.ExcelUtil;
 import org.apache.poi.ss.usermodel.Workbook;
 
@@ -40,6 +41,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @AuditAction(action = "ADMIN_CREATE", targetType = "ADMIN")
     @Transactional(rollbackFor = Exception.class)
     public RegisterAdminResponseDto createAdmin(Admin user, RegisterAdminRequestDto registerAdminRequestDto) {
         log.info("[AdminService] 관리자 등록 - id: {}", registerAdminRequestDto.getIdAdmin());
@@ -102,6 +104,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @AuditAction(action = "ADMIN_UPDATE", targetType = "ADMIN")
     @Transactional(rollbackFor = Exception.class)
     public boolean updateAdmin(Admin currentUser, UpdateAdminRequestDto updateRequest) {
         log.info("[AdminService] 관리자 정보 수정 - id: {}", updateRequest.getIdAdmin());
@@ -165,6 +168,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @AuditAction(action = "ADMIN_DELETE", targetType = "ADMIN")
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteAdmin(String idAdmin) {
         log.info("[AdminService] 관리자 삭제 - id: {}", idAdmin);

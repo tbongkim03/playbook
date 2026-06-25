@@ -9,6 +9,7 @@ import playbook.encore.back.campus.dto.CampusResponseDto;
 import playbook.encore.back.campus.entity.Campus;
 import playbook.encore.back.campus.dao.CampusRepository;
 import playbook.encore.back.campus.service.CampusService;
+import playbook.encore.back.auditlog.annotation.AuditAction;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -60,6 +61,7 @@ public class CampusServiceImpl implements CampusService {
     }
 
     @Override
+    @AuditAction(action = "CAMPUS_CREATE", targetType = "CAMPUS")
     @Transactional
     public CampusResponseDto createCampus(CampusRequestDto campusRequestDto) {
         log.info("[CampusService] 캠퍼스 등록 - name: {}", campusRequestDto.getNameCampus());
@@ -79,6 +81,7 @@ public class CampusServiceImpl implements CampusService {
     }
 
     @Override
+    @AuditAction(action = "CAMPUS_UPDATE", targetType = "CAMPUS")
     @Transactional(rollbackFor = Exception.class)
     public CampusResponseDto updateCampus(Integer seqCampus, CampusRequestDto campusRequestDto) {
         log.info("[CampusService] 캠퍼스 수정 - seqCampus: {}", seqCampus);
@@ -103,6 +106,7 @@ public class CampusServiceImpl implements CampusService {
     }
 
     @Override
+    @AuditAction(action = "CAMPUS_DELETE", targetType = "CAMPUS")
     @Transactional(rollbackFor = Exception.class)
     public void deleteCampus(Integer seqCampus) {
         log.info("[CampusService] 캠퍼스 삭제 - seqCampus: {}", seqCampus);
