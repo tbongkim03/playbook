@@ -26,3 +26,9 @@ export const logout = () => axios.post('/api/admin/logout')
 
 export const exportExcel = (campusId) =>
   axios.get('/api/admin/export', { params: campusId ? { campusId } : {}, responseType: 'blob' })
+
+export const getAccessLogs = (params) =>
+  axios.get('/api/admin/access-log', { params })
+
+export const getAuditLogs = (params) =>
+  axios.get('/api/admin/audit-log', { params })

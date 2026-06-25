@@ -143,6 +143,32 @@
                 약관 관리
               </button>
             </li>
+            <li>
+              <button
+                class="nav-item"
+                :class="{ active: activeTab === 'access-log' }"
+                @click="setActiveTab('access-log')"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 8V12L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                접속 이력
+              </button>
+            </li>
+            <li>
+              <button
+                class="nav-item"
+                :class="{ active: activeTab === 'audit-log' }"
+                @click="setActiveTab('audit-log')"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9 11L12 14L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                감사 로그
+              </button>
+            </li>
           </ul>
         </div>
       </nav>
@@ -188,6 +214,14 @@
         <div v-if="activeTab === 'terms-management'" class="content-section">
           <TermsEditor />
         </div>
+        <!-- 접속 이력 -->
+        <div v-if="activeTab === 'access-log'" class="content-section">
+          <AccessLogDashboard />
+        </div>
+        <!-- 감사 로그 -->
+        <div v-if="activeTab === 'audit-log'" class="content-section">
+          <AuditLogDashboard />
+        </div>
       </main>
     </div>
 
@@ -232,6 +266,8 @@ import CourseManagement from '@/components/CourseManagement.vue'
 import CampusManagement from '@/components/CampusManagement.vue'
 import CategoryManagement from '@/components/CategoryManagement.vue'
 import TermsEditor from '@/components/TermsEditor.vue'
+import AccessLogDashboard from '@/components/AccessLogDashboard.vue'
+import AuditLogDashboard from '@/components/AuditLogDashboard.vue'
 
 const router = useRouter()
 const activeTab = ref('admin-accounts')
