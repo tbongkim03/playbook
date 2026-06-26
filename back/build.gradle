@@ -43,6 +43,9 @@ dependencies {
     implementation("net.dv8tion:JDA:5.6.1")
     implementation 'org.apache.poi:poi-ooxml:5.2.5'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
+    // 캠퍼스 측 메트릭 노출 (Alloy가 /actuator/prometheus scrape → AWS remote_write)
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 bootRun {
