@@ -8,8 +8,26 @@ on:
 
 jobs:
   backend-test:
-    name: 백엔드 단위 테스트
+    name: 백엔드 테스트
     runs-on: ubuntu-latest
+
+    # 통합 테스트는 실DB를 쓴다(test 프로파일: jdbc:mysql://localhost:3307/playbookdb_local).
+    # Redis는 EmbeddedRedisConfig가 6381에 인프로세스로 띄우므로 서비스 컨테이너가 필요 없다.
+    # 스키마는 ddl-auto=update가 만들고, 캠퍼스·분류 등 기준 데이터는
+    # test_data_setup.sql이 INSERT IGNORE로 심으므로 빈 DB로 충분하다.
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ci_root_pw
+          MYSQL_DATABASE: playbookdb_local
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pci_root_pw --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
 
     steps:
       - uses: actions/checkout@v4
@@ -29,7 +47,48 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: 단위 테스트 실행
+      # EnvTestInitializer 는 back/.env.test 가 없으면 예외를 던져 컨텍스트 로딩부터 실패한다.
+      # CI 용 더미 값으로 생성한다 — 통합 테스트는 외부 API를 호출하지 않으므로 실제 키가 필요 없다.
+      # 실제 시크릿을 CI에 넣지 않는 것이 원칙이다.
+      - name: 테스트 환경 파일 생성 (.env.test)
+        working-directory: back
+        run: |
+          cat > .env.test <<'EOF'
+          SPRING_PROFILES_ACTIVE=test
+          DB_USERNAME=root
+          DB_PASSWORD=ci_root_pw
+          INTEGRATION_SECRET_KEY=ci-dummy-integration-secret-key
+          MASTER_ID=ci_master
+          MASTER_PW=ci_master_pw_1234
+          MASTER_NAME=CI관리자
+          MASTER_DISCORD=ci_master_discord
+          CLIENT_ID=ci-dummy-naver-client-id
+          CLIENT_SECRET=ci-dummy-naver-client-secret
+          NL_API_KEY=ci-dummy-nl-key
+          WORK24_API_KEY=ci-dummy-work24-key
+          DISCORD_CHANNEL_SEOCHO=
+          DISCORD_CHANNEL_GVALLEY=
+          DISCORD_CHANNEL_DONGJAK=
+          DISCORD_LINK_CHANNEL_ID=
+          EOF
+          # DiscordBotManager 는 이 센티널 값이면 연결을 시도하지 않고 봇 비활성으로 둔다.
+          # 임의 더미 토큰을 넣으면 JDABuilder 가 실제 접속을 시도해 CI 가 느려진다.
+          echo 'DISCORD_BOT_TOKEN=discord-bot-token' >> .env.test
+
+      # 서비스 컨테이너의 health-check 가 통과해야 스텝이 시작되므로 보통은 이미 준비된 상태다.
+      # 실패 시 원인을 "DB 미준비"로 명확히 드러내기 위한 확인 단계다.
+      # 러너에 mysql 클라이언트가 있다고 가정하지 않도록 bash TCP 체크만 쓴다.
+      - name: DB 준비 확인
+        run: |
+          for i in $(seq 1 30); do
+            if (echo > /dev/tcp/127.0.0.1/3307) 2>/dev/null; then
+              echo "MySQL 포트 3307 응답 확인"; exit 0
+            fi
+            echo "MySQL 대기 중... ($i/30)"; sleep 2
+          done
+          echo "MySQL 이 준비되지 않았습니다 (127.0.0.1:3307)"; exit 1
+
+      - name: 테스트 실행 (단위 + 통합)
         working-directory: back
         run: ./gradlew test --no-daemon
 
