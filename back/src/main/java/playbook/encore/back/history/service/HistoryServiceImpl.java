@@ -82,7 +82,7 @@ public class HistoryServiceImpl implements HistoryService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void handleBookReturn(Object human, String barcodeBook, Integer campusId) {
+    public BookReturnResultDto handleBookReturn(Object human, String barcodeBook, Integer campusId) {
         log.info("[HistoryService] 도서 반납 처리 - barcode: {}, campusId: {}", barcodeBook, campusId);
         validateCampus(campusId);
         Object user = resolveUser(human);
@@ -93,7 +93,9 @@ public class HistoryServiceImpl implements HistoryService {
         saveReturnHistory(user, book, history, isReturnedBookOverdue, isCourseFinished);
         sendReturnNotification(user, book);
         notifyFavorUsers(book);
-        checkOverdueException(user, history, isReturnedBookOverdue, isCourseFinished);
+        // 연체는 예외가 아니라 반환값으로 알린다. 여기서 예외를 던지면
+        // rollbackFor = Exception.class에 걸려 위의 반납 처리가 전부 롤백된다.
+        return resolveOverdueResult(user, history, isReturnedBookOverdue, isCourseFinished);
     }
 
     @Override
@@ -446,13 +448,20 @@ public class HistoryServiceImpl implements HistoryService {
         }
     }
 
-    private void checkOverdueException(Object user, History history, boolean isReturnedBookOverdue, boolean isCourseFinished) {
-        if (!isReturnedBookOverdue) return;
+    /**
+     * 연체 안내 대상인지 판정해 결과로 돌려준다.
+     *
+     * <p>판정 조건은 기존 {@code checkOverdueException()}과 동일하다 —
+     * 연체 반납이면서 (관리자이거나 과정이 아직 종료되지 않은 경우).
+     * 과정이 종료된 일반 사용자는 {@code saveReturnHistory()}에서 이미 {@code stop} 처리되므로
+     * 연체 안내를 하지 않는다.</p>
+     */
+    private BookReturnResultDto resolveOverdueResult(Object user, History history, boolean isReturnedBookOverdue, boolean isCourseFinished) {
+        if (!isReturnedBookOverdue) return BookReturnResultDto.normal();
+        boolean isAdmin = user instanceof Admin;
+        if (!isAdmin && isCourseFinished) return BookReturnResultDto.normal();
         LocalDate dueDate = history.getBookDt().plusDays(7);
         long overdueDays = LocalDate.now().toEpochDay() - dueDate.toEpochDay();
-        boolean isAdmin = user instanceof Admin;
-        if (isAdmin || !isCourseFinished) {
-            throw new IllegalArgumentException("연체 반납되었습니다. 연체일수: " + overdueDays + "일");
-        }
+        return BookReturnResultDto.overdue(overdueDays);
     }
 }

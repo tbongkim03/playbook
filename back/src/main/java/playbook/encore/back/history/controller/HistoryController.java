@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import playbook.encore.back.common.response.Response;
 import playbook.encore.back.common.response.ResponseCode;
 import playbook.encore.back.common.response.ResponseHandler;
+import playbook.encore.back.history.dto.BookReturnResultDto;
 import playbook.encore.back.history.dto.HistoryBookResponseDto;
 import playbook.encore.back.history.dto.PopularLabelDto;
 import playbook.encore.back.history.dto.UserReadingRankDto;
@@ -125,10 +126,17 @@ public class HistoryController {
         Integer campusId = (Integer) request.getAttribute("campusId");
 
         try {
-            historyService.handleBookReturn(user, barcodeBook, campusId);
+            BookReturnResultDto result = historyService.handleBookReturn(user, barcodeBook, campusId);
+            if (result.isOverdue()) {
+                // 연체 반납은 처리 자체는 성공(커밋)했고, 안내 메시지만 다르다.
+                // 프론트(BookReturn.vue)가 code !== '0000'을 경고 표시로 쓰므로 FAIL_PROCESS를 유지한다.
+                return ResponseEntity.ok(ResponseHandler.error(ResponseCode.FAIL_PROCESS,
+                        "연체 반납되었습니다. 연체일수: " + result.getOverdueDays() + "일"));
+            }
             return ResponseEntity.ok(ResponseHandler.success());
         } catch (IllegalArgumentException e) {
-            // 상태는 OK, 메시지만 연체 or 잘못된 형식
+            // 반납 불가 상황(대여 기록 없음, 바코드/캠퍼스 불일치 등) — 서비스에서 롤백된 뒤 여기로 온다.
+            // 상태는 OK, 메시지만 실패 사유
             return ResponseEntity.ok(ResponseHandler.error(ResponseCode.FAIL_PROCESS, e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
