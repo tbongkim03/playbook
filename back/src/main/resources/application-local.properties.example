@@ -1,3 +1,11 @@
+# 로컬 실행 설정 템플릿
+#
+# 이 파일을 application-local.properties 로 복사한 뒤 값을 채운다.
+#   cp application-local.properties.example application-local.properties
+#
+# application-local.properties 는 gitignore 대상이다.
+# 실제 API 키·비밀번호를 이 템플릿에 채워 커밋하지 말 것.
+
 spring.datasource.url=jdbc:mysql://localhost:3307/playbookdb_local
 spring.datasource.username=${DB_USERNAME:root}
 spring.datasource.password=${DB_PASSWORD:changeme}
@@ -21,16 +29,19 @@ spring.jpa.properties.hibernate.format_sql=true
 MASTER_ID=admin
 MASTER_PW=admin1234
 MASTER_NAME=관리자
-MASTER_DISCORD=bubble_94
-CLIENT_ID=***REMOVED***
-CLIENT_SECRET=***REMOVED***
-NL_API_KEY=***REMOVED***
-WORK24_API_KEY=***REMOVED***
+MASTER_DISCORD=
+
+# 외부 연동 키 — 발급받은 값으로 채운다. 비워 두면 해당 연동만 동작하지 않는다.
+# 운영에서는 연동 관리 탭(전체관리자)에서 DB로 관리하며 여기 값은 최초 시드용이다.
+CLIENT_ID=
+CLIENT_SECRET=
+NL_API_KEY=
+WORK24_API_KEY=
 DISCORD_BOT_TOKEN=
-DISCORD_CHANNEL_SEOCHO=1509741857989464064
-DISCORD_CHANNEL_GVALLEY=1509741955750559834
-DISCORD_CHANNEL_DONGJAK=1509741904030601246
-DISCORD_LINK_CHANNEL_ID=1509741697213530198
+DISCORD_CHANNEL_SEOCHO=
+DISCORD_CHANNEL_GVALLEY=
+DISCORD_CHANNEL_DONGJAK=
+DISCORD_LINK_CHANNEL_ID=
 
 logging.level.root=INFO
 logging.level.playbook.encore=DEBUG

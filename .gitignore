@@ -68,6 +68,9 @@ front/*.sw?
 front/*.tsbuildinfo
 front/.vite/*
 #### ENV ###
+# 로컬 실행 설정 — 실제 API 키·DB 비밀번호가 들어가므로 커밋 금지.
+# 새 환경은 application-local.properties.example 을 복사해 값을 채운다.
+back/src/main/resources/application-local.properties
 back/.env.dev
 back/.env.prod
 back/.env.test
