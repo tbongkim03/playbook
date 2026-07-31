@@ -78,23 +78,18 @@ front/.env
 # 목업 디렉토리
 front_mok/
 
-# Claude Code 관련 파일
-MEMORY.md
-PLAN.md
-TEST_PLAN.md
-responsehandlerExample.md
+# 로컬 작업 문서 (계획서·테스트계획·아카이브) — 커밋 대상은 README.md / GUIDE.md / document/ 뿐
+docs/
 
 # 백업 파일 (스크립트가 생성하는 결과물)
 backups/
 
-# 리팩토링 문서
-리팩토링.md
-리팩토링_계획서.md
-요청사항.txt
+# OCI 배포 메일 알림 SMTP 자격증명 (앱 비밀번호 포함)
+scripts/.oci-notify.env
 
-# 디자인 작업 문서
-디자인_MEMORY.md
-디자인_진행계획.md
+# 하네스 에이전트 중간 산출물
+_workspace/
+_workspace_*/
 
-# DB 마이그레이션
-db/migration/
+# Claude Code 개인 로컬 설정 (권한 허용목록 등 — 사용자별로 다름)
+.claude/settings.local.json
