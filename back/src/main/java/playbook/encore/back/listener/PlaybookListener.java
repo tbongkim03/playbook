@@ -1,5 +1,8 @@
 package playbook.encore.back.listener;
 
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.UserSnowflake;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -7,6 +10,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -15,10 +19,12 @@ import playbook.encore.back.bookUser.dao.BookUserDAO;
 import playbook.encore.back.admin.dao.AdminRepository;
 import playbook.encore.back.bookUser.dao.BookUserRepository;
 import playbook.encore.back.bookUser.entity.BookUser;
+import playbook.encore.back.integration.service.IntegrationService;
 
 import java.security.SecureRandom;
 import java.util.Optional;
 
+@Slf4j
 @Component
 public class PlaybookListener extends ListenerAdapter {
     @Autowired
@@ -32,6 +38,9 @@ public class PlaybookListener extends ListenerAdapter {
 
     @Autowired
     private AdminDAO adminDAO;
+
+    @Autowired
+    private IntegrationService integrationService;
 
     private static final String LINK_BUTTON_ID = "playbook_discord_link";
     private static final String CMD_FIND_ID = "findid";
@@ -56,6 +65,7 @@ public class PlaybookListener extends ListenerAdapter {
 
         bookUserRepository.findByDcUser(discordUsername).ifPresent(user -> {
             bookUserDAO.changeDiscord(user, discordUserId);
+            grantCampusRole(event.getGuild(), discordUserId, user.getSeqUser());
         });
 
         adminRepository.findByDcAdmin(discordUsername).ifPresent(admin -> {
@@ -79,7 +89,9 @@ public class PlaybookListener extends ListenerAdapter {
         var bookUser = bookUserRepository.findByDcUser(discordUsername);
         if (bookUser.isPresent()) {
             bookUserDAO.changeDiscord(bookUser.get(), discordUserId);
-            event.reply("✅ 플북 계정 연동 완료!\n**아이디:** " + bookUser.get().getIdUser())
+            grantCampusRole(event.getGuild(), discordUserId, bookUser.get().getSeqUser());
+            event.reply("✅ 플북 계정 연동 완료!\n**아이디:** " + bookUser.get().getIdUser()
+                    + "\n소속 캠퍼스 채널이 곧 열립니다. 잠시만 기다려 주세요.")
                     .setEphemeral(true).queue();
             return;
         }
@@ -187,5 +199,38 @@ public class PlaybookListener extends ListenerAdapter {
             char tmp = chars[i]; chars[i] = chars[j]; chars[j] = tmp;
         }
         return new String(chars);
+    }
+
+    /**
+     * 연동된 플북 사용자의 소속 캠퍼스 역할을 부여해 캠퍼스 채널을 해금한다.
+     * 길드/과정·캠퍼스 미연결, 역할 미설정, 봇 권한 부족 시 graceful skip.
+     */
+    private void grantCampusRole(Guild guild, String discordUserId, Integer seqUser) {
+        if (guild == null || seqUser == null) {
+            return;
+        }
+        Integer campusId = bookUserRepository.findCampusIdBySeqUser(seqUser).orElse(null);
+        if (campusId == null) {
+            log.info("[Discord] 캠퍼스 미연결 사용자, 역할 부여 생략 - seqUser: {}", seqUser);
+            return;
+        }
+        String roleId = integrationService.getRoleIdByCampus(campusId);
+        if (roleId == null || roleId.isBlank()) {
+            log.warn("[Discord] 캠퍼스 {} 역할 ID 미설정, 채널 해금 생략", campusId);
+            return;
+        }
+        Role role = guild.getRoleById(roleId);
+        if (role == null) {
+            log.warn("[Discord] 역할을 찾을 수 없음 - roleId: {}", roleId);
+            return;
+        }
+        try {
+            guild.addRoleToMember(UserSnowflake.fromId(discordUserId), role).queue(
+                    success -> log.info("[Discord] 캠퍼스 역할 부여 완료 - campusId: {}, userId: {}", campusId, discordUserId),
+                    error -> log.warn("[Discord] 역할 부여 실패 (봇 권한/계층 확인): {}", error.getMessage())
+            );
+        } catch (Exception e) {
+            log.warn("[Discord] 역할 부여 중 오류: {}", e.getMessage());
+        }
     }
 }

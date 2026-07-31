@@ -4,131 +4,78 @@ import net.dv8tion.jda.api.JDA;
 import org.springframework.beans.factory.annotation.Autowired;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import playbook.encore.back.integration.service.IntegrationService;
 
 @Slf4j
 @Service
 public class DiscordNotificationService {
 
-    @Value("${DISCORD_CHANNEL_ID:discord-channel-id}")
-    private String channelId;
+    @Autowired
+    private DiscordBotManager botManager;
 
-    @Value("${DISCORD_LINK_CHANNEL_ID:}")
-    private String linkChannelId;
+    @Autowired
+    private IntegrationService integrationService;
 
-    // 캠퍼스별 채널 ID
-    @Value("${DISCORD_CHANNEL_SEOCHO:}")
-    private String channelIdSeocho;
-
-    @Value("${DISCORD_CHANNEL_GVALLEY:}")
-    private String channelIdGvalley;
-
-    @Value("${DISCORD_CHANNEL_DONGJAK:}")
-    private String channelIdDongjak;
-
-    @Autowired(required = false)
-    private JDA jda;
+    private JDA getJda() {
+        return botManager.getJda();
+    }
 
     // 봇 상태 확인 메서드
     private boolean isBotAvailable() {
-        return jda != null && jda.getStatus() == JDA.Status.CONNECTED;
+        return botManager.isConnected();
     }
 
-    // 안전한 메시지 전송
+    // 안전한 메시지 전송 (봇 가용성만 확인, 채널은 각 메서드가 해결)
     private void sendMessageSafely(Runnable messageAction, String fallbackLog) {
         if (!isBotAvailable()) {
-            System.out.println("⚠️ Discord 봇이 비활성화되어 있습니다: " + fallbackLog);
+            log.warn("[DiscordService] 봇 비활성화: {}", fallbackLog);
             return;
         }
-
-        if (channelId == null || channelId.isEmpty()) {
-            System.out.println("⚠️ Discord 채널 ID가 설정되지 않았습니다: " + fallbackLog);
-            return;
-        }
-
         try {
             messageAction.run();
         } catch (Exception e) {
-            System.err.println("⚠️ Discord 메시지 전송 실패: " + e.getMessage());
-            System.out.println("📝 로그: " + fallbackLog);
+            log.error("[DiscordService] 메시지 전송 실패: {} / {}", e.getMessage(), fallbackLog);
         }
-    }
-
-    // 기본 채널 메시지
-    public void sendMessage(String message) {
-        log.info("[DiscordService] 채널 메시지 전송");
-        sendMessageSafely(() -> {
-            TextChannel channel = jda.getTextChannelById(channelId);
-            if (channel != null) {
-                channel.sendMessage(message).queue();
-            }
-        }, "채널 메시지: " + message);
     }
 
     // 개인 DM으로 메시지 보내기
     public void sendDirectMessage(String discordUserId, String userName, String message) {
         log.info("[DiscordService] DM 전송 - userId: {}", discordUserId);
         if (!isBotAvailable()) {
-            System.out.println("⚠️ Discord 봇 비활성화: " + userName + "님에게 메시지 전송 실패");
+            log.warn("[DiscordService] 봇 비활성화: {}님에게 메시지 전송 실패", userName);
             return;
         }
 
         try {
             if (isNumericId(discordUserId)) {
-                jda.retrieveUserById(discordUserId).queue(
-                        user -> {
-                            user.openPrivateChannel().queue(
-                                    privateChannel -> privateChannel.sendMessage(message).queue()
-                            );
-                        }
+                getJda().retrieveUserById(discordUserId).queue(
+                        user -> user.openPrivateChannel().queue(
+                                privateChannel -> privateChannel.sendMessage(message).queue()
+                        )
                 );
             } else {
-                System.out.println("⚠️ Discord ID가 숫자가 아님: " + discordUserId);
+                log.warn("[DiscordService] Discord ID가 숫자가 아님: {}", discordUserId);
             }
         } catch (Exception e) {
-            System.err.println("Discord DM 전송 실패: " + e.getMessage());
+            log.error("[DiscordService] DM 전송 실패: {}", e.getMessage());
         }
     }
 
-    // 캠퍼스별 채널 ID 가져오기
-    private String getChannelIdByCampus(Integer campusId) {
-        if (campusId == null) {
-            return channelId; // 기본 채널
-        }
-        return switch (campusId) {
-            case 1 -> channelIdSeocho;
-            case 2 -> channelIdGvalley;
-            case 3 -> channelIdDongjak;
-            default -> channelId;
-        };
-    }
-
-    // 채널에 메시지 보내기 (기본 채널)
-    public void sendChannelMessage(String message) {
-        log.info("[DiscordService] 채널 메시지 전송");
-        sendMessageSafely(() -> {
-            TextChannel channel = jda.getTextChannelById(channelId);
-            if (channel != null) {
-                channel.sendMessage(message).queue();
-            }
-        }, "메시지: " + " - " + message);
-    }
-
-    // 캠퍼스별 채널에 메시지 보내기
+    // 캠퍼스별 채널에 메시지 보내기 (채널 매핑은 DB에서 조회)
     public void sendChannelMessage(String message, Integer campusId) {
         log.info("[DiscordService] 캠퍼스 채널 메시지 전송 - campusId: {}", campusId);
-        String targetChannelId = getChannelIdByCampus(campusId);
+        String targetChannelId = integrationService.getChannelIdByCampus(campusId);
 
         if (targetChannelId == null || targetChannelId.isEmpty()) {
-            System.out.println("⚠️ 캠퍼스 " + campusId + " 채널 ID가 설정되지 않았습니다.");
+            log.warn("[DiscordService] 캠퍼스 {} 채널 ID가 설정되지 않았습니다.", campusId);
             return;
         }
 
         sendMessageSafely(() -> {
-            TextChannel channel = jda.getTextChannelById(targetChannelId);
+            TextChannel channel = getJda().getTextChannelById(targetChannelId);
             if (channel != null) {
                 channel.sendMessage(message).queue();
             }
@@ -226,8 +173,9 @@ public class DiscordNotificationService {
     // 서버 시작 시 슬래시 커맨드 안내 메시지 존재 여부 확인 후 없으면 발송
     @EventListener(ApplicationReadyEvent.class)
     public void checkAndSendCmdGuideOnStartup() {
+        String linkChannelId = integrationService.getLinkChannelId();
         if (linkChannelId == null || linkChannelId.isEmpty()) {
-            log.info("[DiscordService] DISCORD_LINK_CHANNEL_ID 미설정, 커맨드 안내 메시지 체크 생략");
+            log.info("[DiscordService] 연동 채널 미설정, 커맨드 안내 메시지 체크 생략");
             return;
         }
         if (!isBotAvailable()) {
@@ -235,7 +183,7 @@ public class DiscordNotificationService {
             return;
         }
         try {
-            TextChannel channel = jda.getTextChannelById(linkChannelId);
+            TextChannel channel = getJda().getTextChannelById(linkChannelId);
             if (channel == null) {
                 log.warn("[DiscordService] 연동 채널을 찾을 수 없음: {}", linkChannelId);
                 return;
@@ -267,7 +215,7 @@ public class DiscordNotificationService {
             return;
         }
         try {
-            TextChannel channel = jda.getTextChannelById(targetChannelId);
+            TextChannel channel = getJda().getTextChannelById(targetChannelId);
             if (channel == null) {
                 log.warn("[DiscordService] 채널을 찾을 수 없습니다: {}", targetChannelId);
                 return;
@@ -289,8 +237,9 @@ public class DiscordNotificationService {
     // 서버 시작 시 연동 버튼 메시지 존재 여부 확인 후 없으면 발송
     @EventListener(ApplicationReadyEvent.class)
     public void checkAndSendLinkButtonOnStartup() {
+        String linkChannelId = integrationService.getLinkChannelId();
         if (linkChannelId == null || linkChannelId.isEmpty()) {
-            log.info("[DiscordService] DISCORD_LINK_CHANNEL_ID 미설정, 연동 메시지 체크 생략");
+            log.info("[DiscordService] 연동 채널 미설정, 연동 메시지 체크 생략");
             return;
         }
         if (!isBotAvailable()) {
@@ -298,7 +247,7 @@ public class DiscordNotificationService {
             return;
         }
         try {
-            TextChannel channel = jda.getTextChannelById(linkChannelId);
+            TextChannel channel = getJda().getTextChannelById(linkChannelId);
             if (channel == null) {
                 log.warn("[DiscordService] 연동 채널을 찾을 수 없음: {}", linkChannelId);
                 return;
@@ -326,13 +275,13 @@ public class DiscordNotificationService {
     public void sendLinkButtonMessage(String targetChannelId) {
         log.info("[DiscordService] 연동 버튼 메시지 전송 - channelId: {}", targetChannelId);
         if (!isBotAvailable()) {
-            System.out.println("⚠️ Discord 봇이 비활성화되어 있습니다.");
+            log.warn("[DiscordService] 봇이 비활성화되어 있습니다.");
             return;
         }
         try {
-            TextChannel channel = jda.getTextChannelById(targetChannelId);
+            TextChannel channel = getJda().getTextChannelById(targetChannelId);
             if (channel == null) {
-                System.out.println("⚠️ 채널을 찾을 수 없습니다: " + targetChannelId);
+                log.warn("[DiscordService] 채널을 찾을 수 없습니다: {}", targetChannelId);
                 return;
             }
             Button linkButton = Button.primary("playbook_discord_link", "플북 계정 연동하기 📚");
@@ -346,7 +295,7 @@ public class DiscordNotificationService {
                     .addActionRow(linkButton)
                     .queue();
         } catch (Exception e) {
-            System.err.println("⚠️ 연동 버튼 메시지 전송 실패: " + e.getMessage());
+            log.error("[DiscordService] 연동 버튼 메시지 전송 실패: {}", e.getMessage());
         }
     }
 
