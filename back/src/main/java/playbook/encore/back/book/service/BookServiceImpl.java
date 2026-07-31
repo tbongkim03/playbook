@@ -16,6 +16,8 @@ import playbook.encore.back.book.dto.BookResponseDto;
 import playbook.encore.back.book.dto.BookSearchResponseDto;
 import playbook.encore.back.book.dto.BookSortAndBarcodeRequestDto;
 import playbook.encore.back.book.dto.BookUnprintedResponseDto;
+import playbook.encore.back.book.dto.BookImportResultDto;
+import org.springframework.web.multipart.MultipartFile;
 import playbook.encore.back.book.entity.Book;
 import playbook.encore.back.bookUser.entity.BookUser;
 import playbook.encore.back.campus.entity.Campus;
@@ -486,11 +488,11 @@ public class BookServiceImpl implements BookService {
                 : bookRepository.findAllWithCategories();
 
         List<String> headers = Arrays.asList(
-                "제목", "ISBN", "저자", "출판사", "출판일",
+                "도서번호", "제목", "ISBN", "저자", "출판사", "출판일",
                 "대분류", "중분류", "수량", "대출상태", "바코드"
         );
         List<List<Object>> rows = books.stream().map(b -> Arrays.<Object>asList(
-                b.getTitleBook(),
+                b.getSeqBook(), b.getTitleBook(),
                 b.getIsbnBook(),
                 b.getAuthorBook(),
                 b.getPublisherBook(),
@@ -504,6 +506,119 @@ public class BookServiceImpl implements BookService {
 
         Workbook wb = ExcelUtil.createWorkbook(headers, rows);
         return ExcelUtil.toResponse(wb, "도서목록").getBody();
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
+    public BookImportResultDto importExcel(MultipartFile file, Integer adminCampusId) throws Exception {
+        log.info("[BookService] 도서 엑셀 업로드 - campusId: {}", adminCampusId);
+        java.util.List<java.util.List<String>> rows;
+        try (java.io.InputStream in = file.getInputStream()) {
+            rows = ExcelUtil.readRows(in);
+        }
+        if (rows.isEmpty()) {
+            throw new IllegalArgumentException("빈 엑셀 파일입니다.");
+        }
+
+        java.util.List<String> header = rows.get(0);
+        java.util.Map<String, Integer> idx = new java.util.HashMap<>();
+        for (int i = 0; i < header.size(); i++) {
+            idx.put(header.get(i).trim(), i);
+        }
+        Integer idCol = idx.get("도서번호");
+        if (idCol == null) {
+            throw new IllegalArgumentException("'도서번호' 열이 없습니다. 내보내기 양식을 사용해주세요.");
+        }
+
+        int updated = 0, skipped = 0;
+        java.util.List<String> errors = new java.util.ArrayList<>();
+
+        for (int r = 1; r < rows.size(); r++) {
+            java.util.List<String> row = rows.get(r);
+            int excelRow = r + 1;
+            String idStr = importCell(row, idCol);
+            if (idStr.isBlank()) { skipped++; continue; }
+            int seqBook;
+            try {
+                seqBook = Integer.parseInt(idStr.trim());
+            } catch (NumberFormatException e) {
+                errors.add(excelRow + "행: 도서번호 형식 오류(" + idStr + ")");
+                skipped++; continue;
+            }
+            Book book = bookRepository.findById(seqBook).orElse(null);
+            if (book == null) {
+                errors.add(excelRow + "행: 존재하지 않는 도서번호(" + seqBook + ")");
+                skipped++; continue;
+            }
+            if (adminCampusId != null && book.getSeqCampus() != null
+                    && !adminCampusId.equals(book.getSeqCampus().getSeqCampus())) {
+                errors.add(excelRow + "행: 다른 캠퍼스 도서라 수정 권한이 없습니다(도서번호 " + seqBook + ")");
+                skipped++; continue;
+            }
+
+            try {
+                importApply(row, idx, "제목", 255, book::setTitleBook);
+                importApply(row, idx, "ISBN", 20, book::setIsbnBook);
+                importApply(row, idx, "저자", 20, book::setAuthorBook);
+                importApply(row, idx, "출판사", 20, book::setPublisherBook);
+                importApply(row, idx, "바코드", 30, book::setBarcodeBook);
+
+                String pub = importValue(row, idx, "출판일");
+                if (!pub.isBlank() && !"-".equals(pub)) {
+                    book.setPublishDateBook(java.time.LocalDate.parse(pub.trim()));
+                }
+                String cntStr = importValue(row, idx, "수량");
+                if (!cntStr.isBlank() && !"-".equals(cntStr)) {
+                    book.setCntBook((int) Double.parseDouble(cntStr.trim()));
+                }
+                String sortName = importValue(row, idx, "중분류");
+                if (!sortName.isBlank() && !"-".equals(sortName)) {
+                    java.util.List<SortSecond> found = sortSecondRepository.findByKorSortSecond(sortName.trim());
+                    if (found.isEmpty()) {
+                        errors.add(excelRow + "행: 중분류 '" + sortName + "'를 찾을 수 없습니다");
+                        skipped++; continue;
+                    }
+                    book.setSeqSortSecond(found.get(0));
+                }
+
+                bookRepository.save(book);
+                updated++;
+            } catch (java.time.format.DateTimeParseException e) {
+                errors.add(excelRow + "행: 출판일 형식 오류(yyyy-MM-dd 필요)");
+                skipped++;
+            } catch (NumberFormatException e) {
+                errors.add(excelRow + "행: 수량 형식 오류");
+                skipped++;
+            } catch (IllegalArgumentException e) {
+                errors.add(excelRow + "행: " + e.getMessage());
+                skipped++;
+            }
+        }
+
+        log.info("[BookService] 도서 업로드 완료 - 갱신 {}, 스킵 {}", updated, skipped);
+        return BookImportResultDto.builder().updated(updated).skipped(skipped).errors(errors).build();
+    }
+
+    private String importCell(java.util.List<String> row, int i) {
+        return (i >= 0 && i < row.size() && row.get(i) != null) ? row.get(i) : "";
+    }
+
+    private String importValue(java.util.List<String> row, java.util.Map<String, Integer> idx, String col) {
+        Integer i = idx.get(col);
+        return i != null ? importCell(row, i) : "";
+    }
+
+    private void importApply(java.util.List<String> row, java.util.Map<String, Integer> idx, String col,
+                             int maxLen, java.util.function.Consumer<String> setter) {
+        String v = importValue(row, idx, col);
+        if (v.isBlank() || "-".equals(v)) {
+            return;
+        }
+        v = v.trim();
+        if (v.length() > maxLen) {
+            throw new IllegalArgumentException(col + " 길이 초과(최대 " + maxLen + "자)");
+        }
+        setter.accept(v);
     }
 
     @Override

@@ -8,8 +8,11 @@ import org.springframework.http.ResponseEntity;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ExcelUtil {
@@ -50,6 +53,52 @@ public class ExcelUtil {
         }
 
         return wb;
+    }
+
+    /**
+     * .xlsx 입력 스트림의 첫 시트를 행 단위로 읽는다. 각 셀은 문자열로 변환(날짜는 yyyy-MM-dd).
+     * 0번 행은 헤더로 그대로 포함된다.
+     */
+    public static List<List<String>> readRows(InputStream in) throws IOException {
+        List<List<String>> result = new ArrayList<>();
+        try (Workbook wb = WorkbookFactory.create(in)) {
+            Sheet sheet = wb.getSheetAt(0);
+            if (sheet == null) {
+                return result;
+            }
+            DataFormatter formatter = new DataFormatter();
+            int lastRow = sheet.getLastRowNum();
+            for (int r = 0; r <= lastRow; r++) {
+                Row row = sheet.getRow(r);
+                List<String> cells = new ArrayList<>();
+                if (row != null) {
+                    int lastCell = row.getLastCellNum();
+                    for (int c = 0; c < lastCell; c++) {
+                        Cell cell = row.getCell(c, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+                        cells.add(cellToString(cell, formatter));
+                    }
+                }
+                result.add(cells);
+            }
+        }
+        return result;
+    }
+
+    private static String cellToString(Cell cell, DataFormatter formatter) {
+        if (cell == null) {
+            return "";
+        }
+        if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
+            return new SimpleDateFormat("yyyy-MM-dd").format(cell.getDateCellValue());
+        }
+        if (cell.getCellType() == CellType.NUMERIC) {
+            double d = cell.getNumericCellValue();
+            if (d == Math.floor(d) && !Double.isInfinite(d)) {
+                return String.valueOf((long) d); // 정수는 소수점 없이
+            }
+            return String.valueOf(d);
+        }
+        return formatter.formatCellValue(cell).trim();
     }
 
     public static ResponseEntity<byte[]> toResponse(Workbook wb, String filename) throws IOException {

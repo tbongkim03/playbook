@@ -27,6 +27,8 @@ import playbook.encore.back.book.service.BookService;
 
 import playbook.encore.back.common.excel.ExcelUtil;
 import playbook.encore.back.common.util.AuthUtil;
+import playbook.encore.back.book.dto.BookImportResultDto;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -282,6 +284,29 @@ public class BookController {
         Integer campusId = AuthUtil.getCampusId(request, requestCampusId);
         byte[] data = bookService.exportExcel(campusId);
         return ExcelUtil.toResponse(data, "도서목록");
+    }
+
+    // 엑셀 업로드: 도서번호(seq_book) 기준으로 기존 tb_book 값만 갱신(신규 추가·삭제 없음)
+    @PostMapping("/import")
+    public ResponseEntity<Response> importExcel(
+            HttpServletRequest request,
+            @RequestParam("file") MultipartFile file
+    ) {
+        AuthUtil.requireAdmin(request);
+        if (file == null || file.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam("file"));
+        }
+        // 캠퍼스 관리자는 본인 캠퍼스 도서만 갱신(전체관리자는 null → 전체 허용)
+        Integer adminCampusId = AuthUtil.getCampusId(request, null);
+        try {
+            BookImportResultDto result = bookService.importExcel(file, adminCampusId);
+            return ResponseEntity.ok(ResponseHandler.success(result));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ResponseHandler.error(playbook.encore.back.common.response.ResponseCode.INVALID_PARAM, e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
+        }
     }
 
     @PostMapping("/check/barcode")

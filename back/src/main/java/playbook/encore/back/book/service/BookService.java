@@ -9,13 +9,17 @@ import playbook.encore.back.book.dto.BookResponseDto;
 import playbook.encore.back.book.dto.BookSearchResponseDto;
 import playbook.encore.back.book.dto.BookSortAndBarcodeRequestDto;
 import playbook.encore.back.book.dto.BookUnprintedResponseDto;
-import playbook.encore.back.book.entity.Book;
+import playbook.encore.back.book.dto.BookImportResultDto;
+import playbook.encore.back.book.entity.Book;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
 
 public interface BookService {
     byte[] exportExcel(Integer campusId) throws IOException;
+    /** 엑셀 업로드: 도서번호(seq_book) 기준으로 기존 도서만 갱신(신규 추가·삭제 없음) */
+    BookImportResultDto importExcel(MultipartFile file, Integer adminCampusId) throws Exception;
     BookResponseDto insertBook(BookRequestDto bookRequestDto);
     BookListResponseDto getBookList(String idUser, Integer campusId) throws Exception;
     BookListResponseDto getBookListWithPagination(String idUser, Integer campusId, int page, int size, String sortBy, String sortDir) throws Exception;

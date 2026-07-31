@@ -306,6 +306,21 @@
               </svg>
               엑셀로 내보내기
             </button>
+            <button class="export-btn" @click="triggerImport" :disabled="isImporting">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2"/>
+                <polyline points="17,8 12,3 7,8" stroke="currentColor" stroke-width="2"/>
+                <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              {{ isImporting ? '업로드 중...' : '엑셀 업로드' }}
+            </button>
+            <input
+              ref="uploadInput"
+              type="file"
+              accept=".xlsx,.xls"
+              style="display: none"
+              @change="importData"
+            />
             <button
               @click="refreshBooks"
               class="refresh-btn"
@@ -1233,6 +1248,39 @@ const exportData = async () => {
     URL.revokeObjectURL(url)
   } catch (e) {
     console.error('엑셀 내보내기 실패:', e)
+  }
+}
+
+// 엑셀 업로드 (도서번호 기준 기존 도서 갱신)
+const uploadInput = ref(null)
+const isImporting = ref(false)
+
+const triggerImport = () => {
+  uploadInput.value?.click()
+}
+
+const importData = async (event) => {
+  const file = event.target.files?.[0]
+  if (!file) return
+  isImporting.value = true
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+    const res = await bookApi.importExcel(formData)
+    const r = res.data.data || {}
+    const errors = r.errors || []
+    let msg = `갱신 ${r.updated || 0}건, 건너뜀 ${r.skipped || 0}건`
+    if (errors.length) {
+      msg += `\n\n[오류 ${errors.length}건]\n` + errors.slice(0, 10).join('\n')
+      if (errors.length > 10) msg += `\n... 외 ${errors.length - 10}건`
+    }
+    await swAlert(msg, errors.length ? 'warning' : 'success')
+    await refreshBooks()
+  } catch (e) {
+    await swAlert('엑셀 업로드 실패: ' + (e.response?.data?.msg || e.message), 'error')
+  } finally {
+    isImporting.value = false
+    event.target.value = '' // 같은 파일 재업로드 허용
   }
 }
 
