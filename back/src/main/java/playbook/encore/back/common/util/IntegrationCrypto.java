@@ -30,7 +30,7 @@ public class IntegrationCrypto {
     private final SecureRandom secureRandom = new SecureRandom();
 
     public IntegrationCrypto(
-            @Value("${INTEGRATION_SECRET_KEY:defaultSecretKeyForJWT123456789}") String integrationKey) {
+            @Value("${integration.secret-key}") String integrationKey) {
         this.keySpec = deriveKey(integrationKey);
     }
 
