@@ -106,7 +106,8 @@ class HistoryControllerTest extends BaseIntegrationTest {
 
     @Test @Order(6)
     void H6_반납_연체처리() {
-        // test_user04가 TEST_BC004 반납 (2026-04-01 대출 → 연체 51일)
+        // test_user04가 TEST_BC004 반납 (58일 전 대출 → 연체 51일, 픽스처는 CURDATE() 상대)
+        // 전제: 코스 9003이 활성(finish_dt_course 미래)이어야 checkOverdueException이 예외를 던진다
         // 서비스: 상태 업데이트 후 연체 IllegalArgumentException 발생 → Controller는 200 + 연체 메시지
         ResponseEntity<String> res = returnWithSession("TEST_BC004", user4Session);
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
