@@ -65,6 +65,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/campus") // POST 요청 (캠퍼스 생성, 관리자 전용)
                 .addPathPatterns("/admin/access-log")
                 .addPathPatterns("/admin/audit-log")
+                // 연동 관리 (전체관리자 전용) - 인증 컨텍스트 필요
+                .addPathPatterns("/integration", "/integration/**")
                 .excludePathPatterns("/users/login", "/users/register");
     }
 }

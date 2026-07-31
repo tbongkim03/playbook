@@ -169,6 +169,20 @@
                 감사 로그
               </button>
             </li>
+            <!-- 연동 관리 (전체관리자 전용) -->
+            <li v-if="isSuperAdmin">
+              <button
+                class="nav-item"
+                :class="{ active: activeTab === 'integration' }"
+                @click="setActiveTab('integration')"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                연동 관리
+              </button>
+            </li>
           </ul>
         </div>
       </nav>
@@ -222,6 +236,10 @@
         <div v-if="activeTab === 'audit-log'" class="content-section">
           <AuditLogDashboard />
         </div>
+        <!-- 연동 관리 (전체관리자 전용) -->
+        <div v-if="activeTab === 'integration' && isSuperAdmin" class="content-section">
+          <IntegrationManagement />
+        </div>
       </main>
     </div>
 
@@ -268,11 +286,14 @@ import CategoryManagement from '@/components/CategoryManagement.vue'
 import TermsEditor from '@/components/TermsEditor.vue'
 import AccessLogDashboard from '@/components/AccessLogDashboard.vue'
 import AuditLogDashboard from '@/components/AuditLogDashboard.vue'
+import IntegrationManagement from '@/components/IntegrationManagement.vue'
+import * as adminApi from '@/api/admin'
 
 const router = useRouter()
 const activeTab = ref('admin-accounts')
 const showRegisterModal = ref(false)
 const booksTableRef = ref(null)
+const isSuperAdmin = ref(false)
 
 const handleKeydown = (event) => {
   if (event.key === 'Escape' && showRegisterModal.value) {
@@ -304,8 +325,21 @@ const checkAdminAuth = async () => {
   return true
 }
 
-onMounted(() => {
-  checkAdminAuth()
+// 전체관리자(캠퍼스 미지정) 여부 확인 → 연동 관리 탭 노출 제어
+const checkSuperAdmin = async () => {
+  try {
+    const res = await adminApi.getMe()
+    isSuperAdmin.value = !res.data.data?.seqCampus
+  } catch (e) {
+    isSuperAdmin.value = false
+  }
+}
+
+onMounted(async () => {
+  const authorized = await checkAdminAuth()
+  if (authorized) {
+    await checkSuperAdmin()
+  }
   window.addEventListener('keydown', handleKeydown)
 })
 

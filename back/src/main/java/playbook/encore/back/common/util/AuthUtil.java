@@ -19,6 +19,22 @@ public class AuthUtil {
         return (Admin) request.getAttribute("admin");
     }
 
+    /** 전체관리자(캠퍼스 미지정 = seqCampus null)만 통과. 연동 설정 등 전역 관리 기능 게이트. */
+    public static void requireSuperAdmin(HttpServletRequest request) {
+        Admin admin = getAdmin(request);
+        if (admin == null || admin.getSeqCampus() != null) {
+            throw new NotAuthorizedException();
+        }
+    }
+
+    public static boolean isSuperAdmin(HttpServletRequest request) {
+        if (!isAdmin(request)) {
+            return false;
+        }
+        Admin admin = (Admin) request.getAttribute("admin");
+        return admin != null && admin.getSeqCampus() == null;
+    }
+
     public static void requireUser(HttpServletRequest request) {
         if (!LoginCheckInterceptor.RoleType.USER.equals(request.getAttribute("ROLE"))) {
             throw new NotAuthorizedException();
