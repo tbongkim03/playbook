@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import playbook.encore.back.integration.service.IntegrationService;
 
 import java.util.function.Consumer;
 
@@ -25,8 +26,13 @@ import static org.mockito.Mockito.verify;
 @DisplayName("DiscordNotificationService 단위 테스트")
 class DiscordNotificationServiceTest {
 
-    @Mock private JDA jda;
+    // 서비스가 실제로 주입받는 협력자 (f5368ab 이후 JDA는 직접 주입되지 않는다)
+    @Mock private DiscordBotManager botManager;
+    @Mock private IntegrationService integrationService;
     @InjectMocks private DiscordNotificationService service;
+
+    // botManager.getJda()가 돌려줄 JDA 목
+    @Mock private JDA jda;
 
     // DM 체인 mock
     @Mock private User discordUser;
@@ -45,7 +51,10 @@ class DiscordNotificationServiceTest {
 
     @BeforeEach
     void setUp() {
-        given(jda.getStatus()).willReturn(JDA.Status.CONNECTED);
+        // D1~D3 모두 isBotAvailable() → getJda() 경로를 타므로 setUp 배치가 안전하다
+        // (strict stubs — 어느 하나라도 안 쓰이면 UnnecessaryStubbingException)
+        given(botManager.isConnected()).willReturn(true);
+        given(botManager.getJda()).willReturn(jda);
     }
 
     // ─── DM 체인 공통 셋업 ─────────────────────────────
