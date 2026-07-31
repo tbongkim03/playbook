@@ -1,22 +1,53 @@
 package playbook.encore.back.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import playbook.encore.back.interceptor.LoginCheckInterceptor;
 
+import java.util.Arrays;
+import java.util.List;
+
+@Slf4j
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
     @Autowired
     private LoginCheckInterceptor loginCheckInterceptor;
 
+    /** 허용 출처 목록 (쉼표 구분). 빈 값이면 CORS 매핑을 등록하지 않는다. */
+    @Value("${playbook.cors.allowed-origins:}")
+    private String allowedOrigins;
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
+        List<String> origins = Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+
+        // allowCredentials(true) 와 "*" 를 함께 쓰면 임의 출처에서 세션 쿠키가 실린 요청이 가능해진다.
+        // 설정 실수로 다시 열리는 것을 막기 위해 조용히 무시하지 않고 기동을 실패시킨다.
+        if (origins.contains("*")) {
+            throw new IllegalStateException(
+                    "playbook.cors.allowed-origins 에 \"*\" 를 쓸 수 없습니다. " +
+                    "allowCredentials(true) 와 함께 쓰면 임의 출처에서 세션 쿠키가 실린 요청이 가능합니다. " +
+                    "실제 서비스 도메인을 쉼표로 구분해 지정하세요.");
+        }
+
+        if (origins.isEmpty()) {
+            // 배포 환경 기본값. nginx 가 프론트와 /api 를 같은 오리진으로 서빙하므로 교차 출처 요청이 없다.
+            log.info("[WebConfig] CORS 허용 출처 미설정 — 교차 출처 요청을 차단합니다.");
+            return;
+        }
+
+        log.info("[WebConfig] CORS 허용 출처: {}", origins);
         registry.addMapping("/**")
-                .allowedOriginPatterns("*")
+                .allowedOriginPatterns(origins.toArray(new String[0]))
                 .allowedMethods("*")
                 .allowedHeaders("*")
                 .allowCredentials(true);
