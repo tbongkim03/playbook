@@ -42,14 +42,15 @@ public class NLISBNController {
     @Value("${CLIENT_SECRET}")
     private String clientSecret;
 
-    @Value("${NL_API_KEY}")
-    private String apiKey;
+    private final playbook.encore.back.course.service.Work24CourseClient work24CourseClient;
+    private final playbook.encore.back.integration.service.IntegrationService integrationService;
 
-    @Value("${WORK24_API_KEY}")
-    private String work24ApiKey;
-
-    public NLISBNController(AdminRepository adminRepository) {
+    public NLISBNController(AdminRepository adminRepository,
+                           playbook.encore.back.course.service.Work24CourseClient work24CourseClient,
+                           playbook.encore.back.integration.service.IntegrationService integrationService) {
         this.adminRepository = adminRepository;
+        this.work24CourseClient = work24CourseClient;
+        this.integrationService = integrationService;
     }
 
     @PostMapping("/naver/book-search")
@@ -110,9 +111,10 @@ public class NLISBNController {
                             .body(ResponseHandler.invalidParamPattern("ISBN"));
                 }
 
+                String nlApiKey = integrationService.getNlApiKey();
                 String url = String.format(
                         "https://www.nl.go.kr/seoji/SearchApi.do?cert_key=%s&result_style=json&page_no=1&page_size=1&isbn=%s",
-                        apiKey, cleanIsbn);
+                        nlApiKey, cleanIsbn);
 
                 HttpHeaders headers = new HttpHeaders();
                 headers.set("Accept", "application/json");
@@ -165,22 +167,8 @@ public class NLISBNController {
     @GetMapping("/work24/course")
     public ResponseEntity<Response> searchWork24ByISBN() {
         try {
-            String todayDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-            String sixMonthAgo = LocalDate.now().minusMonths(6).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-
-            String url = String.format(
-                    "https://www.work24.go.kr/cm/openApi/call/hr/callOpenApiSvcInfo310L01.do?authKey=%s&returnType=JSON&outType=1&pageNum=1&pageSize=100&srchTraStDt=%s&srchTraEndDt=%s&srchTraArea1=11&srchNcs1=20&crseTracseSe=C0104&srchTraGbn=M1001&srchTraOrganNm=플레이데이터평생교육원&sort=ASC&sortCol=2",
-                    work24ApiKey, sixMonthAgo, todayDate
-            );
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Accept", "application/json");
-            HttpEntity<String> entity = new HttpEntity<>(headers);
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonNode = objectMapper.readTree(response.getBody());
+            // Work24 호출 로직은 Work24CourseClient 로 일원화 (API 키는 DB 연동 설정에서 조회)
+            JsonNode jsonNode = work24CourseClient.fetchRaw();
             return ResponseEntity.ok(ResponseHandler.success(jsonNode));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());

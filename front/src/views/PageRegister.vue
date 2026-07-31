@@ -422,85 +422,18 @@ onBeforeUnmount(() => {
 })
 
 async function getCourseList() {
-  // const apiKey = import.meta.env.VITE_WORK24_API_KEY
-  // const url =
-  //   `https://www.work24.go.kr/cm/openApi/call/hr/callOpenApiSvcInfo310L01.do?authKey=${apiKey}` +
-  //   `&returnType=JSON&outType=1&pageNum=1&pageSize=100` +
-  //   `&srchTraStDt=${srchTraStDt}&srchTraEndDt=${srchTraEndDt}` +
-  //   `&srchTraArea1=11&srchNcs1=20&crseTracseSe=C0104&srchTraGbn=M1001&srchTraOrganNm=플레이데이터평생교육원` +
-  //   `&sort=ASC&sortCol=2`
-
+  // Work24 외부 API 동기화는 백엔드 스케줄러(매일 09:00)가 담당한다.
+  // 회원가입 페이지는 DB에 저장된 과정만 조회해 드롭다운을 채운다.
   try {
-    // 1. 외부 API에서 데이터 가져오기
-    const res = await courseApi.getWork24()
-    const data = res.data.data
-    const apiCoursesRaw = data?.srchList || []
+    const dbRes = await courseApi.getAll()
+    const finalDbCourses = dbRes.data.data || []
 
-    if (apiCoursesRaw.length === 0) {
+    if (finalDbCourses.length === 0) {
       await swAlert('훈련 과정을 찾을 수 없습니다.', 'error')
       return
     }
 
-    // 2. 외부 API 데이터 가공
-    const apiCourses = apiCoursesRaw.map(item => {
-      const title = item.title.includes(' - ') ? item.title.split(' - ')[0] : item.title
-      const fullName = `${title} ${item.trprDegr}기`
-      return {
-        nameCourse: fullName,
-        startDtCourse: item.traStartDate,
-        finishDtCourse: item.traEndDate,
-        trprDegr: item.trprDegr,
-        seqCourse: item.trprId
-      }
-    })
-
-    // 3. DB 데이터 가져오기
-    const dbRes = await courseApi.getAll()
-    const dbCourses = dbRes.data.data
-
-    // 4. 추가: API에는 있는데 DB에는 없는 과정 → INSERT
-    for (const apiItem of apiCourses) {
-      const exists = dbCourses.find(dbItem => dbItem.nameCourse === apiItem.nameCourse)
-      if (!exists) {
-        await courseApi.create({
-          nameCourse: apiItem.nameCourse,
-          startDtCourse: apiItem.startDtCourse,
-          finishDtCourse: apiItem.finishDtCourse
-        })
-      }
-    }
-
-    // 5. 삭제: DB에는 있는데 API에는 없는 과정 → DELETE
-    for (const dbItem of dbCourses) {
-      const exists = apiCourses.find(apiItem => apiItem.nameCourse === dbItem.nameCourse)
-      if (!exists) {
-        await courseApi.remove(dbItem.seqCourse)
-      }
-    }
-
-    // 6. 수정: 둘 다 있지만 데이터 변경되었으면 → UPDATE
-    for (const apiItem of apiCourses) {
-      const dbItem = dbCourses.find(db => db.nameCourse === apiItem.nameCourse)
-      if (dbItem) {
-        const isDifferent =
-          dbItem.startDtCourse !== apiItem.startDtCourse ||
-          dbItem.finishDtCourse !== apiItem.finishDtCourse
-
-        if (isDifferent) {
-          await courseApi.update(dbItem.seqCourse, {
-            nameCourse: apiItem.nameCourse,
-            startDtCourse: apiItem.startDtCourse,
-            finishDtCourse: apiItem.finishDtCourse
-          })
-        }
-      }
-    }
-
-    // 7. 모든 동기화 작업 완료 후 최신 DB 데이터를 다시 가져오기
-    const finalDbRes = await courseApi.getAll()
-    const finalDbCourses = finalDbRes.data.data
-
-    // 8. 드롭다운 표시용 courseList 값 세팅
+    // 드롭다운 표시용 courseList 값 세팅
     courseList.value = finalDbCourses
       .map(item => {
         const parts = item.nameCourse.split(' ')
