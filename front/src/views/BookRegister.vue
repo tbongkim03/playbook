@@ -236,8 +236,6 @@ function handleFormEnter(e) {
 }
 
 async function searchISBN() {
-  // const apiKey = import.meta.env.VITE_NL_API_KEY
-
   const isbn = String(book.isbn || '').trim()
 
   if (!isbn) {
