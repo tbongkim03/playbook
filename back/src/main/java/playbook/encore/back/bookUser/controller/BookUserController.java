@@ -1,5 +1,6 @@
 package playbook.encore.back.bookUser.controller;
 
+import playbook.encore.back.allowip.filter.ClientIpResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -22,7 +23,6 @@ import playbook.encore.back.common.excel.ExcelUtil;
 import playbook.encore.back.common.exception.NotAuthorizedException;
 import playbook.encore.back.common.util.AuthUtil;
 import playbook.encore.back.common.util.SessionUtil;
-import playbook.encore.back.common.util.WebUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,14 +34,18 @@ public class BookUserController {
     private final BookUserService bookUserService;
     private final RedisIndexedSessionRepository sessionRepository;
     private final ApplicationEventPublisher eventPublisher;
+    /** 접속이력 IP. XFF 를 무조건 신뢰하던 WebUtil.getClientIp 를 대체한다 (보안감사 S-10). */
+    private final ClientIpResolver clientIpResolver;
 
     @Autowired
     public BookUserController(BookUserService bookUserService,
                               RedisIndexedSessionRepository sessionRepository,
-                              ApplicationEventPublisher eventPublisher) {
+                              ApplicationEventPublisher eventPublisher,
+                              ClientIpResolver clientIpResolver) {
         this.bookUserService = bookUserService;
         this.sessionRepository = sessionRepository;
         this.eventPublisher = eventPublisher;
+        this.clientIpResolver = clientIpResolver;
     }
 
     // 회원가입 관련 부분
@@ -62,7 +66,7 @@ public class BookUserController {
     public ResponseEntity<Response> loginUser(
             HttpServletRequest request,
             @RequestBody @Valid LoginUserRequestDto loginUserRequestDto) throws Exception {
-        String ip = WebUtil.getClientIp(request);
+        String ip = clientIpResolver.resolveForAudit(request);
         try {
             BookUser user = bookUserService.loginServiceUser(loginUserRequestDto);
             SessionUtil.createSession(request, sessionRepository, user.getIdUser(), "user");

@@ -1,5 +1,6 @@
 package playbook.encore.back.admin.controller;
 
+import playbook.encore.back.allowip.filter.ClientIpResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -27,7 +28,6 @@ import playbook.encore.back.auditlog.service.AuditLogService;
 import playbook.encore.back.common.excel.ExcelUtil;
 import playbook.encore.back.common.util.AuthUtil;
 import playbook.encore.back.common.util.SessionUtil;
-import playbook.encore.back.common.util.WebUtil;
 
 @RestController
 @RequestMapping("/admin")
@@ -39,6 +39,8 @@ public class AdminController {
     private final ApplicationEventPublisher eventPublisher;
     private final AccessLogService accessLogService;
     private final AuditLogService auditLogService;
+    /** 접속이력 IP. XFF 를 무조건 신뢰하던 WebUtil.getClientIp 를 대체한다 (보안감사 S-10). */
+    private final ClientIpResolver clientIpResolver;
 
     @Autowired
     public AdminController(AdminService adminService,
@@ -46,13 +48,15 @@ public class AdminController {
                            DiscordNotificationService discordNotificationService,
                            ApplicationEventPublisher eventPublisher,
                            AccessLogService accessLogService,
-                           AuditLogService auditLogService) {
+                           AuditLogService auditLogService,
+                           ClientIpResolver clientIpResolver) {
         this.adminService = adminService;
         this.sessionRepository = sessionRepository;
         this.discordNotificationService = discordNotificationService;
         this.eventPublisher = eventPublisher;
         this.accessLogService = accessLogService;
         this.auditLogService = auditLogService;
+        this.clientIpResolver = clientIpResolver;
     }
 
     // 회원가입 관련 부분
@@ -77,7 +81,7 @@ public class AdminController {
     public ResponseEntity<Response> loginUser(
             HttpServletRequest request,
             @RequestBody @Valid LoginAdminRequestDto loginAdminRequestDto) throws Exception {
-        String ip = WebUtil.getClientIp(request);
+        String ip = clientIpResolver.resolveForAudit(request);
         try {
             Admin admin = adminService.loginServiceAdmin(loginAdminRequestDto);
             SessionUtil.createSession(request, sessionRepository, admin.getIdAdmin(), "admin");
