@@ -1251,7 +1251,10 @@ const exportData = async () => {
   }
 }
 
-// 엑셀 업로드 (도서번호 기준 기존 도서 갱신)
+// 엑셀 업로드 (도서번호 기준 기존 도서 갱신 — 신규 등록은 하지 않는다)
+//  · 신규 도서는 바코드 스캔으로 등록한다. 빈 행이 조용히 등록되면 중복만 쌓인다.
+//  · 백엔드는 allowInsert=true 일 때만 신규 등록하는데, 여기서는 그 값을 보내지 않는다
+//    (설치 마법사의 초기 장서 주입 전용 옵션이다).
 const uploadInput = ref(null)
 const isImporting = ref(false)
 

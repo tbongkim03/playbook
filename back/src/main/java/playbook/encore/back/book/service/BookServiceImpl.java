@@ -487,9 +487,12 @@ public class BookServiceImpl implements BookService {
                 ? bookRepository.findAllWithCategoriesByCampus(campusId)
                 : bookRepository.findAllWithCategories();
 
+        // 표지URL·라벨출력은 2026-08-04 추가. 이 둘이 없으면 내보내기→가져오기 왕복이 성립하지 않는다.
+        //  · 표지URL : img_url_book 이 NOT NULL 이라 신규 등록 시 값이 필요하다
+        //  · 라벨출력 : 실물 라벨을 붙였다는 기록이다. 빠뜨리면 이관 후 전권을 다시 출력하게 된다
         List<String> headers = Arrays.asList(
                 "도서번호", "제목", "ISBN", "저자", "출판사", "출판일",
-                "대분류", "중분류", "수량", "대출상태", "바코드"
+                "대분류", "중분류", "수량", "대출상태", "바코드", "표지URL", "라벨출력"
         );
         List<List<Object>> rows = books.stream().map(b -> Arrays.<Object>asList(
                 b.getSeqBook(), b.getTitleBook(),
@@ -501,7 +504,9 @@ public class BookServiceImpl implements BookService {
                 b.getSeqSortSecond().getKorSortSecond(),
                 b.getCntBook(),
                 b.isBookBorrowed() ? "대출중" : "대출가능",
-                b.getBarcodeBook() != null ? b.getBarcodeBook() : "-"
+                b.getBarcodeBook() != null ? b.getBarcodeBook() : "-",
+                b.getImgUrlBook() != null ? b.getImgUrlBook() : "",
+                b.isPrintCheckBook() ? "출력됨" : "미출력"
         )).collect(Collectors.toList());
 
         Workbook wb = ExcelUtil.createWorkbook(headers, rows);
@@ -510,8 +515,9 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
-    public BookImportResultDto importExcel(MultipartFile file, Integer adminCampusId) throws Exception {
-        log.info("[BookService] 도서 엑셀 업로드 - campusId: {}", adminCampusId);
+    public BookImportResultDto importExcel(MultipartFile file, Integer adminCampusId, boolean allowInsert)
+            throws Exception {
+        log.info("[BookService] 도서 엑셀 업로드 - campusId: {}, allowInsert: {}", adminCampusId, allowInsert);
         java.util.List<java.util.List<String>> rows;
         try (java.io.InputStream in = file.getInputStream()) {
             rows = ExcelUtil.readRows(in);
@@ -530,14 +536,37 @@ public class BookServiceImpl implements BookService {
             throw new IllegalArgumentException("'도서번호' 열이 없습니다. 내보내기 양식을 사용해주세요.");
         }
 
-        int updated = 0, skipped = 0;
+        int inserted = 0, updated = 0, skipped = 0;
         java.util.List<String> errors = new java.util.ArrayList<>();
 
         for (int r = 1; r < rows.size(); r++) {
             java.util.List<String> row = rows.get(r);
             int excelRow = r + 1;
             String idStr = importCell(row, idCol);
-            if (idStr.isBlank()) { skipped++; continue; }
+
+            // 도서번호가 비었으면 신규 등록 — 단 allowInsert 가 켜졌을 때만이다.
+            // 관리자 화면(기본 false)에서는 예전처럼 그냥 건너뛴다. 실제 신규 도서는 바코드로 등록하고,
+            // 빈 행이 조용히 등록되면 실수로 중복 도서만 쌓이기 때문이다.
+            if (idStr.isBlank()) {
+                if (!allowInsert || isBlankRow(row)) { skipped++; continue; }
+                try {
+                    importInsert(row, idx, adminCampusId);
+                    inserted++;
+                } catch (java.time.format.DateTimeParseException e) {
+                    // DateTimeParseException 은 IllegalArgumentException 계열이 아니라 별개다
+                    errors.add(excelRow + "행: 출판일 형식 오류(yyyy-MM-dd 필요)");
+                    skipped++;
+                } catch (NumberFormatException e) {
+                    // NumberFormatException 은 IllegalArgumentException 의 하위 —
+                    // 반드시 먼저 잡아야 한다 (뒤에 두면 도달 불가로 컴파일 실패)
+                    errors.add(excelRow + "행: 수량 형식 오류");
+                    skipped++;
+                } catch (IllegalArgumentException e) {
+                    errors.add(excelRow + "행: " + e.getMessage());
+                    skipped++;
+                }
+                continue;
+            }
             int seqBook;
             try {
                 seqBook = Integer.parseInt(idStr.trim());
@@ -562,6 +591,14 @@ public class BookServiceImpl implements BookService {
                 importApply(row, idx, "저자", 20, book::setAuthorBook);
                 importApply(row, idx, "출판사", 20, book::setPublisherBook);
                 importApply(row, idx, "바코드", 30, book::setBarcodeBook);
+                importApply(row, idx, "표지URL", 255, book::setImgUrlBook);
+
+                // 라벨출력은 실물 라벨 부착 기록이다. 열이 없으면 건드리지 않는다
+                // (구 양식으로 올렸을 때 기존 상태를 지우면 전권 재출력이 된다).
+                String printed = importValue(row, idx, "라벨출력");
+                if (!printed.isBlank() && !"-".equals(printed)) {
+                    book.setPrintCheckBook(parsePrinted(printed));
+                }
 
                 String pub = importValue(row, idx, "출판일");
                 if (!pub.isBlank() && !"-".equals(pub)) {
@@ -595,8 +632,99 @@ public class BookServiceImpl implements BookService {
             }
         }
 
-        log.info("[BookService] 도서 업로드 완료 - 갱신 {}, 스킵 {}", updated, skipped);
-        return BookImportResultDto.builder().updated(updated).skipped(skipped).errors(errors).build();
+        log.info("[BookService] 도서 업로드 완료 - 신규 {}, 갱신 {}, 스킵 {}", inserted, updated, skipped);
+        return BookImportResultDto.builder()
+                .inserted(inserted).updated(updated).skipped(skipped).errors(errors).build();
+    }
+
+    /** 도서번호 외 모든 칸이 비었으면 빈 행으로 본다 (엑셀 하단의 잔여 행 무시). */
+    private boolean isBlankRow(java.util.List<String> row) {
+        for (String c : row) {
+            if (c != null && !c.isBlank()) return false;
+        }
+        return true;
+    }
+
+    /** "출력됨"/"Y"/"1"/"true"/"O" 를 모두 출력 완료로 읽는다. 운영자가 손으로 채우는 칸이다. */
+    private boolean parsePrinted(String v) {
+        String s = v.trim();
+        return s.equalsIgnoreCase("Y") || s.equals("1") || s.equalsIgnoreCase("true")
+                || s.equalsIgnoreCase("O") || s.contains("출력됨") || s.equals("출력");
+    }
+
+    /** 필수 칸을 읽고 비었으면 어떤 칸인지 알려준다. */
+    private String importRequired(java.util.List<String> row, java.util.Map<String, Integer> idx,
+                                  String col, int maxLen) {
+        String v = importValue(row, idx, col);
+        if (v.isBlank() || "-".equals(v)) {
+            throw new IllegalArgumentException("'" + col + "' 은(는) 신규 등록 시 필수입니다");
+        }
+        v = v.trim();
+        if (v.length() > maxLen) {
+            throw new IllegalArgumentException(col + " 길이 초과(최대 " + maxLen + "자)");
+        }
+        return v;
+    }
+
+    /**
+     * 도서번호가 빈 행 → 신규 등록.
+     *
+     * <p>캠퍼스 결정 규칙
+     * <ul>
+     *   <li>캠퍼스 관리자 : 자기 캠퍼스로 강제 (엑셀로 타 캠퍼스에 밀어 넣지 못하게)</li>
+     *   <li>전체관리자 : 캠퍼스가 하나뿐이면 그 캠퍼스. 여럿이면 거부 —
+     *       설치 마법사의 초기 데이터 주입이 이 경로를 탄다(캠퍼스 1개인 신규 설치)</li>
+     * </ul>
+     */
+    private void importInsert(java.util.List<String> row, java.util.Map<String, Integer> idx,
+                              Integer adminCampusId) {
+        Campus campus;
+        if (adminCampusId != null) {
+            campus = campusRepository.findById(adminCampusId)
+                    .orElseThrow(() -> new IllegalArgumentException("소속 캠퍼스를 찾을 수 없습니다"));
+        } else {
+            java.util.List<Campus> all = campusRepository.findAll();
+            if (all.size() == 1) {
+                campus = all.get(0);
+            } else if (all.isEmpty()) {
+                throw new IllegalArgumentException("등록된 캠퍼스가 없습니다. 캠퍼스를 먼저 만드세요");
+            } else {
+                throw new IllegalArgumentException(
+                        "캠퍼스가 " + all.size() + "개라 신규 등록 대상을 정할 수 없습니다. "
+                                + "해당 캠퍼스 관리자 계정으로 업로드하세요");
+            }
+        }
+
+        String sortName = importRequired(row, idx, "중분류", 50);
+        java.util.List<SortSecond> found = sortSecondRepository.findByKorSortSecond(sortName);
+        if (found.isEmpty()) {
+            throw new IllegalArgumentException("중분류 '" + sortName + "' 를 찾을 수 없습니다");
+        }
+
+        String cntStr = importValue(row, idx, "수량");
+        int cnt = (cntStr.isBlank() || "-".equals(cntStr)) ? 1 : (int) Double.parseDouble(cntStr.trim());
+
+        String barcode = importValue(row, idx, "바코드");
+        String imgUrl = importValue(row, idx, "표지URL");
+        String printed = importValue(row, idx, "라벨출력");
+
+        Book book = Book.builder()
+                .seqCampus(campus)
+                .seqSortSecond(found.get(0))
+                .titleBook(importRequired(row, idx, "제목", 255))
+                .isbnBook(importRequired(row, idx, "ISBN", 20))
+                .authorBook(importRequired(row, idx, "저자", 20))
+                .publisherBook(importRequired(row, idx, "출판사", 20))
+                .publishDateBook(java.time.LocalDate.parse(importRequired(row, idx, "출판일", 10)))
+                // NOT NULL 이라 빈 값도 허용하되 null 은 안 된다. 표지 없이 등록하는 경우가 있다.
+                .imgUrlBook(imgUrl.isBlank() || "-".equals(imgUrl) ? "" : imgUrl.trim())
+                .barcodeBook(barcode.isBlank() || "-".equals(barcode) ? null : barcode.trim())
+                .cntBook(cnt)
+                .printCheckBook(!printed.isBlank() && !"-".equals(printed) && parsePrinted(printed))
+                // 대여 상태는 절대 가져오지 않는다. 대여이력 없이 "대여중" 이면 반납이 불가능한 유령 상태가 된다.
+                .isBookBorrowed(false)
+                .build();
+        bookRepository.save(book);
     }
 
     private String importCell(java.util.List<String> row, int i) {

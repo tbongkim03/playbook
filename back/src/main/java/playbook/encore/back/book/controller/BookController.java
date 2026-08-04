@@ -286,11 +286,19 @@ public class BookController {
         return ExcelUtil.toResponse(data, "도서목록");
     }
 
-    // 엑셀 업로드: 도서번호(seq_book) 기준으로 기존 tb_book 값만 갱신(신규 추가·삭제 없음)
+    /**
+     * 엑셀 업로드 — 도서번호(seq_book) 기준으로 기존 tb_book 값을 갱신한다. 삭제는 없다.
+     *
+     * <p>{@code allowInsert=true} 일 때만 도서번호가 빈 행을 신규 등록한다.
+     * <b>기본값은 false</b> 이고 관리자 화면은 이 값을 보내지 않는다 — 실제 신규 도서는
+     * 바코드 스캔으로 등록하므로 웹에서 이 경로가 필요 없고, 빈 행이 조용히 등록되면
+     * 중복 도서만 쌓인다. 설치 마법사의 초기 장서 주입만 이 옵션을 켠다.
+     */
     @PostMapping("/import")
     public ResponseEntity<Response> importExcel(
             HttpServletRequest request,
-            @RequestParam("file") MultipartFile file
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "allowInsert", required = false, defaultValue = "false") boolean allowInsert
     ) {
         AuthUtil.requireAdmin(request);
         if (file == null || file.isEmpty()) {
@@ -299,7 +307,7 @@ public class BookController {
         // 캠퍼스 관리자는 본인 캠퍼스 도서만 갱신(전체관리자는 null → 전체 허용)
         Integer adminCampusId = AuthUtil.getCampusId(request, null);
         try {
-            BookImportResultDto result = bookService.importExcel(file, adminCampusId);
+            BookImportResultDto result = bookService.importExcel(file, adminCampusId, allowInsert);
             return ResponseEntity.ok(ResponseHandler.success(result));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
