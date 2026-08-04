@@ -49,6 +49,13 @@ VALUES
     (2, 'test_admin02', '$2a$10$Lma7juxYdZ/RTKontE5bcO/cHeO45GeHwAHEH0jMB4XSq6fGb3CRC', '부산관리자', 'test_busan_admin', 1, 1, 0, 'available', 'Y'),
     (1, 'test_admin_stop', '$2a$10$Lma7juxYdZ/RTKontE5bcO/cHeO45GeHwAHEH0jMB4XSq6fGb3CRC', '정지관리자', 'test_stop_admin', 1, 1, 0, 'stop', 'Y');
 
+-- 5-1. 전체관리자 (seq_campus IS NULL) — AuthUtil.isSuperAdmin() 이 true 가 되는 유일한 조건.
+-- 허용 IP 관리(전역 규칙 생성·수정, seqCampus 필터)는 전체관리자 권한이 있어야 검증할 수 있다.
+INSERT IGNORE INTO tb_admin (seq_campus, id_admin, pw_admin, name_admin, dc_admin,
+    agree_terms_admin, agree_info_admin, agree_discord_alarm_admin, status_admin, use_yn)
+VALUES
+    (NULL, 'test_admin_super', '$2a$10$Lma7juxYdZ/RTKontE5bcO/cHeO45GeHwAHEH0jMB4XSq6fGb3CRC', '전체관리자', 'test_super_admin', 1, 1, 0, 'available', 'Y');
+
 -- 6. 테스트 유저 (id_user LIKE 'test_%')
 INSERT IGNORE INTO tb_user (seq_course, id_user, pw_user, name_user, dc_user,
     agree_terms_user, agree_info_user, agree_discord_alarm_user, status_user, use_yn)

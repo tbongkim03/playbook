@@ -169,6 +169,20 @@
                 감사 로그
               </button>
             </li>
+            <!-- 허용 IP 관리 (전체관리자·캠퍼스관리자 공통) -->
+            <li>
+              <button
+                class="nav-item"
+                :class="{ active: activeTab === 'allowed-ip' }"
+                @click="setActiveTab('allowed-ip')"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                허용 IP 관리
+              </button>
+            </li>
             <!-- 연동 관리 (전체관리자 전용) -->
             <li v-if="isSuperAdmin">
               <button
@@ -236,6 +250,10 @@
         <div v-if="activeTab === 'audit-log'" class="content-section">
           <AuditLogDashboard />
         </div>
+        <!-- 허용 IP 관리 (전체관리자·캠퍼스관리자 공통) -->
+        <div v-if="activeTab === 'allowed-ip'" class="content-section">
+          <AllowedIpManagement />
+        </div>
         <!-- 연동 관리 (전체관리자 전용) -->
         <div v-if="activeTab === 'integration' && isSuperAdmin" class="content-section">
           <IntegrationManagement />
@@ -286,6 +304,7 @@ import CategoryManagement from '@/components/CategoryManagement.vue'
 import TermsEditor from '@/components/TermsEditor.vue'
 import AccessLogDashboard from '@/components/AccessLogDashboard.vue'
 import AuditLogDashboard from '@/components/AuditLogDashboard.vue'
+import AllowedIpManagement from '@/components/AllowedIpManagement.vue'
 import IntegrationManagement from '@/components/IntegrationManagement.vue'
 import * as adminApi from '@/api/admin'
 

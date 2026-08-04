@@ -98,6 +98,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/admin/audit-log")
                 // 연동 관리 (전체관리자 전용) - 인증 컨텍스트 필요
                 .addPathPatterns("/integration", "/integration/**")
+                // 허용 IP 관리 (관리자 전용) - 인증 컨텍스트 필요
+                .addPathPatterns("/allowed-ips", "/allowed-ips/**")
                 .excludePathPatterns("/users/login", "/users/register");
     }
 }
