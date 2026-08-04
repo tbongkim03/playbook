@@ -1,0 +1,27 @@
+{
+  "name": "playbook-installer",
+  "productName": "Playbook 설치 마법사",
+  "version": "0.2.0",
+  "description": "캠퍼스 라운지 도서관리 시스템(Playbook) Windows 설치 마법사",
+  "private": true,
+  "author": "Playbook Team",
+  "license": "UNLICENSED",
+  "main": "src/main/index.js",
+  "scripts": {
+    "prepare:payload": "node scripts/prepare-payload.mjs",
+    "build:renderer": "vite build",
+    "build": "npm run prepare:payload && npm run build:renderer",
+    "check": "node scripts/check.mjs",
+    "dev": "node scripts/dev.mjs",
+    "pack:dir": "npm run build && electron-builder --dir",
+    "build:win": "npm run build && electron-builder --win --x64"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.3",
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8",
+    "vite": "^6.3.5",
+    "vue": "^3.5.13"
+  },
+  "dependencies": {}
+}
