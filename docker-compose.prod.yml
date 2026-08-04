@@ -5,13 +5,39 @@ services:
     container_name: back-prod
     env_file:
       - ./back/.env.prod
-    ports:
-      - "8080:8080"
+      # 모니터링 시크릿 전용 파일 — back 만 읽는다 (alloy 에는 주지 않는다, S-6).
+      # 모니터링 미사용 캠퍼스는 파일이 없어도 기동된다 → required: false
+      - path: ./back/.env.monitoring
+        required: false
+    # alloy 와 공유하는 비밀 아닌 값들. 출처는 루트 .env 하나뿐이라
+    # back 과 alloy 의 MONITORING_CAMPUS 가 어긋날 수 없다.
+    environment:
+      MONITORING_CAMPUS:     ${MONITORING_CAMPUS:-}
+      MONITORING_TOKEN_FILE: ${MONITORING_TOKEN_FILE:-/monitoring/access_token}
+      MANAGEMENT_PORT:       ${MANAGEMENT_PORT:-8081}
+    # 호스트 포트를 열지 않는다. 유일한 진입점은 front(nginx, 80) 이다.
+    #
+    # 예전엔 "8080:8080" 으로 API 를 직접 노출했는데, 그러면 nginx 의 auth_request
+    # IP 게이트를 건너뛰는 두 번째 출입구가 생긴다. IpAllowlistFilter 가 그 경로에서도
+    # 돌긴 하지만, nginx 를 거치지 않아 X-Forwarded-For 가 없는 상태로 들어오고
+    # 원격주소가 trusted-proxies 대역(브리지 게이트웨이)으로 보이면
+    # 클라이언트 IP 미확정 → fail-open 으로 통과해 버린다 (보안감사 S-1/S-2 연장선).
+    #
+    # 캠퍼스 내부망 전용 운영에서 API 를 별도 포트로 열어둘 이유가 없다.
+    # 컨테이너 간 통신은 prod-network 안에서 back:8080 으로 그대로 된다.
+    # 디버깅이 필요하면 `docker exec back-prod ...` 를 쓴다.
+    #
+    # management.server.port(8081)도 호스트에 매핑하지 않는다 —
+    # 같은 prod-network 의 alloy 만 /actuator/prometheus 에 접근한다.
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_started
+    volumes:
+      # MonitoringTokenScheduler 가 회전시킨 액세스 토큰을 기록하는 위치.
+      # alloy 가 같은 볼륨을 읽어 bearer_token_file 로 쓴다 (MONITORING_TOKEN_FILE).
+      - monitoring-token:/monitoring
     networks:
       - prod-network
 
@@ -52,6 +78,42 @@ services:
     networks:
       - prod-network
 
+  # ── 중앙 모니터링 수집 에이전트 (모니터링 계획서 단계 C) ─────────────────
+  # back:8081/actuator/prometheus 를 scrape → monitoring.tbongkim.com 으로 remote_write.
+  # 호스트 포트 매핑 없음 — prod-network 내부에서만 동작하고, 밖으로는 아웃바운드 443 만 나간다.
+  alloy:
+    image: ${ALLOY_IMAGE:-grafana/alloy:v1.5.1}
+    container_name: alloy-prod
+    # 중앙 서버로 나가는 egress 컴포넌트 — env_file 을 주지 않는다 (보안감사 S-6).
+    # alloy 는 토큰을 bearer_token_file(파일)로 읽으므로 MONITORING_ACCESS_TOKEN 과
+    # MONITORING_BOOTSTRAP_SECRET(무만료·최우선 보호 대상)이 전혀 필요 없다.
+    # 아래 6개만 명시 주입한다 — 시크릿은 하나도 포함되지 않는다.
+    # 값의 출처는 루트 .env 단일이며, back 도 같은 곳에서 받으므로 이원화되지 않는다.
+    environment:
+      MONITORING_CAMPUS:           ${MONITORING_CAMPUS:-}
+      MONITORING_REMOTE_WRITE_URL: ${MONITORING_REMOTE_WRITE_URL:-https://monitoring.tbongkim.com/api/v1/write}
+      MONITORING_TOKEN_FILE:       ${MONITORING_TOKEN_FILE:-/monitoring/access_token}
+      MONITORING_SCRAPE_TARGET:    ${MONITORING_SCRAPE_TARGET:-back:8081}
+      MONITORING_SCRAPE_INTERVAL:  ${MONITORING_SCRAPE_INTERVAL:-30s}
+      MONITORING_ALLOY_LOG_LEVEL:  ${MONITORING_ALLOY_LOG_LEVEL:-info}
+    # 모니터링을 쓰는 캠퍼스에서만 기동한다. 활성화는 COMPOSE_PROFILES=monitoring
+    # (루트 .env 또는 셸 환경). 비활성 시 이 서비스는 아예 생성되지 않는다.
+    profiles:
+      - monitoring
+    command:
+      - run
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    volumes:
+      - ./monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - monitoring-token:/monitoring:ro
+      - alloy-data:/var/lib/alloy/data
+    depends_on:
+      - back
+    restart: unless-stopped
+    networks:
+      - prod-network
+
   # ── 향후 HTTPS 적용 시 추가 ──────────────────────────────────────────────
   # nginx:
   #   image: nginx:alpine
@@ -86,7 +148,25 @@ services:
 
 volumes:
   db-data:
+  # back(쓰기) ↔ alloy(읽기) 가 공유하는 모니터링 액세스 토큰
+  monitoring-token:
+  # Alloy remote_write WAL — 캠퍼스 회선 단절 시 메트릭 버퍼링, 재시작해도 유지
+  alloy-data:
 
 networks:
   prod-network:
     driver: bridge
+    # subnet 을 고정한다 (보안감사 S-3, HIGH).
+    # 미고정이면 Docker 가 172.16~31.x 중 아무 /16 이나 잡고, 백엔드의
+    # trusted-proxies / internal-networks 기본값(172.16.0.0/12)과 캠퍼스 LAN 이 겹치면
+    # 그 LAN 전 단말이 무조건 통과 + XFF 위조 권한까지 얻는다(기동 WARN 도 안 뜬다).
+    #
+    # 172.31.240.0/24 를 고른 이유:
+    #  - /24 로 좁혀 충돌 표면을 /12 대비 1/4096 로 줄인다 (컨테이너는 5개뿐, 253개면 충분)
+    #  - 172.16~20.x 는 기업·학교 LAN 에서 흔히 쓰이지만 172.31.x 는 드물다
+    #  - .240.0 은 대역 상단이라 수동 할당과 겹칠 확률이 더 낮다
+    # ※ 백엔드는 trusted-proxies 를 이 값과 일치시키고,
+    #    internal-networks 는 이 대역과 **겹치지 않게** 둬야 한다 (S-2).
+    ipam:
+      config:
+        - subnet: 172.31.240.0/24

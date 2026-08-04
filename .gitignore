@@ -77,6 +77,22 @@ back/.env.test
 db/.env.dev
 db/.env.prod
 front/.env
+# 중앙 모니터링 토큰·부트스트랩 시크릿 (back·alloy 공용, 마법사가 생성)
+back/.env.monitoring
+# compose 프로파일 토글 (COMPOSE_PROFILES=monitoring). 루트 한정 — front/.env 등과 무관
+/.env
+
+# 설치 마법사 (installer/) — 의존성·빌드 산출물·동봉 페이로드
+# 소스(src/, scripts/, *.yml, README.md)는 커밋 대상이다.
+installer/node_modules/
+installer/dist/
+installer/release/
+# 빌드 시 저장소 루트에서 복사해 오는 배포 페이로드 (원본이 이미 저장소에 있으므로 중복 커밋 금지)
+installer/payload/
+# 마법사가 실행 중 만들어 내는 산출물 — 비밀번호·API 키·봇 토큰 평문 포함
+installer/**/.env.prod
+installer/wizard-state.json
+playbook-설치정보-*.txt
 
 # 목업 디렉토리
 front_mok/

@@ -1,0 +1,101 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// 캠퍼스 측 Grafana Alloy 사이드카 — 중앙 모니터링 연동 (모니터링 계획서 단계 C)
+//
+//   back:8081/actuator/prometheus  ──scrape──▶  Alloy  ──remote_write──▶  AWS
+//                                                        (Bearer 토큰)
+//
+// 인증: back 의 MonitoringTokenScheduler 가 회전시켜 공유 볼륨에 기록한 토큰 파일을
+//       bearer_token_file 로 읽는다. Alloy 는 매 요청마다 파일을 다시 읽으므로
+//       토큰이 회전해도 재시작이 필요 없다.
+// 수신: https://monitoring.tbongkim.com/api/v1/write
+//       (nginx auth_request 로 토큰 검증 → Prometheus remote-write-receiver)
+//
+// 값은 전부 환경변수 주입. 미설정 시 coalesce 기본값으로 떨어져 기동은 계속된다
+// (설치 마법사가 back/.env.prod 에 채우고, alloy 가 같은 파일을 env_file 로 공유).
+// ─────────────────────────────────────────────────────────────────────────────
+
+logging {
+	level  = coalesce(env("MONITORING_ALLOY_LOG_LEVEL"), "info")
+	format = "logfmt"
+}
+
+// ── 1. playbook back Actuator 스크랩 ─────────────────────────────────────────
+// 별도 management 포트(8081)라 context-path(/api)·인터셉터를 타지 않는다.
+// 이 포트는 docker-compose 에서 호스트에 매핑하지 않으므로 prod-network 내부에서만 보인다.
+prometheus.scrape "playbook_back" {
+	targets = [
+		{
+			"__address__" = coalesce(env("MONITORING_SCRAPE_TARGET"), "back:8081"),
+			// instance 를 캠퍼스 id 로 고정 — 컨테이너 재생성돼도 시계열이 끊기지 않는다.
+			"instance" = coalesce(env("MONITORING_CAMPUS"), "unknown"),
+		},
+	]
+
+	metrics_path    = "/actuator/prometheus"
+	scrape_interval = coalesce(env("MONITORING_SCRAPE_INTERVAL"), "30s")
+	scrape_timeout  = "10s"
+	job_name        = "playbook-back"
+
+	// 곧바로 remote_write 로 보내지 않고 PII 제거 단계를 먼저 태운다.
+	forward_to = [prometheus.relabel.scrub_pii.receiver]
+}
+
+// ── 1-1. 개인정보(IP) 라벨 제거 — 캠퍼스 밖으로 내보내기 전 ─────────────────
+// playbook_ip_blocked_total 에 Micrometer 가 붙이는 ip 라벨은 개인정보다.
+// 이 프로젝트 약관은 접속 IP 를 "로그인 시점·내부 DB·1년 파기" 로 고지하고
+// 제3자 제공을 금지하는데, 중앙 모니터링(AWS)은 캠퍼스 밖 인프라다 (보안감사 S-5).
+//
+// 차단 "건수" 는 그대로 올라가므로 중앙에서 "A 캠퍼스 차단 급증" 은 계속 보이고,
+// 구체적 IP 는 캠퍼스 로컬 WARN 로그·감사로그에서 확인한다.
+//
+// remote_write 직전 단일 지점에 두어 back·alloy 어느 메트릭이든
+// ip 라벨이 캠퍼스를 벗어나지 못하게 한다.
+prometheus.relabel "scrub_pii" {
+	forward_to = [prometheus.remote_write.central.receiver]
+
+	rule {
+		action = "labeldrop"
+		regex  = "ip"
+	}
+}
+
+// ── 2. Alloy 자기 자신 메트릭 ────────────────────────────────────────────────
+// 캠퍼스가 무인 운영이라, back 이 죽은 것인지 Alloy 가 죽은 것인지 중앙에서 구분해야 한다.
+// back 이 down 이어도 이 시계열은 계속 올라오므로 원인 분리가 된다.
+prometheus.exporter.self "alloy" { }
+
+prometheus.scrape "alloy_self" {
+	targets         = prometheus.exporter.self.alloy.targets
+	scrape_interval = "60s"
+	job_name        = "alloy"
+
+	// self 메트릭엔 ip 라벨이 없지만, 같은 경로로 태워 "ip 라벨은 어떤 경로로도
+	// 나가지 않는다" 를 단일 지점에서 보장한다.
+	forward_to = [prometheus.relabel.scrub_pii.receiver]
+}
+
+// ── 3. AWS 중앙 모니터링으로 remote_write ────────────────────────────────────
+prometheus.remote_write "central" {
+	endpoint {
+		url = coalesce(env("MONITORING_REMOTE_WRITE_URL"), "https://monitoring.tbongkim.com/api/v1/write")
+
+		// back 의 MonitoringTokenService 가 원자적으로 교체 기록하는 파일.
+		// application.properties 의 monitoring.token.file 과 같은 경로여야 한다.
+		bearer_token_file = coalesce(env("MONITORING_TOKEN_FILE"), "/monitoring/access_token")
+
+		// 중앙 nginx 가 /api/v1/write 를 IP당 30r/s (burst 60) 로 제한한다.
+		// 기본값(max_shards=50)이면 밀린 메트릭을 복구할 때 샤드가 늘어나 rate limit 에 걸린다.
+		// 캠퍼스 1곳의 메트릭 양에는 소수 샤드로 충분하므로 낮게 고정한다.
+		// 나머지 항목은 기본값 유지 — 캠퍼스에서 실측 없이 튜닝하지 않는다.
+		queue_config {
+			max_shards        = 3
+			retry_on_http_429 = true
+		}
+	}
+
+	// Grafana 에서 A/B/C 캠퍼스를 구분하는 라벨. AWS 토큰 발급 시의 campus id 와
+	// 반드시 같아야 한다 (토큰↔라벨 불일치는 중앙에서 위조로 간주될 수 있음).
+	external_labels = {
+		campus = coalesce(env("MONITORING_CAMPUS"), "unknown"),
+	}
+}
