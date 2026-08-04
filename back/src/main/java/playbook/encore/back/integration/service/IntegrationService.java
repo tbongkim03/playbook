@@ -68,6 +68,10 @@ public class IntegrationService {
     @Value("${DISCORD_CHANNEL_SEOCHO:}") private String envChannelSeocho;
     @Value("${DISCORD_CHANNEL_GVALLEY:}") private String envChannelGvalley;
     @Value("${DISCORD_CHANNEL_DONGJAK:}") private String envChannelDongjak;
+    // 설치 마법사가 디스코드 서버에 자동 생성한 캠퍼스 역할 ID (플북 연동 시 부여되어 채널 해금)
+    @Value("${DISCORD_ROLE_SEOCHO:}") private String envRoleSeocho;
+    @Value("${DISCORD_ROLE_GVALLEY:}") private String envRoleGvalley;
+    @Value("${DISCORD_ROLE_DONGJAK:}") private String envRoleDongjak;
 
     @PostConstruct
     public void init() {
@@ -107,14 +111,34 @@ public class IntegrationService {
         log.info("[IntegrationService] 설정 시드: {}", key);
     }
 
-    /** 기존 하드코딩 매핑(campusId 1=서초,2=지밸리,3=동작)을 .env 채널값으로 시드 */
+    /**
+     * 기존 하드코딩 매핑(campusId 1=서초,2=지밸리,3=동작)을 .env 채널·역할값으로 시드.
+     *
+     * <p>신규 설치(캠퍼스 1개)에서는 설치 마법사가 만든 캠퍼스가 campusId=1 이 되므로
+     * {@code DISCORD_CHANNEL_SEOCHO} / {@code DISCORD_ROLE_SEOCHO} 슬롯이 그대로 쓰인다.
+     * 캠퍼스가 없는 id 는 {@code seedCampusChannel} 이 조용히 건너뛴다.
+     */
     private void seedCampusChannels() {
-        seedCampusChannel(1, envChannelSeocho);
-        seedCampusChannel(2, envChannelGvalley);
-        seedCampusChannel(3, envChannelDongjak);
+        seedCampusChannel(1, envChannelSeocho, envRoleSeocho);
+        seedCampusChannel(2, envChannelGvalley, envRoleGvalley);
+        seedCampusChannel(3, envChannelDongjak, envRoleDongjak);
     }
 
     private void seedCampusChannel(Integer campusId, String envChannelId) {
+        seedCampusChannel(campusId, envChannelId, null);
+    }
+
+    /**
+     * 캠퍼스별 디스코드 채널·역할 매핑을 최초 1회만 시드한다.
+     *
+     * <p>이미 매핑 행이 있으면 <b>아무것도 하지 않는다.</b> 재기동할 때마다 env 값으로
+     * 덮어쓰면 운영자가 연동 화면에서 고친 값이 되돌아가기 때문이다.
+     *
+     * <p>{@code envRoleId} 는 설치 마법사가 디스코드 서버에 캠퍼스 역할을 자동 생성한 뒤
+     * 그 ID 를 {@code .env} 로 넘겨준 값이다. 이 슬롯이 없던 동안에는 마법사가 역할을
+     * 만들어 놓고도 운영자가 연동 탭에서 역할 ID 를 손으로 옮겨 적어야 했다.
+     */
+    private void seedCampusChannel(Integer campusId, String envChannelId, String envRoleId) {
         if (campusChannelRepository.findBySeqCampus_SeqCampus(campusId).isPresent()) {
             return;
         }
@@ -125,9 +149,11 @@ public class IntegrationService {
         CampusChannel cc = CampusChannel.builder()
                 .seqCampus(campus.get())
                 .discordChannelId(envChannelId != null && !envChannelId.isBlank() ? envChannelId : null)
+                .discordRoleId(envRoleId != null && !envRoleId.isBlank() ? envRoleId : null)
                 .build();
         campusChannelRepository.save(cc);
-        log.info("[IntegrationService] 캠퍼스 채널 시드: campusId={}", campusId);
+        log.info("[IntegrationService] 캠퍼스 채널 시드: campusId={}, roleId={}",
+                campusId, envRoleId != null && !envRoleId.isBlank() ? "설정됨" : "미설정");
     }
 
     // ===== 캐시 =====
