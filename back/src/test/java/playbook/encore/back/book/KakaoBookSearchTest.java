@@ -137,8 +137,10 @@ class KakaoBookSearchTest extends BaseIntegrationTest {
             if (IntegrationService.KEY_KAKAO_REST_API_KEY.equals(key)) {
                 hasKakao = true;
                 assertThat(c.get("category").asText()).isEqualTo("KAKAO");
-                // Lombok boolean isSecret → JSON 키는 "secret" (프론트는 isSecret 을 읽는다 — 별도 이슈)
-                assertThat(c.get("secret").asBoolean()).isTrue();
+                // 프론트가 cfg.isSecret 으로 읽는다 — "secret" 으로 새면 비밀 배지·password 입력이 꺼진다
+                assertThat(c.has("isSecret")).as("JSON 키는 isSecret 이어야 한다").isTrue();
+                assertThat(c.has("secret")).isFalse();
+                assertThat(c.get("isSecret").asBoolean()).isTrue();
             }
         }
         assertThat(hasKakao).isTrue();
