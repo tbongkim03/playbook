@@ -458,6 +458,30 @@ check('projection 이 시크릿을 가린다', () => {
   return true
 })
 
+console.log('\n[13] 마이그레이션 미적용 기동 차단')
+{
+  const mig = require(path.join(root, 'src/main/services/migration.js'))
+  const scanned = {
+    files: [
+      { file: '001_add_campus.sql', groups: [{ table: 'tb_campus', createsTable: true, tableExists: true }] },
+      { file: '002_add_campus_columns.sql', groups: [{ table: 'tb_user', createsTable: false, tableExists: true }] },
+      { file: '003_add_access_audit_log.sql', groups: [
+        { table: 'tb_access_log', createsTable: true, tableExists: false },
+        { table: null, createsTable: false, tableExists: null }
+      ] }
+    ]
+  }
+  check('없는 테이블만 골라낸다 (ALTER·조회문·이미 있는 테이블 제외)', () => {
+    const m = mig.missingTables(scanned)
+    assert(m.length === 1 && m[0].table === 'tb_access_log', JSON.stringify(m))
+    return true
+  })
+  check('모두 존재하면 빈 목록', () => {
+    assert(mig.missingTables({ files: [scanned.files[0]] }).length === 0)
+    return true
+  })
+}
+
 console.log('\n[12] 이미지 태그 고정')
 check('imageTag 가 있으면 compose .env 에 BACK_IMAGE·FRONT_IMAGE 를 쓴다', () => {
   const t = envfile.buildComposeEnv(SAMPLE_STATE, { imageTag: '0.2.0-rc9' })

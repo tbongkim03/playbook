@@ -451,6 +451,24 @@ function register({ state, getWindow }) {
         return { ok: false, message: '8단계(설정 파일 생성·DB 기동)를 먼저 완료하세요.' }
       }
 
+      // 마이그레이션 없이 기동하면 백엔드가 스키마 검증(missing table)에서 죽는다 — 먼저 막는다
+      const scanned = await migrationSvc.scan(installDir, state.get('migration.applied') || {})
+      if (scanned.ok) {
+        const missing = migrationSvc.missingTables(scanned)
+        if (missing.length) {
+          const list = missing.map((m) => `${m.table} (${m.file})`).join(', ')
+          onLog(`아직 없는 테이블이 있어 기동하지 않습니다: ${list}`)
+          return {
+            ok: false,
+            message:
+              `마이그레이션이 적용되지 않았습니다 — 없는 테이블: ${list}\n` +
+              '위의 [선택 항목 적용] 으로 마이그레이션을 먼저 적용하세요. 백엔드는 스키마 검증 모드라 이 상태로는 기동에 실패합니다.'
+          }
+        }
+      } else {
+        onLog(`스키마를 미리 확인하지 못했습니다: ${scanned.message} — 기동은 계속 진행합니다.`)
+      }
+
       const profiles = composeSvc.profilesFor(state.get('monitoring.enabled'))
       onLog('나머지 서비스를 기동합니다 (백엔드 · 프론트 · Redis' + (profiles.length ? ' · 모니터링 에이전트' : '') + ')…')
       const r = await composeSvc.up(installDir, { onLog, secretValues: state.secretValues(), profiles })

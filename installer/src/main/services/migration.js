@@ -466,4 +466,18 @@ async function apply(installDir, selections, { onLog, secretValues = [] }) {
   return { ok: results.every((r) => r.ok), results }
 }
 
-module.exports = { scan, apply, parseFile, splitStatements, isDestructive, classify, readDbEnv }
+/**
+ * 마이그레이션이 만들어야 하는데 아직 DB 에 없는 테이블.
+ * 운영 백엔드는 ddl-auto=validate 라 하나라도 없으면 기동 자체가 실패한다.
+ */
+function missingTables(scanResult) {
+  const out = []
+  for (const f of (scanResult && scanResult.files) || []) {
+    for (const g of f.groups || []) {
+      if (g.createsTable && g.table && g.tableExists === false) out.push({ file: f.file, table: g.table })
+    }
+  }
+  return out
+}
+
+module.exports = { scan, apply, missingTables, parseFile, splitStatements, isDestructive, classify, readDbEnv }
