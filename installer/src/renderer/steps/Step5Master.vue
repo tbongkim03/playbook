@@ -105,7 +105,7 @@ const canProceed = computed(() => !!(result.value && result.value.ok))
 
     <div class="field">
       <label class="field-label">디스코드 사용자명<span class="req">*</span></label>
-      <input v-model="discord" type="text" class="mono" placeholder="예) bubble_94" @change="saveField" @blur="saveField" />
+      <input v-model="discord" type="text" class="mono" placeholder="예) lounge_manager" @change="saveField" @blur="saveField" />
       <div v-for="(e, i) in errors.discord" :key="i" class="field-error">{{ e }}</div>
       <div class="field-hint">
         표시 이름이 아니라 <b>@사용자명</b> 입니다. 디스코드에서 이 이름으로 연동 버튼을 눌러야 관리자 계정과

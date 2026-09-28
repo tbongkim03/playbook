@@ -28,7 +28,7 @@ public class MasterAdminInitializer {
     @Value("${MASTER_NAME:관리자}")
     private String masterName;
 
-    @Value("${MASTER_DISCORD:bubble_94}")
+    @Value("${MASTER_DISCORD:master_discord}")
     private String masterDiscord;
 
     @Bean

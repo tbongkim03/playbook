@@ -430,13 +430,13 @@ check('권한 0 / 잘못된 값은 전부 부족으로 판정', () => {
 
 console.log('\n[9] 마스터 계정 검증')
 check('admin/admin1234 는 거부', () => {
-  const r = master.validateAll({ id: 'admin', pw: 'admin1234', name: '관리자', discord: 'bubble_94' })
+  const r = master.validateAll({ id: 'admin', pw: 'admin1234', name: '관리자', discord: 'lounge_manager' })
   assert(!r.ok, '기본값이 통과됨')
   assert(r.errors.id.length > 0 && r.errors.pw.length > 0)
   return true
 })
 check('강한 값은 통과', () => {
-  const r = master.validateAll({ id: 'pb-manager', pw: 'Lounge#2026pb', name: '라운지 매니저', discord: 'bubble_94' })
+  const r = master.validateAll({ id: 'pb-manager', pw: 'Lounge#2026pb', name: '라운지 매니저', discord: 'lounge_manager' })
   assert(r.ok, JSON.stringify(r.errors))
   return true
 })
