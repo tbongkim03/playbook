@@ -458,6 +458,20 @@ check('projection 이 시크릿을 가린다', () => {
   return true
 })
 
+console.log('\n[14] application*.properties 자기참조 금지')
+check('KEY=${KEY:...} 형태 줄이 없다 (env 미공급 시 Circular placeholder 로 기동 실패)', () => {
+  const dir = path.join(repoRoot, 'back/src/main/resources')
+  const bad = []
+  for (const f of readdirSync(dir).filter((n) => /^application.*\.properties$/.test(n))) {
+    readFileSync(path.join(dir, f), 'utf8').split(/\r?\n/).forEach((line, i) => {
+      const m = line.match(/^\s*([A-Za-z0-9_.-]+)\s*=\s*\$\{([A-Za-z0-9_.-]+)(?::[^}]*)?\}/)
+      if (m && m[1] === m[2]) bad.push(`${f}:${i + 1} ${line.trim()}`)
+    })
+  }
+  assert(bad.length === 0, bad.join(' | '))
+  return true
+})
+
 console.log('\n[13] 마이그레이션 미적용 기동 차단')
 {
   const mig = require(path.join(root, 'src/main/services/migration.js'))
