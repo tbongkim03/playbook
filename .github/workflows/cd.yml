@@ -19,6 +19,21 @@ jobs:
     name: 단위 테스트
     runs-on: ubuntu-latest
 
+    # ci.yml 의 backend-test 와 같은 환경이어야 한다 — 통합 테스트가 실DB(3307)와 .env.test 를 요구한다.
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ci_root_pw
+          MYSQL_DATABASE: playbookdb_local
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pci_root_pw --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+
     steps:
       - uses: actions/checkout@v4
 
@@ -36,6 +51,40 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('back/build.gradle', 'back/settings.gradle') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
+
+      # 값·이유는 ci.yml 의 같은 스텝 참조 (CI 전용 더미 값, 실제 시크릿 없음)
+      - name: 테스트 환경 파일 생성 (.env.test)
+        working-directory: back
+        run: |
+          cat > .env.test <<'EOF'
+          SPRING_PROFILES_ACTIVE=test
+          DB_USERNAME=root
+          DB_PASSWORD=ci_root_pw
+          INTEGRATION_SECRET_KEY=ci-dummy-integration-secret-key
+          MASTER_ID=ci_master
+          MASTER_PW=ci_master_pw_1234
+          MASTER_NAME=CI관리자
+          MASTER_DISCORD=ci_master_discord
+          CLIENT_ID=ci-dummy-naver-client-id
+          CLIENT_SECRET=ci-dummy-naver-client-secret
+          NL_API_KEY=ci-dummy-nl-key
+          WORK24_API_KEY=ci-dummy-work24-key
+          DISCORD_CHANNEL_SEOCHO=
+          DISCORD_CHANNEL_GVALLEY=
+          DISCORD_CHANNEL_DONGJAK=
+          DISCORD_LINK_CHANNEL_ID=
+          EOF
+          echo 'DISCORD_BOT_TOKEN=discord-bot-token' >> .env.test
+
+      - name: DB 준비 확인
+        run: |
+          for i in $(seq 1 30); do
+            if (echo > /dev/tcp/127.0.0.1/3307) 2>/dev/null; then
+              echo "MySQL 포트 3307 응답 확인"; exit 0
+            fi
+            echo "MySQL 대기 중... ($i/30)"; sleep 2
+          done
+          echo "MySQL 이 준비되지 않았습니다 (127.0.0.1:3307)"; exit 1
 
       - name: 단위 테스트 실행
         working-directory: back
