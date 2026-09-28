@@ -55,11 +55,14 @@ services:
     networks:
       - prod-network
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      # 이미지가 mysql:8.0 이다 — healthcheck.sh 는 MariaDB 이미지 전용이라 여기선 항상 실패한다.
+      # 초기화(init.sql) 중에는 mysqld 가 네트워크를 끈 임시 서버로 돌아 127.0.0.1 ping 이 실패하므로
+      # 초기화가 끝나기 전에 healthy 가 되지 않는다.
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 30s
+      retries: 10
+      start_period: 60s
 
   redis:
     image: redis:7-alpine
