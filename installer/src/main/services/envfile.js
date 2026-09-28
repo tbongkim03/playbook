@@ -230,8 +230,10 @@ function buildBackEnv(state) {
   lines.push(
     '',
     '# ── 접속 허용 IP (IpAllowlistFilter · application-prod.properties) ──',
-    '# 차단 기능 on/off. 관리자가 자기 IP를 잘못 등록해 잠겼을 때 false 로 바꾸고 재시작하면 풀린다.',
-    { key: 'IP_ALLOWLIST_ENABLED', value: 'true' },
+    '# 차단 기능 on/off. ⚠ 기본 false — Windows Docker Desktop 은 접속 IP 를 보존하지 않아',
+    '#   localhost 를 포함한 모든 접속이 Docker 게이트웨이 IP 로 보이고 전부 차단된다.',
+    '#   (installer/README.md 4.7 참조) 규칙은 아래 BOOTSTRAP 으로 미리 시드되지만 적용되지 않는다.',
+    { key: 'IP_ALLOWLIST_ENABLED', value: 'false' },
     '# 이 대역에서 온 요청에 한해 X-Forwarded-For 의 "마지막 항목"을 실제 클라이언트로 신뢰한다.',
     '# (첫 항목은 클라이언트가 위조할 수 있다 — 보안감사 S-1)',
     '# nginx(front) 컨테이너가 이 대역에 있다. 비우면 차단이 사실상 무력화된다.',

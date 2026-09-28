@@ -163,8 +163,52 @@ DB(`tb_campus_channel.discord_role_id`)에서만 읽습니다. `IntegrationServi
 설치경로\back\.env.prod 에서
   IP_ALLOWLIST_BYPASS=192.168.0.0/24      ← 내 대역 추가
   또는 IP_ALLOWLIST_ENABLED=false          ← 차단 일시 해제
-후 docker compose -f docker-compose.prod.yml restart back
+후 docker compose -f docker-compose.prod.yml up -d back
 ```
+
+`restart` 는 `.env.prod` 를 다시 읽지 않습니다 — 바꾼 값을 반영하려면 `up -d` 로 컨테이너를 다시 만들어야 합니다.
+
+### 4.7 Windows Docker Desktop 에서는 IP 허용목록이 동작하지 않습니다 (미해결)
+
+**현상** (2026-09-28 Windows 실기 설치, `v0.2.0-rc6`)
+허용 대역을 등록하고 차단을 켜자 **설치 PC 의 `localhost` 접속까지** `403 · IP_NOT_ALLOWED` 로 막혔다.
+
+**원인 (추정 — 로그로 확정 필요)**
+Docker Desktop(Windows) 은 게시 포트로 들어온 접속을 내부 게이트웨이를 거쳐 컨테이너에 넘기며
+**원래 접속 IP 를 보존하지 않는다.** nginx 의 `$remote_addr` 가 실제 PC IP 가 아니라 Docker 내부 IP 가 되고,
+nginx 가 그 값을 `X-Forwarded-For` 로 넘기므로 백엔드도 모든 접속을 같은 IP 로 본다.
+
+- 루프백(`127.0.0.1`/`::1`)은 상시 허용인데 `localhost` 가 막혔다 → 백엔드가 본 IP 가 루프백이 아니다
+- 따라서 LAN 대역 규칙은 어떤 접속과도 맞지 않는다 (전부 차단)
+- 반대로 그 게이트웨이 IP 를 허용하면 모든 접속이 통과한다 (차단 무력화)
+
+확정 방법: 차단 상태에서 설치 PC·다른 PC 로 각각 접속한 뒤
+`docker logs back-prod 2>&1 | Select-String "차단 - ip="` 의 `ip=` 가 둘 다 같은 Docker 내부 IP 인지 본다.
+
+**현재 조치**
+- 마법사는 `IP_ALLOWLIST_ENABLED=false` 로 설치한다. 6단계 대역은 `IP_ALLOWLIST_BOOTSTRAP` 으로 DB 에 시드되지만 적용되지 않는다
+- 관리자 탭의 허용 IP 관리 화면은 그대로 동작한다 (규칙 저장만 되고 판정은 꺼져 있음)
+
+**대안 (결정 필요)**
+
+| 방식 | 내용 | 단점 |
+|------|------|------|
+| A. Windows 방화벽 | 마법사가 80 포트 인바운드를 허용 대역만 받도록 방화벽 규칙을 만든다. Windows 방화벽은 실제 IP 를 본다 | 관리자 탭 규칙 변경이 방화벽에 자동 반영되지 않는다 (호스트 측 동기화 필요) |
+| B. WSL 에 Docker 엔진 직접 설치 | Docker Desktop 대신 WSL 의 dockerd + 미러 네트워크로 원래 IP 보존을 노린다 | 설치 난이도 상승, IP 보존 여부 실측 필요 |
+| C. 앱 차단을 끄고 네트워크 장비에 맡김 | 공유기·캠퍼스 방화벽에서 제한 | 요구사항 1("허용 IP 에서만 접속")을 앱 밖에서 충족 |
+
+### 4.8 실기 설치 테스트에서 발견·수정한 문제 (2026-09-28)
+
+| 증상 | 원인 | 수정 |
+|------|------|------|
+| 8단계 pull 실패, 원인 로그 없음 | `runStream` 이 `onLog` 를 무시해 docker·mysql 출력이 전부 버려짐 | `ea15d4f` |
+| 8단계 pull 이 `:latest` 를 찾다 실패 | `latest` 는 main push 에만 붙는데 태그 빌드 이미지뿐이었음 | 설치본에 이미지 태그를 새겨 `.env` 에 기록 (`2b7847f`) |
+| db 가 계속 `unhealthy` | prod 헬스체크가 MariaDB 전용 `healthcheck.sh` 호출 (이미지는 mysql:8.0) | `mysqladmin ping` (`c1bd749`) |
+| 백엔드 `missing table [tb_access_log]` | 9단계 마이그레이션 없이 서비스 기동 가능했음 | 미적용 테이블이 있으면 기동 거부 (`44dca2a`) |
+| 백엔드 `Circular placeholder 'DISCORD_CHANNEL_GVALLEY:'` | `application.properties` 의 `KEY=${KEY:}` 자기참조 + 마법사는 캠퍼스 1곳 슬롯만 씀 | 자기참조 10줄 제거 + 점검 추가 (`83b74ec`) |
+| 설치 후 허용 규칙 0건 | 6단계가 Vue Proxy 배열을 IPC 로 넘겨 저장이 조용히 실패 | `store.patch` 에서 평범한 객체로 변환 (`9b0dbb7`) |
+| 4단계 "봇 멤버 정보를 읽지 못했습니다" 경고 | 사용자 OAuth2 전용 API 를 봇 토큰으로 호출 (항상 403) | 호출 제거 (`2cc8bba`) |
+| localhost 까지 403 | 4.7 참조 | 기본 비활성 (미해결) |
 
 ---
 

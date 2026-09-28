@@ -84,6 +84,13 @@ const canProceed = computed(() => !isEmpty.value || acknowledged.value)
     <b>전부</b>에 적용됩니다. 설치 후에는 관리자 화면에서 언제든 추가·수정할 수 있습니다.
   </p>
 
+  <div class="notice warn">
+    <strong>현재 버전에서는 차단 기능이 꺼진 상태로 설치됩니다</strong>
+    Windows 의 Docker Desktop 은 접속한 PC 의 IP 를 서비스에 전달하지 않아, 모든 접속이 같은 내부 IP 로
+    보입니다. 이 상태로 차단을 켜면 이 PC(localhost)를 포함해 <b>모두 차단</b>됩니다. 여기서 등록한 대역은
+    저장만 되고, 차단 방식이 보완된 뒤 적용됩니다.
+  </div>
+
   <div class="notice danger">
     <strong>여기 없는 위치에서는 접속이 차단됩니다</strong>
     라운지 PC 와 관리자 PC 가 쓰는 대역을 빠뜨리면, 설치가 끝난 뒤 아무도 화면에 들어갈 수 없습니다.
