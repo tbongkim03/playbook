@@ -231,11 +231,6 @@ async function listRoles(token, guildId, opts) {
   return call(token, 'GET', `/guilds/${guildId}/roles`, undefined, opts)
 }
 
-/** 봇 자신의 서버 내 역할·권한 확인 — GET /users/@me/guilds/{id}/member */
-async function selfMember(token, guildId, opts) {
-  return call(token, 'GET', `/users/@me/guilds/${guildId}/member`, undefined, opts)
-}
-
 function findByName(list, name, type) {
   const target = String(name).toLowerCase()
   return (list || []).find(
@@ -294,10 +289,8 @@ async function provisionGuild(token, { guildId, campusName, linkChannelName = '�
     onLog('필요한 권한 6종을 모두 확인했습니다.')
   }
 
-  const member = await selfMember(token, guildId, { onLog })
-  if (!member.ok) {
-    warnings.push(`봇 멤버 정보를 읽지 못했습니다: ${member.message}`)
-  }
+  // ※ GET /users/@me/guilds/{id}/member 는 사용자 OAuth2(guilds.members.read) 전용이라
+  //   봇 토큰으로는 항상 403 이다. 권한 확인은 위 checkGuildPermissions 로 충분하다.
 
   onLog('기존 채널 목록을 조회합니다…')
   const channelsRes = await listChannels(token, guildId, { onLog })
