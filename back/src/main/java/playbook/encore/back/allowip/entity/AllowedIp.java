@@ -18,7 +18,10 @@ import playbook.encore.back.common.audit.BaseAuditEntity;
 @AllArgsConstructor
 @NoArgsConstructor
 @Where(clause = "use_yn = 'Y'")
-@Table(name = "tb_allowed_ip")
+// 005_add_allowed_ip.sql 의 제약과 같은 이름 — ddl-auto 로 만든 스키마(CI 등)에도 동일하게 걸리게 한다
+@Table(name = "tb_allowed_ip",
+        uniqueConstraints = @UniqueConstraint(name = "uk_allowed_ip_value_campus",
+                columnNames = {"ip_value", "seq_campus"}))
 public class AllowedIp extends BaseAuditEntity {
 
     @Id
