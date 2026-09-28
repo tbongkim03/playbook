@@ -173,7 +173,7 @@ docker compose -f docker-compose.prod.yml up -d --build
 - `DB_USERNAME`, `DB_PASSWORD`, 
 - `MASTER_ID`, `MASTER_PW`, `MASTER_NAME`, `MASTER_DISCORD`
 - `INTEGRATION_SECRET_KEY` (연동 시크릿(봇 토큰·API 키) DB 저장 시 AES 암호화 키)
-- `CLIENT_ID`, `CLIENT_SECRET` [네이버 책검색 API](https://developers.naver.com/docs/serviceapi/search/book/book.md)
+- `KAKAO_REST_API_KEY` (선택) [카카오 책 검색 API](https://developers.kakao.com/docs/latest/ko/daum-search/dev-guide#search-book) — 국립중앙도서관 결과에 표지가 없을 때 표지 보조 조회. 네이버 책 검색 API는 2026-07-31 종료되어 제거
 - `NL_API_KEY`, `WORK24_API_KEY` [국립중앙도서관 API](https://www.nl.go.kr/NL/contents/N31101030500.do), [고용노동부 고용24 API](https://m.work24.go.kr/cm/e/a/0110/selectOpenApiSvcInfo.do?apiSvcId=&upprApiSvcId=&fullApiSvcId=000000000000000000000000000004) 
 - `DISCORD_BOT_TOKEN`, `DISCORD_CHANNEL_ID` (tbongkim03@gmail.com 으로 email 부탁드립니다)
 

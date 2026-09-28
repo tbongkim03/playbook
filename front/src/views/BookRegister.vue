@@ -265,18 +265,10 @@ async function searchISBN() {
     
     // console.log('국립중앙도서관 API에서 가져온 TITLE_URL:', book.title_url)
     
-    // TITLE_URL이 없는 경우 네이버 검색 API로 이미지 검색
+    // TITLE_URL이 없는 경우 카카오 책 검색으로 표지 보완 (네이버 책 검색은 2026-07-31 종료)
     if (!book.title_url || book.title_url.trim() === '') {
-      // console.log('TITLE_URL이 비어있어 네이버 API로 이미지를 검색합니다...')
-      try {
-        const naverImageUrl = await searchBookImageFromNaver()
-        book.title_url = naverImageUrl
-        // console.log('네이버 API에서 가져온 이미지로 설정:', book.title_url)
-      } catch (error) {
-        // console.warn('네이버 API 이미지 검색 실패:', error)
-        // 실패해도 계속 진행 (이미지 없이)
-        book.title_url = ''
-      }
+      // 실패해도 계속 진행 (이미지 없이)
+      book.title_url = (await searchBookImageFromKakao()) || ''
     }
     
     hasSearched.value = true // 조회 완료 상태 설정
@@ -345,21 +337,12 @@ async function submitBook() {
   }
 }
 
-async function searchBookImageFromNaver() {
+async function searchBookImageFromKakao() {
   if (book.isbn && String(book.isbn).trim()) {
     try {
-      const response = await externalApi.searchNaver({
-        isbn: String(book.isbn).trim(),
-        display: 10
-      })
-      const data = response.data.data
-
-      if (data.items && data.items.length > 0) {
-        const imageUrl = data.items[0].image
-        if (imageUrl) {
-          return imageUrl
-        }
-      }
+      const response = await externalApi.searchKakao({ isbn: String(book.isbn).trim() })
+      // 결과 없음(1001)·키 미설정(4xxx)이면 data 가 null 이다
+      return response.data.data?.thumbnail || ''
     } catch (error) {
       console.warn('ISBN 검색 중 오류:', error.response?.data)
     }

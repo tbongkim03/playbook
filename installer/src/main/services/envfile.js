@@ -26,7 +26,7 @@ const { maskValue } = require('../util/mask')
  *
  *   application.properties
  *     INTEGRATION_SECRET_KEY, MASTER_ID/PW/NAME/DISCORD,
- *     CLIENT_ID, CLIENT_SECRET, NL_API_KEY, WORK24_API_KEY,
+ *     KAKAO_REST_API_KEY, NL_API_KEY, WORK24_API_KEY,
  *     DISCORD_CHANNEL_SEOCHO/GVALLEY/DONGJAK, DISCORD_LINK_CHANNEL_ID,
  *     CORS_ALLOWED_ORIGINS,
  *     monitoring.* ← MONITORING_REFRESH_ENABLED, MONITORING_TOKEN_ENDPOINT,
@@ -165,9 +165,8 @@ function buildBackEnv(state) {
     { key: 'MASTER_NAME', value: m.name },
     { key: 'MASTER_DISCORD', value: m.discord },
     '',
-    '# ── 네이버 책 검색 API ──',
-    { key: 'CLIENT_ID', value: k.naverClientId },
-    { key: 'CLIENT_SECRET', value: k.naverClientSecret },
+    '# ── 카카오 책 검색 API (표지 이미지 보조 조회, 선택) ──',
+    { key: 'KAKAO_REST_API_KEY', value: k.kakaoRestApiKey },
     '',
     '# ── 국립중앙도서관 ISBN API ──',
     { key: 'NL_API_KEY', value: k.nlApiKey },
@@ -432,12 +431,11 @@ function summarize(state) {
       backupSavedTo: g.backupSavedTo
     },
     apiKeys: {
-      naverClientId: k.naverClientId,
-      naverClientSecret: maskValue(k.naverClientSecret),
+      kakaoRestApiKey: maskValue(k.kakaoRestApiKey),
       nlApiKey: maskValue(k.nlApiKey),
       work24ApiKey: maskValue(k.work24ApiKey),
       verified: {
-        naver: v.naver ? v.naver.ok : null,
+        kakao: v.kakao ? v.kakao.ok : null,
         nl: v.nl ? v.nl.ok : null,
         work24: v.work24 ? v.work24.ok : null
       }
@@ -504,8 +502,7 @@ function buildBackupText(state) {
   L.push(`  디스코드: ${m.discord}`)
   L.push('')
   L.push('[외부 API 키]')
-  L.push(`  네이버 Client ID    : ${k.naverClientId}`)
-  L.push(`  네이버 Client Secret: ${k.naverClientSecret}`)
+  L.push(`  카카오 REST API 키  : ${k.kakaoRestApiKey}`)
   L.push(`  국립중앙도서관 키   : ${k.nlApiKey}`)
   L.push(`  Work24 키           : ${k.work24ApiKey}`)
   L.push('')

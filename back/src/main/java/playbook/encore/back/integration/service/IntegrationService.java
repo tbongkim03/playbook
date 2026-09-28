@@ -38,13 +38,12 @@ public class IntegrationService {
     public static final String KEY_DISCORD_LINK_CHANNEL_ID = "DISCORD_LINK_CHANNEL_ID";
     public static final String KEY_DISCORD_APPLICATION_ID = "DISCORD_APPLICATION_ID";
     public static final String KEY_WORK24_API_KEY = "WORK24_API_KEY";
-    public static final String KEY_NAVER_CLIENT_ID = "NAVER_CLIENT_ID";
-    public static final String KEY_NAVER_CLIENT_SECRET = "NAVER_CLIENT_SECRET";
+    public static final String KEY_KAKAO_REST_API_KEY = "KAKAO_REST_API_KEY";
     public static final String KEY_NL_API_KEY = "NL_API_KEY";
 
     public static final String CAT_DISCORD = "DISCORD";
     public static final String CAT_WORK24 = "WORK24";
-    public static final String CAT_NAVER = "NAVER";
+    public static final String CAT_KAKAO = "KAKAO";
     public static final String CAT_NL = "NL";
 
     private final IntegrationConfigRepository configRepository;
@@ -62,8 +61,7 @@ public class IntegrationService {
     @Value("${DISCORD_LINK_CHANNEL_ID:}") private String envLinkChannelId;
     @Value("${DISCORD_APPLICATION_ID:}") private String envApplicationId;
     @Value("${WORK24_API_KEY:}") private String envWork24Key;
-    @Value("${CLIENT_ID:}") private String envNaverClientId;
-    @Value("${CLIENT_SECRET:}") private String envNaverClientSecret;
+    @Value("${KAKAO_REST_API_KEY:}") private String envKakaoRestApiKey;
     @Value("${NL_API_KEY:}") private String envNlApiKey;
     @Value("${DISCORD_CHANNEL_SEOCHO:}") private String envChannelSeocho;
     @Value("${DISCORD_CHANNEL_GVALLEY:}") private String envChannelGvalley;
@@ -88,9 +86,20 @@ public class IntegrationService {
         seedConfig(KEY_DISCORD_LINK_CHANNEL_ID, envLinkChannelId, false, CAT_DISCORD, "디스코드 연동 안내 채널 ID");
         seedConfig(KEY_DISCORD_APPLICATION_ID, envApplicationId, false, CAT_DISCORD, "디스코드 애플리케이션(클라이언트) ID");
         seedConfig(KEY_WORK24_API_KEY, envWork24Key, true, CAT_WORK24, "Work24 훈련과정 API 키");
-        seedConfig(KEY_NAVER_CLIENT_ID, envNaverClientId, false, CAT_NAVER, "네이버 책 검색 API Client ID");
-        seedConfig(KEY_NAVER_CLIENT_SECRET, envNaverClientSecret, true, CAT_NAVER, "네이버 책 검색 API Client Secret");
+        seedConfig(KEY_KAKAO_REST_API_KEY, envKakaoRestApiKey, true, CAT_KAKAO, "카카오 책 검색 REST API 키");
         seedConfig(KEY_NL_API_KEY, envNlApiKey, true, CAT_NL, "국립중앙도서관 ISBN API 인증키");
+
+        // 네이버 책 검색 API 는 2026-07-31 대체 없이 종료됐다 → 카카오로 교체. 남은 행은 연동탭에서 숨긴다
+        retireConfig("NAVER_CLIENT_ID");
+        retireConfig("NAVER_CLIENT_SECRET");
+    }
+
+    private void retireConfig(String key) {
+        configRepository.findByConfigKey(key).ifPresent(c -> {
+            c.setUseYn("N");
+            configRepository.save(c);
+            log.info("[IntegrationService] 폐기된 설정 비활성화: {}", key);
+        });
     }
 
     private void seedConfig(String key, String envValue, boolean isSecret, String category, String description) {
@@ -191,8 +200,7 @@ public class IntegrationService {
     public String getLinkChannelId() { return getConfigValue(KEY_DISCORD_LINK_CHANNEL_ID); }
     public String getDiscordApplicationId() { return getConfigValue(KEY_DISCORD_APPLICATION_ID); }
     public String getWork24Key() { return getConfigValue(KEY_WORK24_API_KEY); }
-    public String getNaverClientId() { return getConfigValue(KEY_NAVER_CLIENT_ID); }
-    public String getNaverClientSecret() { return getConfigValue(KEY_NAVER_CLIENT_SECRET); }
+    public String getKakaoRestApiKey() { return getConfigValue(KEY_KAKAO_REST_API_KEY); }
     public String getNlApiKey() { return getConfigValue(KEY_NL_API_KEY); }
 
     public String getChannelIdByCampus(Integer campusId) {

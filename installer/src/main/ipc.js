@@ -29,7 +29,7 @@ const { maskValue } = require('./util/mask')
 // 외부 브라우저로 열어도 되는 도메인 화이트리스트
 const ALLOWED_EXTERNAL_HOSTS = new Set([
   'discord.com',
-  'developers.naver.com',
+  'developers.kakao.com',
   'www.nl.go.kr',
   'nl.go.kr',
   'www.work24.go.kr',
@@ -183,11 +183,8 @@ function register({ state, getWindow }) {
     'apikey:verify',
     safeHandler(async (which) => {
       let result
-      if (which === 'naver') {
-        result = await apikeys.verifyNaver({
-          clientId: state.get('apiKeys.naverClientId'),
-          clientSecret: state.get('apiKeys.naverClientSecret')
-        })
+      if (which === 'kakao') {
+        result = await apikeys.verifyKakao({ apiKey: state.get('apiKeys.kakaoRestApiKey') })
       } else if (which === 'nl') {
         result = await apikeys.verifyNl({ apiKey: state.get('apiKeys.nlApiKey') })
       } else if (which === 'work24') {

@@ -4,19 +4,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import playbook.encore.back.book.dto.NaverBookSearchRequestDto;
+import playbook.encore.back.book.dto.KakaoBookSearchRequestDto;
+import playbook.encore.back.common.util.AuthUtil;
 import playbook.encore.back.admin.entity.Admin;
 import playbook.encore.back.admin.dao.AdminRepository;
 import playbook.encore.back.common.response.Response;
@@ -24,10 +19,8 @@ import playbook.encore.back.common.response.ResponseCode;
 import playbook.encore.back.common.response.ResponseHandler;
 import playbook.encore.back.interceptor.LoginCheckInterceptor;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.StringReader;
-import java.net.URLEncoder;
+import java.net.URI;
+import org.springframework.web.util.UriComponentsBuilder;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -36,12 +29,6 @@ import java.util.*;
 public class NLISBNController {
 
     private final AdminRepository adminRepository;
-    @Value("${CLIENT_ID}")
-    private String clientId;
-
-    @Value("${CLIENT_SECRET}")
-    private String clientSecret;
-
     private final playbook.encore.back.course.service.Work24CourseClient work24CourseClient;
     private final playbook.encore.back.integration.service.IntegrationService integrationService;
 
@@ -53,41 +40,46 @@ public class NLISBNController {
         this.integrationService = integrationService;
     }
 
-    @PostMapping("/naver/book-search")
-    public ResponseEntity<Response> searchBook(
+    /**
+     * ISBN 으로 카카오 책 검색을 호출해 표지 이미지를 찾는다.
+     * 국립중앙도서관 결과에 표지가 없을 때 쓰는 보조 경로다 (네이버 책 검색은 2026-07-31 종료).
+     */
+    @PostMapping("/kakao/book-search")
+    public ResponseEntity<Response> searchBookCover(
             HttpServletRequest request,
-            @RequestBody @Valid NaverBookSearchRequestDto requestM) {
+            @RequestBody @Valid KakaoBookSearchRequestDto requestM) {
+        AuthUtil.requireAdmin(request);
+
+        String apiKey = integrationService.getKakaoRestApiKey();
+        if (apiKey == null || apiKey.isBlank()) {
+            return ResponseEntity.ok(ResponseHandler.error(ResponseCode.FAIL_PROCESS, "카카오 API 키가 설정되지 않았습니다."));
+        }
+
+        String cleanIsbn = requestM.getIsbn().replaceAll("[\\s-]", "");
+        URI uri = UriComponentsBuilder.fromHttpUrl("https://dapi.kakao.com/v3/search/book")
+                .queryParam("target", "isbn")
+                .queryParam("query", cleanIsbn)
+                .queryParam("size", 1)
+                .build().encode().toUri();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "KakaoAK " + apiKey);
+        headers.set("Accept", "application/json");
+
         try {
-            Object roleAttr = request.getAttribute("ROLE");
-            if (LoginCheckInterceptor.RoleType.ADMIN.equals(roleAttr)) {
-                Admin user = (Admin) request.getAttribute("admin");
-                if (adminRepository.findByIdAdmin(user.getIdAdmin()).isEmpty()) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body(ResponseHandler.invalidParam("관리자 정보가 없습니다."));
-                }
-                String url = String.format(
-                        "https://openapi.naver.com/v1/search/book_adv.xml?d_isbn=%s&display=%d",
-                        URLEncoder.encode(requestM.getIsbn(), "UTF-8"),
-                        requestM.getDisplay()
-                );
-
-                HttpHeaders headers = new HttpHeaders();
-                headers.set("X-Naver-Client-Id", clientId);
-                headers.set("X-Naver-Client-Secret", clientSecret);
-                headers.set("Accept", "application/xml");
-
-                HttpEntity<String> entity = new HttpEntity<>(headers);
-
-                RestTemplate restTemplate = new RestTemplate();
-                ResponseEntity<String> xmlResponse = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-
-                Map<String, Object> jsonResponse = convertXmlToJson(xmlResponse.getBody());
-                return ResponseEntity.ok(ResponseHandler.success(jsonResponse));
-            } else {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+            ResponseEntity<String> resp = new RestTemplate()
+                    .exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+            JsonNode docs = new ObjectMapper().readTree(resp.getBody()).path("documents");
+            if (!docs.isArray() || docs.isEmpty()) {
+                return ResponseEntity.ok(ResponseHandler.noData());
             }
+            JsonNode first = docs.get(0);
+            Map<String, String> data = new HashMap<>();
+            data.put("thumbnail", first.path("thumbnail").asText(""));
+            data.put("title", first.path("title").asText(""));
+            return ResponseEntity.ok(ResponseHandler.success(data));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
+            return ResponseEntity.ok(ResponseHandler.error(ResponseCode.FAIL_PROCESS, "카카오 책 검색 호출에 실패했습니다."));
         }
     }
 
@@ -175,70 +167,4 @@ public class NLISBNController {
         }
     }
 
-    private Map<String, Object> convertXmlToJson(String xmlString) {
-        Map<String, Object> result = new HashMap<>();
-        List<Map<String, Object>> items = new ArrayList<>();
-
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.parse(new InputSource(new StringReader(xmlString)));
-
-            doc.getDocumentElement().normalize();
-
-            NodeList channelList = doc.getElementsByTagName("channel");
-            if (channelList.getLength() > 0) {
-                Element channel = (Element) channelList.item(0);
-
-                result.put("lastBuildDate", getElementValue(channel, "lastBuildDate"));
-                result.put("total", Integer.parseInt(getElementValue(channel, "total", "0")));
-                result.put("start", Integer.parseInt(getElementValue(channel, "start", "1")));
-                result.put("display", Integer.parseInt(getElementValue(channel, "display", "0")));
-
-                NodeList itemList = channel.getElementsByTagName("item");
-                for (int i = 0; i < itemList.getLength(); i++) {
-                    Element item = (Element) itemList.item(i);
-                    Map<String, Object> itemMap = new HashMap<>();
-
-                    itemMap.put("title", getElementValue(item, "title"));
-                    itemMap.put("link", getElementValue(item, "link"));
-                    itemMap.put("image", getElementValue(item, "image"));
-                    itemMap.put("author", getElementValue(item, "author"));
-                    itemMap.put("discount", getElementValue(item, "discount"));
-                    itemMap.put("publisher", getElementValue(item, "publisher"));
-                    itemMap.put("isbn", getElementValue(item, "isbn"));
-                    itemMap.put("description", getElementValue(item, "description"));
-                    itemMap.put("pubdate", getElementValue(item, "pubdate"));
-
-                    items.add(itemMap);
-                }
-            }
-
-            result.put("items", items);
-
-        } catch (Exception e) {
-            result.put("error", "XML 파싱 실패: " + e.getMessage());
-            result.put("total", 0);
-            result.put("start", 1);
-            result.put("display", 0);
-            result.put("items", new ArrayList<>());
-        }
-
-        return result;
-    }
-
-    private String getElementValue(Element parent, String tagName) {
-        return getElementValue(parent, tagName, "");
-    }
-
-    private String getElementValue(Element parent, String tagName, String defaultValue) {
-        NodeList nodeList = parent.getElementsByTagName(tagName);
-        if (nodeList.getLength() > 0) {
-            Node node = nodeList.item(0);
-            if (node != null && node.getFirstChild() != null) {
-                return node.getFirstChild().getNodeValue();
-            }
-        }
-        return defaultValue;
-    }
 }

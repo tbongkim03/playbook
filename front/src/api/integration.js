@@ -21,6 +21,6 @@ export const testWork24 = () => axios.post('/api/integration/test/work24')
 
 export const syncWork24 = () => axios.post('/api/integration/work24/sync')
 
-export const testNaver = () => axios.post('/api/integration/test/naver')
+export const testKakao = () => axios.post('/api/integration/test/kakao')
 
 export const testNl = () => axios.post('/api/integration/test/nl')

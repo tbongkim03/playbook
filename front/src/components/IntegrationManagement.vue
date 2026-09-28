@@ -36,8 +36,8 @@
           <button class="btn btn-sm" @click="runWork24Test" :disabled="work24.loading">호출 테스트</button>
           <button class="btn btn-sm btn-ghost" @click="runWork24Sync" :disabled="work24.loading">지금 동기화</button>
         </template>
-        <template v-else-if="cat.key === 'NAVER'">
-          <button class="btn btn-sm" @click="runNaverTest" :disabled="naver.loading">호출 테스트</button>
+        <template v-else-if="cat.key === 'KAKAO'">
+          <button class="btn btn-sm" @click="runKakaoTest" :disabled="kakao.loading">호출 테스트</button>
         </template>
         <template v-else-if="cat.key === 'NL'">
           <button class="btn btn-sm" @click="runNlTest" :disabled="nl.loading">호출 테스트</button>
@@ -62,7 +62,7 @@
       </div>
 
       <p v-if="cat.key === 'WORK24' && work24.message" class="im-msg" :class="work24.ok ? 'ok' : 'err'">{{ work24.message }}</p>
-      <p v-if="cat.key === 'NAVER' && naver.message" class="im-msg" :class="naver.ok ? 'ok' : 'err'">{{ naver.message }}</p>
+      <p v-if="cat.key === 'KAKAO' && kakao.message" class="im-msg" :class="kakao.ok ? 'ok' : 'err'">{{ kakao.message }}</p>
       <p v-if="cat.key === 'NL' && nl.message" class="im-msg" :class="nl.ok ? 'ok' : 'err'">{{ nl.message }}</p>
     </section>
 
@@ -101,7 +101,7 @@ import { swAlert } from '@/utils/sweetAlert'
 const categories = [
   { key: 'DISCORD', label: '디스코드 설정' },
   { key: 'WORK24', label: 'Work24 (훈련과정)' },
-  { key: 'NAVER', label: '네이버 책 검색' },
+  { key: 'KAKAO', label: '카카오 책 검색 (표지)' },
   { key: 'NL', label: '국립중앙도서관 (ISBN)' },
 ]
 
@@ -111,7 +111,7 @@ const campusRows = ref([])
 
 const discord = reactive({ checked: false, connected: false, message: '', settingsUrl: '', guilds: [], loading: false })
 const work24 = reactive({ message: '', ok: false, loading: false })
-const naver = reactive({ message: '', ok: false, loading: false })
+const kakao = reactive({ message: '', ok: false, loading: false })
 const nl = reactive({ message: '', ok: false, loading: false })
 
 const configsByCategory = (cat) => configs.value.filter(c => c.category === cat)
@@ -237,18 +237,18 @@ async function runWork24Sync() {
   }
 }
 
-async function runNaverTest() {
-  naver.loading = true
+async function runKakaoTest() {
+  kakao.loading = true
   try {
-    const res = await integrationApi.testNaver()
+    const res = await integrationApi.testKakao()
     const d = res.data.data
-    naver.ok = d.success
-    naver.message = d.message
+    kakao.ok = d.success
+    kakao.message = d.message
   } catch (e) {
-    naver.ok = false
-    naver.message = '테스트 실패: ' + (e.response?.data?.msg || e.message)
+    kakao.ok = false
+    kakao.message = '테스트 실패: ' + (e.response?.data?.msg || e.message)
   } finally {
-    naver.loading = false
+    kakao.loading = false
   }
 }
 

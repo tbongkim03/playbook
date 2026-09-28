@@ -163,7 +163,7 @@ const SAMPLE_STATE = {
   installDir: '/tmp/pb',
   campus: { name: '서초' },
   generated: { dbPassword: 'PwAbc123', dbRootPassword: 'RootAbc123', integrationSecretKey: 'KeyAbc123' },
-  apiKeys: { naverClientId: 'nid', naverClientSecret: 'nsec', nlApiKey: 'nlkey', work24ApiKey: 'w24' },
+  apiKeys: { kakaoRestApiKey: 'kakaokey', nlApiKey: 'nlkey', work24ApiKey: 'w24' },
   apiVerify: {},
   discord: {
     botToken: 'MDAwMDAwMDAwMDAwMDAwMDAw.SAMPLE.botTokenValue',
@@ -191,8 +191,7 @@ const REQUIRED_BACK_KEYS = [
   'MASTER_PW',
   'MASTER_NAME',
   'MASTER_DISCORD',
-  'CLIENT_ID',
-  'CLIENT_SECRET',
+  'KAKAO_REST_API_KEY',
   'NL_API_KEY',
   'WORK24_API_KEY',
   'DISCORD_BOT_TOKEN',

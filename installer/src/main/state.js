@@ -22,7 +22,7 @@ const SECRET_PATHS = new Set([
   'generated.dbPassword',
   'generated.dbRootPassword',
   'generated.integrationSecretKey',
-  'apiKeys.naverClientSecret',
+  'apiKeys.kakaoRestApiKey',
   'apiKeys.nlApiKey',
   'apiKeys.work24ApiKey',
   'discord.botToken',
@@ -53,12 +53,11 @@ function defaultState() {
     },
 
     apiKeys: {
-      naverClientId: '',
-      naverClientSecret: '',
+      kakaoRestApiKey: '',
       nlApiKey: '',
       work24ApiKey: ''
     },
-    apiVerify: { naver: null, nl: null, work24: null },
+    apiVerify: { kakao: null, nl: null, work24: null },
 
     discord: {
       botToken: '',

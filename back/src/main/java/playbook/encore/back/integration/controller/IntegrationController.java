@@ -195,33 +195,32 @@ public class IntegrationController {
         }
     }
 
-    // ===== Naver: 실제 호출 테스트 =====
-    @PostMapping("/test/naver")
-    public ResponseEntity<Response> testNaver(HttpServletRequest request) {
+    // ===== Kakao: 실제 호출 테스트 (네이버 책 검색 종료로 교체) =====
+    @PostMapping("/test/kakao")
+    public ResponseEntity<Response> testKakao(HttpServletRequest request) {
         AuthUtil.requireSuperAdmin(request);
-        String clientId = integrationService.getNaverClientId();
-        String clientSecret = integrationService.getNaverClientSecret();
-        if (clientId == null || clientId.isBlank() || clientSecret == null || clientSecret.isBlank()) {
+        String apiKey = integrationService.getKakaoRestApiKey();
+        if (apiKey == null || apiKey.isBlank()) {
             return ResponseEntity.ok(ResponseHandler.success(IntegrationTestResultDto.builder()
-                    .success(false).message("네이버 API 키가 설정되지 않았습니다.").build()));
+                    .success(false).message("카카오 REST API 키가 설정되지 않았습니다.").build()));
         }
         try {
-            String url = "https://openapi.naver.com/v1/search/book.json?query=%EC%9E%90%EB%B0%94&display=1";
+            // 표본 ISBN(9788966261208)으로 실제 호출
+            String url = "https://dapi.kakao.com/v3/search/book?target=isbn&size=1&query=9788966261208";
             HttpHeaders headers = new HttpHeaders();
-            headers.set("X-Naver-Client-Id", clientId);
-            headers.set("X-Naver-Client-Secret", clientSecret);
+            headers.set("Authorization", "KakaoAK " + apiKey);
             headers.set("Accept", "application/json");
             HttpEntity<String> entity = new HttpEntity<>(headers);
             ResponseEntity<String> resp = new RestTemplate().exchange(url, HttpMethod.GET, entity, String.class);
             boolean ok = resp.getStatusCode().is2xxSuccessful();
             return ResponseEntity.ok(ResponseHandler.success(IntegrationTestResultDto.builder()
                     .success(ok)
-                    .message(ok ? "네이버 책 검색 API 호출 성공" : "네이버 API 응답 오류: " + resp.getStatusCode())
+                    .message(ok ? "카카오 책 검색 API 호출 성공" : "카카오 API 응답 오류: " + resp.getStatusCode())
                     .build()));
         } catch (Exception e) {
             return ResponseEntity.ok(ResponseHandler.success(IntegrationTestResultDto.builder()
                     .success(false)
-                    .message("네이버 API 호출 실패: " + e.getMessage())
+                    .message("카카오 API 호출 실패: " + e.getMessage())
                     .build()));
         }
     }

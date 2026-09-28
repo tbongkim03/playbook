@@ -33,8 +33,7 @@ MASTER_DISCORD=
 
 # 외부 연동 키 — 발급받은 값으로 채운다. 비워 두면 해당 연동만 동작하지 않는다.
 # 운영에서는 연동 관리 탭(전체관리자)에서 DB로 관리하며 여기 값은 최초 시드용이다.
-CLIENT_ID=
-CLIENT_SECRET=
+KAKAO_REST_API_KEY=
 NL_API_KEY=
 WORK24_API_KEY=
 DISCORD_BOT_TOKEN=

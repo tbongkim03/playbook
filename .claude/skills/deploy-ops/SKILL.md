@@ -115,7 +115,7 @@ DB healthcheck가 통과해야 `back`이 기동한다 — `back`이 안 뜨면 `
 - 애플리케이션 시크릿은 `${ENV_NAME:기본값}` 형태로 주입된다. **`application.properties`의 기본값은 개발용이며 운영에서 쓰이면 안 된다** — 특히 `INTEGRATION_SECRET_KEY`, `MASTER_PW`
 - 필요한 환경변수를 문서화할 때는 **키 이름만** 적는다
 
-주요 환경변수 키: `INTEGRATION_SECRET_KEY`, `MASTER_ID/PW/NAME/DISCORD`, `CLIENT_ID/CLIENT_SECRET`(네이버), `NL_API_KEY`, `WORK24_API_KEY`, `DISCORD_CHANNEL_*`, `MONITORING_*`, `BACK_IMAGE`/`FRONT_IMAGE`.
+주요 환경변수 키: `INTEGRATION_SECRET_KEY`, `MASTER_ID/PW/NAME/DISCORD`, `KAKAO_REST_API_KEY`(카카오 책 검색, 선택), `NL_API_KEY`, `WORK24_API_KEY`, `DISCORD_CHANNEL_*`, `MONITORING_*`, `BACK_IMAGE`/`FRONT_IMAGE`.
 
 시크릿이 이미 커밋됐다면 즉시 사용자에게 보고하고 키 로테이션 절차를 함께 제시한다. 히스토리 재작성은 사용자 승인 사항이다.
 

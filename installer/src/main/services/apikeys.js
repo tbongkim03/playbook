@@ -5,15 +5,15 @@ const { request, describeNetworkError } = require('../util/http')
 /**
  * 3단계 — 외부 API 키 실검증.
  *
- * 호출 URL·헤더는 백엔드 IntegrationController 의 testNaver/testNl/testWork24 와
+ * 호출 URL·헤더는 백엔드 IntegrationController 의 testKakao/testNl/testWork24 와
  * Work24CourseClient 를 그대로 옮긴 것이다. 마법사에서 통과한 키는 서버에서도 통과한다.
- *   - Naver : IntegrationController#testNaver
+ *   - Kakao : IntegrationController#testKakao
  *   - NL    : IntegrationController#testNl
  *   - Work24: Work24CourseClient#fetchRaw (URL_TEMPLATE)
  */
 
 const ISSUE_URLS = {
-  naver: 'https://developers.naver.com/apps/#/register',
+  kakao: 'https://developers.kakao.com/console/app',
   nl: 'https://www.nl.go.kr/NL/contents/N31101030700.do',
   work24: 'https://www.work24.go.kr/cm/z/b/openApiMain.do'
 }
@@ -23,43 +23,42 @@ function ymd(d) {
   return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`
 }
 
-/** 네이버 책 검색 API — X-Naver-Client-Id / X-Naver-Client-Secret */
-async function verifyNaver({ clientId, clientSecret }) {
-  if (!clientId || !clientSecret) {
-    return { ok: false, message: 'Client ID 와 Client Secret 을 모두 입력하세요.' }
-  }
-  const url = 'https://openapi.naver.com/v1/search/book.json?query=%EC%9E%90%EB%B0%94&display=1'
+/**
+ * 카카오 책 검색 API — Authorization: KakaoAK {REST API 키}
+ * 표지 이미지 보조 조회용이다 (네이버 책 검색은 2026-07-31 종료).
+ */
+async function verifyKakao({ apiKey }) {
+  if (!apiKey) return { ok: false, message: 'REST API 키를 입력하세요.' }
+  const url = 'https://dapi.kakao.com/v3/search/book?target=isbn&size=1&query=9788966261208'
   try {
     const res = await request(url, {
-      headers: {
-        'X-Naver-Client-Id': clientId,
-        'X-Naver-Client-Secret': clientSecret,
-        Accept: 'application/json'
-      }
+      headers: { Authorization: `KakaoAK ${apiKey}`, Accept: 'application/json' }
     })
     if (res.ok) {
-      const total = res.json && typeof res.json.total === 'number' ? res.json.total : null
+      const total = res.json && res.json.meta && typeof res.json.meta.total_count === 'number'
+        ? res.json.meta.total_count
+        : null
       return {
         ok: true,
-        message: `네이버 책 검색 API 호출 성공${total !== null ? ` (검색 결과 ${total}건)` : ''}`
+        message: `카카오 책 검색 API 호출 성공${total !== null ? ` (검색 결과 ${total}건)` : ''}`
       }
     }
     if (res.status === 401) {
-      return { ok: false, message: '인증 실패(401). Client ID 또는 Secret 이 올바르지 않습니다.' }
+      return { ok: false, message: '인증 실패(401). REST API 키가 올바르지 않습니다 (JavaScript·Admin 키가 아닌 REST API 키).' }
     }
     if (res.status === 403) {
       return {
         ok: false,
-        message: '권한 없음(403). 네이버 개발자 센터에서 이 애플리케이션에 "검색" API 사용을 추가했는지 확인하세요.'
+        message: '권한 없음(403). 카카오 디벨로퍼스 앱 설정에서 "다음 검색" 사용이 켜져 있는지 확인하세요.'
       }
     }
     if (res.status === 429) {
       return { ok: false, message: '호출 한도 초과(429). 잠시 후 다시 시도하세요.' }
     }
-    const detail = res.json && res.json.errorMessage ? ` - ${res.json.errorMessage}` : ''
-    return { ok: false, message: `네이버 API 응답 오류: HTTP ${res.status}${detail}` }
+    const detail = res.json && res.json.message ? ` - ${res.json.message}` : ''
+    return { ok: false, message: `카카오 API 응답 오류: HTTP ${res.status}${detail}` }
   } catch (e) {
-    return { ok: false, message: `네이버 API 호출 실패: ${describeNetworkError(e)}` }
+    return { ok: false, message: `카카오 API 호출 실패: ${describeNetworkError(e)}` }
   }
 }
 
@@ -138,4 +137,4 @@ async function verifyWork24({ apiKey }) {
   }
 }
 
-module.exports = { verifyNaver, verifyNl, verifyWork24, ISSUE_URLS }
+module.exports = { verifyKakao, verifyNl, verifyWork24, ISSUE_URLS }

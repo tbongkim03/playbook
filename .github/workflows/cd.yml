@@ -65,8 +65,7 @@ jobs:
           MASTER_PW=ci_master_pw_1234
           MASTER_NAME=CI관리자
           MASTER_DISCORD=ci_master_discord
-          CLIENT_ID=ci-dummy-naver-client-id
-          CLIENT_SECRET=ci-dummy-naver-client-secret
+          KAKAO_REST_API_KEY=ci-dummy-kakao-key
           NL_API_KEY=ci-dummy-nl-key
           WORK24_API_KEY=ci-dummy-work24-key
           DISCORD_CHANNEL_SEOCHO=

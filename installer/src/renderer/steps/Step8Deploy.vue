@@ -103,10 +103,10 @@ const verifiedStatus = (v) => (v === true ? 'ok' : v === false ? 'fail' : 'idle'
             <td class="mono">{{ summary.generated.integrationSecretKey }}</td>
           </tr>
           <tr>
-            <th>네이버 API</th>
+            <th>카카오 API</th>
             <td>
-              <StatusPill :status="verifiedStatus(summary.apiKeys.verified.naver)" :labels="{ ok: '검증 완료', fail: '검증 실패', idle: '미검증' }" />
-              <span class="mono faint">&nbsp;{{ summary.apiKeys.naverClientId }} / {{ summary.apiKeys.naverClientSecret }}</span>
+              <StatusPill :status="verifiedStatus(summary.apiKeys.verified.kakao)" :labels="{ ok: '검증 완료', fail: '검증 실패', idle: '미검증' }" />
+              <span class="mono faint">&nbsp;{{ summary.apiKeys.kakaoRestApiKey || '(미입력)' }}</span>
             </td>
           </tr>
           <tr>
