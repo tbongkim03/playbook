@@ -103,7 +103,17 @@ public class IntegrationService {
     }
 
     private void seedConfig(String key, String envValue, boolean isSecret, String category, String description) {
-        if (configRepository.existsByConfigKey(key)) {
+        Optional<IntegrationConfig> existing = configRepository.findByConfigKey(key);
+        if (existing.isPresent()) {
+            // 값이 있으면 운영자가 연동 탭에서 관리하는 값이므로 덮어쓰지 않는다.
+            // 비어 있는 행만 .env 로 채운다 (키 도입 전에 빈 행이 먼저 시드된 환경 대응)
+            IntegrationConfig c = existing.get();
+            boolean blank = c.getConfigValue() == null || c.getConfigValue().isBlank();
+            if (blank && envValue != null && !envValue.isBlank()) {
+                c.setConfigValue(isSecret ? crypto.encrypt(envValue) : envValue);
+                configRepository.save(c);
+                log.info("[IntegrationService] 빈 설정을 .env 값으로 채움: {}", key);
+            }
             return;
         }
         String stored = (envValue != null && !envValue.isBlank() && isSecret)

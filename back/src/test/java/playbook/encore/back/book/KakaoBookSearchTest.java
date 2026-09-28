@@ -38,12 +38,18 @@ class KakaoBookSearchTest extends BaseIntegrationTest {
     private HttpHeaders superSession;
     private HttpHeaders campusSession;
     private HttpHeaders userSession;
+    /** 공유 DB(playbookdb_local)의 원래 키 — 테스트 후 복원한다 */
+    private String originalKakaoValue;
 
     @BeforeAll
     void setup() throws Exception {
         try (Connection conn = dataSource.getConnection()) {
             ScriptUtils.executeSqlScript(conn, new ClassPathResource("sql/test_data_setup.sql"));
         }
+        originalKakaoValue = jdbcTemplate.query(
+                "SELECT config_value FROM tb_integration_config WHERE config_key = ?",
+                rs -> rs.next() ? rs.getString(1) : null,
+                IntegrationService.KEY_KAKAO_REST_API_KEY);
         clearKakaoKey();
         superSession = loginAsAdmin("test_admin_super", "Test1234!");
         campusSession = loginAsAdmin("test_admin01", "Test1234!");
@@ -52,6 +58,9 @@ class KakaoBookSearchTest extends BaseIntegrationTest {
 
     @AfterAll
     void teardown() throws Exception {
+        jdbcTemplate.update("UPDATE tb_integration_config SET config_value = ? WHERE config_key = ?",
+                originalKakaoValue, IntegrationService.KEY_KAKAO_REST_API_KEY);
+        integrationService.reloadCache();
         try (Connection conn = dataSource.getConnection()) {
             ScriptUtils.executeSqlScript(conn, new ClassPathResource("sql/test_data_teardown.sql"));
         }
