@@ -374,7 +374,13 @@ function register({ state, getWindow }) {
       await state.set('deploy.payloadStagedAt', new Date().toISOString())
 
       onLog('[2/5] 환경설정 파일(.env.prod 2종)을 생성합니다…')
-      const written = await envfile.writeEnvFiles(state.data, installDir)
+      const imageTag = composeSvc.payloadInfo(app).imageTag || null
+      onLog(
+        imageTag
+          ? `  이미지 태그: ${imageTag} (설치본에 포함된 값)`
+          : '  이미지 태그: 지정 없음 → :latest (BACK_IMAGE·FRONT_IMAGE 환경변수가 있으면 그 값이 우선)'
+      )
+      const written = await envfile.writeEnvFiles(state.data, installDir, { imageTag })
       await state.patch({
         deploy: {
           envWrittenAt: new Date().toISOString(),

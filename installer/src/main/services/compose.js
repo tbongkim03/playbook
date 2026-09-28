@@ -211,7 +211,19 @@ async function logs(installDir, service, tail = 120, profiles = []) {
   return { ok: r.ok, text: r.stdout || r.stderr }
 }
 
+/** 빌드 시 기록된 페이로드 메타(PAYLOAD.json). 없거나 깨졌으면 {} */
+function payloadInfo(app) {
+  const src = payloadRoot(app)
+  if (!src) return {}
+  try {
+    return JSON.parse(fs.readFileSync(path.join(src, 'PAYLOAD.json'), 'utf8'))
+  } catch {
+    return {}
+  }
+}
+
 module.exports = {
+  payloadInfo,
   stagePayload,
   payloadRoot,
   validateCompose,

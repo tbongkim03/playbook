@@ -18,6 +18,7 @@
  */
 import { cp, mkdir, rm, stat, writeFile, readFile, readdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -43,6 +44,31 @@ const ITEMS = [
 const EXCLUDE_BASENAMES = new Set(['.env.prod', '.env.dev', '.env.test', '.env.monitoring', '.env'])
 
 const problems = []
+
+/**
+ * 설치 시 받을 컨테이너 이미지 태그.
+ * cd.yml 은 `latest` 를 main push 때만 붙인다 — 태그(v*) 빌드 이미지는 `0.2.0-rc3` 처럼
+ * 버전 태그만 있다. 마법사가 `:latest` 를 받으려 하면 없는 이미지라 pull 이 실패한다.
+ *   ① PLAYBOOK_IMAGE_TAG 환경변수 (CI 태그 빌드가 넣어 준다. 앞의 v 는 떼어 낸다)
+ *   ② 현재 커밋에 정확히 걸린 v* git 태그
+ *   ③ 없으면 null → compose 기본값(latest)
+ */
+function resolveImageTag() {
+  const strip = (t) => String(t).trim().replace(/^v/, '')
+  if (process.env.PLAYBOOK_IMAGE_TAG && process.env.PLAYBOOK_IMAGE_TAG.trim()) {
+    return { tag: strip(process.env.PLAYBOOK_IMAGE_TAG), source: 'PLAYBOOK_IMAGE_TAG' }
+  }
+  try {
+    const t = execFileSync('git', ['describe', '--tags', '--exact-match', '--match', 'v*'], {
+      cwd: repoRoot,
+      stdio: ['ignore', 'pipe', 'ignore']
+    }).toString()
+    if (t.trim()) return { tag: strip(t), source: 'git tag' }
+  } catch {
+    /* 태그 없는 커밋이거나 git 없음 (C:\ 로 복사한 빌드 폴더 등) */
+  }
+  return { tag: null, source: null }
+}
 
 /** CI(GitHub Actions)에서는 주석(annotation)으로도 남긴다 */
 const isCI = !!process.env.GITHUB_ACTIONS
@@ -145,11 +171,14 @@ async function main() {
     problems.push(`페이로드에 .env 파일이 섞였습니다(시크릿 유출 위험): ${leaked.join(', ')}`)
   }
 
+  const image = resolveImageTag()
+
   await writeFile(
     path.join(payloadDir, 'PAYLOAD.json'),
     JSON.stringify(
       {
         generatedAt: new Date().toISOString(),
+        imageTag: image.tag,
         repoRoot,
         copied,
         missingOptional,
@@ -168,6 +197,13 @@ async function main() {
   console.log(`[prepare-payload] 복사 완료 (${copied.length}건): ${copied.join(', ')}`)
   console.log(`[prepare-payload] 마이그레이션 SQL ${payloadSql.length}개: ${payloadSql.join(', ') || '(없음)'}`)
   console.log(`[prepare-payload] compose 참조 자산: ${composeRefs.join(', ') || '(없음)'}`)
+  if (image.tag) {
+    console.log(`[prepare-payload] 이미지 태그: ${image.tag} (${image.source})`)
+  } else {
+    const w = '이미지 태그 미지정 → 설치 시 :latest 를 받습니다. 태그 빌드가 아니면 PLAYBOOK_IMAGE_TAG 를 지정하세요.'
+    console.warn(`[prepare-payload] ${w}`)
+    annotate('warning', `[payload] ${w}`)
+  }
 
   for (const w of missingOptional) {
     // compose 가 참조하는 자산이면 위 검증 1 에서 problems 로 갔다. 여기 남는 건 순수 참고용.

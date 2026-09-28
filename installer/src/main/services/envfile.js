@@ -349,8 +349,23 @@ function buildDbEnv(state) {
  * `docker compose -f docker-compose.prod.yml up -d` 를 쳐도 alloy 가 함께 뜬다.
  * (마법사는 --profile 플래그를 명시적으로 붙이므로 이 파일에 의존하지 않는다)
  */
-function buildComposeEnv(state) {
+const BACK_IMAGE_REPO = 'ghcr.io/tbongkim03/playbook-back'
+const FRONT_IMAGE_REPO = 'ghcr.io/tbongkim03/playbook-front'
+
+function buildComposeEnv(state, { imageTag } = {}) {
   const mon = state.monitoring || {}
+  // 설치본에 새겨진 이미지 태그로 고정한다. 없으면 compose 기본값(:latest)
+  const imageLines = imageTag
+    ? [
+        '# 이 설치본이 빌드될 때의 이미지 태그입니다. 롤백이 필요하면 다른 태그로 바꾸세요.',
+        { key: 'BACK_IMAGE', value: `${BACK_IMAGE_REPO}:${imageTag}` },
+        { key: 'FRONT_IMAGE', value: `${FRONT_IMAGE_REPO}:${imageTag}` }
+      ]
+    : [
+        '# 이미지 롤백이 필요하면 특정 태그로 고정하세요.',
+        `# BACK_IMAGE=${BACK_IMAGE_REPO}:sha-abc1234`,
+        `# FRONT_IMAGE=${FRONT_IMAGE_REPO}:sha-abc1234`
+      ]
   return renderEnv([
     '# docker compose 프로젝트 환경변수 — 설치 마법사가 생성했습니다.',
     '# 시크릿은 들어 있지 않습니다 (그건 back/.env.prod, db/.env.prod 에 있습니다).',
@@ -358,14 +373,12 @@ function buildComposeEnv(state) {
     '# 모니터링 사이드카(alloy)는 compose 의 profiles: [monitoring] 뒤에 있습니다.',
     { key: 'COMPOSE_PROFILES', value: mon.enabled ? 'monitoring' : '' },
     '',
-    '# 이미지 롤백이 필요하면 특정 태그로 고정하세요.',
-    '# BACK_IMAGE=ghcr.io/tbongkim03/playbook-back:sha-abc1234',
-    '# FRONT_IMAGE=ghcr.io/tbongkim03/playbook-front:sha-abc1234'
+    ...imageLines
   ])
 }
 
 /** 설치 경로에 .env 3종을 쓴다. 시크릿 파일은 0600. */
-async function writeEnvFiles(state, installDir) {
+async function writeEnvFiles(state, installDir, { imageTag } = {}) {
   const backDir = path.join(installDir, 'back')
   const dbDir = path.join(installDir, 'db')
   await fsp.mkdir(backDir, { recursive: true })
@@ -378,7 +391,7 @@ async function writeEnvFiles(state, installDir) {
 
   await fsp.writeFile(backPath, buildBackEnv(state), { encoding: 'utf8', mode: 0o600 })
   await fsp.writeFile(dbPath, buildDbEnv(state), { encoding: 'utf8', mode: 0o600 })
-  await fsp.writeFile(composePath, buildComposeEnv(state), { encoding: 'utf8', mode: 0o644 })
+  await fsp.writeFile(composePath, buildComposeEnv(state, { imageTag }), { encoding: 'utf8', mode: 0o644 })
 
   const secretFiles = [backPath, dbPath]
   let monitoringWritten = null

@@ -458,6 +458,19 @@ check('projection 이 시크릿을 가린다', () => {
   return true
 })
 
+console.log('\n[12] 이미지 태그 고정')
+check('imageTag 가 있으면 compose .env 에 BACK_IMAGE·FRONT_IMAGE 를 쓴다', () => {
+  const t = envfile.buildComposeEnv(SAMPLE_STATE, { imageTag: '0.2.0-rc9' })
+  assert(t.includes('BACK_IMAGE=ghcr.io/tbongkim03/playbook-back:0.2.0-rc9'), t)
+  assert(t.includes('FRONT_IMAGE=ghcr.io/tbongkim03/playbook-front:0.2.0-rc9'), t)
+  return true
+})
+check('imageTag 가 없으면 주석으로만 남는다 (compose 기본값 사용)', () => {
+  const t = envfile.buildComposeEnv(SAMPLE_STATE)
+  assert(!/^BACK_IMAGE=/m.test(t) && !/^FRONT_IMAGE=/m.test(t), t)
+  return true
+})
+
 console.log('\n[11] 명령 출력 스트리밍')
 {
   // compose·migration 은 onLog 로 넘긴다 — 이 출력이 버려지면 pull 실패 원인이 화면에 안 남는다

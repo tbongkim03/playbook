@@ -55,6 +55,9 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
           # electron-builder 가 GitHub 릴리스에 자동 업로드하려 드는 것을 막는다.
           GH_TOKEN: ''
+          # 설치 시 받을 이미지 태그. v* 태그 빌드면 그 버전(cd.yml 이 같은 태그로 이미지를 올린다).
+          # 브랜치 빌드는 비워 두어 prepare-payload 가 경고와 함께 :latest 로 둔다.
+          PLAYBOOK_IMAGE_TAG: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
         run: npm run build:win
 
       - name: 산출물 확인
