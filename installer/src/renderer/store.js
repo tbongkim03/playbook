@@ -44,8 +44,18 @@ async function init() {
 }
 
 async function patch(patchObj) {
-  const r = await window.wizard.patchState(patchObj)
+  // Vue ref 배열·객체는 Proxy 라 Electron IPC(구조화 복제)가 "could not be cloned" 로 거부한다.
+  // 예전엔 6단계 허용 IP 목록이 이렇게 조용히 저장되지 않아 IP_ALLOWLIST_BOOTSTRAP 이 비었다.
+  const plain = JSON.parse(JSON.stringify(patchObj ?? {}))
+  let r
+  try {
+    r = await window.wizard.patchState(plain)
+  } catch (e) {
+    toast(`설정 저장에 실패했습니다: ${e && e.message ? e.message : e}`, 'error', 9000)
+    return { ok: false, message: String(e && e.message ? e.message : e) }
+  }
   if (r && r.ok) store.state = r.state
+  else if (r && r.message) toast(`설정 저장에 실패했습니다: ${r.message}`, 'error', 9000)
   return r
 }
 
