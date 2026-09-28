@@ -69,13 +69,16 @@ function runCapture(cmd, args, { cwd, env, timeout = 60000, input } = {}) {
  * 스트리밍 실행. onLine(line, stream) 으로 한 줄씩 넘긴다.
  * secretValues 에 든 값은 출력 전에 마스킹된다.
  */
-function runStream(cmd, args, { cwd, env, input, onLine, secretValues = [], timeout = 0 } = {}) {
+function runStream(cmd, args, { cwd, env, input, onLine, onLog, secretValues = [], timeout = 0 } = {}) {
+  // 호출부(compose·migration)는 onLog 로 넘긴다. 예전엔 onLine 만 받아 docker 출력이
+  // 통째로 버려졌고, pull 실패 시 원인 없이 안내 문구만 남았다.
+  const sink = onLine || onLog
   return new Promise((resolve) => {
     const emit = (raw, stream) => {
-      if (!onLine) return
+      if (!sink) return
       for (const line of String(raw).split(/\r?\n/)) {
         if (line === '') continue
-        onLine(scrubLine(line, secretValues), stream)
+        sink(scrubLine(line, secretValues), stream)
       }
     }
 

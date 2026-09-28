@@ -458,6 +458,21 @@ check('projection 이 시크릿을 가린다', () => {
   return true
 })
 
+console.log('\n[11] 명령 출력 스트리밍')
+{
+  // compose·migration 은 onLog 로 넘긴다 — 이 출력이 버려지면 pull 실패 원인이 화면에 안 남는다
+  const { runStream } = require(path.join(root, 'src/main/services/exec.js'))
+  const lines = []
+  const r = await runStream(process.execPath, ['-e', "console.log('out-line'); console.error('err-line')"], {
+    onLog: (l) => lines.push(l)
+  })
+  check('runStream 이 onLog 로 stdout·stderr 를 전달한다', () => {
+    assert(r.ok, '명령 실패')
+    assert(lines.includes('out-line') && lines.includes('err-line'), `받은 줄: ${JSON.stringify(lines)}`)
+    return true
+  })
+}
+
 console.log(`\n결과: ${pass} 통과 / ${fail} 실패`)
 if (fail) {
   console.log('\n실패 목록:')
