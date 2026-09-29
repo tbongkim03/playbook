@@ -6,7 +6,7 @@
         <div class="header-content">
           <div class="header-icon" :class="{ 'error': isD, 'success': !isD && showBarcode }">
             <PhXCircle weight="duotone" :size="24" v-if="isD" />
-            <PhBarcode weight="duotone" :size="24" />
+            <PhBarcode weight="duotone" :size="24" v-else />
           </div>
           <div class="header-text">
             <h2 class="modal-title">바코드 출력</h2>
@@ -24,7 +24,7 @@
           <div class="status-icon">
             <PhWarning weight="duotone" :size="20" v-if="isD" />
             <PhCheck weight="duotone" :size="20" v-else-if="showBarcode" />
-            <PhCircleNotch weight="duotone" :size="20" />
+            <PhCircleNotch weight="duotone" :size="20" v-else />
           </div>
           <span class="status-text">{{ msg || '바코드 검증 중...' }}</span>
         </div>

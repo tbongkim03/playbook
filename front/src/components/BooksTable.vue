@@ -2009,4 +2009,37 @@ const refreshBooks = async () => {
   .batch-print-btn { padding: 0 10px; font-size: 12px; }
   .result-count { font-size: 12px; }
 }
+
+/* 모바일 카드: 평소에는 찾는 데 필요한 것(제목·저자·상태·바코드)만,
+   카드를 누르면(active-row) 분류·번호 같은 수정 칸이 펼쳐진다. 모든 카드에 선택 칸이 있으면 목록이 끝없이 길어진다 */
+@media (max-width: 768px) {
+  .books-table tbody tr.book-row:not(.active-row) td:is(.col-isbn, .col-publisher, .col-date, .col-category, .col-count) {
+    display: none;
+  }
+
+  .books-table tbody tr.book-row:not(.active-row) td.col-title::after {
+    content: '눌러서 수정';
+    margin-left: auto;
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--pb-color-text-soft);
+  }
+
+  .books-table tbody tr.book-row.active-row {
+    border-color: var(--pb-color-brand);
+    box-shadow: 0 0 0 1px var(--pb-color-brand);
+  }
+
+  /* 표에서 쓰던 "선택된 행" 칸 배경·왼쪽 띠는 카드에선 필요 없다 — 카드 테두리로 대신한다 */
+  .books-table tbody tr.book-row.active-row td {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .books-table tbody tr.book-row.active-row td :is(select, input:not([readonly])) {
+    flex: 1;
+    min-height: 36px;
+  }
+}
 </style>

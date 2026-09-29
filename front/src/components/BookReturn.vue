@@ -48,7 +48,7 @@
       <div v-if="message" class="message" :class="messageType">
         <div class="message-icon">
           <PhCheckCircle weight="duotone" :size="24" v-if="messageType === 'success'" />
-          <PhXCircle weight="duotone" :size="24" />
+          <PhXCircle weight="duotone" :size="24" v-else />
         </div>
         {{ message }}
       </div>

@@ -8,6 +8,24 @@
                 <h1>약관 동의</h1>
             </div>
 
+            <!-- 진행 단계 — 폼 위에 둬야 지금 몇 단계인지 먼저 보인다 -->
+            <div class="progress-indicator">
+                <div class="progress-step active">
+                    <div class="step-number">1</div>
+                    <span>약관 동의</span>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step">
+                    <div class="step-number">2</div>
+                    <span>회원 정보 입력</span>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step">
+                    <div class="step-number">3</div>
+                    <span>가입 완료</span>
+                </div>
+            </div>
+
             <!-- 약관 동의 카드 -->
             <div class="terms-card">
                 <!-- 전체 동의 -->
@@ -65,23 +83,6 @@
                 </div>
             </div>
 
-            <!-- 진행 상태 표시 -->
-            <div class="progress-indicator">
-                <div class="progress-step active">
-                    <div class="step-number">1</div>
-                    <span>약관 동의</span>
-                </div>
-                <div class="progress-line"></div>
-                <div class="progress-step">
-                    <div class="step-number">2</div>
-                    <span>회원 정보 입력</span>
-                </div>
-                <div class="progress-line"></div>
-                <div class="progress-step">
-                    <div class="step-number">3</div>
-                    <span>가입 완료</span>
-                </div>
-            </div>
 
         </div>
     </div>
@@ -398,8 +399,12 @@ function goToRegister() {
 @media (max-width: 768px) {
   .terms-wrapper { padding: 1.5rem 1rem; }
   .terms-card { padding: 1.5rem; }
-  .progress-indicator { flex-direction: column; gap: 0.75rem; }
-  .progress-line { width: 2px; height: 32px; margin: 0; }
+  /* 모바일에서도 가로 한 줄 — 세로로 세우면 단계 표시가 화면 하나를 다 먹는다 */
+  .progress-indicator { flex-direction: row; gap: 0; align-items: flex-start; }
+  /* 이름이 두 줄로 꺾여도 동그라미 높이가 맞도록 위쪽 기준, 선은 동그라미 가운데 높이에 */
+  .progress-line { width: 20px; height: 2px; margin: 16px 2px 0; flex-shrink: 0; }
+  .progress-step { width: 72px; text-align: center; }
+  .progress-step span { font-size: 12px; line-height: 1.3; word-break: keep-all; }
   .all-agree-section { padding: 1rem; }
   .section-title { flex-direction: column; text-align: center; gap: 0.5rem; }
   .title-icon { margin-right: 0; }

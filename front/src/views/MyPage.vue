@@ -245,7 +245,7 @@
                   :title="showCurrentPassword ? '비밀번호 숨기기' : '비밀번호 보기'"
                 >
                   <PhEyeSlash weight="duotone" :size="16" v-if="showCurrentPassword" />
-                  <PhEye weight="duotone" :size="16" />
+                  <PhEye weight="duotone" :size="16" v-else />
                 </button>
               </div>
             </div>
@@ -285,7 +285,7 @@
                   :title="showNewPassword ? '비밀번호 숨기기' : '비밀번호 보기'"
                 >
                   <PhEyeSlash weight="duotone" :size="16" v-if="showNewPassword" />
-                  <PhEye weight="duotone" :size="16" />
+                  <PhEye weight="duotone" :size="16" v-else />
                 </button>
               </div>
             </div>
@@ -325,7 +325,7 @@
                   :title="showConfirmPassword ? '비밀번호 숨기기' : '비밀번호 보기'"
                 >
                   <PhEyeSlash weight="duotone" :size="16" v-if="showConfirmPassword" />
-                  <PhEye weight="duotone" :size="16" />
+                  <PhEye weight="duotone" :size="16" v-else />
                 </button>
               </div>
             </div>

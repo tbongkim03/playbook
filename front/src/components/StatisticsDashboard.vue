@@ -71,7 +71,12 @@
           </div>
         </div>
         <div class="card-content">
-          <div v-if="!showFirstSortTable" class="chart-container">
+          <div v-if="!popularFirstSort.length" class="chart-empty">
+            <PhChartBar weight="duotone" :size="32" />
+            <b>이 조건의 대출 기록이 아직 없어요</b>
+            <span>기간이나 과정을 바꿔 보세요</span>
+          </div>
+          <div v-else-if="!showFirstSortTable" class="chart-container">
             <canvas ref="firstSortChart"></canvas>
           </div>
           <div v-else class="table-container">
@@ -106,7 +111,12 @@
           </div>
         </div>
         <div class="card-content">
-          <div v-if="!showSecondSortTable" class="chart-container">
+          <div v-if="!popularSecondSort.length" class="chart-empty">
+            <PhChartBar weight="duotone" :size="32" />
+            <b>이 조건의 대출 기록이 아직 없어요</b>
+            <span>기간이나 과정을 바꿔 보세요</span>
+          </div>
+          <div v-else-if="!showSecondSortTable" class="chart-container">
             <canvas ref="secondSortChart"></canvas>
           </div>
           <div v-else class="table-container">
@@ -141,7 +151,12 @@
           </div>
         </div>
         <div class="card-content">
-          <div v-if="!showRankTable" class="chart-container">
+          <div v-if="!userReadingRank.length" class="chart-empty">
+            <PhChartBar weight="duotone" :size="32" />
+            <b>이 조건의 대출 기록이 아직 없어요</b>
+            <span>기간이나 과정을 바꿔 보세요</span>
+          </div>
+          <div v-else-if="!showRankTable" class="chart-container">
             <canvas ref="userRankChart"></canvas>
           </div>
           <div v-else class="table-container">
@@ -177,7 +192,7 @@
 </template>
 
 <script setup>
-import { PhArrowsClockwise, PhChartLineUp } from '@phosphor-icons/vue'
+import { PhArrowsClockwise, PhChartBar, PhChartLineUp } from '@phosphor-icons/vue'
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import * as courseApi from '@/api/course'
@@ -221,65 +236,13 @@ const userReadingRank = ref([])
 // 과정 목록
 const courses = ref([])
 
+// 과정 목록은 읽기만 한다.
+// 예전에는 화면을 열 때마다 여기서 Work24 목록으로 과정을 만들고 지웠다 — 서버 CourseSyncScheduler 와 역할이 겹치고,
+// 캠퍼스 구분 없이 "API 에 없는 과정"을 지워 다른 캠퍼스 과정까지 지울 수 있는 구조였다.
 async function getCourseList() {
   try {
-    const res = await courseApi.getWork24()
-    const data = res.data.data
-    const apiCoursesRaw = data?.srchList || []
-
-    if (apiCoursesRaw.length === 0) return
-
-    const apiCourses = apiCoursesRaw.map(item => {
-      const title = item.title.includes(' - ') ? item.title.split(' - ')[0] : item.title
-      const fullName = `${title} ${item.trprDegr}기`
-      return {
-        nameCourse: fullName,
-        startDtCourse: item.traStartDate,
-        finishDtCourse: item.traEndDate,
-        trprDegr: item.trprDegr,
-        seqCourse: item.trprId
-      }
-    })
-
-    const dbRes = await courseApi.getAll()
-    const dbCourses = dbRes.data.data
-
-    for (const apiItem of apiCourses) {
-      const exists = dbCourses.find(dbItem => dbItem.nameCourse === apiItem.nameCourse)
-      if (!exists) {
-        await courseApi.create({
-          nameCourse: apiItem.nameCourse,
-          startDtCourse: apiItem.startDtCourse,
-          finishDtCourse: apiItem.finishDtCourse
-        })
-      }
-    }
-
-    for (const dbItem of dbCourses) {
-      const exists = apiCourses.find(apiItem => apiItem.nameCourse === dbItem.nameCourse)
-      if (!exists) {
-        await courseApi.remove(dbItem.seqCourse)
-      }
-    }
-
-    for (const apiItem of apiCourses) {
-      const dbItem = dbCourses.find(db => db.nameCourse === apiItem.nameCourse)
-      if (dbItem) {
-        const isDifferent =
-          dbItem.startDtCourse !== apiItem.startDtCourse ||
-          dbItem.finishDtCourse !== apiItem.finishDtCourse
-
-        if (isDifferent) {
-          await courseApi.update(dbItem.seqCourse, {
-            nameCourse: apiItem.nameCourse,
-            startDtCourse: apiItem.startDtCourse,
-            finishDtCourse: apiItem.finishDtCourse
-          })
-        }
-      }
-    }
-
-    const finalDbRes = await courseApi.getAll()
+    const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : undefined
+    const finalDbRes = await courseApi.getAll(campusId)
     const finalDbCourses = finalDbRes.data.data
 
     courses.value = finalDbCourses
@@ -850,5 +813,27 @@ onBeforeUnmount(() => {
   .filter-controls { flex-direction: column; align-items: stretch; }
   .filter-select { min-width: unset; }
   .chart-container { height: 240px; }
+}
+
+/* 데이터가 없을 때 빈 캔버스 대신 안내 */
+.chart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 220px;
+  color: var(--pb-color-text-soft);
+  text-align: center;
+}
+
+.chart-empty b {
+  color: var(--pb-color-heading);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.chart-empty span {
+  font-size: 12px;
 }
 </style>

@@ -93,7 +93,7 @@
                 >
                     <PhBookOpen weight="duotone" v-if="!book.bookBorrowed" class="btn-icon" />
                     <PhCaretRight weight="duotone" v-else-if="book.borrowedByMe" class="btn-icon" />
-                    <PhXCircle weight="duotone" class="btn-icon" />
+                    <PhXCircle weight="duotone" class="btn-icon" v-else />
                     {{ getButtonText() }}
                 </button>
                 
@@ -104,7 +104,7 @@
                     @click="handleWishlist"
                 >
                     <PhHeart weight="duotone" v-if="!isWishlisted" class="btn-icon" />
-                    <PhHeart weight="duotone" class="btn-icon" />
+                    <PhHeart weight="duotone" class="btn-icon" v-else />
                     {{ isWishlisted ? '찜 해제' : '찜하기' }}
                 </button>
             </div>
@@ -822,6 +822,28 @@ onMounted(async () => {
     
     .left-area, .right-area {
         min-width: auto;
+    }
+
+    /* 표지는 가운데, 제목은 한 화면에 들어오게 — 32px 제목이 세 줄을 차지하던 문제 */
+    .left-area {
+        display: flex;
+        justify-content: center;
+        padding-bottom: 0;
+    }
+
+    .left-area > div {
+        width: 100%;
+    }
+
+    .book-img {
+        display: block;
+        width: min(60%, 240px);
+        margin: 0 auto;
+    }
+
+    .book-title {
+        font-size: 1.4rem;
+        line-height: 1.35;
     }
     
     .borrowed-badge-large, .my-borrowed-badge {

@@ -98,7 +98,7 @@
                                     <!-- 눈 보이기 아이콘 -->
                                     <PhEye weight="duotone" :size="16" v-if="!showPassword" />
                                     <!-- 눈 숨기기 아이콘 -->
-                                    <PhEyeSlash weight="duotone" :size="16" />
+                                    <PhEyeSlash weight="duotone" :size="16" v-else />
                                 </button>
                             </div>
                         </div>
@@ -126,7 +126,7 @@
                         </a>
                     </div>
                     <div class="find-account-hint">
-                        <PhChatCircle weight="duotone" :size="13" style="flex-shrink:0" />
+                        <PhChatCircle weight="duotone" :size="14" style="flex-shrink:0; margin-top:2px" />
                         <span>디스코드 서버에서 <code>/findid</code> · <code>/resetpw</code> 명령어로 임시 비밀번호를 발급받을 수 있습니다</span>
                     </div>
                 </div>
@@ -554,11 +554,12 @@ async function blockJavascriptInput(event) {
   color: var(--pb-color-text-muted);
 }
 
+/* 아이콘이 문장과 떨어져 혼자 한 줄을 차지하지 않게 — 줄바꿈 없이 옆에 붙인다 */
 .find-account-hint {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
   margin-top: 0.75rem;
   font-size: 0.8rem;
@@ -605,7 +606,7 @@ async function blockJavascriptInput(event) {
   .welcome-text h1 { font-size: 2rem; }
   .welcome-text p { font-size: 1rem; }
   .toggle-btn { font-size: 0.8rem; padding: 10px 12px; min-height: 44px; }
-  .link-items { flex-direction: column; gap: 0.5rem; }
+  .link-items { flex-wrap: wrap; justify-content: center; gap: 0 4px; }
   .link-item { min-height: 44px; }
   .divider { width: 80%; height: 1px; }
   .password-input { padding-right: 76px; }
