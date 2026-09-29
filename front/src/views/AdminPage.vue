@@ -821,6 +821,52 @@ onBeforeUnmount(() => {
     padding-inline: 12px;
   }
 
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) tbody td:is([data-label='작업'], [data-label='관리'], [data-label='액션']) button svg) {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* 첫 칸이 일련번호인 표(접속 이력·감사 로그)는 번호를 작게 내리고 다음 칸을 카드 제목으로 쓴다 */
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) tbody td:first-child:is([data-label='번호'], [data-label='No'], [data-label='#'])) {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--pb-color-text-soft);
+    padding: 0;
+    margin: 0;
+    border: 0;
+    gap: 0;
+  }
+
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) tbody td:first-child:is([data-label='번호'], [data-label='No'], [data-label='#'])::before) {
+    display: inline;
+    content: '#';
+    flex: 0 0 auto;
+  }
+
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) tbody td:first-child:is([data-label='번호'], [data-label='No'], [data-label='#']) + td) {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--pb-color-heading);
+    padding-bottom: 4px;
+    margin-bottom: 2px;
+    border-bottom: 1px solid var(--pb-color-border);
+  }
+
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) tbody td:first-child:is([data-label='번호'], [data-label='No'], [data-label='#']) + td::before) {
+    display: none;
+  }
+
+  /* "데이터가 없습니다" 처럼 여러 칸을 합친 안내 행은 제목이 아니라 안내문으로 */
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) tbody td[colspan]) {
+    justify-content: center;
+    padding: 12px 0;
+    margin: 0;
+    border: 0;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--pb-color-text-soft);
+  }
+
   /* 빈 값 칸은 줄을 차지하지 않는다 */
   .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) tbody td:empty) {
     display: none;
