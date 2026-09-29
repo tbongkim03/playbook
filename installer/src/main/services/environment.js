@@ -15,7 +15,8 @@ const { runCapture, isWin } = require('./exec')
 const DOCKER_DESKTOP_URL = 'https://www.docker.com/products/docker-desktop/'
 const WSL2_DOC_URL = 'https://learn.microsoft.com/ko-kr/windows/wsl/install'
 
-const REQUIRED_PORTS = [80, 8080]
+// 18080: Windows 설치본의 front(localhost 전용) — 80 은 네이티브 프록시(Caddy)가 받는다
+const REQUIRED_PORTS = process.platform === 'win32' ? [80, 8080, 18080] : [80, 8080]
 const MIN_FREE_GB = 20
 
 async function checkDockerInstalled() {
@@ -163,6 +164,19 @@ async function checkPorts() {
       continue
     }
     const holder = holders.find((h) => h.ports.includes(`:${port}->`))
+    if (!holder && port === 80 && process.platform === 'win32') {
+      const q = await runCapture('sc.exe', ['query', 'PlaybookProxy'], { timeout: 15000 })
+      if (q.ok && /RUNNING/.test(q.stdout || '')) {
+        results.push({
+          id: `port-${port}`,
+          label: `포트 ${port} 사용 가능`,
+          status: 'warn',
+          detail: '이미 Playbook 접속 프록시(PlaybookProxy 서비스)가 사용 중입니다.',
+          hint: '재설치·업데이트라면 그대로 진행해도 됩니다.'
+        })
+        continue
+      }
+    }
     if (holder) {
       results.push({
         id: `port-${port}`,

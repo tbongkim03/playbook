@@ -230,10 +230,10 @@ function buildBackEnv(state) {
   lines.push(
     '',
     '# ── 접속 허용 IP (IpAllowlistFilter · application-prod.properties) ──',
-    '# 차단 기능 on/off. ⚠ 기본 false — Windows Docker Desktop 은 접속 IP 를 보존하지 않아',
-    '#   localhost 를 포함한 모든 접속이 Docker 게이트웨이 IP 로 보이고 전부 차단된다.',
-    '#   (installer/README.md 4.7 참조) 규칙은 아래 BOOTSTRAP 으로 미리 시드되지만 적용되지 않는다.',
-    { key: 'IP_ALLOWLIST_ENABLED', value: 'false' },
+    '# 차단 기능 on/off. 기본 false — Windows 는 네이티브 접속 프록시(Caddy)가 실제 IP 를 넘기는지',
+    '#   마법사가 검증한 뒤에만 켤 수 있다. 프록시 없이 켜면 모든 접속이 Docker 게이트웨이 IP 로 보여',
+    '#   전부 차단되거나 전부 허용된다 (installer/README.md 4.7). 규칙은 아래 BOOTSTRAP 으로 미리 시드된다.',
+    { key: 'IP_ALLOWLIST_ENABLED', value: ip.enabled ? 'true' : 'false' },
     '# 이 대역에서 온 요청에 한해 X-Forwarded-For 의 "마지막 항목"을 실제 클라이언트로 신뢰한다.',
     '# (첫 항목은 클라이언트가 위조할 수 있다 — 보안감사 S-1)',
     '# nginx(front) 컨테이너가 이 대역에 있다. 비우면 차단이 사실상 무력화된다.',
@@ -368,6 +368,17 @@ function buildComposeEnv(state, { imageTag } = {}) {
         `# BACK_IMAGE=${BACK_IMAGE_REPO}:sha-abc1234`,
         `# FRONT_IMAGE=${FRONT_IMAGE_REPO}:sha-abc1234`
       ]
+  // Windows: front 를 localhost 전용으로 게시하고 네이티브 프록시(Caddy)가 80 을 받는다
+  const px = state.proxy || {}
+  const proxyLines =
+    px.enabled && px.token
+      ? [
+          '',
+          '# 네이티브 접속 프록시 — front 는 127.0.0.1:18080 에만 게시, 80 은 Caddy 가 받는다.',
+          '# NATIVE_PROXY_TOKEN 은 Caddy 가 보내는 X-Campus-Proxy-Token 과 같아야 한다.',
+          ...require('./proxy').composeEnvEntries(px.token)
+        ]
+      : []
   return renderEnv([
     '# docker compose 프로젝트 환경변수 — 설치 마법사가 생성했습니다.',
     '# 시크릿은 들어 있지 않습니다 (그건 back/.env.prod, db/.env.prod 에 있습니다).',
@@ -375,7 +386,8 @@ function buildComposeEnv(state, { imageTag } = {}) {
     '# 모니터링 사이드카(alloy)는 compose 의 profiles: [monitoring] 뒤에 있습니다.',
     { key: 'COMPOSE_PROFILES', value: mon.enabled ? 'monitoring' : '' },
     '',
-    ...imageLines
+    ...imageLines,
+    ...proxyLines
   ])
 }
 

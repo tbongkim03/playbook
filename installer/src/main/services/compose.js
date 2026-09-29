@@ -51,6 +51,8 @@ async function stagePayload(app, installDir, onLog = () => {}) {
   const entries = await fsp.readdir(src, { withFileTypes: true })
   for (const e of entries) {
     if (e.name === 'PAYLOAD.json') continue
+    // proxy/ 는 관리자 권한으로 설치하고 ACL 을 잠근다(proxy.js). 여기서 복사하면 재설치 때 접근 거부가 난다.
+    if (e.name === 'proxy') continue
     // 저장소 루트를 직접 쓰는 개발 모드에서 불필요한 디렉터리를 걸러낸다
     if (['node_modules', '.git', 'installer', 'front', 'back', 'docs', '_workspace'].includes(e.name)) {
       if (!(e.name === 'front' && !e.isDirectory())) continue

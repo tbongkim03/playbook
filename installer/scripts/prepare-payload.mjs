@@ -19,6 +19,8 @@
 import { cp, mkdir, rm, stat, writeFile, readFile, readdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
+import { inflateRawSync } from 'node:zlib'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -44,6 +46,75 @@ const ITEMS = [
 const EXCLUDE_BASENAMES = new Set(['.env.prod', '.env.dev', '.env.test', '.env.monitoring', '.env'])
 
 const problems = []
+
+/**
+ * Windows 네이티브 접속 프록시(Caddy) — 검증한 버전으로 고정한다. 자동 최신화하지 않는다.
+ * 버전을 올릴 때는 공식 caddy_<ver>_checksums.txt 의 windows_amd64.zip SHA-512 로 함께 바꾼다.
+ */
+const CADDY = {
+  version: '2.11.4',
+  url: 'https://github.com/caddyserver/caddy/releases/download/v2.11.4/caddy_2.11.4_windows_amd64.zip',
+  sha512:
+    'cd5ccfd86a4b40732cf715890d0dca5bf3f63adefec5a7914de85adf240c60ce7e5d2791631b88ef9758e46b23bb1730e020b9c5d696889740b284ffd4788e35'
+}
+const cacheDir = path.join(installerRoot, '.cache')
+
+/** zip 에서 파일 하나를 꺼낸다 (중앙 디렉터리 기준, stored/deflate 만) */
+function unzipEntry(zip, name) {
+  let eocd = -1
+  for (let i = zip.length - 22; i >= Math.max(0, zip.length - 65557); i--) {
+    if (zip.readUInt32LE(i) === 0x06054b50) {
+      eocd = i
+      break
+    }
+  }
+  if (eocd < 0) throw new Error('zip 끝 레코드를 찾지 못했습니다')
+  const count = zip.readUInt16LE(eocd + 10)
+  let p = zip.readUInt32LE(eocd + 16)
+  for (let n = 0; n < count; n++) {
+    if (zip.readUInt32LE(p) !== 0x02014b50) throw new Error('zip 중앙 디렉터리가 손상되었습니다')
+    const method = zip.readUInt16LE(p + 10)
+    const compSize = zip.readUInt32LE(p + 20)
+    const nameLen = zip.readUInt16LE(p + 28)
+    const extraLen = zip.readUInt16LE(p + 30)
+    const commentLen = zip.readUInt16LE(p + 32)
+    const localOff = zip.readUInt32LE(p + 42)
+    const entryName = zip.toString('utf8', p + 46, p + 46 + nameLen)
+    if (entryName === name) {
+      const lNameLen = zip.readUInt16LE(localOff + 26)
+      const lExtraLen = zip.readUInt16LE(localOff + 28)
+      const data = zip.subarray(localOff + 30 + lNameLen + lExtraLen, localOff + 30 + lNameLen + lExtraLen + compSize)
+      if (method === 0) return Buffer.from(data)
+      if (method === 8) return inflateRawSync(data)
+      throw new Error(`지원하지 않는 압축 방식: ${method}`)
+    }
+    p += 46 + nameLen + extraLen + commentLen
+  }
+  throw new Error(`zip 에 ${name} 이(가) 없습니다`)
+}
+
+/** caddy.exe 를 payload/proxy 에 넣는다. 받은 zip 은 .cache 에 두고 체크섬이 맞을 때만 쓴다. */
+async function stageCaddy() {
+  await mkdir(cacheDir, { recursive: true })
+  const zipPath = path.join(cacheDir, path.basename(CADDY.url))
+  const sha = (buf) => createHash('sha512').update(buf).digest('hex')
+  let zip = existsSync(zipPath) ? await readFile(zipPath) : null
+  if (!zip || sha(zip) !== CADDY.sha512) {
+    console.log(`[prepare-payload] Caddy ${CADDY.version} 내려받는 중…`)
+    const res = await fetch(CADDY.url)
+    if (!res.ok) throw new Error(`Caddy 내려받기 실패 (HTTP ${res.status})`)
+    zip = Buffer.from(await res.arrayBuffer())
+    if (sha(zip) !== CADDY.sha512) {
+      throw new Error('Caddy zip 의 SHA-512 가 고정값과 다릅니다. 변조되었거나 버전이 바뀌었습니다')
+    }
+    await writeFile(zipPath, zip)
+  }
+  const dest = path.join(payloadDir, 'proxy')
+  await mkdir(dest, { recursive: true })
+  await writeFile(path.join(dest, 'caddy.exe'), unzipEntry(zip, 'caddy.exe'))
+  await writeFile(path.join(dest, 'CADDY-LICENSE.txt'), unzipEntry(zip, 'LICENSE'))
+  return CADDY.version
+}
 
 /**
  * 설치 시 받을 컨테이너 이미지 태그.
@@ -173,12 +244,21 @@ async function main() {
 
   const image = resolveImageTag()
 
+  // ── 네이티브 프록시 ───────────────────────────────────────────────────────
+  let caddyVersion = null
+  try {
+    caddyVersion = await stageCaddy()
+  } catch (e) {
+    problems.push(`Caddy 동봉 실패: ${e.message}`)
+  }
+
   await writeFile(
     path.join(payloadDir, 'PAYLOAD.json'),
     JSON.stringify(
       {
         generatedAt: new Date().toISOString(),
         imageTag: image.tag,
+        caddyVersion,
         repoRoot,
         copied,
         missingOptional,

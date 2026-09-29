@@ -14,7 +14,8 @@ const finishSvc = require('./services/finish')
 const master = require('./services/master')
 const bookseed = require('./services/bookseed')
 const updateSvc = require('./services/update')
-const { generateDbPassword, generateIntegrationSecretKey } = require('./util/secrets')
+const proxySvc = require('./services/proxy')
+const { generateDbPassword, generateIntegrationSecretKey, randomString } = require('./util/secrets')
 const { maskValue } = require('./util/mask')
 
 /**
@@ -376,6 +377,7 @@ function register({ state, getWindow }) {
 
       onLog('[2/5] 환경설정 파일(.env.prod 2종)을 생성합니다…')
       const imageTag = composeSvc.payloadInfo(app).imageTag || null
+      await ensureProxyToken()
       onLog(
         imageTag
           ? `  이미지 태그: ${imageTag} (설치본에 포함된 값)`
@@ -482,8 +484,21 @@ function register({ state, getWindow }) {
       await state.set('deploy.uppedAt', new Date().toISOString())
       onLog('')
       onLog('기동 완료. 백엔드가 초기화를 마칠 때까지 1~3분 걸릴 수 있습니다.')
+
+      // Windows: front 는 이제 127.0.0.1:18080 에만 떠 있다. 프록시가 없으면 80 으로 접속할 수 없다.
+      let proxyWarning = null
+      if (proxySvc.isWindows() && state.get('proxy.enabled')) {
+        onLog('')
+        const px = await installProxy(onLog)
+        if (!px.ok) {
+          proxyWarning =
+            `${px.message}\n서비스는 떠 있지만 http://localhost 로 접속할 수 없습니다. ` +
+            '10단계의 [접속 프록시 설치] 로 다시 시도하세요.'
+          onLog(proxyWarning, 'stderr')
+        }
+      }
       const status = await composeSvc.ps(installDir)
-      return { ok: true, services: status.services, state: state.projection() }
+      return { ok: true, services: status.services, proxyWarning, state: state.projection() }
     })
   )
 
@@ -583,6 +598,85 @@ function register({ state, getWindow }) {
       }
       await state.set('migration.applied', ledger)
       return { ...r, state: state.projection() }
+    })
+  )
+
+  // ── 네이티브 접속 프록시 (Windows) ──────────────────────────────────────
+  async function ensureProxyToken() {
+    if (!state.get('proxy.token')) await state.setSecret('proxy.token', randomString(48))
+  }
+
+  async function installProxy(onLog) {
+    await ensureProxyToken()
+    const r = await proxySvc.install(app, state.get('installDir'), state.get('proxy.token'), {
+      onLog,
+      secretValues: state.secretValues(),
+      profiles: composeSvc.profilesFor(state.get('monitoring.enabled'))
+    })
+    if (r.ok) await state.set('proxy.installedAt', new Date().toISOString())
+    return r
+  }
+
+  ipcMain.handle(
+    'proxy:status',
+    safeHandler(async () => ({ ok: true, service: await proxySvc.serviceStatus(), bundled: !!proxySvc.bundledCaddy(app) }))
+  )
+
+  ipcMain.handle(
+    'proxy:install',
+    safeHandler(async () => {
+      if (!state.get('deploy.uppedAt')) return { ok: false, message: '서비스를 먼저 기동하세요 (9단계).' }
+      const r = await installProxy(logger('proxy:log'))
+      return { ...r, state: state.projection() }
+    })
+  )
+
+  ipcMain.handle(
+    'proxy:verify',
+    safeHandler(async () => {
+      const master = { id: state.get('master.id'), pw: state.get('master.pw') }
+      if (!master.id || !master.pw) return { ok: false, message: '마스터 관리자 정보가 없습니다 (5단계).' }
+      const r = await proxySvc.verify(master)
+      await state.patch({ proxy: { verifiedAt: new Date().toISOString(), lastVerifyOk: r.ok } })
+      return { ...r, state: state.projection() }
+    })
+  )
+
+  /**
+   * IP 차단 켜기/끄기 — back/.env.prod 의 IP_ALLOWLIST_ENABLED 만 바꾸고 back 을 다시 만든다.
+   * `restart` 는 env_file 을 다시 읽지 않는다 — 반드시 `up -d back`.
+   * 켜기는 프록시 검증을 통과했을 때만 허용한다 (통과 못 한 상태로 켜면 잠기거나 전부 열린다).
+   * 끄기는 비상 복구 경로라 언제든 허용한다.
+   */
+  ipcMain.handle(
+    'allowlist:setEnabled',
+    safeHandler(async (enabled) => {
+      const on = enabled === true
+      const installDir = state.get('installDir')
+      const backEnv = path.join(installDir || '', 'back', '.env.prod')
+      if (!installDir || !require('node:fs').existsSync(backEnv)) {
+        return { ok: false, message: 'back/.env.prod 가 없습니다. 설치를 먼저 완료하세요.' }
+      }
+      if (on && proxySvc.isWindows() && !state.get('proxy.lastVerifyOk')) {
+        return { ok: false, message: '접속 IP 검사를 통과해야 켤 수 있습니다. [접속 IP 검사] 를 먼저 실행하세요.' }
+      }
+      const fsp = require('node:fs/promises')
+      const text = await fsp.readFile(backEnv, 'utf8')
+      await fsp.writeFile(backEnv, proxySvc.setEnvLines(text, [{ key: 'IP_ALLOWLIST_ENABLED', value: String(on) }]), {
+        encoding: 'utf8',
+        mode: 0o600
+      })
+      await state.patch({ ipAllowlist: { enabled: on } })
+      const onLog = logger('proxy:log')
+      onLog(`IP 차단을 ${on ? '켭니다' : '끕니다'} — 백엔드를 다시 만듭니다…`)
+      const r = await composeSvc.up(installDir, {
+        onLog,
+        secretValues: state.secretValues(),
+        services: ['back'],
+        profiles: composeSvc.profilesFor(state.get('monitoring.enabled'))
+      })
+      if (!r.ok) return { ok: false, message: '백엔드 재생성 실패. 위 로그를 확인하세요.', state: state.projection() }
+      return { ok: true, enabled: on, state: state.projection() }
     })
   )
 

@@ -86,6 +86,13 @@ contextBridge.exposeInMainWorld('wizard', {
   createShortcut: () => invoke('finish:shortcut'),
   saveBackup: () => invoke('backup:save'),
 
+  // ── 네이티브 접속 프록시 (Windows) ──
+  proxyStatus: () => invoke('proxy:status'),
+  proxyInstall: () => invoke('proxy:install'),
+  proxyVerify: () => invoke('proxy:verify'),
+  setAllowlistEnabled: (enabled) => invoke('allowlist:setEnabled', enabled),
+  onProxyLog: (handler) => subscribe('proxy:log', handler),
+
   // ── 설치 후 업데이트 ──
   updateCheck: () => invoke('update:check'),
   updateRun: (targetTag) => invoke('update:run', targetTag),

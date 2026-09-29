@@ -119,7 +119,8 @@ async function startServices() {
     if (r.ok) {
       servicesStarted.value = true
       services.value = r.services || []
-      toast('서비스를 기동했습니다.', 'success')
+      if (r.proxyWarning) toast(r.proxyWarning, 'error', 12000)
+      else toast('서비스를 기동했습니다.', 'success')
     } else {
       toast(r.message || '서비스 기동에 실패했습니다.', 'error', 9000)
     }

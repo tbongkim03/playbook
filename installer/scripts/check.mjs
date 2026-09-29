@@ -58,7 +58,8 @@ const MODULES = [
   'src/main/services/migration.js',
   'src/main/services/master.js',
   'src/main/services/finish.js',
-  'src/main/services/update.js'
+  'src/main/services/update.js',
+  'src/main/services/proxy.js'
 ]
 for (const m of MODULES) {
   check(m, () => {
@@ -559,6 +560,57 @@ console.log('\n[15] 설치 후 업데이트')
     assert(!upd.isSyncPath('db/migration/../../.env'), '.. 허용됨')
     assert(!upd.isSyncPath('back/.env.prod'), '범위 밖 허용됨')
     assert(!upd.isSyncPath('db/init/init.sql'), '최초 설치용 init 은 받지 않는다')
+    return true
+  })
+}
+
+console.log('\n[16] 네이티브 접속 프록시 (Windows · Caddy)')
+{
+  const px = require(path.join(root, 'src/main/services/proxy.js'))
+  const token = 'A'.repeat(48)
+  check('Caddyfile — admin off · 전달 헤더 제거 · 실제 IP·토큰 전달', () => {
+    const c = px.buildCaddyfile(token, 'C:\\Playbook\\proxy\\logs')
+    assert(/admin off/.test(c), 'admin off 없음')
+    for (const h of ['-X-Forwarded-For', '-X-Real-IP', '-Forwarded']) assert(c.includes(`header_up ${h}`), `${h} 제거 없음`)
+    assert(c.includes('header_up X-Campus-Client-IP {remote_host}'), '실제 IP 전달 없음')
+    assert(c.includes(`X-Campus-Proxy-Token "${token}"`), '토큰 전달 없음')
+    assert(c.includes(`127.0.0.1:${px.FRONT_PORT}`), 'localhost 전용 front 로 넘기지 않음')
+    return true
+  })
+  check('Caddyfile — 짧거나 이상한 토큰 거부', () => {
+    for (const bad of ['', 'short', 'A'.repeat(40) + '"; evil']) {
+      let threw = false
+      try {
+        px.buildCaddyfile(bad, 'x')
+      } catch {
+        threw = true
+      }
+      assert(threw, `거부하지 않음: ${bad}`)
+    }
+    return true
+  })
+  check('설치 스크립트 — LocalService · Private/Domain 방화벽 · 로그만 쓰기', () => {
+    const s = px.buildInstallScript({ caddySrc: "C:\\a'b\\caddy.exe", caddyfileSrc: 'C:\\t\\Caddyfile', dir: 'C:\\Playbook\\proxy', resultFile: 'C:\\t\\r.txt' })
+    assert(/obj= 'NT AUTHORITY\\LocalService'/.test(s), 'LocalService 아님')
+    assert(/-Profile Private,Domain/.test(s), '방화벽 프로필 제한 없음')
+    assert(/-Program \$exe/.test(s), '방화벽이 프로그램에 묶이지 않음')
+    assert(/S-1-5-19:\(OI\)\(CI\)RX/.test(s) && /S-1-5-19:\(OI\)\(CI\)M/.test(s), 'LocalService 권한이 읽기/로그 쓰기로 나뉘지 않음')
+    assert(s.includes("'C:\\a''b\\caddy.exe'"), '작은따옴표 이스케이프 누락')
+    return true
+  })
+  check('compose .env — front 를 127.0.0.1:18080 에만 게시', () => {
+    const e = px.setEnvLines('COMPOSE_PROFILES=\n', px.composeEnvEntries(token))
+    assert(/^FRONT_BIND=127\.0\.0\.1$/m.test(e) && /^FRONT_PORT=18080$/m.test(e), e)
+    assert(new RegExp(`^NATIVE_PROXY_TOKEN=${token}$`, 'm').test(e), '토큰 없음')
+    return true
+  })
+  check('저장소 설정과 계약이 맞다 (compose 포트 변수 · nginx 토큰 비교)', () => {
+    const compose = readFileSync(path.join(repoRoot, 'docker-compose.prod.yml'), 'utf8')
+    assert(compose.includes('"${FRONT_BIND:-0.0.0.0}:${FRONT_PORT:-80}:80"'), 'compose front 포트가 변수가 아님')
+    assert(compose.includes('NATIVE_PROXY_TOKEN: ${NATIVE_PROXY_TOKEN:-}'), 'compose 가 토큰을 넘기지 않음')
+    const conf = readFileSync(path.join(repoRoot, 'front/nginx-prod.conf'), 'utf8')
+    assert(conf.includes('"$http_x_campus_proxy_token:${NATIVE_PROXY_TOKEN}"'), 'nginx 가 토큰을 비교하지 않음')
+    assert(!/X-Forwarded-For\s+\$remote_addr/.test(conf), 'nginx 가 아직 $remote_addr 를 XFF 로 보냄')
     return true
   })
 }

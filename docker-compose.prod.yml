@@ -74,8 +74,14 @@ services:
     # FRONT_IMAGE 환경변수로 롤백 가능: FRONT_IMAGE=ghcr.io/tbongkim03/playbook-front:sha-abc1234
     image: ${FRONT_IMAGE:-ghcr.io/tbongkim03/playbook-front:latest}
     container_name: front-prod
+    # Windows 설치본은 FRONT_BIND=127.0.0.1 / FRONT_PORT=18080 으로 localhost 에만 게시하고
+    # 네이티브 Caddy 가 80 을 받는다 (Docker Desktop 은 접속 IP 를 보존하지 않는다 — nginx-prod.conf 참고).
+    # 값이 없으면 기존처럼 0.0.0.0:80 (리눅스 설치본).
     ports:
-      - "80:80"
+      - "${FRONT_BIND:-0.0.0.0}:${FRONT_PORT:-80}:80"
+    environment:
+      # 네이티브 프록시가 보내는 X-Campus-Proxy-Token 과 비교할 값. 비어 있으면 그 헤더를 믿지 않는다.
+      NATIVE_PROXY_TOKEN: ${NATIVE_PROXY_TOKEN:-}
     depends_on:
       - back
     networks:

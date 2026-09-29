@@ -191,34 +191,39 @@ DB(`tb_campus_channel.discord_role_id`)에서만 읽습니다. `IntegrationServi
 
 `restart` 는 `.env.prod` 를 다시 읽지 않습니다 — 바꾼 값을 반영하려면 `up -d` 로 컨테이너를 다시 만들어야 합니다.
 
-### 4.7 Windows Docker Desktop 에서는 IP 허용목록이 동작하지 않습니다 (미해결)
+### 4.7 Windows Docker Desktop 의 접속 IP 문제 → 네이티브 접속 프록시(Caddy)로 해결
 
 **현상** (2026-09-28 Windows 실기 설치, `v0.2.0-rc6`)
 허용 대역을 등록하고 차단을 켜자 **설치 PC 의 `localhost` 접속까지** `403 · IP_NOT_ALLOWED` 로 막혔다.
+Docker Desktop(Windows) 은 게시 포트로 들어온 접속의 **원래 IP 를 보존하지 않아**, 모든 접속이 Docker 게이트웨이
+(`172.31.240.x`)에서 온 것으로 보였다. 그래서 LAN 대역 규칙은 아무 접속과도 맞지 않았고(전부 차단),
+관리자 화면이 추천하는 "내 대역"(= Docker 대역)을 등록하면 반대로 전부 허용됐다.
 
-**원인 (추정 — 로그로 확정 필요)**
-Docker Desktop(Windows) 은 게시 포트로 들어온 접속을 내부 게이트웨이를 거쳐 컨테이너에 넘기며
-**원래 접속 IP 를 보존하지 않는다.** nginx 의 `$remote_addr` 가 실제 PC IP 가 아니라 Docker 내부 IP 가 되고,
-nginx 가 그 값을 `X-Forwarded-For` 로 넘기므로 백엔드도 모든 접속을 같은 IP 로 본다.
+**해결 구조** (Windows 설치본만. 리눅스는 컨테이너가 실제 IP 를 보므로 기존 구조 그대로)
+```
+다른 PC 192.168.0.23 ─▶ Caddy(Windows 서비스, :80) ─▶ 127.0.0.1:18080 front(nginx 컨테이너) ─▶ back
+                        · 클라이언트가 보낸 XFF 등 제거      · 토큰이 맞을 때만 X-Campus-Client-IP 를 믿고
+                        · X-Campus-Client-IP = 직접 본 IP      X-Forwarded-For 로 바꿔 back 에 넘김
+                        · X-Campus-Proxy-Token = 설치 토큰    · 아니면 $remote_addr (기존 동작)
+```
+- front 는 `FRONT_BIND=127.0.0.1`, `FRONT_PORT=18080` 으로 **localhost 에만** 게시한다 (compose `.env`). Caddy 가 멈추면 외부 접속은 실패하지만 Docker 포트가 밖으로 열리지는 않는다
+- 토큰(`NATIVE_PROXY_TOKEN`, 48자)은 설치마다 생성한다. front 는 정규식 역참조로 "헤더값 == 토큰" 을 비교하고 32자 미만은 인정하지 않는다 — 토큰이 빈 설치본에서는 어떤 요청도 신뢰되지 않는다
+- 백엔드는 바뀌지 않는다. front 가 신뢰 프록시 대역(`172.31.240.0/24`)에서 단일 IP 로 XFF 를 넘기는 기존 계약 그대로다
 
-- 루프백(`127.0.0.1`/`::1`)은 상시 허용인데 `localhost` 가 막혔다 → 백엔드가 본 IP 가 루프백이 아니다
-- 따라서 LAN 대역 규칙은 어떤 접속과도 맞지 않는다 (전부 차단)
-- 반대로 그 게이트웨이 IP 를 허용하면 모든 접속이 통과한다 (차단 무력화)
+**Caddy 운영 원칙**
+- 버전 고정 `2.11.4` — `prepare-payload.mjs` 가 공식 zip 을 받아 SHA-512 를 고정값과 대조한 뒤 동봉한다. 자동 최신화하지 않는다
+- `admin off`, `auto_https off`, `persist_config off`. 설정을 바꾸면 서비스를 재시작한다 (마법사 [다시 설치])
+- 서비스 `PlaybookProxy`, 계정 `LocalService`. `설치경로\proxy` 는 상속을 끊고 관리자·SYSTEM 전체 / LocalService 읽기, `proxy\logs` 만 LocalService 쓰기
+- 방화벽: TCP 80 인바운드를 `caddy.exe` 에만, **개인·도메인 네트워크 프로필에만** 허용. 캠퍼스 Wi-Fi 가 "공용" 으로 잡혀 있으면 다른 기기가 접속하지 못한다 → Windows 설정에서 네트워크를 "개인" 으로 바꾼다
+- 설치·재설치는 관리자 권한(UAC) 확인 창을 한 번 띄운다
 
-확정 방법: 차단 상태에서 설치 PC·다른 PC 로 각각 접속한 뒤
-`docker logs back-prod 2>&1 | Select-String "차단 - ip="` 의 `ip=` 가 둘 다 같은 Docker 내부 IP 인지 본다.
+**마법사 흐름**
+1. 9단계 서비스 기동 직후 프록시를 자동 설치한다 (UAC 를 취소하면 10단계에서 다시 설치)
+2. 10단계 **[접속 IP 검사]** — 마스터 계정으로 `localhost` 와 이 PC 의 LAN IP 로 각각 로그인해 `my-ip` 를 조회한다. 각각 루프백·LAN IP 로 보여야 통과. `172.31.240.x` 로 보이면 front 이미지가 구버전이다 → [업데이트] 후 다시 설치
+3. 검사를 통과해야 **[IP 차단 켜기]** 가 활성화된다. **[끄기]** 는 비상 복구용으로 언제든 가능하다 (`back/.env.prod` 의 `IP_ALLOWLIST_ENABLED` 를 바꾸고 `up -d back`)
+4. 다른 기기에서도 관리자 화면 > 접속 허용 IP 의 "현재 접속 IP" 가 그 기기의 실제 IP 인지 확인한다
 
-**현재 조치**
-- 마법사는 `IP_ALLOWLIST_ENABLED=false` 로 설치한다. 6단계 대역은 `IP_ALLOWLIST_BOOTSTRAP` 으로 DB 에 시드되지만 적용되지 않는다
-- 관리자 탭의 허용 IP 관리 화면은 그대로 동작한다 (규칙 저장만 되고 판정은 꺼져 있음)
-
-**대안 (결정 필요)**
-
-| 방식 | 내용 | 단점 |
-|------|------|------|
-| A. Windows 방화벽 | 마법사가 80 포트 인바운드를 허용 대역만 받도록 방화벽 규칙을 만든다. Windows 방화벽은 실제 IP 를 본다 | 관리자 탭 규칙 변경이 방화벽에 자동 반영되지 않는다 (호스트 측 동기화 필요) |
-| B. WSL 에 Docker 엔진 직접 설치 | Docker Desktop 대신 WSL 의 dockerd + 미러 네트워크로 원래 IP 보존을 노린다 | 설치 난이도 상승, IP 보존 여부 실측 필요 |
-| C. 앱 차단을 끄고 네트워크 장비에 맡김 | 공유기·캠퍼스 방화벽에서 제한 | 요구사항 1("허용 IP 에서만 접속")을 앱 밖에서 충족 |
+**남은 과제** — 관리자 화면: 새 규칙 적용 시 현재 관리자 IP 자동 포함, 적용 후 확인 없으면 자동 롤백, Docker 대역(신뢰 프록시와 겹치는 대역) 규칙 등록 거부
 
 ### 4.8 실기 설치 테스트에서 발견·수정한 문제 (2026-09-28)
 

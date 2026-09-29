@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { store, toast } from '../store'
 import StepNav from '../components/StepNav.vue'
 import StatusPill from '../components/StatusPill.vue'
+import ProxyPanel from '../components/ProxyPanel.vue'
 
 const health = ref(null)
 const checking = ref(false)
@@ -128,6 +129,8 @@ const needsRoleMapping = computed(() => !!(d.value && !d.value.skipped && d.valu
       </tbody>
     </table>
   </div>
+
+  <ProxyPanel />
 
   <h2 class="section-title">마무리</h2>
   <div class="card">

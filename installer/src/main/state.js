@@ -27,7 +27,8 @@ const SECRET_PATHS = new Set([
   'apiKeys.work24ApiKey',
   'discord.botToken',
   'master.pw',
-  'monitoring.bootstrapSecret'
+  'monitoring.bootstrapSecret',
+  'proxy.token'
 ])
 
 const STATE_VERSION = 2
@@ -76,7 +77,17 @@ function defaultState() {
 
     master: { id: '', pw: '', name: '', discord: '' },
 
-    ipAllowlist: { detected: null, entries: [], acknowledgedEmpty: false },
+    // enabled: IP_ALLOWLIST_ENABLED. 네이티브 프록시 검증을 통과하기 전에는 켜지 않는다 (proxy.lastVerifyOk)
+    ipAllowlist: { detected: null, entries: [], acknowledgedEmpty: false, enabled: false },
+
+    // Windows 네이티브 접속 프록시(Caddy) — Docker Desktop 이 접속 IP 를 보존하지 않아서 둔다 (proxy.js)
+    proxy: {
+      enabled: process.platform === 'win32',
+      token: '',
+      installedAt: null,
+      verifiedAt: null,
+      lastVerifyOk: false
+    },
 
     monitoring: {
       enabled: false,
