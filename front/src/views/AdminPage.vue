@@ -702,6 +702,13 @@ onBeforeUnmount(() => {
     flex-shrink: 0;
   }
 
+  /* 아주 좁은 화면(380px 미만)의 2열 숫자 카드는 아이콘이 이름 칸을 72px 까지 밀어 "대출 가능/학생" 처럼 꺾인다 → 아이콘을 뺀다 */
+  @media (max-width: 379px) {
+    .admin-main :deep(:is(.stats-grid, .stats-section) > * :is(.stat-icon, [class*='-icon'])) {
+      display: none;
+    }
+  }
+
   /* 모바일 표 → 카드. 가로 스크롤 표는 한 행을 보려고 좌우로 계속 밀어야 해서 읽기 힘들다.
      탭마다 표 틀 이름이 달라 여기서 한 번에 잡고, 항목명은 useTableCardLabels 가 td 에 붙인 data-label 을 쓴다. */
   .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap)) {

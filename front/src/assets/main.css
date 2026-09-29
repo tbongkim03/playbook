@@ -15,6 +15,21 @@ body {
   font-weight: normal;
   color: var(--pb-color-text);
   background: var(--pb-color-canvas);
+  /* 한국어는 띄어쓰기 단위로만 끊는다. 기본값은 글자 어디서나 끊어서 좁아지면 "상세보/기" 처럼 깨진다.
+     공백 없는 긴 문자열(ISBN·바코드·URL)은 넘칠 때만 끊는다 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* ── 글자 깨짐 방지 (2026-09 전수 점검: 10개 해상도 × 18개 화면) ──
+   버튼·배지·페이지 정보는 한 줄이 원칙이다. 자리가 모자라면 글자를 욱여넣지 말고
+   버튼이 통째로 다음 줄로 넘어가야 한다 → 버튼이 둘 이상 나란한 줄은 줄바꿈을 허용한다 */
+#app :is(button, .btn, [class*='badge'], .gl-pagination-info) {
+  white-space: nowrap;
+}
+
+#app :is(div, nav, section):not(.user-section, .user-info):has(> :is(button, .btn) + :is(button, .btn)) {
+  flex-wrap: wrap;
 }
 
 a {

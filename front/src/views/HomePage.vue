@@ -12,7 +12,12 @@
           <!-- 대분류 네비게이션 포함 -->
           <nav class="nav-bar">
               <!-- 왼쪽: 카테고리 목록 -->
-              <div class="nav-left">
+              <div
+                ref="navLeftRef"
+                class="nav-left"
+                :class="{ 'is-overflowing': navOverflow.overflowing, 'at-end': navOverflow.atEnd }"
+                @scroll.passive="updateNavOverflow"
+              >
                   <ul class="nav">
                   <li class="nav-item">
                       <a
@@ -330,6 +335,17 @@ const isLargeCategoryActive = (largeCategoryName) => {
   return false
 }
 
+// 분류 목록이 가로로 넘치는지 — 넘칠 때만 오른쪽 끝을 흐리게 한다
+const navLeftRef = ref(null)
+const navOverflow = ref({ overflowing: false, atEnd: true })
+const updateNavOverflow = () => {
+  const el = navLeftRef.value
+  if (!el) return
+  const overflowing = el.scrollWidth > el.clientWidth + 1
+  navOverflow.value = { overflowing, atEnd: !overflowing || el.scrollLeft + el.clientWidth >= el.scrollWidth - 1 }
+}
+let navResizeObserver = null
+
 // 대분류(또는 중분류)를 골라 둔 상태인지 — 이때 중분류 줄은 흐름 안에 고정된다
 const hasCategorySelection = computed(() =>
   !!(selectedMediumCategory.value || (selectedLargeCategory.value && selectedLargeCategory.value !== '전체'))
@@ -594,10 +610,17 @@ onMounted(async () => {
   selectedLargeCategory.value = '전체'
   await loadBooks(1)
   window.addEventListener('keydown', handleKeydown)
+  // 분류가 불러와진 뒤·창 크기가 바뀔 때 넘침 여부를 다시 잰다
+  updateNavOverflow()
+  if (navLeftRef.value && 'ResizeObserver' in window) {
+    navResizeObserver = new ResizeObserver(updateNavOverflow)
+    navResizeObserver.observe(navLeftRef.value)
+  }
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeydown)
+  navResizeObserver && navResizeObserver.disconnect()
 })
 
 </script>
@@ -649,19 +672,41 @@ onBeforeUnmount(() => {
   border-bottom: 1px solid var(--pb-color-border);
 }
 
+/* 분류가 한 줄에 다 안 들어가는 폭(태블릿 등)에서도 줄을 늘리지 않고 가로로 넘긴다.
+   Bootstrap .nav 의 기본값 flex-wrap: wrap 때문에 820px 에서 세 줄로 꺾여 고정 높이 바 밖으로 넘쳤다 */
 .nav-left {
   display: flex;
   flex: 1;
-  overflow: hidden;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.nav-left::-webkit-scrollbar {
+  display: none;
+}
+
+/* 넘칠 때만 오른쪽 끝을 흐려 "분류가 더 있다"는 걸 알린다 (스크롤바를 숨겨서 단서가 없다) */
+.nav-left.is-overflowing:not(.at-end) {
+  mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
 }
 
 .nav {
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 4px;
   margin: 0;
   padding: 0;
   list-style: none;
+  white-space: nowrap;
+}
+
+.nav-item {
+  flex-shrink: 0;
 }
 
 .nav-item {
@@ -673,6 +718,8 @@ onBeforeUnmount(() => {
   justify-content: flex-end;
   align-items: center;
   min-width: 320px;
+  flex-shrink: 0;
+  margin-left: 16px;
 }
 
 .search-component {
@@ -1069,6 +1116,17 @@ onBeforeUnmount(() => {
 /* ────────────────────────────────────────────────
    반응형: 1024px 이하
 ──────────────────────────────────────────────── */
+/* 1280px 이하: 검색창을 줄여 분류를 더 보이게 */
+@media (max-width: 1280px) {
+  .nav-right {
+    min-width: 240px;
+  }
+
+  .search-component {
+    width: 240px;
+  }
+}
+
 @media (max-width: 1024px) {
   .nav-bar {
     padding-inline: 18px;
@@ -1076,8 +1134,8 @@ onBeforeUnmount(() => {
 
   .nav-right,
   .search-component {
-    min-width: 260px;
-    width: 260px;
+    min-width: 220px;
+    width: 220px;
   }
 
   .header-top {

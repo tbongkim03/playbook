@@ -1063,11 +1063,12 @@ async function handleSubmit() {
   .progress-indicator { flex-direction: row; gap: 0; align-items: flex-start; }
   /* 이름이 두 줄로 꺾여도 동그라미 높이가 맞도록 위쪽 기준, 선은 동그라미 가운데 높이에 */
   .progress-line { width: 20px; height: 2px; margin: 16px 2px 0; flex-shrink: 0; }
-  .progress-step { width: 72px; text-align: center; }
-  .progress-step span { font-size: 12px; line-height: 1.3; word-break: keep-all; }
+  .progress-step { min-width: 64px; text-align: center; }
+  .progress-step span { font-size: 12px; line-height: 1.3; white-space: nowrap; }
   .form-section { padding: 1rem; }
   .password-input { padding-right: 72px; }
   .section-header { flex-wrap: wrap; gap: 8px; }
+  .section-header h3 { white-space: nowrap; }
 }
 
 @media (max-width: 480px) {

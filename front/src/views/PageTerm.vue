@@ -403,8 +403,8 @@ function goToRegister() {
   .progress-indicator { flex-direction: row; gap: 0; align-items: flex-start; }
   /* 이름이 두 줄로 꺾여도 동그라미 높이가 맞도록 위쪽 기준, 선은 동그라미 가운데 높이에 */
   .progress-line { width: 20px; height: 2px; margin: 16px 2px 0; flex-shrink: 0; }
-  .progress-step { width: 72px; text-align: center; }
-  .progress-step span { font-size: 12px; line-height: 1.3; word-break: keep-all; }
+  .progress-step { min-width: 64px; text-align: center; }
+  .progress-step span { font-size: 12px; line-height: 1.3; white-space: nowrap; }
   .all-agree-section { padding: 1rem; }
   .section-title { flex-direction: column; text-align: center; gap: 0.5rem; }
   .title-icon { margin-right: 0; }
