@@ -36,7 +36,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   <li>도서번호 있음 + DB 에 존재 → UPDATE</li>
  *   <li>도서번호 <b>비어 있음</b> + {@code allowInsert=true} → INSERT</li>
  *   <li>도서번호 <b>비어 있음</b> + {@code allowInsert=false}(기본) → 건너뜀</li>
- *   <li>도서번호 있음 + DB 에 없음 → 오류 (오타를 신규 등록으로 처리하면 중복이 쌓인다)</li>
+ *   <li>도서번호 있음 + DB 에 없음 + {@code allowInsert=false} → 오류 (오타를 신규 등록으로 처리하면 중복이 쌓인다)</li>
+ *   <li>도서번호 있음 + DB 에 없음 + {@code allowInsert=true} → 새 번호로 INSERT (2026-09-29 —
+ *       다른 서버에서 내보낸 파일을 마법사에 그대로 올리면 도서번호가 전부 채워져 있어 전건 오류가 났다)</li>
+ *   <li>도서번호 있음 + DB 에 존재 + {@code allowInsert=true} + ISBN 불일치 → 오류 (옛 번호가 다른 책을 덮어쓰지 않게)</li>
  * </ul>
  *
  * <p>{@code allowInsert} 는 <b>설치 마법사 전용</b>이다. 관리자 화면은 이 값을 보내지 않아
@@ -201,12 +204,12 @@ class BookImportControllerTest extends BaseIntegrationTest {
 
     @Test
     @Order(5)
-    @DisplayName("BI5: 존재하지 않는 도서번호는 오류다 (신규 등록으로 처리하지 않는다)")
+    @DisplayName("BI5: 관리자 화면에서 존재하지 않는 도서번호는 오류다 (신규 등록으로 처리하지 않는다)")
     void BI5_없는번호_오류() throws Exception {
         List<String> bogus = List.of("999999", "TEST 없는번호", "9791100000002", "저자", "출판사",
                 "2024-01-01", "일반", "일반", "1", "대출가능", "TEST_IMP005",
                 "https://test.img/x.jpg", "미출력");
-        JsonNode d = upload(workbook(List.of(bogus)), adminSession);
+        JsonNode d = upload(workbook(List.of(bogus)), adminSession, false);
 
         assertThat(d.get("inserted").asInt()).as("오타 번호가 신규 등록되면 중복 도서가 쌓인다").isZero();
         assertThat(d.get("updated").asInt()).isZero();
@@ -353,6 +356,64 @@ class BookImportControllerTest extends BaseIntegrationTest {
         // 마법사가 이 단계에서 멈춘 것처럼 보이면 안 된다. 넉넉히 잡되 상한은 둔다.
         assertThat(elapsed).as("672권 등록에 %dms 소요 — 너무 느리면 마법사 UX 가 깨진다", elapsed)
                 .isLessThan(60_000L);
+    }
+
+    @Test
+    @Order(14)
+    @DisplayName("BI14: 마법사에서 이 DB 에 없는 도서번호는 새 번호로 신규 등록된다 (내보내기 파일 그대로 이관)")
+    void BI14_마법사_없는번호_신규등록() throws Exception {
+        List<String> migrated = List.of("999999", "TEST 이관도서", "9791100000012", "저자", "출판사",
+                "2024-01-01", "일반", "일반", "1", "대출가능", "TEST_IMP012",
+                "https://test.img/m.jpg", "출력됨");
+        JsonNode d = upload(workbook(List.of(migrated)), adminSession);
+
+        assertThat(d.get("inserted").asInt()).isEqualTo(1);
+        assertThat(d.get("errors")).isEmpty();
+
+        // 옛 서버의 번호를 그대로 쓰지 않는다 — 새 DB 의 자동 증가 번호를 받는다
+        Integer seq = jdbcTemplate.queryForObject(
+                "SELECT seq_book FROM tb_book WHERE barcode_book = 'TEST_IMP012'", Integer.class);
+        assertThat(seq).isNotEqualTo(999999);
+    }
+
+    @Test
+    @Order(15)
+    @DisplayName("BI15: 마법사 업로드 중 새로 발급된 번호가 뒤쪽 행의 옛 번호와 겹쳐도 덮어쓰지 않는다")
+    void BI15_마법사_번호겹침_덮어쓰기없음() throws Exception {
+        // 다음에 발급될 번호를 N 이라 하면, 1행(옛 번호 N+1)이 N 으로 등록된다.
+        // 2행의 옛 번호가 N 이면 "방금 등록된 1행 도서" 가 DB 에 있으므로, 업로드 시작 시점
+        // 기준으로 판정하지 않으면 2행이 1행 도서를 덮어쓴다.
+        Long next = jdbcTemplate.queryForObject(
+                "SELECT AUTO_INCREMENT FROM information_schema.TABLES "
+                        + "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'tb_book'", Long.class);
+        List<String> first = List.of(String.valueOf(next + 1), "TEST 겹침1", "9791100000013", "저자", "출판사",
+                "2024-01-01", "일반", "일반", "1", "대출가능", "TEST_IMP013", "https://test.img/o1.jpg", "미출력");
+        List<String> second = List.of(String.valueOf(next), "TEST 겹침2", "9791100000014", "저자", "출판사",
+                "2024-01-01", "일반", "일반", "1", "대출가능", "TEST_IMP014", "https://test.img/o2.jpg", "미출력");
+        JsonNode d = upload(workbook(List.of(first, second)), adminSession);
+
+        assertThat(d.get("inserted").asInt()).isEqualTo(2);
+        assertThat(d.get("updated").asInt()).as("방금 등록한 도서를 갱신하면 안 된다").isZero();
+        String title1 = jdbcTemplate.queryForObject(
+                "SELECT title_book FROM tb_book WHERE barcode_book = 'TEST_IMP013'", String.class);
+        assertThat(title1).isEqualTo("TEST 겹침1");
+    }
+
+    @Test
+    @Order(16)
+    @DisplayName("BI16: 마법사에서 같은 번호라도 ISBN 이 다르면 다른 책으로 보고 덮어쓰지 않는다")
+    void BI16_마법사_ISBN불일치_거부() throws Exception {
+        // 이관을 마친 뒤 옛 서버 파일을 다시 올리는 경우 — 옛 9003번과 새 9003번은 다른 책일 수 있다
+        List<String> other = List.of("9003", "TEST 엉뚱한책", "9791100000015", "저자", "출판사",
+                "2024-01-01", "일반", "일반", "1", "대출가능", "TEST_BC003", "https://test.img/3.jpg", "미출력");
+        JsonNode d = upload(workbook(List.of(other)), adminSession);
+
+        assertThat(d.get("updated").asInt()).isZero();
+        assertThat(d.get("inserted").asInt()).isZero();
+        assertThat(d.get("errors").toString()).contains("다른 도서");
+        String title = jdbcTemplate.queryForObject(
+                "SELECT title_book FROM tb_book WHERE seq_book = 9003", String.class);
+        assertThat(title).isEqualTo("파이썬데이터분석");
     }
 
     @Test

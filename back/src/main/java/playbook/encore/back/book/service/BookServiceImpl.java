@@ -539,6 +539,13 @@ public class BookServiceImpl implements BookService {
         int inserted = 0, updated = 0, skipped = 0;
         java.util.List<String> errors = new java.util.ArrayList<>();
 
+        // 마법사 경로에서는 "업로드 시작 시점에 이미 있던 번호" 만 기존 도서로 본다.
+        // 행을 처리하는 도중에 새로 발급된 번호가 엑셀의 옛 번호와 겹치면
+        // 방금 등록한 다른 도서를 덮어쓰게 되기 때문이다.
+        java.util.Set<Integer> preExisting = allowInsert
+                ? importExistingIds(rows, idCol)
+                : java.util.Collections.emptySet();
+
         for (int r = 1; r < rows.size(); r++) {
             java.util.List<String> row = rows.get(r);
             int excelRow = r + 1;
@@ -574,10 +581,40 @@ public class BookServiceImpl implements BookService {
                 errors.add(excelRow + "행: 도서번호 형식 오류(" + idStr + ")");
                 skipped++; continue;
             }
-            Book book = bookRepository.findById(seqBook).orElse(null);
+            Book book = allowInsert && !preExisting.contains(seqBook)
+                    ? null
+                    : bookRepository.findById(seqBook).orElse(null);
             if (book == null) {
-                errors.add(excelRow + "행: 존재하지 않는 도서번호(" + seqBook + ")");
-                skipped++; continue;
+                if (!allowInsert) {
+                    errors.add(excelRow + "행: 존재하지 않는 도서번호(" + seqBook + ")");
+                    skipped++; continue;
+                }
+                // 마법사 경로: 다른 서버에서 내보낸 파일을 그대로 올리면 도서번호가 전부 채워져 있다.
+                // 이 DB 에 없는 번호는 이관 대상으로 보고 새 번호로 신규 등록한다 (옛 번호는 쓰지 않는다).
+                try {
+                    importInsert(row, idx, adminCampusId);
+                    inserted++;
+                } catch (java.time.format.DateTimeParseException e) {
+                    errors.add(excelRow + "행: 출판일 형식 오류(yyyy-MM-dd 필요)");
+                    skipped++;
+                } catch (NumberFormatException e) {
+                    errors.add(excelRow + "행: 수량 형식 오류");
+                    skipped++;
+                } catch (IllegalArgumentException e) {
+                    errors.add(excelRow + "행: " + e.getMessage());
+                    skipped++;
+                }
+                continue;
+            }
+            // 마법사 경로에서 번호가 이미 있어도 같은 책이라는 보장은 없다 — 이관을 마친 뒤
+            // 옛 서버 파일을 다시 올리면 옛 3번과 새 3번은 다른 책이다. ISBN 이 다르면 덮어쓰지 않는다.
+            if (allowInsert) {
+                String isbn = importValue(row, idx, "ISBN").trim();
+                if (!isbn.isBlank() && !"-".equals(isbn) && !isbn.equals(book.getIsbnBook())) {
+                    errors.add(excelRow + "행: 도서번호 " + seqBook + " 는 이미 다른 도서(ISBN "
+                            + book.getIsbnBook() + ")라 덮어쓰지 않았습니다. 새로 등록하려면 도서번호를 비우세요");
+                    skipped++; continue;
+                }
             }
             if (adminCampusId != null && book.getSeqCampus() != null
                     && !adminCampusId.equals(book.getSeqCampus().getSeqCampus())) {
@@ -635,6 +672,23 @@ public class BookServiceImpl implements BookService {
         log.info("[BookService] 도서 업로드 완료 - 신규 {}, 갱신 {}, 스킵 {}", inserted, updated, skipped);
         return BookImportResultDto.builder()
                 .inserted(inserted).updated(updated).skipped(skipped).errors(errors).build();
+    }
+
+    /** 엑셀에 적힌 도서번호 중 지금 DB 에 있는 번호. 숫자가 아닌 칸은 무시한다(행 처리에서 오류로 잡힌다). */
+    private java.util.Set<Integer> importExistingIds(java.util.List<java.util.List<String>> rows, int idCol) {
+        java.util.Set<Integer> ids = new java.util.HashSet<>();
+        for (int r = 1; r < rows.size(); r++) {
+            String v = importCell(rows.get(r), idCol).trim();
+            if (v.isEmpty()) continue;
+            try {
+                ids.add(Integer.parseInt(v));
+            } catch (NumberFormatException ignored) {
+                // 행 처리 단계에서 "도서번호 형식 오류" 로 보고된다
+            }
+        }
+        java.util.Set<Integer> existing = new java.util.HashSet<>();
+        bookRepository.findAllById(ids).forEach(b -> existing.add(b.getSeqBook()));
+        return existing;
     }
 
     /** 도서번호 외 모든 칸이 비었으면 빈 행으로 본다 (엑셀 하단의 잔여 행 무시). */
