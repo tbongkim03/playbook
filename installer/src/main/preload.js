@@ -90,6 +90,9 @@ contextBridge.exposeInMainWorld('wizard', {
   proxyStatus: () => invoke('proxy:status'),
   proxyInstall: () => invoke('proxy:install'),
   proxyVerify: () => invoke('proxy:verify'),
+  proxyUninstall: () => invoke('proxy:uninstall'),
+  proxyFirewall: () => invoke('proxy:firewall'),
+  allowlistRules: () => invoke('allowlist:rules'),
   setAllowlistEnabled: (enabled) => invoke('allowlist:setEnabled', enabled),
   onProxyLog: (handler) => subscribe('proxy:log', handler),
 

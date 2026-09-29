@@ -589,13 +589,36 @@ console.log('\n[16] 네이티브 접속 프록시 (Windows · Caddy)')
     }
     return true
   })
-  check('설치 스크립트 — LocalService · Private/Domain 방화벽 · 로그만 쓰기', () => {
+  check('설치 스크립트 — LocalService · 방화벽(모든 프로필·caddy.exe 한정) · 로그만 쓰기', () => {
     const s = px.buildInstallScript({ caddySrc: "C:\\a'b\\caddy.exe", caddyfileSrc: 'C:\\t\\Caddyfile', dir: 'C:\\Playbook\\proxy', resultFile: 'C:\\t\\r.txt' })
     assert(/obj= 'NT AUTHORITY\\LocalService'/.test(s), 'LocalService 아님')
-    assert(/-Profile Private,Domain/.test(s), '방화벽 프로필 제한 없음')
+    // 캠퍼스 Wi-Fi 가 "공용" 으로 잡히면 Private·Domain 규칙은 다른 기기를 막는다 (실기 2026-09-29)
+    assert(/-Profile Any/.test(s), '방화벽이 모든 프로필에 적용되지 않음')
+    assert(/-Name 'Playbook-Caddy-HTTP'/.test(s) && /-Group 'Playbook'/.test(s), '고정 이름·그룹 없음')
+    assert(/-DisplayName 'Playbook 웹 \(TCP 80\)'.*Remove-NetFirewallRule/.test(s), 'rc8 규칙을 지우지 않음')
+    assert(/\$listenPid -ne \$svcPid/.test(s), '80 리스너가 이 서비스인지 확인하지 않음')
     assert(/-Program \$exe/.test(s), '방화벽이 프로그램에 묶이지 않음')
     assert(/S-1-5-19:\(OI\)\(CI\)RX/.test(s) && /S-1-5-19:\(OI\)\(CI\)M/.test(s), 'LocalService 권한이 읽기/로그 쓰기로 나뉘지 않음')
     assert(s.includes("'C:\\a''b\\caddy.exe'"), '작은따옴표 이스케이프 누락')
+    return true
+  })
+  check('제거 스크립트 — Playbook 이 만든 규칙만 지운다', () => {
+    const u = px.buildUninstallScript({ resultFile: 'C:\\t\\r.txt' })
+    assert(/sc\.exe delete \$svc/.test(u), '서비스 삭제 없음')
+    assert(/-Group 'Playbook'.*Remove-NetFirewallRule/.test(u), '그룹 규칙 삭제 없음')
+    assert(!/Remove-NetFirewallRule\s*$/m.test(u.replace(/.*(Group|DisplayName).*\n/g, '')), '그룹·이름 없이 규칙을 지우는 줄이 있음')
+    const e = px.removeEnvLines('A=1\nFRONT_BIND=127.0.0.1\nFRONT_PORT=18080\nNATIVE_PROXY_TOKEN=x\nB=2', ['FRONT_BIND', 'FRONT_PORT', 'NATIVE_PROXY_TOKEN'])
+    assert(e === 'A=1\nB=2', e)
+    return true
+  })
+  check('네트워크 이름 표시 · 대역 포함 판정', () => {
+    const net = require(path.join(root, 'src/main/services/network.js'))
+    assert(net.describeNetwork({ interfaceName: 'Wi-Fi', networkName: '개발본부5G' }) === "Wi-Fi '개발본부5G'")
+    assert(net.describeNetwork({ interfaceName: '이더넷', networkName: '네트워크 2' }) === "유선 '네트워크 2'")
+    assert(net.cidrContains('192.168.0.0/24', '192.168.0.48') && !net.cidrContains('192.168.1.0/24', '192.168.0.48'))
+    assert(net.cidrContains('192.168.0.48', '192.168.0.48') && !net.cidrContains('::1', '192.168.0.48'))
+    const d = net.detect({})
+    assert(Array.isArray(d.suggestions), 'detect 가 이름 없이도 동작해야 한다')
     return true
   })
   check('compose .env — front 를 127.0.0.1:18080 에만 게시', () => {

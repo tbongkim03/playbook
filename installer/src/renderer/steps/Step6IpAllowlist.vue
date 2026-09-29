@@ -107,7 +107,7 @@ const canProceed = computed(() => !isEmpty.value || acknowledged.value)
         <tbody>
           <tr>
             <th>이 PC 의 IP</th>
-            <td class="mono selectable">{{ detected.primary.address }} <span class="faint">({{ detected.primary.interfaceName }})</span></td>
+            <td class="mono selectable">{{ detected.primary.address }} <span class="faint">({{ detected.primary.networkLabel || detected.primary.interfaceName }})</span></td>
           </tr>
           <tr>
             <th>서브넷 마스크</th>

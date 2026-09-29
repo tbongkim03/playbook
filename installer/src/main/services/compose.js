@@ -138,10 +138,12 @@ async function pull(installDir, { onLog, secretValues = [], profiles = [] }) {
  *
  * db 서비스는 image 가 아니라 build 로 정의돼 있어 --build 를 함께 준다.
  */
-async function up(installDir, { onLog, secretValues = [], services = [], profiles = [] } = {}) {
+async function up(installDir, { onLog, secretValues = [], services = [], profiles = [], forceRecreate = false } = {}) {
   const target = services.length ? services : []
-  onLog(`$ docker compose -f ${COMPOSE_FILE} up -d --build ${target.join(' ')}`.trim())
-  const r = await runStream('docker', composeArgs(installDir, ['up', '-d', '--build', ...target], profiles), {
+  // env_file(.env.prod) 만 바꾼 경우 compose 가 변경을 못 알아채 컨테이너를 그대로 둘 수 있다 → forceRecreate
+  const flags = ['-d', '--build', ...(forceRecreate ? ['--force-recreate'] : [])]
+  onLog(`$ docker compose -f ${COMPOSE_FILE} up ${flags.join(' ')} ${target.join(' ')}`.trim())
+  const r = await runStream('docker', composeArgs(installDir, ['up', ...flags, ...target], profiles), {
     cwd: installDir,
     onLog,
     secretValues,

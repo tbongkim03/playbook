@@ -329,7 +329,7 @@ function register({ state, getWindow }) {
   ipcMain.handle(
     'ip:detect',
     safeHandler(async () => {
-      const detected = network.detect()
+      const detected = network.detect(await network.connectionNames())
       await state.set('ipAllowlist.detected', detected)
       return { ok: true, detected }
     })
@@ -613,8 +613,35 @@ function register({ state, getWindow }) {
       secretValues: state.secretValues(),
       profiles: composeSvc.profilesFor(state.get('monitoring.enabled'))
     })
-    if (r.ok) await state.set('proxy.installedAt', new Date().toISOString())
+    if (r.ok) await state.patch({ proxy: { enabled: true, installedAt: new Date().toISOString(), lastVerifyOk: false } })
     return r
+  }
+
+  const readBackEnv = async () => {
+    const p = path.join(state.get('installDir') || '', 'back', '.env.prod')
+    return require('node:fs').existsSync(p) ? { path: p, text: await require('node:fs/promises').readFile(p, 'utf8') } : null
+  }
+
+  /** back/.env.prod 의 IP_ALLOWLIST_ENABLED 를 바꾸고 back 을 강제로 다시 만든다 */
+  async function applyAllowlistEnabled(on, onLog) {
+    const env = await readBackEnv()
+    if (!env) return { ok: false, message: 'back/.env.prod 가 없습니다. 설치를 먼저 완료하세요.' }
+    await require('node:fs/promises').writeFile(
+      env.path,
+      proxySvc.setEnvLines(env.text, [{ key: 'IP_ALLOWLIST_ENABLED', value: String(on) }]),
+      { encoding: 'utf8', mode: 0o600 }
+    )
+    await state.patch({ ipAllowlist: { enabled: on } })
+    onLog(`IP 차단을 ${on ? '켭니다' : '끕니다'} — 백엔드를 다시 만듭니다…`)
+    // restart 는 env_file 을 다시 읽지 않고, up 도 env_file 변경을 못 알아챌 수 있다 → --force-recreate
+    const r = await composeSvc.up(state.get('installDir'), {
+      onLog,
+      secretValues: state.secretValues(),
+      services: ['back'],
+      profiles: composeSvc.profilesFor(state.get('monitoring.enabled')),
+      forceRecreate: true
+    })
+    return r.ok ? { ok: true } : { ok: false, message: '백엔드 재생성 실패. 위 로그를 확인하세요.' }
   }
 
   ipcMain.handle(
@@ -628,6 +655,54 @@ function register({ state, getWindow }) {
       if (!state.get('deploy.uppedAt')) return { ok: false, message: '서비스를 먼저 기동하세요 (9단계).' }
       const r = await installProxy(logger('proxy:log'))
       return { ...r, state: state.projection() }
+    })
+  )
+
+  ipcMain.handle(
+    'proxy:uninstall',
+    safeHandler(async () => {
+      const onLog = logger('proxy:log')
+      // 프록시 없이 차단이 켜져 있으면 모든 접속이 Docker 게이트웨이로 보여 잠긴다 — 먼저 끈다
+      if (state.get('ipAllowlist.enabled')) {
+        const off = await applyAllowlistEnabled(false, onLog)
+        if (!off.ok) return { ...off, state: state.projection() }
+      }
+      const r = await proxySvc.uninstall(state.get('installDir'), {
+        onLog,
+        secretValues: state.secretValues(),
+        profiles: composeSvc.profilesFor(state.get('monitoring.enabled'))
+      })
+      if (r.ok) await state.patch({ proxy: { enabled: false, installedAt: null, lastVerifyOk: false } })
+      return { ...r, state: state.projection() }
+    })
+  )
+
+  ipcMain.handle(
+    'proxy:firewall',
+    safeHandler(async () => ({ ok: true, firewall: await proxySvc.firewallStatus() }))
+  )
+
+  /** DB 의 실제 규칙 + .env.prod 의 BOOTSTRAP(최초 시드값)을 나란히 보여준다 */
+  ipcMain.handle(
+    'allowlist:rules',
+    safeHandler(async () => {
+      const master = { id: state.get('master.id'), pw: state.get('master.pw') }
+      const r = await proxySvc.listRules(master)
+      // IP 대역만으로는 알아보기 어렵다 — 이 PC 가 연결된 Wi-Fi 대역이면 이름을 붙인다
+      const primary = network.detect(await network.connectionNames()).primary
+      if (r.ok && primary) {
+        for (const rule of r.rules) {
+          if (network.cidrContains(rule.value, primary.address)) {
+            rule.note = primary.networkLabel ? `이 PC 가 연결된 ${primary.networkLabel} 대역` : '이 PC 가 속한 대역'
+          }
+        }
+      }
+      const env = await readBackEnv()
+      const get = (k) => {
+        const m = env && new RegExp(`^${k}=(.*)$`, 'm').exec(env.text)
+        return m ? m[1].trim() : null
+      }
+      return { ...r, bootstrap: get('IP_ALLOWLIST_BOOTSTRAP'), enabledInFile: get('IP_ALLOWLIST_ENABLED') }
     })
   )
 
@@ -652,31 +727,11 @@ function register({ state, getWindow }) {
     'allowlist:setEnabled',
     safeHandler(async (enabled) => {
       const on = enabled === true
-      const installDir = state.get('installDir')
-      const backEnv = path.join(installDir || '', 'back', '.env.prod')
-      if (!installDir || !require('node:fs').existsSync(backEnv)) {
-        return { ok: false, message: 'back/.env.prod 가 없습니다. 설치를 먼저 완료하세요.' }
-      }
       if (on && proxySvc.isWindows() && !state.get('proxy.lastVerifyOk')) {
         return { ok: false, message: '접속 IP 검사를 통과해야 켤 수 있습니다. [접속 IP 검사] 를 먼저 실행하세요.' }
       }
-      const fsp = require('node:fs/promises')
-      const text = await fsp.readFile(backEnv, 'utf8')
-      await fsp.writeFile(backEnv, proxySvc.setEnvLines(text, [{ key: 'IP_ALLOWLIST_ENABLED', value: String(on) }]), {
-        encoding: 'utf8',
-        mode: 0o600
-      })
-      await state.patch({ ipAllowlist: { enabled: on } })
-      const onLog = logger('proxy:log')
-      onLog(`IP 차단을 ${on ? '켭니다' : '끕니다'} — 백엔드를 다시 만듭니다…`)
-      const r = await composeSvc.up(installDir, {
-        onLog,
-        secretValues: state.secretValues(),
-        services: ['back'],
-        profiles: composeSvc.profilesFor(state.get('monitoring.enabled'))
-      })
-      if (!r.ok) return { ok: false, message: '백엔드 재생성 실패. 위 로그를 확인하세요.', state: state.projection() }
-      return { ok: true, enabled: on, state: state.projection() }
+      const r = await applyAllowlistEnabled(on, logger('proxy:log'))
+      return { ...r, enabled: on, state: state.projection() }
     })
   )
 
