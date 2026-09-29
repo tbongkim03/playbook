@@ -1,9 +1,9 @@
 <template>
   <div class="audit-log-dashboard">
-    <div class="section-header">
+    <div class="pb-page-head">
       <div>
-        <h2 class="section-title">감사 로그</h2>
-        <p class="section-description">관리자 주요 작업(도서·계정·캠퍼스·과정 CRUD) 이력을 확인합니다.</p>
+        <h2>감사 로그</h2>
+        <p>관리자 주요 작업(도서·계정·캠퍼스·과정 CRUD) 이력을 확인합니다.</p>
       </div>
     </div>
 
@@ -80,22 +80,12 @@
       </table>
     </div>
 
-    <!-- 페이지네이션 -->
-    <div class="pagination" v-if="totalPages > 1">
-      <button class="page-btn" :disabled="currentPage <= 1" @click="changePage(currentPage - 1)">‹</button>
-      <button
-        v-for="p in visiblePages"
-        :key="p"
-        class="page-btn"
-        :class="{ active: p === currentPage }"
-        @click="changePage(p)"
-      >{{ p }}</button>
-      <button class="page-btn" :disabled="currentPage >= totalPages" @click="changePage(currentPage + 1)">›</button>
-    </div>
+    <PbPagination :page="currentPage" :total-pages="totalPages" :info="paginationInfo" @change="changePage" />
   </div>
 </template>
 
 <script setup>
+import PbPagination from '@/components/PbPagination.vue'
 import { ref, onMounted, computed } from 'vue'
 import { getAuditLogs } from '@/api/admin'
 import { swAlert } from '@/utils/sweetAlert'
@@ -108,12 +98,11 @@ const pageSize = 20
 
 const filters = ref({ targetType: '', action: '' })
 
-const visiblePages = computed(() => {
-  const pages = []
-  const start = Math.max(1, currentPage.value - 2)
-  const end = Math.min(totalPages.value, start + 4)
-  for (let i = start; i <= end; i++) pages.push(i)
-  return pages
+const totalCount = ref(0)
+const paginationInfo = computed(() => {
+  const start = (currentPage.value - 1) * pageSize + 1
+  const end = Math.min(currentPage.value * pageSize, totalCount.value)
+  return totalCount.value ? `${start}–${end} / ${totalCount.value}건` : ''
 })
 
 const ACTION_LABELS = {
@@ -152,6 +141,7 @@ async function fetchLogs() {
     const page = res.data.data
     logs.value = page.content
     totalPages.value = page.totalPages
+    totalCount.value = page.totalElements || 0
   } catch {
     swAlert('error', '감사 로그를 불러오지 못했습니다.')
   } finally {
@@ -192,9 +182,4 @@ onMounted(fetchLogs)
 .result-badge.success { background: var(--pb-color-success-soft); color: var(--pb-color-success); }
 .result-badge.fail { background: var(--pb-color-error-soft, #fff0f0); color: var(--pb-color-error, #e53e3e); }
 
-.pagination { display: flex; justify-content: center; gap: 4px; margin-top: 16px; }
-.page-btn { height: 32px; min-width: 32px; padding: 0 8px; border: 1px solid var(--pb-color-border); border-radius: var(--pb-radius-sm); background: var(--pb-color-surface); color: var(--pb-color-text); font-size: 13px; cursor: pointer; transition: background 0.12s, color 0.12s; }
-.page-btn:hover:not(:disabled) { background: var(--pb-color-surface-muted); }
-.page-btn.active { background: var(--pb-color-brand); color: var(--pb-color-surface); border-color: var(--pb-color-brand); font-weight: 600; }
-.page-btn:disabled { opacity: 0.4; cursor: default; }
 </style>

@@ -87,6 +87,170 @@ a:hover {
   cursor: not-allowed;
 }
 
+/* ── 관리 화면 공통 배치 ──────────────────────────────────────────────
+   [화면 제목·설명]                         [주 동작(추가·등록)]
+   [숫자 카드] [필터]
+   [목록 제목 ───────────── 엑셀 내보내기·가져오기·새로고침]
+   예전에는 탭마다 추가 버튼·엑셀 버튼 위치가 달랐다. #app 을 붙여 각 컴포넌트의 scoped 스타일보다 우선한다 */
+#app .pb-page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  margin: 0 0 20px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+#app .pb-page-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--pb-color-heading);
+}
+
+#app .pb-page-head p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--pb-color-text-muted);
+}
+
+#app .pb-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#app .pb-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+#app .pb-list-head h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--pb-color-heading);
+}
+
+#app .pb-list-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+#app .pb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--pb-radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+#app .pb-btn-primary {
+  background: var(--pb-color-brand);
+  border-color: var(--pb-color-brand);
+  color: #fff;
+}
+
+#app .pb-btn-primary:hover:not(:disabled) {
+  background: var(--pb-color-brand-strong);
+  border-color: var(--pb-color-brand-strong);
+}
+
+#app .pb-btn-outline {
+  background: var(--pb-color-surface);
+  border-color: var(--pb-color-border);
+  color: var(--pb-color-text);
+}
+
+#app .pb-btn-outline:hover:not(:disabled) {
+  background: var(--pb-color-surface-muted);
+  border-color: var(--pb-color-border-strong);
+}
+
+#app .pb-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#app .pb-btn:focus-visible {
+  outline: 2px solid var(--pb-color-brand);
+  outline-offset: 1px;
+}
+
+@media (max-width: 480px) {
+  /* 휴대폰: 주 동작 버튼은 제목 아래 한 줄을 다 써서 누르기 쉽게 */
+  #app .pb-page-head > .pb-head-actions {
+    width: 100%;
+  }
+
+  #app .pb-page-head > .pb-head-actions .pb-btn-primary {
+    flex: 1;
+    height: 40px;
+  }
+}
+
+/* 아이콘만 있는 버튼 (새로고침 등). 뜻은 aria-label·title 로 전한다 */
+.pb-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text-muted);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+
+.pb-icon-btn:hover:not(:disabled) {
+  background: var(--pb-color-surface-muted);
+  border-color: var(--pb-color-border-strong);
+  color: var(--pb-color-text);
+}
+
+.pb-icon-btn:focus-visible {
+  outline: 2px solid var(--pb-color-brand);
+  outline-offset: 1px;
+}
+
+.pb-icon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pb-icon-btn .is-spinning {
+  animation: pb-spin 0.9s linear infinite;
+}
+
+@keyframes pb-spin {
+  to { transform: rotate(360deg); }
+}
+
 .pb-button-secondary {
   color: var(--pb-color-brand-strong);
   background: var(--pb-color-brand-soft);
@@ -151,5 +315,65 @@ a:hover {
 @media (max-width: 768px) {
   .pb-shell {
     width: min(100% - 24px, var(--pb-content-max));
+  }
+}
+
+/* 간단한 필터 줄 — 선택지가 뜻을 말하므로("전체 캠퍼스", "모든 상태") 이름표 없이 한 줄 */
+#app .pb-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+#app .pb-filter-bar > select,
+#app .pb-filter-bar .filter-group > select {
+  width: auto;
+  min-width: 140px;
+  max-width: 240px;
+  height: 34px;
+  padding: 0 28px 0 10px;
+  font-size: 13px;
+}
+
+/* 표가 비었을 때 안내 행 */
+#app .pb-empty-row {
+  padding: 28px 12px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--pb-color-text-soft);
+}
+
+@media (max-width: 768px) {
+  /* 모바일 필터: 좁게 가운데로 몰리지 않게 칸마다 한 줄 전체.
+     컴포넌트가 세로(column)로 바꿔 두면 flex-basis 100% 가 "높이"로 먹어 칸이 납작해진다 → 가로 줄바꿈으로 고정 */
+  #app .pb-filter-bar {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  #app .pb-filter-bar > * {
+    flex: 1 1 100%;
+    max-width: none;
+    width: 100%;
+  }
+
+  /* 필터 칸 안에 한 겹 더 들어 있는 선택 칸은 폭만 채운다 (flex 를 주면 세로 상자 안에서 높이로 먹는다) */
+  #app .pb-filter-bar .filter-group > select {
+    flex: none;
+    max-width: none;
+    width: 100%;
+  }
+
+  /* 목록 머리: 컴포넌트마다 제목을 가운데로 보내고 버튼을 아래로 떨구던 것을 통일 — 제목 왼쪽, 동작 오른쪽 */
+  #app .pb-list-head {
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
   }
 }

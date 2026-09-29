@@ -100,7 +100,7 @@
                 <div class="filter-area">
                   <!-- 캠퍼스 필터 (전체 관리자/비회원만 표시) -->
                   <div v-if="showCampusFilter" class="campus-filter">
-                    <label class="filter-label">캠퍼스:</label>
+                    <label class="filter-label">캠퍼스</label>
                     <select v-model="selectedCampus" @change="onCampusChange" class="campus-select">
                       <option value="">전체 캠퍼스</option>
                       <option
@@ -147,24 +147,7 @@
             </div>
           </template>
 
-          <!-- 페이지네이션 -->
-          <div class="gl-pagination" v-if="!isLoading && totalPages > 1">
-            <span class="gl-pagination-info">{{ paginationInfo }}</span>
-            <nav class="gl-pagination-nav">
-              <button class="gl-page-btn prev-btn" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">
-                <PhCaretLeft weight="duotone" :size="14" />
-                이전
-              </button>
-              <template v-for="item in paginationItems" :key="String(item) + '-hp'">
-                <span v-if="item === '...'" class="gl-page-ellipsis">…</span>
-                <button v-else class="gl-page-btn" :class="{ active: item === currentPage }" @click="goToPage(item)">{{ item }}</button>
-              </template>
-              <button class="gl-page-btn next-btn" :disabled="currentPage >= totalPages" @click="goToPage(currentPage + 1)">
-                다음
-                <PhCaretRight weight="duotone" :size="14" />
-              </button>
-            </nav>
-          </div>
+          <PbPagination v-if="!isLoading" :page="currentPage" :total-pages="totalPages" :info="paginationInfo" @change="goToPage" />
         </div>
       </div>
     </div>
@@ -172,7 +155,8 @@
 </template>
 
 <script setup>
-import { PhBooks, PhCaretLeft, PhCaretRight } from '@phosphor-icons/vue'
+import PbPagination from '@/components/PbPagination.vue'
+import { PhBooks } from '@phosphor-icons/vue'
 import * as bookApi from '@/api/book'
 import * as sortApi from '@/api/sort'
 import * as campusApi from '@/api/campus'
@@ -205,26 +189,13 @@ const currentPage = ref(1)
 
 const totalPages = computed(() => Math.ceil(totalCount.value / ITEMS_PER_PAGE))
 
-const paginationItems = computed(() => {
-  const total = totalPages.value
-  const current = currentPage.value
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
-  const items = [1]
-  if (current > 3) items.push('...')
-  const start = Math.max(2, current - 1)
-  const end = Math.min(total - 1, current + 1)
-  for (let i = start; i <= end; i++) items.push(i)
-  if (current < total - 2) items.push('...')
-  items.push(total)
-  return items
-})
 
 const paginationInfo = computed(() => {
   const total = totalCount.value
   if (!total) return ''
   const start = (currentPage.value - 1) * ITEMS_PER_PAGE + 1
   const end = Math.min(currentPage.value * ITEMS_PER_PAGE, total)
-  return `${start}–${end} / 전체 ${total}건`
+  return `${start}–${end} / ${total}권`
 })
 
 // 캠퍼스 필터 관련
@@ -970,62 +941,6 @@ onBeforeUnmount(() => {
 /* ────────────────────────────────────────────────
    페이지네이션 (GitLab Offset style)
 ──────────────────────────────────────────────── */
-.gl-pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 0 28px;
-}
-.gl-pagination-info {
-  font-size: 13px;
-  color: var(--pb-color-text-muted);
-}
-.gl-pagination-nav {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-.gl-page-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-width: 32px;
-  height: 32px;
-  padding: 0 8px;
-  border: 1px solid var(--pb-color-border);
-  background: var(--pb-color-surface);
-  color: var(--pb-color-text);
-  border-radius: var(--pb-radius-sm);
-  cursor: pointer;
-  font-size: 13px;
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
-  white-space: nowrap;
-}
-.gl-page-btn:hover:not(:disabled):not(.active) {
-  background: var(--pb-color-surface-muted);
-  border-color: var(--pb-color-border-strong);
-}
-.gl-page-btn.active {
-  background: var(--pb-color-brand);
-  color: #fff;
-  border-color: var(--pb-color-brand);
-  font-weight: 600;
-}
-.gl-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.gl-page-btn.prev-btn,
-.gl-page-btn.next-btn { padding: 0 10px; }
-.gl-page-ellipsis {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  font-size: 13px;
-  color: var(--pb-color-text-soft);
-  cursor: default;
-  user-select: none;
-}
 
 /* ────────────────────────────────────────────────
    로딩

@@ -85,7 +85,6 @@
         </div>
         
         <button class="action-btn close-btn-bottom" @click="close">
-          <PhX weight="duotone" :size="16" />
           닫기
         </button>
       </div>

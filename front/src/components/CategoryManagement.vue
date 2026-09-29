@@ -1,8 +1,10 @@
 <template>
   <div class="category-management">
-    <div class="section-header">
-      <h2 class="section-title">카테고리 관리</h2>
-      <p class="section-description">도서 대분류·중분류를 추가하고 관리할 수 있습니다.</p>
+    <div class="pb-page-head">
+      <div>
+        <h2>카테고리 관리</h2>
+        <p>도서 대분류·중분류를 추가하고 관리할 수 있습니다.</p>
+      </div>
     </div>
 
     <!-- 통계 카드 -->
@@ -35,16 +37,16 @@
 
     <!-- 대분류 섹션 -->
     <template v-if="activeSection === 'first'">
-      <div class="action-bar">
-        <button class="add-btn" @click="showAddFirstModal = true">
-          <PhPlusCircle weight="duotone" :size="20" />
-          대분류 추가
-        </button>
-      </div>
       <div class="table-container">
-        <div class="table-header">
-          <h3>대분류 목록</h3>
+        <div class="table-header pb-list-head">
+        <h3>대분류 목록</h3>
+        <div class="pb-list-actions">
+          <button type="button" class="pb-btn pb-btn-primary" @click="showAddFirstModal = true">
+            <PhPlusCircle weight="duotone" :size="18" />
+            대분류 추가
+          </button>
         </div>
+      </div>
         <div class="table-wrapper">
           <table class="data-table">
             <thead>
@@ -78,16 +80,16 @@
 
     <!-- 중분류 섹션 -->
     <template v-if="activeSection === 'second'">
-      <div class="action-bar">
-        <button class="add-btn" @click="showAddSecondModal = true">
-          <PhPlusCircle weight="duotone" :size="20" />
-          중분류 추가
-        </button>
-      </div>
       <div class="table-container">
-        <div class="table-header">
-          <h3>중분류 목록</h3>
+        <div class="table-header pb-list-head">
+        <h3>중분류 목록</h3>
+        <div class="pb-list-actions">
+          <button type="button" class="pb-btn pb-btn-primary" @click="showAddSecondModal = true">
+            <PhPlusCircle weight="duotone" :size="18" />
+            중분류 추가
+          </button>
         </div>
+      </div>
         <div class="table-wrapper">
           <table class="data-table">
             <thead>

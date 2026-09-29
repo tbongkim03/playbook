@@ -1,11 +1,10 @@
 <template>
   <div class="terms-editor">
-    <div class="editor-header">
-      <h2 class="section-title">
-        <PhFileText weight="duotone" :size="22" />
-        약관 관리
-      </h2>
-      <p class="section-description">이용약관, 개인정보처리방침, 디스코드 알림 동의서를 수정합니다.</p>
+    <div class="pb-page-head">
+      <div>
+        <h2>약관 관리</h2>
+        <p>이용약관, 개인정보처리방침, 디스코드 알림 동의서를 수정합니다.</p>
+      </div>
     </div>
 
     <!-- 약관 탭 -->
@@ -60,7 +59,6 @@
 </template>
 
 <script setup>
-import { PhFileText } from '@phosphor-icons/vue'
 import { ref, computed, onMounted } from 'vue'
 import * as termsApi from '@/api/terms'
 import { swAlert, swToast } from '@/utils/sweetAlert'

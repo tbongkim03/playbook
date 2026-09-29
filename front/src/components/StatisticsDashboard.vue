@@ -1,18 +1,17 @@
 <template>
   <div class="statistics-dashboard">
     <!-- 헤더 -->
-    <div class="dashboard-header">
-      <h2 class="section-title">
-        <PhChartLineUp weight="duotone" :size="24" />
-        통계 대시보드
-      </h2>
-      <p class="section-subtitle">도서 대여 및 사용자 통계를 확인하세요</p>
+    <div class="pb-page-head">
+      <div>
+        <h2>통계 대시보드</h2>
+        <p>도서 대여 및 사용자 통계를 확인하세요</p>
+      </div>
     </div>
 
     <!-- 필터 컨트롤 -->
     <div class="filter-controls">
       <div class="filter-group">
-        <label for="courseSelect">과정 선택:</label>
+        <label for="courseSelect">과정</label>
         <select id="courseSelect" v-model="selectedCourse" @change="fetchData" class="filter-select">
           <option value="">전체 과정</option>
           <option
@@ -27,7 +26,7 @@
 
       <!-- 캠퍼스 필터 (전체 관리자만 표시) -->
       <div v-if="showCampusFilter" class="filter-group">
-        <label for="campusSelect">캠퍼스 선택:</label>
+        <label for="campusSelect">캠퍼스</label>
         <select id="campusSelect" v-model="selectedCampus" @change="fetchData" class="filter-select">
           <option value="">전체 캠퍼스</option>
           <option
@@ -42,13 +41,12 @@
 
       <!-- 기간 필터 -->
       <div class="filter-group">
-        <label>기간 선택:</label>
+        <label>기간</label>
         <DateRangePicker ref="datePickerRef" @change="onDateRangeChange" />
       </div>
 
-      <button @click="refreshData" class="refresh-btn" :disabled="loading">
-        <PhArrowsClockwise weight="duotone" :size="16" />
-        새로고침
+      <button type="button" class="pb-icon-btn stats-refresh" :disabled="loading" aria-label="통계 새로고침" title="통계 새로고침" @click="refreshData">
+        <PhArrowsClockwise weight="duotone" :size="18" :class="{ 'is-spinning': loading }" />
       </button>
     </div>
 
@@ -192,7 +190,7 @@
 </template>
 
 <script setup>
-import { PhArrowsClockwise, PhChartBar, PhChartLineUp } from '@phosphor-icons/vue'
+import { PhArrowsClockwise, PhChartBar } from '@phosphor-icons/vue'
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import * as courseApi from '@/api/course'
@@ -618,25 +616,7 @@ onBeforeUnmount(() => {
   box-shadow: 0 0 0 3px var(--pb-color-brand-muted);
 }
 
-.refresh-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 34px;
-  padding: 0 14px;
-  background: var(--pb-color-surface-muted);
-  border: 1px solid var(--pb-color-border);
-  border-radius: var(--pb-radius-sm);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--pb-color-text);
-  cursor: pointer;
-  transition: background 0.12s;
-  margin-top: auto;
-}
 
-.refresh-btn:hover:not(:disabled) { background: var(--pb-color-border); }
-.refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ── 로딩 상태 ── */
 .loading-state {
@@ -811,6 +791,7 @@ onBeforeUnmount(() => {
 @media (max-width: 768px) {
   .statistics-grid { grid-template-columns: 1fr; }
   .filter-controls { flex-direction: column; align-items: stretch; }
+  .stats-refresh { align-self: flex-end; }
   .filter-select { min-width: unset; }
   .chart-container { height: 240px; }
 }
@@ -835,5 +816,10 @@ onBeforeUnmount(() => {
 
 .chart-empty span {
   font-size: 12px;
+}
+
+/* 필터 줄 맨 끝의 새로고침 아이콘 */
+.stats-refresh {
+  margin-left: auto;
 }
 </style>

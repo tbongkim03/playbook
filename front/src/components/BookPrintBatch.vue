@@ -102,7 +102,6 @@
       <!-- 액션 버튼 -->
       <div class="modal-actions">
         <button class="action-btn cancel-btn" @click="close">
-          <PhX weight="duotone" :size="16" />
           취소
         </button>
         <button 

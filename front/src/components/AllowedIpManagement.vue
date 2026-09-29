@@ -1,11 +1,17 @@
 <template>
   <div class="allowed-ip-management">
-    <header class="aip-header">
-      <h2>허용 IP 관리</h2>
-      <p class="aip-sub">
-        서비스 접속을 허용할 IP·대역을 관리합니다. 활성 규칙에 해당하지 않는 위치에서는 화면과 API 모두 차단됩니다.
-      </p>
-    </header>
+    <div class="pb-page-head">
+      <div>
+        <h2>허용 IP 관리</h2>
+        <p>서비스 접속을 허용할 IP·대역을 관리합니다. 활성 규칙에 해당하지 않는 위치에서는 화면과 API 모두 차단됩니다.</p>
+      </div>
+      <div class="pb-head-actions">
+        <button type="button" class="pb-btn pb-btn-primary" :disabled="loading" @click="openCreate">
+          <PhPlusCircle weight="duotone" :size="18" />
+          IP 등록
+        </button>
+      </div>
+    </div>
 
     <!-- 상태 배너 -->
     <section v-if="myIpLoaded" class="aip-banner" :class="`is-${bannerTone}`">
@@ -18,7 +24,7 @@
           비상 우회(IP_ALLOWLIST_BYPASS) 환경변수가 설정되어 있습니다.
         </p>
       </div>
-      <button class="btn btn-ghost btn-sm" @click="loadMyIp" :disabled="loading">상태 새로고침</button>
+      <button type="button" class="pb-icon-btn" :disabled="loading" aria-label="상태 새로고침" title="상태 새로고침" @click="loadMyIp"><PhArrowsClockwise weight="duotone" :size="18" /></button>
     </section>
 
     <!-- 툴바 -->
@@ -37,8 +43,7 @@
         </label>
       </div>
       <div class="aip-actions">
-        <button class="btn btn-ghost" @click="reloadAll" :disabled="loading">새로고침</button>
-        <button class="btn" @click="openCreate" :disabled="loading">IP 등록</button>
+        <button type="button" class="pb-icon-btn" :disabled="loading" aria-label="목록 새로고침" title="목록 새로고침" @click="reloadAll"><PhArrowsClockwise weight="duotone" :size="18" /></button>
       </div>
     </section>
 
@@ -183,7 +188,7 @@
 
 <script setup>
 import { vModalBackdrop } from '@/utils/modalBackdrop'
-import { PhWarningCircle, PhX } from '@phosphor-icons/vue'
+import { PhArrowsClockwise, PhPlusCircle, PhWarningCircle, PhX } from '@phosphor-icons/vue'
 import { ref, reactive, computed, onMounted } from 'vue'
 import * as allowedIpApi from '@/api/allowedIp'
 import * as campusApi from '@/api/campus'

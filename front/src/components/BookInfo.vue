@@ -67,15 +67,15 @@
             <!-- 상세 정보 -->
             <div class="detail-info">
                 <div class="info-item">
-                    <span class="label">ISBN:</span>
+                    <span class="label">ISBN</span>
                     <span class="value">{{ book.isbnBook }}</span>
                 </div>
                 <div v-if="showCampusInfo && book.campusName" class="info-item">
-                    <span class="label">캠퍼스:</span>
+                    <span class="label">캠퍼스</span>
                     <span class="value campus-value">{{ book.campusName }}</span>
                 </div>
                 <div class="info-item">
-                    <span class="label">대출 상태:</span>
+                    <span class="label">대출 상태</span>
                     <span class="value" :class="getStatusClass()">
                         {{ getStatusText() }}
                     </span>

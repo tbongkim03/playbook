@@ -18,23 +18,16 @@
       @close="isPrintBatchOpen = false"
     />
 
-    <!-- 헤더 영역 -->
-    <div class="page-header">
-      <div class="header-content">
-        <div class="title-section">
-          <h1 class="page-title">
-            <PhBook weight="duotone" :size="24" />
-            도서 관리
-          </h1>
-          <p class="page-subtitle">도서 등록, 수정, 삭제 및 바코드 관리</p>
-        </div>
-        
-        <div class="header-actions">
-          <button type="button" class="register-btn" @click="$emit('open-register-modal')">
-            <PhPlusCircle weight="duotone" :size="16" />
-            도서 등록
-          </button>
-        </div>
+    <div class="pb-page-head">
+      <div>
+        <h2>도서 관리</h2>
+        <p>도서 등록, 수정, 삭제 및 바코드 관리</p>
+      </div>
+      <div class="pb-head-actions">
+        <button type="button" class="pb-btn pb-btn-primary" @click="$emit('open-register-modal')">
+          <PhPlusCircle weight="duotone" :size="18" />
+          도서 등록
+        </button>
       </div>
     </div>
 
@@ -190,21 +183,22 @@
     <div class="stats-section">
       <div class="stat-card total-books">
         <div class="stat-icon">
-          <PhBook weight="duotone" :size="20" />
-        </div>
-        <div class="stat-content">
-          <div class="stat-number">{{ isPrint ? filteredBooks.length : totalCount }}</div>
-          <div class="stat-label">표시된 도서</div>
-        </div>
-      </div>
-      
-      <div class="stat-card total-books">
-        <div class="stat-icon">
-          <PhCalendarBlank weight="duotone" :size="20" />
+          <PhBooks weight="duotone" :size="20" />
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ allBooks.length }}</div>
           <div class="stat-label">전체 도서</div>
+        </div>
+      </div>
+
+      <!-- 검색·필터로 좁혔을 때만 — 좁히지 않았으면 전체 도서와 같은 숫자라 중복이다 -->
+      <div v-if="(isPrint ? filteredBooks.length : totalCount) !== allBooks.length" class="stat-card total-books">
+        <div class="stat-icon">
+          <PhMagnifyingGlass weight="duotone" :size="20" />
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ isPrint ? filteredBooks.length : totalCount }}</div>
+          <div class="stat-label">검색 결과</div>
         </div>
       </div>
 
@@ -252,16 +246,16 @@
     <!-- 도서 테이블 -->
     <div class="table-section">
       <div class="table-card">
-        <div class="table-header">
+        <div class="table-header pb-list-head">
           <h3>도서 목록</h3>
-          <div class="table-actions">
-            <button class="export-btn" @click="exportData">
-              <PhDownloadSimple weight="duotone" :size="14" />
-              엑셀로 내보내기
+          <div class="pb-list-actions">
+            <button type="button" class="pb-btn pb-btn-outline" @click="exportData">
+              <PhDownloadSimple weight="duotone" :size="16" />
+              엑셀 내보내기
             </button>
-            <button class="export-btn" @click="triggerImport" :disabled="isImporting">
-              <PhUploadSimple weight="duotone" :size="14" />
-              {{ isImporting ? '업로드 중...' : '엑셀 업로드' }}
+            <button type="button" class="pb-btn pb-btn-outline" @click="triggerImport" :disabled="isImporting" :aria-busy="isImporting">
+              <PhUploadSimple weight="duotone" :size="16" :class="{ 'spinning': isImporting }" />
+              엑셀 가져오기
             </button>
             <input
               ref="uploadInput"
@@ -271,15 +265,15 @@
               @change="importData"
             />
             <button
-              @click="refreshBooks"
-              class="refresh-btn"
+              type="button"
+              class="pb-icon-btn"
               :disabled="isRefreshing"
+              aria-label="목록 새로고침"
               title="목록 새로고침"
+              @click="refreshBooks"
             >
-              <PhArrowCounterClockwise weight="duotone" :size="16" :class="{ 'spinning': isRefreshing }" />
-              {{ isRefreshing ? '새로고침 중...' : '새로고침' }}
+              <PhArrowsClockwise weight="duotone" :size="18" :class="{ 'is-spinning': isRefreshing }" />
             </button>
-            <span class="result-count">{{ paginatedBooks.length }}개 표시 (페이지 {{ currentPage }}/{{ totalPages }})</span>
           </div>
         </div>
         
@@ -431,42 +425,13 @@
       </div>
     </div>
 
-    <!-- 페이지네이션 -->
-    <div class="gl-pagination" v-if="totalPages > 1">
-      <span class="gl-pagination-info">{{ paginationInfo }}</span>
-      <nav class="gl-pagination-nav">
-        <button
-          class="gl-page-btn prev-btn"
-          :disabled="currentPage === 1"
-          @click="goToPage(currentPage - 1)"
-        >
-          <PhCaretLeft weight="duotone" :size="14" />
-          이전
-        </button>
-        <template v-for="item in paginationItems" :key="item + '-bt'">
-          <span v-if="item === '...'" class="gl-page-ellipsis">…</span>
-          <button
-            v-else
-            class="gl-page-btn"
-            :class="{ active: item === currentPage }"
-            @click="goToPage(item)"
-          >{{ item }}</button>
-        </template>
-        <button
-          class="gl-page-btn next-btn"
-          :disabled="currentPage === totalPages"
-          @click="goToPage(currentPage + 1)"
-        >
-          다음
-          <PhCaretRight weight="duotone" :size="14" />
-        </button>
-      </nav>
-    </div>
+    <PbPagination :page="currentPage" :total-pages="totalPages" :info="paginationInfo" @change="goToPage" />
   </div>
 </template>
 
 <script setup>
-import { PhArrowCounterClockwise, PhBarcode, PhBook, PhCalendarBlank, PhCaretLeft, PhCaretRight, PhCheck, PhClipboard, PhDownloadSimple, PhMagnifyingGlass, PhPlusCircle, PhPrinter, PhTrash, PhUploadSimple, PhX, PhXCircle } from '@phosphor-icons/vue'
+import PbPagination from '@/components/PbPagination.vue'
+import { PhArrowCounterClockwise, PhArrowsClockwise, PhBarcode, PhBook, PhBooks, PhCheck, PhClipboard, PhDownloadSimple, PhMagnifyingGlass, PhPlusCircle, PhPrinter, PhTrash, PhUploadSimple, PhX, PhXCircle } from '@phosphor-icons/vue'
 import { ref, computed, watch, onMounted, onBeforeUnmount, watchEffect } from 'vue'
 import * as bookApi from '@/api/book'
 import * as sortApi from '@/api/sort'
@@ -807,25 +772,12 @@ const paginatedBooks = computed(() => {
   return pagedBooks.value
 })
 
-const paginationItems = computed(() => {
-  const total = totalPages.value
-  const current = currentPage.value
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
-  const items = [1]
-  if (current > 3) items.push('...')
-  const start = Math.max(2, current - 1)
-  const end = Math.min(total - 1, current + 1)
-  for (let i = start; i <= end; i++) items.push(i)
-  if (current < total - 2) items.push('...')
-  items.push(total)
-  return items
-})
 
 const paginationInfo = computed(() => {
   const total = isPrint.value ? filteredBooks.value.length : totalCount.value
   const start = (currentPage.value - 1) * pageSize + 1
   const end = Math.min(currentPage.value * pageSize, total)
-  return `${start}–${end} / 전체 ${total}건`
+  return `${start}–${end} / ${total}권`
 })
 
 // 선택 가능한 도서인지 확인 (미출력이고 분류가 완료된 도서)
@@ -1233,8 +1185,7 @@ const refreshBooks = async () => {
 <style scoped>
 /* ─── 레이아웃 ─── */
 .book-management-container {
-  min-height: 100vh;
-  padding: 20px 0;
+  padding: 0;
   font-size: 13px;
   color: var(--pb-color-text);
 }
@@ -1637,38 +1588,12 @@ const refreshBooks = async () => {
 }
 .export-btn:hover { background: var(--pb-color-bg-subtle); }
 
-.refresh-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  height: 30px;
-  padding: 0 12px;
-  background: var(--pb-color-surface);
-  border: 1px solid var(--pb-color-border);
-  color: var(--pb-color-text-muted);
-  border-radius: var(--pb-radius-sm);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-.refresh-btn:hover:not(:disabled) {
-  background: var(--pb-color-surface-muted);
-  color: var(--pb-color-text);
-}
-.refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.refresh-btn .spinning { animation: spin 1s linear infinite; }
 
 @keyframes spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
 
-.result-count {
-  font-size: 12px;
-  color: var(--pb-color-text-soft);
-  white-space: nowrap;
-}
 
 .table-wrapper { overflow-x: auto; }
 
@@ -1905,64 +1830,6 @@ const refreshBooks = async () => {
 }
 .empty-state p { margin: 0; font-size: 13px; color: var(--pb-color-text-muted); }
 
-/* ─── 페이지네이션 (GitLab Offset style) ─── */
-.gl-pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 4px;
-  margin-top: 8px;
-}
-.gl-pagination-info {
-  font-size: 13px;
-  color: var(--pb-color-text-muted);
-}
-.gl-pagination-nav {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-.gl-page-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-width: 32px;
-  height: 32px;
-  padding: 0 8px;
-  border: 1px solid var(--pb-color-border);
-  background: var(--pb-color-surface);
-  color: var(--pb-color-text);
-  border-radius: var(--pb-radius-sm);
-  cursor: pointer;
-  font-size: 13px;
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
-  white-space: nowrap;
-}
-.gl-page-btn:hover:not(:disabled):not(.active) {
-  background: var(--pb-color-surface-muted);
-  border-color: var(--pb-color-border-strong);
-}
-.gl-page-btn.active {
-  background: var(--pb-color-brand);
-  color: #fff;
-  border-color: var(--pb-color-brand);
-  font-weight: 600;
-}
-.gl-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.gl-page-btn.prev-btn,
-.gl-page-btn.next-btn { padding: 0 10px; }
-.gl-page-ellipsis {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  font-size: 13px;
-  color: var(--pb-color-text-soft);
-  cursor: default;
-  user-select: none;
-}
 
 /* ─── 반응형 ─── */
 @media (max-width: 1400px) {
@@ -2005,9 +1872,7 @@ const refreshBooks = async () => {
 }
 
 @media (max-width: 480px) {
-  .toggle-text { display: none; }
   .batch-print-btn { padding: 0 10px; font-size: 12px; }
-  .result-count { font-size: 12px; }
 }
 
 /* 모바일 카드: 평소에는 찾는 데 필요한 것(제목·저자·상태·바코드)만,

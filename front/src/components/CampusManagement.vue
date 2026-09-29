@@ -1,8 +1,16 @@
 <template>
   <div class="campus-management">
-    <div class="section-header">
-      <h2 class="section-title">캠퍼스 관리</h2>
-      <p class="section-description">캠퍼스를 추가하고 관리할 수 있습니다.</p>
+    <div class="pb-page-head">
+      <div>
+        <h2>캠퍼스 관리</h2>
+        <p>캠퍼스를 추가하고 관리할 수 있습니다.</p>
+      </div>
+      <div class="pb-head-actions">
+        <button type="button" class="pb-btn pb-btn-primary" @click="showAddModal = true">
+          <PhPlusCircle weight="duotone" :size="18" />
+          캠퍼스 추가
+        </button>
+      </div>
     </div>
 
     <!-- 통계 카드 -->
@@ -27,17 +35,10 @@
       </div>
     </div>
 
-    <!-- 액션 바 -->
-    <div class="action-bar">
-      <button class="add-btn" @click="showAddModal = true">
-        <PhPlusCircle weight="duotone" :size="20" />
-        캠퍼스 추가
-      </button>
-    </div>
 
     <!-- 캠퍼스 목록 테이블 -->
     <div class="table-container">
-      <div class="table-header">
+      <div class="table-header pb-list-head">
         <h3>캠퍼스 목록</h3>
       </div>
       <div class="table-wrapper">
@@ -51,6 +52,9 @@
             </tr>
           </thead>
           <tbody>
+            <tr v-if="!campusList.length">
+              <td colspan="4" class="pb-empty-row">등록된 캠퍼스가 없습니다.</td>
+            </tr>
             <tr v-for="campus in campusList" :key="campus.seqCampus" class="data-row">
               <td class="campus-name">{{ campus.nameCampus }}</td>
               <td class="campus-location">{{ campus.locationCampus || '-' }}</td>

@@ -1,8 +1,16 @@
 <template>
   <div class="admin-account-management">
-    <div class="section-header">
-      <h2 class="section-title">관리자 계정 관리</h2>
-      <p class="section-description">관리자 계정을 추가, 수정, 삭제할 수 있습니다.</p>
+    <div class="pb-page-head">
+      <div>
+        <h2>관리자 계정 관리</h2>
+        <p>관리자 계정을 추가, 수정, 삭제할 수 있습니다.</p>
+      </div>
+      <div class="pb-head-actions">
+        <button type="button" class="pb-btn pb-btn-primary" @click="showAddModal = true">
+          <PhPlusCircle weight="duotone" :size="18" />
+          관리자 추가
+        </button>
+      </div>
     </div>
 
     <!-- 통계 카드 -->
@@ -18,23 +26,10 @@
       </div>
     </div>
 
-    <!-- 관리자 추가 버튼 -->
-    <div class="action-bar">
-      <button class="export-btn" @click="exportData">
-        <PhDownloadSimple weight="duotone" :size="16" />
-        엑셀로 내보내기
-      </button>
-      <button class="add-admin-btn" @click="showAddModal = true">
-        <PhPlusCircle weight="duotone" :size="20" />
-        관리자 추가
-      </button>
-    </div>
 
     <!-- 필터 영역 -->
-    <div class="filter-section" v-if="showCampusFilter">
-      <div class="filter-group">
-        <label class="filter-label">캠퍼스</label>
-        <select v-model="selectedCampus" @change="onCampusChange" class="filter-select">
+    <div class="pb-filter-bar" v-if="showCampusFilter">
+      <select v-model="selectedCampus" @change="onCampusChange" class="filter-select">
           <option value="">전체 캠퍼스</option>
           <option
             v-for="campus in campusList"
@@ -44,13 +39,18 @@
             {{ campus.nameCampus }}
           </option>
         </select>
-      </div>
     </div>
 
     <!-- 관리자 목록 테이블 -->
     <div class="admin-table-container">
-      <div class="table-header">
+      <div class="table-header pb-list-head">
         <h3>관리자 목록</h3>
+        <div class="pb-list-actions">
+          <button type="button" class="pb-btn pb-btn-outline" @click="exportData">
+            <PhDownloadSimple weight="duotone" :size="16" />
+            엑셀 내보내기
+          </button>
+        </div>
       </div>
       
       <div class="table-wrapper">
@@ -66,6 +66,9 @@
             </tr>
           </thead>
           <tbody>
+            <tr v-if="!pagedAdminList.length">
+              <td colspan="6" class="pb-empty-row">등록된 관리자가 없습니다.</td>
+            </tr>
             <tr v-for="admin in pagedAdminList" :key="admin.idAdmin" class="admin-row">
               <td class="admin-id">{{ admin.idAdmin }}</td>
               <td class="admin-name">{{ admin.nameAdmin }}</td>
@@ -89,24 +92,7 @@
         </table>
       </div>
 
-      <!-- 페이지네이션 -->
-      <div class="gl-pagination" v-if="totalPages > 1">
-        <span class="gl-pagination-info">{{ paginationInfo }}</span>
-        <nav class="gl-pagination-nav">
-          <button class="gl-page-btn prev-btn" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">
-            <PhCaretLeft weight="duotone" :size="14" />
-            이전
-          </button>
-          <template v-for="item in paginationItems" :key="String(item) + '-am'">
-            <span v-if="item === '...'" class="gl-page-ellipsis">…</span>
-            <button v-else class="gl-page-btn" :class="{ active: item === currentPage }" @click="changePage(item)">{{ item }}</button>
-          </template>
-          <button class="gl-page-btn next-btn" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">
-            다음
-            <PhCaretRight weight="duotone" :size="14" />
-          </button>
-        </nav>
-      </div>
+      <PbPagination :page="currentPage" :total-pages="totalPages" :info="paginationInfo" @change="changePage" />
     </div>
 
     <!-- 관리자 추가 모달 -->
@@ -315,8 +301,9 @@
 </template>
 
 <script setup>
+import PbPagination from '@/components/PbPagination.vue'
 import { vModalBackdrop } from '@/utils/modalBackdrop'
-import { PhCaretLeft, PhCaretRight, PhDownloadSimple, PhNotePencil, PhPlusCircle, PhTrash, PhUserCheck, PhWarning, PhX } from '@phosphor-icons/vue'
+import { PhDownloadSimple, PhNotePencil, PhPlusCircle, PhTrash, PhUserCheck, PhWarning, PhX } from '@phosphor-icons/vue'
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import * as adminApi from '@/api/admin'
 import { swAlert } from '@/utils/sweetAlert'
@@ -332,7 +319,7 @@ const isLoading = ref(false)
 
 // 페이지네이션
 const { currentPage, totalPages, pagedList: pagedAdminList,
-        paginationItems, paginationInfo, changePage } = usePagination(adminList, 10)
+        paginationInfo, changePage } = usePagination(adminList, 10)
 
 watch(adminList, () => { currentPage.value = 1 })
 
@@ -1170,54 +1157,6 @@ onBeforeUnmount(() => {
   font-weight: 500;
 }
 
-/* ─── 페이지네이션 ─── */
-.gl-pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-top: 1px solid var(--pb-color-border);
-}
-.gl-pagination-info { font-size: 13px; color: var(--pb-color-text-muted); }
-.gl-pagination-nav { display: flex; align-items: center; gap: 2px; }
-.gl-page-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-width: 32px;
-  height: 32px;
-  padding: 0 8px;
-  border: 1px solid var(--pb-color-border);
-  background: var(--pb-color-surface);
-  color: var(--pb-color-text);
-  border-radius: var(--pb-radius-sm);
-  cursor: pointer;
-  font-size: 13px;
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
-  white-space: nowrap;
-}
-.gl-page-btn:hover:not(:disabled):not(.active) {
-  background: var(--pb-color-surface-muted);
-  border-color: var(--pb-color-border-strong);
-}
-.gl-page-btn.active {
-  background: var(--pb-color-brand);
-  color: #fff;
-  border-color: var(--pb-color-brand);
-  font-weight: 600;
-}
-.gl-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.gl-page-btn.prev-btn, .gl-page-btn.next-btn { padding: 0 10px; }
-.gl-page-ellipsis {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  font-size: 13px;
-  color: var(--pb-color-text-soft);
-}
 
 /* ─── 반응형 ─── */
 @media (max-width: 768px) {

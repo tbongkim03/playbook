@@ -1,8 +1,10 @@
 <template>
   <div class="rental-history-dashboard">
-    <div class="section-header">
-      <h2 class="section-title">대출/반납 히스토리</h2>
-      <p class="section-description">도서 대출 및 반납 현황을 모니터링할 수 있습니다.</p>
+    <div class="pb-page-head">
+      <div>
+        <h2>대출/반납 히스토리</h2>
+        <p>도서 대출 및 반납 현황을 모니터링할 수 있습니다.</p>
+      </div>
     </div>
 
     <!-- 통계 카드 -->
@@ -52,7 +54,7 @@
     <div class="filter-section">
       <div class="filter-row">
         <div class="filter-group">
-          <label>기간 선택</label>
+          <label>기간</label>
           <DateRangePicker ref="datePickerRef" @change="onDateRangeChange" />
         </div>
 
@@ -98,16 +100,15 @@
 
     <!-- 히스토리 테이블 -->
     <div class="history-table-container">
-      <div class="table-header">
-        <h3>대출/반납 히스토리</h3>
-        <div class="table-actions">
-          <button class="export-btn" @click="exportData">
+      <div class="table-header pb-list-head">
+        <h3>대출·반납 기록</h3>
+        <div class="pb-list-actions">
+          <button type="button" class="pb-btn pb-btn-outline" @click="exportData">
             <PhDownloadSimple weight="duotone" :size="16" />
-            내보내기
+            엑셀 내보내기
           </button>
-          <button class="refresh-btn" @click="fetchRentalHistory">
-            <PhArrowsClockwise weight="duotone" :size="16" />
-            새로고침
+          <button type="button" class="pb-icon-btn" aria-label="목록 새로고침" title="목록 새로고침" @click="fetchRentalHistory">
+            <PhArrowsClockwise weight="duotone" :size="18" />
           </button>
         </div>
       </div>
@@ -169,24 +170,7 @@
         </div>
       </div>
 
-      <!-- 페이지네이션 -->
-      <div class="gl-pagination" v-if="totalPages > 1">
-        <span class="gl-pagination-info">{{ paginationInfo }}</span>
-        <nav class="gl-pagination-nav">
-          <button class="gl-page-btn prev-btn" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">
-            <PhCaretLeft weight="duotone" :size="14" />
-            이전
-          </button>
-          <template v-for="item in paginationItems" :key="String(item) + '-rh'">
-            <span v-if="item === '...'" class="gl-page-ellipsis">…</span>
-            <button v-else class="gl-page-btn" :class="{ active: item === currentPage }" @click="changePage(item)">{{ item }}</button>
-          </template>
-          <button class="gl-page-btn next-btn" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">
-            다음
-            <PhCaretRight weight="duotone" :size="14" />
-          </button>
-        </nav>
-      </div>
+      <PbPagination :page="currentPage" :total-pages="totalPages" :info="paginationInfo" @change="changePage" />
     </div>
 
     <!-- 상세보기 모달 -->
@@ -269,8 +253,9 @@
 </template>
 
 <script setup>
+import PbPagination from '@/components/PbPagination.vue'
 import { vModalBackdrop } from '@/utils/modalBackdrop'
-import { PhArrowsClockwise, PhBook, PhCaretLeft, PhCaretRight, PhCheck, PhClock, PhDownloadSimple, PhMagnifyingGlass, PhX, PhXCircle } from '@phosphor-icons/vue'
+import { PhArrowsClockwise, PhBook, PhCheck, PhClock, PhDownloadSimple, PhMagnifyingGlass, PhX, PhXCircle } from '@phosphor-icons/vue'
 import { ref, computed, onMounted } from 'vue'
 import { exportToXlsx } from '@/utils/exportSheet'
 import * as historyApi from '@/api/history'
@@ -374,25 +359,12 @@ const totalPages = computed(() => {
   return Math.ceil(rentalHistory.value.length / itemsPerPage)
 })
 
-const paginationItems = computed(() => {
-  const total = totalPages.value
-  const current = currentPage.value
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
-  const items = [1]
-  if (current > 3) items.push('...')
-  const start = Math.max(2, current - 1)
-  const end = Math.min(total - 1, current + 1)
-  for (let i = start; i <= end; i++) items.push(i)
-  if (current < total - 2) items.push('...')
-  items.push(total)
-  return items
-})
 
 const paginationInfo = computed(() => {
   const total = rentalHistory.value.length
   const start = (currentPage.value - 1) * itemsPerPage + 1
   const end = Math.min(currentPage.value * itemsPerPage, total)
-  return `${start}–${end} / 전체 ${total}건`
+  return `${start}–${end} / ${total}건`
 })
 
 
@@ -755,19 +727,6 @@ onMounted(async () => {
 .table-actions { display: flex; gap: 6px; }
 
 .export-btn,
-.refresh-btn {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  height: 30px;
-  padding: 0 11px;
-  border-radius: var(--pb-radius-sm);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.12s;
-  border: none;
-}
 
 .export-btn {
   background: var(--pb-color-brand);
@@ -776,18 +735,11 @@ onMounted(async () => {
 
 .export-btn:hover { background: var(--pb-color-brand-strong); }
 
-.refresh-btn {
-  background: var(--pb-color-surface-muted);
-  border: 1px solid var(--pb-color-border);
-  color: var(--pb-color-text);
-}
 
-.refresh-btn:hover { background: var(--pb-color-border); }
 
 /* ── 테이블 ── */
 .table-wrapper {
   overflow-x: auto;
-  min-height: 360px;
 }
 
 .history-table {
@@ -961,63 +913,6 @@ onMounted(async () => {
 .empty-state p { font-size: 13px; margin: 0; }
 
 /* ── 페이지네이션 (GitLab Offset style) ── */
-.gl-pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 4px;
-  margin-top: 8px;
-}
-.gl-pagination-info {
-  font-size: 13px;
-  color: var(--pb-color-text-muted);
-}
-.gl-pagination-nav {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-.gl-page-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-width: 32px;
-  height: 32px;
-  padding: 0 8px;
-  border: 1px solid var(--pb-color-border);
-  background: var(--pb-color-surface);
-  color: var(--pb-color-text);
-  border-radius: var(--pb-radius-sm);
-  cursor: pointer;
-  font-size: 13px;
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
-  white-space: nowrap;
-}
-.gl-page-btn:hover:not(:disabled):not(.active) {
-  background: var(--pb-color-surface-muted);
-  border-color: var(--pb-color-border-strong);
-}
-.gl-page-btn.active {
-  background: var(--pb-color-brand);
-  color: #fff;
-  border-color: var(--pb-color-brand);
-  font-weight: 600;
-}
-.gl-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.gl-page-btn.prev-btn,
-.gl-page-btn.next-btn { padding: 0 10px; }
-.gl-page-ellipsis {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  font-size: 13px;
-  color: var(--pb-color-text-soft);
-  cursor: default;
-  user-select: none;
-}
 
 /* ── 모달 ── */
 .modal-overlay {
