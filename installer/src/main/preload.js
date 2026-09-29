@@ -84,5 +84,10 @@ contextBridge.exposeInMainWorld('wizard', {
   // ── 10단계 ──
   healthCheck: () => invoke('finish:health'),
   createShortcut: () => invoke('finish:shortcut'),
-  saveBackup: () => invoke('backup:save')
+  saveBackup: () => invoke('backup:save'),
+
+  // ── 설치 후 업데이트 ──
+  updateCheck: () => invoke('update:check'),
+  updateRun: (targetTag) => invoke('update:run', targetTag),
+  onUpdateLog: (handler) => subscribe('update:log', handler)
 })

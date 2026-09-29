@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { store, STEPS, init, goto } from './store'
 
 import Step1Environment from './steps/Step1Environment.vue'
@@ -12,6 +12,7 @@ import Step7Monitoring from './steps/Step7Monitoring.vue'
 import Step8Deploy from './steps/Step8Deploy.vue'
 import Step9Migration from './steps/Step9Migration.vue'
 import Step10Done from './steps/Step10Done.vue'
+import UpdateView from './views/UpdateView.vue'
 
 const COMPONENTS = {
   1: Step1Environment,
@@ -29,6 +30,10 @@ const COMPONENTS = {
 const current = computed(() => (store.state ? store.state.currentStep : 1))
 const maxVisited = computed(() => (store.state ? store.state.maxVisitedStep || 1 : 1))
 const CurrentStep = computed(() => COMPONENTS[current.value] || Step1Environment)
+
+// 설치 후 업데이트 화면 — 서비스를 한 번이라도 기동한 설치본에서만 보인다
+const view = ref('wizard')
+const installed = computed(() => !!(store.state && store.state.deploy && store.state.deploy.uppedAt))
 
 const restoredAt = computed(() => {
   if (!store.state || !store.state.updatedAt) return null
@@ -67,13 +72,23 @@ onMounted(init)
           v-for="s in STEPS"
           :key="s.no"
           class="step-item"
-          :class="{ active: s.no === current, done: s.no < maxVisited, locked: !canJump(s.no) }"
-          @click="canJump(s.no) && goto(s.no)"
+          :class="{ active: view === 'wizard' && s.no === current, done: s.no < maxVisited, locked: !canJump(s.no) }"
+          @click="canJump(s.no) && ((view = 'wizard'), goto(s.no))"
         >
           <div class="step-no">{{ s.no < maxVisited ? '✓' : s.no }}</div>
           <div class="grow">
             <div class="step-label">{{ s.title }}</div>
             <div class="step-desc">{{ s.desc }}</div>
+          </div>
+        </li>
+      </ul>
+
+      <ul v-if="installed" class="step-list" style="border-top: 1px solid var(--pb-border)">
+        <li class="step-item" :class="{ active: view === 'update' }" @click="view = 'update'">
+          <div class="step-no">↻</div>
+          <div class="grow">
+            <div class="step-label">업데이트</div>
+            <div class="step-desc">새 버전 확인 · 교체</div>
           </div>
         </li>
       </ul>
@@ -87,7 +102,8 @@ onMounted(init)
 
     <main class="main">
       <div class="main-body">
-        <component :is="CurrentStep" />
+        <UpdateView v-if="view === 'update'" />
+        <component :is="CurrentStep" v-else />
       </div>
     </main>
 

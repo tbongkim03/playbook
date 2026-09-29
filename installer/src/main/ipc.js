@@ -13,6 +13,7 @@ const migrationSvc = require('./services/migration')
 const finishSvc = require('./services/finish')
 const master = require('./services/master')
 const bookseed = require('./services/bookseed')
+const updateSvc = require('./services/update')
 const { generateDbPassword, generateIntegrationSecretKey } = require('./util/secrets')
 const { maskValue } = require('./util/mask')
 
@@ -582,6 +583,70 @@ function register({ state, getWindow }) {
       }
       await state.set('migration.applied', ledger)
       return { ...r, state: state.projection() }
+    })
+  )
+
+  // ── 설치 후 업데이트 ─────────────────────────────────────────────────────
+  // 설치를 마친(서비스를 한 번이라도 올린) 설치본에서만 동작한다.
+  const requireInstalled = () => {
+    const installDir = state.get('installDir')
+    if (!installDir || !state.get('deploy.uppedAt')) {
+      return { error: { ok: false, message: '설치를 먼저 완료하세요. 업데이트는 서비스를 기동한 뒤에 쓸 수 있습니다.' } }
+    }
+    return { installDir }
+  }
+
+  ipcMain.handle(
+    'update:check',
+    safeHandler(async () => {
+      const { installDir, error } = requireInstalled()
+      if (error) return error
+      const r = await updateSvc.check(installDir)
+      if (r.ok) {
+        await state.set('update.lastCheckAt', r.checkedAt)
+        if (r.current) await state.set('update.currentTag', r.current)
+      }
+      return r
+    })
+  )
+
+  ipcMain.handle(
+    'update:run',
+    safeHandler(async (targetTag) => {
+      const { installDir, error } = requireInstalled()
+      if (error) return error
+      const onLog = logger('update:log')
+      const r = await updateSvc.run(installDir, String(targetTag || ''), {
+        onLog,
+        secretValues: state.secretValues(),
+        profiles: composeSvc.profilesFor(state.get('monitoring.enabled'))
+      })
+
+      // 새 마이그레이션은 9단계와 같은 이력에 남긴다 (다음 스캔에서 "적용 완료" 로 보이게)
+      const ledger = { ...(state.get('migration.applied') || {}) }
+      for (const res of r.migrationResults || []) {
+        if (res.ok && !res.skipped) {
+          ledger[res.file] = { checksum: res.checksum, appliedAt: res.appliedAt, groupKeys: res.groupKeys }
+        }
+      }
+      await state.set('migration.applied', ledger)
+
+      const history = [...(state.get('update.history') || [])]
+      history.unshift({
+        at: new Date().toISOString(),
+        from: state.get('update.currentTag') || null,
+        to: r.targetTag || null,
+        ok: !!r.ok,
+        stage: r.stage || null,
+        rolledBack: !!r.rolledBack,
+        backupDir: r.backupDir || null,
+        message: r.message || null
+      })
+      await state.set('update.history', history.slice(0, 20))
+      if (r.ok) await state.set('update.currentTag', r.targetTag)
+
+      const { health, ...rest } = r
+      return { ...rest, state: state.projection() }
     })
   )
 

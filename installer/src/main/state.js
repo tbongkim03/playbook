@@ -110,7 +110,10 @@ function defaultState() {
       errorCount: 0
     },
 
-    finish: { healthAt: null, shortcutPath: null, backupPath: null }
+    finish: { healthAt: null, shortcutPath: null, backupPath: null },
+
+    // 설치 후 업데이트 — currentTag 는 마지막으로 확인·적용한 이미지 버전
+    update: { lastCheckAt: null, currentTag: null, history: [] }
   }
 }
 

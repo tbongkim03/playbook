@@ -57,7 +57,8 @@ const MODULES = [
   'src/main/services/compose.js',
   'src/main/services/migration.js',
   'src/main/services/master.js',
-  'src/main/services/finish.js'
+  'src/main/services/finish.js',
+  'src/main/services/update.js'
 ]
 for (const m of MODULES) {
   check(m, () => {
@@ -520,6 +521,44 @@ console.log('\n[11] 명령 출력 스트리밍')
   check('runStream 이 onLog 로 stdout·stderr 를 전달한다', () => {
     assert(r.ok, '명령 실패')
     assert(lines.includes('out-line') && lines.includes('err-line'), `받은 줄: ${JSON.stringify(lines)}`)
+    return true
+  })
+}
+
+console.log('\n[15] 설치 후 업데이트')
+{
+  const upd = require(path.join(root, 'src/main/services/update.js'))
+  check('버전 비교 — 정식 > rc, rc10 > rc9', () => {
+    assert(upd.compareVersions('0.2.0', '0.2.0-rc7') > 0, '정식이 rc 보다 커야 한다')
+    assert(upd.compareVersions('0.2.0-rc10', '0.2.0-rc9') > 0, 'rc10 이 rc9 보다 커야 한다 (사전순 비교 금지)')
+    assert(upd.compareVersions('0.2.0-rc.10', '0.2.0-rc.9') > 0, '점 구분 숫자는 숫자로 비교')
+    assert(upd.compareVersions('0.10.0', '0.9.9') > 0, '마이너는 숫자로 비교')
+    assert(upd.compareVersions('v1.0.0', '1.0.0') === 0, '앞의 v 는 무시')
+    return true
+  })
+  check('최신 버전은 back·front 양쪽에 있는 버전 태그 중에서 고른다', () => {
+    const r = upd.pickLatest(['latest', 'sha-abc1234', '0.2.0-rc6', '0.2.0-rc7', '0.3.0'], ['0.2.0-rc6', '0.2.0-rc7', 'latest'])
+    assert(r.latest === '0.2.0-rc7', `front 에 없는 0.3.0 을 골랐다: ${r.latest}`)
+    return true
+  })
+  check('.env 의 현재 태그 읽기 / 교체', () => {
+    const env = 'COMPOSE_PROFILES=\nBACK_IMAGE=ghcr.io/tbongkim03/playbook-back:0.2.0-rc7\nFRONT_IMAGE=ghcr.io/tbongkim03/playbook-front:0.2.0-rc7\n'
+    assert(upd.readCurrentTag(env) === '0.2.0-rc7', '태그를 못 읽음')
+    assert(upd.readCurrentTag('BACK_IMAGE=ghcr.io/x/playbook-back:latest') === null, 'latest 는 버전이 아니다')
+    const next = upd.withImageTag(env, '0.2.0')
+    assert(/playbook-back:0\.2\.0$/m.test(next) && /playbook-front:0\.2\.0$/m.test(next), next)
+    assert(/^COMPOSE_PROFILES=/m.test(next), '다른 줄이 지워졌다')
+    const commented = upd.withImageTag('# BACK_IMAGE=ghcr.io/x:sha-abc\n# FRONT_IMAGE=ghcr.io/y:sha-abc\n', '1.0.0')
+    assert(upd.readCurrentTag(commented) === '1.0.0', '주석 처리된 줄도 활성화해야 한다')
+    return true
+  })
+  check('동기화 경로 제한 — 경로 조작·범위 밖 파일 거부', () => {
+    assert(upd.isSyncPath('docker-compose.prod.yml'))
+    assert(upd.isSyncPath('db/migration/006_x.sql'))
+    assert(upd.isSyncPath('monitoring/alloy/config.alloy'))
+    assert(!upd.isSyncPath('db/migration/../../.env'), '.. 허용됨')
+    assert(!upd.isSyncPath('back/.env.prod'), '범위 밖 허용됨')
+    assert(!upd.isSyncPath('db/init/init.sql'), '최초 설치용 init 은 받지 않는다')
     return true
   })
 }
