@@ -2,14 +2,18 @@
   <div class="admin-dashboard">
     <div class="dashboard-content">
       <!-- 네비게이션 메뉴 -->
-      <nav class="admin-nav">
+      <nav class="admin-nav" :class="{ 'is-open': navOpen }">
+        <!-- 태블릿·모바일: 헤더 아래 고정 바. 누르면 메뉴판이 펼쳐진다 -->
+        <button type="button" class="nav-toggle" :aria-expanded="navOpen" @click="navOpen = !navOpen">
+          <span class="nav-toggle-label">
+            <span class="nav-toggle-kicker">관리 메뉴</span>
+            <span class="nav-toggle-current">{{ TAB_LABELS[activeTab] }}</span>
+          </span>
+          <PhCaretDown weight="duotone" :size="18" class="nav-toggle-chevron" aria-hidden="true" />
+        </button>
         <div class="sidebar-header">
           <div class="sidebar-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            <PhSquaresFour weight="fill" :size="16" />
           </div>
           <div>
             <div class="sidebar-title">관리자 대시보드</div>
@@ -17,19 +21,15 @@
           </div>
         </div>
         <div class="nav-section">
-          <h3 class="nav-title">관리 메뉴</h3>
           <ul class="nav-list">
+            <li class="nav-group-title">계정</li>
             <li>
               <button 
                 class="nav-item" 
                 :class="{ active: activeTab === 'admin-accounts' }"
                 @click="setActiveTab('admin-accounts')"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <polyline points="17,11 19,13 23,9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <PhUserGear weight="fill" :size="20" />
                 관리자 계정 관리
               </button>
             </li>
@@ -39,24 +39,18 @@
                 :class="{ active: activeTab === 'user-accounts' }"
                 @click="setActiveTab('user-accounts')"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <polyline points="17,11 19,13 23,9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <PhStudent weight="fill" :size="20" />
                 학생 계정 관리
               </button>
             </li>
+            <li class="nav-group-title">도서 · 대출</li>
             <li>
               <button 
                 class="nav-item" 
                 :class="{ active: activeTab === 'books' }"
                 @click="setActiveTab('books')"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <PhBooks weight="fill" :size="20" />
                 도서 관리
               </button>
             </li>
@@ -66,13 +60,7 @@
                 :class="{ active: activeTab === 'rental-history' }"
                 @click="setActiveTab('rental-history')"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
-                  <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/>
-                  <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/>
-                  <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/>
-                  <path d="M8 14L10 16L16 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <PhClockCounterClockwise weight="fill" :size="20" />
                 대출/반납 히스토리
               </button>
             </li>
@@ -82,24 +70,18 @@
                 :class="{ active: activeTab === 'statistics' }"
                 @click="setActiveTab('statistics')"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3 3V21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M9 9L12 6L16 10L20 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <PhChartBar weight="fill" :size="20" />
                 통계 대시보드
               </button>
             </li>
+            <li class="nav-group-title">기준 정보</li>
             <li>
               <button
                 class="nav-item"
                 :class="{ active: activeTab === 'course-management' }"
                 @click="setActiveTab('course-management')"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <PhGraduationCap weight="fill" :size="20" />
                 과정 관리
               </button>
             </li>
@@ -109,10 +91,7 @@
                 :class="{ active: activeTab === 'campus-management' }"
                 @click="setActiveTab('campus-management')"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <PhMapPin weight="fill" :size="20" />
                 캠퍼스 관리
               </button>
             </li>
@@ -122,9 +101,7 @@
                 :class="{ active: activeTab === 'category-management' }"
                 @click="setActiveTab('category-management')"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M4 6H20M4 10H20M4 14H14M4 18H10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <PhFolders weight="fill" :size="20" />
                 카테고리 관리
               </button>
             </li>
@@ -134,25 +111,18 @@
                 :class="{ active: activeTab === 'terms-management' }"
                 @click="setActiveTab('terms-management')"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
+                <PhFileText weight="fill" :size="20" />
                 약관 관리
               </button>
             </li>
+            <li class="nav-group-title">보안 · 기록</li>
             <li>
               <button
                 class="nav-item"
                 :class="{ active: activeTab === 'access-log' }"
                 @click="setActiveTab('access-log')"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
-                  <path d="M12 8V12L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
+                <PhSignIn weight="fill" :size="20" />
                 접속 이력
               </button>
             </li>
@@ -162,10 +132,7 @@
                 :class="{ active: activeTab === 'audit-log' }"
                 @click="setActiveTab('audit-log')"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9 11L12 14L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <PhListChecks weight="fill" :size="20" />
                 감사 로그
               </button>
             </li>
@@ -176,10 +143,7 @@
                 :class="{ active: activeTab === 'allowed-ip' }"
                 @click="setActiveTab('allowed-ip')"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <PhShieldCheck weight="fill" :size="20" />
                 허용 IP 관리
               </button>
             </li>
@@ -190,10 +154,7 @@
                 :class="{ active: activeTab === 'integration' }"
                 @click="setActiveTab('integration')"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <PhPlugsConnected weight="fill" :size="20" />
                 연동 관리
               </button>
             </li>
@@ -202,7 +163,7 @@
       </nav>
 
       <!-- 메인 컨텐츠 영역 -->
-      <main class="admin-main">
+      <main ref="adminMainRef" class="admin-main">
         <!-- 관리자 계정 관리 -->
         <div v-if="activeTab === 'admin-accounts'" class="content-section">
           <AdminAccountManagement />
@@ -262,21 +223,15 @@
     </div>
 
     <!-- 도서 등록 모달 -->
-    <div v-if="showRegisterModal" class="modal-overlay" @click="closeRegisterModal">
+    <div v-if="showRegisterModal" class="modal-overlay" v-modal-backdrop="closeRegisterModal">
       <div class="modal-container" @click.stop>
         <div class="modal-header">
           <h2 class="modal-title">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20" stroke="currentColor" stroke-width="2"/>
-              <path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhBook weight="duotone" :size="24" />
             도서 등록
           </h2>
           <button class="close-btn" @click="closeRegisterModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
-              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         
@@ -289,6 +244,8 @@
 </template>
 
 <script setup>
+import { vModalBackdrop } from '@/utils/modalBackdrop'
+import { PhBook, PhBooks, PhCaretDown, PhChartBar, PhClockCounterClockwise, PhFileText, PhFolders, PhGraduationCap, PhListChecks, PhMapPin, PhPlugsConnected, PhShieldCheck, PhSignIn, PhSquaresFour, PhStudent, PhUserGear, PhX } from '@phosphor-icons/vue'
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { swAlert } from '@/utils/sweetAlert'
@@ -307,6 +264,7 @@ import AuditLogDashboard from '@/components/AuditLogDashboard.vue'
 import AllowedIpManagement from '@/components/AllowedIpManagement.vue'
 import IntegrationManagement from '@/components/IntegrationManagement.vue'
 import * as adminApi from '@/api/admin'
+import { useTableCardLabels } from '@/composables/useTableCardLabels'
 
 const router = useRouter()
 const activeTab = ref('admin-accounts')
@@ -320,8 +278,31 @@ const handleKeydown = (event) => {
   }
 }
 
+const navOpen = ref(false)
+const adminMainRef = ref(null)
+useTableCardLabels(adminMainRef)
+
+// 모바일 메뉴 바에 현재 위치를 보여주기 위한 이름표
+const TAB_LABELS = {
+  'admin-accounts': '관리자 계정 관리',
+  'user-accounts': '학생 계정 관리',
+  books: '도서 관리',
+  'rental-history': '대출/반납 히스토리',
+  statistics: '통계 대시보드',
+  'course-management': '과정 관리',
+  'campus-management': '캠퍼스 관리',
+  'category-management': '카테고리 관리',
+  'terms-management': '약관 관리',
+  'access-log': '접속 이력',
+  'audit-log': '감사 로그',
+  'allowed-ip': '허용 IP 관리',
+  integration: '연동 관리'
+}
+
 const setActiveTab = (tab) => {
   activeTab.value = tab
+  navOpen.value = false
+  window.scrollTo({ top: 0 })
 }
 
 const openRegisterModal = () => {
@@ -371,7 +352,7 @@ onBeforeUnmount(() => {
 .admin-dashboard {
   min-height: 100vh;
   background: var(--pb-color-canvas);
-  padding: 72px 0 48px;
+  padding: 24px 0 48px;
 }
 
 .dashboard-content {
@@ -391,6 +372,24 @@ onBeforeUnmount(() => {
   border: 1px solid var(--pb-color-border);
   height: fit-content;
   overflow: hidden;
+  position: sticky;
+  top: calc(var(--pb-header-height) + 24px);
+}
+
+.nav-toggle {
+  display: none;
+}
+
+.nav-group-title {
+  padding: 12px 10px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--pb-color-text-soft);
+  letter-spacing: 0.02em;
+}
+
+.nav-group-title:first-child {
+  padding-top: 4px;
 }
 
 /* 사이드바 헤더 */
@@ -558,19 +557,111 @@ onBeforeUnmount(() => {
   padding: 28px;
 }
 
-/* 반응형 디자인 */
+/* 반응형 디자인 — 1024px 이하는 사이드바 대신 헤더 아래 고정 메뉴 바 */
 @media (max-width: 1024px) {
+  .admin-dashboard {
+    padding-top: 0;
+  }
+
   .dashboard-content {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 16px;
+    width: 100%;
   }
 
   .admin-nav {
-    order: 2;
+    position: sticky;
+    top: var(--pb-header-height);
+    z-index: 1020;
+    border-radius: 0;
+    border-width: 0 0 1px;
+    box-shadow: none;
+    overflow: visible;
+  }
+
+  .nav-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-height: 52px;
+    padding: 8px 16px;
+    border: 0;
+    background: var(--pb-color-surface);
+    color: var(--pb-color-heading);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .nav-toggle-label {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+  }
+
+  .nav-toggle-kicker {
+    font-size: 11px;
+    color: var(--pb-color-text-soft);
+  }
+
+  .nav-toggle-current {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .nav-toggle-chevron {
+    flex-shrink: 0;
+    color: var(--pb-color-text-muted);
+    transition: transform 0.18s ease;
+  }
+
+  .admin-nav.is-open .nav-toggle-chevron {
+    transform: rotate(180deg);
+  }
+
+  .sidebar-header {
+    display: none;
+  }
+
+  /* 메뉴판: 바 아래로 펼쳐져 본문 위에 뜬다 */
+  .nav-section {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: calc(100vh - var(--pb-header-height) - 52px);
+    overflow-y: auto;
+    padding: 8px 12px 16px;
+    background: var(--pb-color-surface);
+    border-bottom: 1px solid var(--pb-color-border);
+    box-shadow: var(--pb-shadow-popover);
+  }
+
+  .admin-nav.is-open .nav-section {
+    display: block;
+  }
+
+  .nav-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px 8px;
+  }
+
+  .nav-group-title {
+    grid-column: 1 / -1;
+  }
+
+  .nav-item {
+    min-height: 44px;
+    margin-bottom: 0;
   }
 
   .admin-main {
-    order: 1;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
   }
 
   .modal-container {
@@ -588,73 +679,160 @@ onBeforeUnmount(() => {
     padding: 16px;
   }
 
-  .dashboard-content {
-    width: 100%;
-    padding: 0;
+  /* 요약 숫자 카드: 한 줄에 하나씩 세로로 길게 쌓이지 않게 2열로. 홀수 개면 마지막 카드가 한 줄을 다 쓴다 */
+  .admin-main :deep(:is(.stats-grid, .stats-section)) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
-  /* 모바일: 사이드바 → 상단 가로 탭 전환 */
-  .admin-nav {
-    order: 0;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-    border-top: none;
+  .admin-main :deep(:is(.stats-grid, .stats-section) > :last-child:nth-child(odd)) {
+    grid-column: 1 / -1;
+  }
+
+  .admin-main :deep(:is(.stats-grid, .stats-section) > *) {
+    min-width: 0;
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .admin-main :deep(:is(.stats-grid, .stats-section) > * :is(.stat-icon, [class*='-icon'])) {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
+
+  /* 모바일 표 → 카드. 가로 스크롤 표는 한 행을 보려고 좌우로 계속 밀어야 해서 읽기 힘들다.
+     탭마다 표 틀 이름이 달라 여기서 한 번에 잡고, 항목명은 useTableCardLabels 가 td 에 붙인 data-label 을 쓴다. */
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap)) {
+    overflow: visible;
+    border: 0;
+    background: transparent;
     box-shadow: none;
-    padding: 0;
-    position: sticky;
-    top: var(--pb-header-height);
-    z-index: 100;
   }
 
-  .admin-main {
-    order: 1;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) table) {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    background: transparent;
   }
 
-  .sidebar-header,
-  .nav-title {
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) thead) {
     display: none;
   }
 
-  .nav-section {
-    padding: 0;
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) tbody) {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 
-  .nav-list {
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) tbody tr) {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
+    background: var(--pb-color-surface);
+    border: 1px solid var(--pb-color-border);
+    border-radius: var(--pb-radius-md);
+    height: auto;
+  }
+
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) tbody td) {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    width: auto;
+    max-width: none;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    text-align: left;
+    font-size: 14px;
+    word-break: break-word;
+  }
+
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) tbody td) {
+    height: auto;
+    min-height: 0;
+  }
+
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) tbody td > *) {
+    max-width: 100%;
+  }
+
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) tbody td::before) {
+    content: attr(data-label);
+    flex: 0 0 76px;
+    font-size: 12px;
+    color: var(--pb-color-text-soft);
+  }
+
+  /* 첫 칸은 카드 제목 */
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) tbody td:first-child) {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--pb-color-heading);
+    padding-bottom: 4px;
+    margin-bottom: 2px;
+    border-bottom: 1px solid var(--pb-color-border);
+  }
+
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) tbody td:first-child::before),
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) tbody td[data-label='']::before) {
+    display: none;
+  }
+
+  /* 작업 칸은 카드 맨 아래 동작 줄 — 버튼을 가로로 오른쪽에 모은다 */
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) tbody td:is([data-label='작업'], [data-label='관리'], [data-label='액션'])) {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    padding-top: 8px;
+    margin-top: 2px;
+    border-top: 1px solid var(--pb-color-border);
+  }
+
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) tbody td:is([data-label='작업'], [data-label='관리'], [data-label='액션'])::before) {
+    display: none;
+  }
+
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) tbody td:is([data-label='작업'], [data-label='관리'], [data-label='액션']) > :is(div, span)) {
     display: flex;
     flex-direction: row;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    gap: 2px;
-    padding: 6px 8px;
-    white-space: nowrap;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    height: auto;
+    min-height: 0;
   }
 
-  .nav-list::-webkit-scrollbar {
+  /* 카드 안 버튼은 손가락으로 누를 수 있는 크기로 */
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) tbody td:is([data-label='작업'], [data-label='관리'], [data-label='액션']) button) {
+    min-height: 36px;
+    min-width: 36px;
+    padding-inline: 12px;
+  }
+
+  /* 빈 값 칸은 줄을 차지하지 않는다 */
+  .admin-main :deep(:is(.table-wrapper, .table-container, .aip-table-wrap) tbody td:empty) {
     display: none;
+  }
+
+  .dashboard-content {
+    gap: 0;
   }
 
   .nav-item {
-    flex-direction: column;
-    flex-shrink: 0;
-    width: auto;
-    padding: 8px 12px;
-    font-size: 0.78rem;
-    gap: 4px;
-    min-height: 56px;
-    text-align: center;
-    border-radius: var(--pb-radius-sm);
-    margin-bottom: 0;
-    white-space: nowrap;
-  }
-
-  .nav-item svg {
-    width: 18px;
-    height: 18px;
+    font-size: 0.875rem;
+    padding: 9px 10px;
   }
 
   .modal-header {

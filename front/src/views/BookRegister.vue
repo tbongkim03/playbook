@@ -24,10 +24,7 @@
                   @keydown.enter="handleIsbnEnter"
                 />
                 <button class="search-btn" type="button" @click="searchISBN" :disabled="isSearching">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
-                    <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2"/>
-                  </svg>
+                  <PhMagnifyingGlass weight="duotone" :size="16" />
                   {{ isSearching ? '조회중...' : '조회' }}
                 </button>
               </div>
@@ -102,11 +99,7 @@
                 @click="submitBook" 
                 :disabled="isLoading || !isFormValid"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2"/>
-                  <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2"/>
-                  <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2"/>
-                </svg>
+                <PhStack weight="duotone" :size="16" />
                 {{ isLoading ? '등록 중...' : '등록' }}
               </button>
             </div>
@@ -133,10 +126,7 @@
                   <img :src="book.title_url" alt="도서 표지" class="cover-image" />
                 </div>
                 <div class="no-image-placeholder" v-else>
-                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20" stroke="currentColor" stroke-width="2"/>
-                    <path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" stroke="currentColor" stroke-width="2"/>
-                  </svg>
+                  <PhBook weight="duotone" :size="64" />
                   <p>도서 표지</p>
                   <span>ISBN을 조회하면 표지가 표시됩니다</span>
                 </div>
@@ -170,6 +160,7 @@
 </template>
 
 <script setup>
+import { PhBook, PhMagnifyingGlass, PhStack } from '@phosphor-icons/vue'
 import { reactive, ref, computed } from 'vue'
 import * as bookApi from '@/api/book'
 import * as externalApi from '@/api/external'

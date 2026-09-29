@@ -9,10 +9,7 @@
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z" stroke="currentColor" stroke-width="2"/>
-            <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhMapPin weight="duotone" :size="24" />
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ campusList.length }}</div>
@@ -21,10 +18,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2"/>
-            <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhCheckCircle weight="duotone" :size="24" />
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ activeCampusCount }}</div>
@@ -36,11 +30,7 @@
     <!-- 액션 바 -->
     <div class="action-bar">
       <button class="add-btn" @click="showAddModal = true">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-          <line x1="12" y1="8" x2="12" y2="16" stroke="currentColor" stroke-width="2"/>
-          <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/>
-        </svg>
+        <PhPlusCircle weight="duotone" :size="20" />
         캠퍼스 추가
       </button>
     </div>
@@ -71,16 +61,10 @@
               </td>
               <td class="campus-actions">
                 <button class="edit-btn" @click="openEditModal(campus)">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2"/>
-                    <path d="M18.5 2.5C18.8978 2.10217 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.10217 21.5 2.5C21.8978 2.89782 22.1213 3.43739 22.1213 4C22.1213 4.56261 21.8978 5.10217 21.5 5.5L12 15L8 16L9 12L18.5 2.5Z" stroke="currentColor" stroke-width="2"/>
-                  </svg>
+                  <PhNotePencil weight="duotone" :size="16" />
                 </button>
                 <button class="delete-btn" @click="confirmDelete(campus)">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <polyline points="3,6 5,6 21,6" stroke="currentColor" stroke-width="2"/>
-                    <path d="M19,6V20C19,20.5304 18.7893,21.0391 18.4142,21.4142C18.0391,21.7893 17.5304,22 17,22H7C6.46957,22 5.96086,21.7893 5.58579,21.4142C5.21071,21.0391 5,20.5304 5,20V6M8,6V4C8,3.46957 8.21071,2.96086 8.58579,2.58579C8.96086,2.21071 9.46957,2 10,2H14C14.5304,2 15.0391,2.21071 15.4142,2.58579C15.7893,2.96086 16,3.46957 16,4V6" stroke="currentColor" stroke-width="2"/>
-                  </svg>
+                  <PhTrash weight="duotone" :size="16" />
                 </button>
               </td>
             </tr>
@@ -90,12 +74,12 @@
     </div>
 
     <!-- 추가 모달 -->
-    <div v-if="showAddModal" class="modal-overlay" @click="closeAddModal">
+    <div v-if="showAddModal" class="modal-overlay" v-modal-backdrop="closeAddModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>캠퍼스 추가</h3>
           <button class="modal-close" @click="closeAddModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/></svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <form @submit.prevent="addCampus" class="modal-form">
@@ -123,12 +107,12 @@
     </div>
 
     <!-- 수정 모달 -->
-    <div v-if="showEditModal" class="modal-overlay" @click="closeEditModal">
+    <div v-if="showEditModal" class="modal-overlay" v-modal-backdrop="closeEditModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>캠퍼스 수정</h3>
           <button class="modal-close" @click="closeEditModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/></svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <form @submit.prevent="updateCampus" class="modal-form">
@@ -156,17 +140,17 @@
     </div>
 
     <!-- 삭제 확인 모달 -->
-    <div v-if="showDeleteModal" class="modal-overlay" @click="closeDeleteModal">
+    <div v-if="showDeleteModal" class="modal-overlay" v-modal-backdrop="closeDeleteModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>캠퍼스 삭제 확인</h3>
           <button class="modal-close" @click="closeDeleteModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/></svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <div class="delete-warning">
           <div class="warning-icon">
-            <svg width="46" height="46" viewBox="0 0 24 24" fill="none"><path d="M12 8V12M12 16H12.01M10.29 3.86L1.82 18C1.64466 18.3024 1.55685 18.6453 1.56455 18.9928C1.57225 19.3403 1.67516 19.6792 1.86244 19.9757C2.04973 20.2723 2.31561 20.5157 2.6289 20.6812C2.9422 20.8467 3.29427 20.9286 3.65 20.92H20.35C20.7057 20.9286 21.0578 20.8467 21.3711 20.6812C21.6844 20.5157 21.9503 20.2723 22.1376 19.9757C22.3248 19.6792 22.4278 19.3403 22.4355 18.9928C22.4432 18.6453 22.3553 18.3024 22.18 18L13.71 3.86C13.5317 3.56611 13.2807 3.32312 12.9812 3.15446C12.6817 2.98581 12.3438 2.89725 12 2.89725C11.6562 2.89725 11.3183 2.98581 11.0188 3.15446C10.7193 3.32312 10.4683 3.56611 10.29 3.86Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <PhWarning weight="duotone" :size="46" />
           </div>
           <div class="warning-content">
             <h4>정말로 캠퍼스를 삭제하시겠습니까?</h4>
@@ -188,6 +172,8 @@
 </template>
 
 <script setup>
+import { vModalBackdrop } from '@/utils/modalBackdrop'
+import { PhCheckCircle, PhMapPin, PhNotePencil, PhPlusCircle, PhTrash, PhWarning, PhX } from '@phosphor-icons/vue'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import * as campusApi from '@/api/campus'
 import { swAlert } from '@/utils/sweetAlert'

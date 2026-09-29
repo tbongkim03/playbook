@@ -1,16 +1,11 @@
 <template>
-  <div class="modal-overlay" @click="close">
+  <div class="modal-overlay" v-modal-backdrop="close">
     <div class="modal-container" @click.stop>
       <!-- 모달 헤더 -->
       <div class="modal-header">
         <div class="header-content">
           <div class="header-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="3" y="4" width="4" height="16" stroke="currentColor" stroke-width="2"/>
-              <rect x="9" y="4" width="2" height="16" stroke="currentColor" stroke-width="2"/>
-              <rect x="13" y="4" width="2" height="16" stroke="currentColor" stroke-width="2"/>
-              <rect x="17" y="4" width="4" height="16" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhBarcode weight="duotone" :size="24" />
           </div>
           <div class="header-text">
             <h2 class="modal-title">바코드 출력</h2>
@@ -20,10 +15,7 @@
           </div>
         </div>
         <button class="close-btn" @click="close">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
-            <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhX weight="duotone" :size="20" />
         </button>
       </div>
       <!-- 설정 영역 -->
@@ -31,10 +23,7 @@
         <div class="settings-grid">
           <div class="setting-group">
             <label for="countSelect" class="setting-label">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M16 4H18C18.5304 4 19.0391 4.21071 19.4142 4.58579C19.7893 4.96086 20 5.46957 20 6V18C20 18.5304 19.7893 19.0391 19.4142 19.4142C19.0391 19.7893 18.5304 20 18 20H6C5.46957 20 4.96086 19.7893 3.58579 19.4142C3.21071 19.0391 3 18.5304 3 18V6C3 5.46957 3.21071 4.96086 3.58579 4.58579C3.96086 4.21071 4.46957 4 6 4H8" stroke="currentColor" stroke-width="2"/>
-                <rect x="8" y="2" width="8" height="4" rx="1" ry="1" stroke="currentColor" stroke-width="2"/>
-              </svg>
+              <PhClipboard weight="duotone" :size="16" />
               출력 수량
             </label>
             <select id="countSelect" v-model="selectedCountPerPage" class="setting-select">
@@ -46,10 +35,7 @@
 
           <div class="setting-group">
             <label for="startPosition" class="setting-label">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21 10C21 16.0751 16.0751 21 10 21C4.44772 21 0 16.5523 0 11C0 5.44772 4.44772 1 10 1C15.5228 1 20 5.44772 20 11" stroke="currentColor" stroke-width="2"/>
-                <circle cx="10" cy="11" r="3" stroke="currentColor" stroke-width="2"/>
-              </svg>
+              <PhCrosshair weight="duotone" :size="16" />
               시작 위치
             </label>
             <select id="startPosition" v-model="startPosition" class="setting-select">
@@ -79,10 +65,7 @@
       <div class="preview-section">
         <div class="preview-header">
           <h3 class="preview-title">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" stroke-width="2"/>
-              <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhEye weight="duotone" :size="16" />
             미리보기
           </h3>
           <span class="preview-count">{{ displayedBooks.length }}개 항목</span>
@@ -107,12 +90,7 @@
 
           <!-- 빈 상태 -->
           <div v-else class="empty-state">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="3" y="4" width="4" height="16" stroke="currentColor" stroke-width="2"/>
-              <rect x="9" y="4" width="2" height="16" stroke="currentColor" stroke-width="2"/>
-              <rect x="13" y="4" width="2" height="16" stroke="currentColor" stroke-width="2"/>
-              <rect x="17" y="4" width="4" height="16" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhBarcode weight="duotone" :size="48" />
             <h4>출력할 바코드가 없습니다</h4>
             <p>
               미출력 도서가 없습니다.
@@ -124,10 +102,7 @@
       <!-- 액션 버튼 -->
       <div class="modal-actions">
         <button class="action-btn cancel-btn" @click="close">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
-            <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhX weight="duotone" :size="16" />
           취소
         </button>
         <button 
@@ -135,11 +110,7 @@
           @click="printAll"
           :disabled="displayedBooks.length === 0"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <polyline points="6,9 6,2 18,2 18,9" stroke="currentColor" stroke-width="2"/>
-            <path d="M6,18H4C3.46957,18 2.96086,17.7893 2.58579,17.4142C2.21071,17.0391 2,16.5304 2,16V11C2,10.4696 2.21071,9.96086 2.58579,9.58579C2.96086,9.21071 3.46957,9 4,9H20C20.5304,9 21.0391,9.21071 21.4142,9.58579C21.7893,9.96086 22,10.4696 22,11V16C22,16.5304 21.7893,17.0391 21.4142,17.4142C21.0391,17.7893 20.5304,18 20,18H18" stroke="currentColor" stroke-width="2"/>
-            <rect x="6" y="14" width="12" height="8" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhPrinter weight="duotone" :size="16" />
           출력하기
         </button>
       </div>
@@ -148,6 +119,8 @@
 </template>
 
 <script setup>
+import { vModalBackdrop } from '@/utils/modalBackdrop'
+import { PhBarcode, PhClipboard, PhCrosshair, PhEye, PhPrinter, PhX } from '@phosphor-icons/vue'
 import { ref, watch, computed, onMounted, nextTick } from 'vue'
 import JsBarcode from 'jsbarcode'
 import { swAlert } from '@/utils/sweetAlert'

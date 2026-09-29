@@ -11,10 +11,7 @@
       <section class="user-info-section">
         <div class="section-header">
           <div class="section-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="8" r="5" stroke="currentColor" stroke-width="2"/>
-              <path d="M20 21a8 8 0 1 0-16 0" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhUser weight="duotone" :size="20" />
           </div>
           <h2 class="section-title">계정 정보</h2>
         </div>
@@ -25,10 +22,7 @@
             <div class="info-value">
               <span class="value-text">{{ userInfo.nameUser }}</span>
               <button @click="openNameModal" class="edit-button">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2"/>
-                  <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2"/>
-                </svg>
+                <PhNotePencil weight="duotone" :size="16" />
                 변경
               </button>
             </div>
@@ -46,10 +40,7 @@
             <div class="info-value">
               <span class="value-text">{{ userInfo.dcUser || '-' }}</span>
               <button @click="openDiscordModal" class="edit-button">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2"/>
-                  <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2"/>
-                </svg>
+                <PhNotePencil weight="duotone" :size="16" />
                 변경
               </button>
             </div>
@@ -60,10 +51,7 @@
             <div class="info-value">
               <span class="value-text">••••••••</span>
               <button @click="openPasswordModal" class="edit-button">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2"/>
-                  <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2"/>
-                </svg>
+                <PhNotePencil weight="duotone" :size="16" />
                 변경
               </button>
             </div>
@@ -120,9 +108,7 @@
 
         <div class="account-actions">
           <button @click="openWithdrawModal" class="withdraw-button">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhTrash weight="duotone" :size="16" />
             회원 탈퇴
           </button>
         </div>
@@ -131,9 +117,7 @@
       <section class="favorites-section">
         <div class="section-header">
           <div class="section-icon favorites">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="currentColor"/>
-            </svg>
+            <PhHeart weight="duotone" :size="20" />
           </div>
           <h2 class="section-title">나의 찜 목록</h2>
           <span class="count-badge">{{ favoriteBooks.length }}</span>
@@ -141,9 +125,7 @@
 
         <div v-if="favoriteBooks.length === 0" class="empty-state">
           <div class="empty-icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhHeart weight="duotone" :size="48" />
           </div>
           <p class="empty-text">아직 찜한 도서가 없습니다</p>
           <p class="empty-subtext">마음에 드는 도서를 찜해보세요</p>
@@ -165,9 +147,7 @@
               class="favorite-button active"
               title="찜 해제"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="currentColor"/>
-              </svg>
+              <PhHeart weight="duotone" :size="20" />
             </button>
           </div>
         </div>
@@ -176,10 +156,7 @@
       <section class="rental-history-section">
         <div class="section-header">
           <div class="section-icon rental">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2"/>
-              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhBook weight="duotone" :size="20" />
           </div>
           <h2 class="section-title">나의 서비스 이용 기록</h2>
           <span class="count-badge">{{ rentalSummary.totalBorrowed }}</span>
@@ -206,10 +183,7 @@
 
         <div v-if="rentalHistory.length === 0" class="empty-state">
           <div class="empty-icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2"/>
-              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhBook weight="duotone" :size="48" />
           </div>
           <p class="empty-text">이용 내역이 없습니다</p>
           <p class="empty-subtext">도서를 대출해보세요</p>
@@ -231,14 +205,12 @@
       </section>
     </div>
 
-    <div v-if="passwordModal" class="modal-overlay" @click="closePasswordModal">
+    <div v-if="passwordModal" class="modal-overlay" v-modal-backdrop="closePasswordModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>비밀번호 변경</h3>
           <button @click="closePasswordModal" class="close-button">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <form @submit.prevent="changePassword" class="modal-form">
@@ -264,10 +236,7 @@
                 class="clear-button"
                 title="입력 내용 지우기"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                  <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
-                </svg>
+                <PhXCircle weight="duotone" :size="16" />
               </button>
                 <button 
                   type="button"
@@ -275,14 +244,8 @@
                   class="toggle-password-button"
                   :title="showCurrentPassword ? '비밀번호 숨기기' : '비밀번호 보기'"
                 >
-                  <svg v-if="showCurrentPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2"/>
-                    <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2"/>
-                  </svg>
-                  <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/>
-                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-                  </svg>
+                  <PhEyeSlash weight="duotone" :size="16" v-if="showCurrentPassword" />
+                  <PhEye weight="duotone" :size="16" />
                 </button>
               </div>
             </div>
@@ -313,10 +276,7 @@
                 class="clear-button"
                 title="입력 내용 지우기"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                  <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
-                </svg>
+                <PhXCircle weight="duotone" :size="16" />
               </button>
                 <button 
                   type="button"
@@ -324,14 +284,8 @@
                   class="toggle-password-button"
                   :title="showNewPassword ? '비밀번호 숨기기' : '비밀번호 보기'"
                 >
-                  <svg v-if="showNewPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2"/>
-                    <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2"/>
-                  </svg>
-                  <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/>
-                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-                  </svg>
+                  <PhEyeSlash weight="duotone" :size="16" v-if="showNewPassword" />
+                  <PhEye weight="duotone" :size="16" />
                 </button>
               </div>
             </div>
@@ -362,10 +316,7 @@
                 class="clear-button"
                 title="입력 내용 지우기"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                  <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
-                </svg>
+                <PhXCircle weight="duotone" :size="16" />
               </button>
                 <button 
                   type="button"
@@ -373,14 +324,8 @@
                   class="toggle-password-button"
                   :title="showConfirmPassword ? '비밀번호 숨기기' : '비밀번호 보기'"
                 >
-                  <svg v-if="showConfirmPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2"/>
-                    <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2"/>
-                  </svg>
-                  <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/>
-                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-                  </svg>
+                  <PhEyeSlash weight="duotone" :size="16" v-if="showConfirmPassword" />
+                  <PhEye weight="duotone" :size="16" />
                 </button>
               </div>
             </div>
@@ -400,14 +345,12 @@
     </div>
 
     <!-- 이름 변경 모달 -->
-    <div v-if="nameModal" class="modal-overlay" @click="closeNameModal">
+    <div v-if="nameModal" class="modal-overlay" v-modal-backdrop="closeNameModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>이름 변경</h3>
           <button @click="closeNameModal" class="close-button">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <form @submit.prevent="changeName" class="modal-form">
@@ -437,14 +380,12 @@
     </div>
 
     <!-- 디스코드 ID 변경 모달 -->
-    <div v-if="discordModal" class="modal-overlay" @click="closeDiscordModal">
+    <div v-if="discordModal" class="modal-overlay" v-modal-backdrop="closeDiscordModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>디스코드 ID 변경</h3>
           <button @click="closeDiscordModal" class="close-button">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <form @submit.prevent="changeDiscord" class="modal-form">
@@ -474,24 +415,18 @@
     </div>
 
     <!-- 회원 탈퇴 모달 -->
-    <div v-if="withdrawModal" class="modal-overlay" @click="closeWithdrawModal">
+    <div v-if="withdrawModal" class="modal-overlay" v-modal-backdrop="closeWithdrawModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3 class="modal-title">회원 탈퇴</h3>
           <button @click="closeWithdrawModal" class="close-button">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-              <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhXCircle weight="duotone" :size="20" />
           </button>
         </div>
 
         <div class="modal-body">
           <div class="withdraw-warning">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="12" r="10" stroke="#ef4444" stroke-width="2"/>
-              <path d="M12 8v4M12 16h.01" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
-            </svg>
+            <PhWarningCircle weight="duotone" :size="48" />
             <h4>정말 탈퇴하시겠습니까?</h4>
             <p>회원 탈퇴 시 다음 사항을 확인해주세요:</p>
             <ul class="withdraw-notice-list">
@@ -515,6 +450,8 @@
 </template>
 
 <script setup>
+import { vModalBackdrop } from '@/utils/modalBackdrop'
+import { PhBook, PhEye, PhEyeSlash, PhHeart, PhNotePencil, PhTrash, PhUser, PhWarningCircle, PhX, PhXCircle } from '@phosphor-icons/vue'
 import { ref, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
 import * as userApi from '@/api/user'
 import { updateProfile } from '@/api/user'

@@ -23,10 +23,7 @@
       <div class="header-content">
         <div class="title-section">
           <h1 class="page-title">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20" stroke="currentColor" stroke-width="2"/>
-              <path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhBook weight="duotone" :size="24" />
             도서 관리
           </h1>
           <p class="page-subtitle">도서 등록, 수정, 삭제 및 바코드 관리</p>
@@ -34,11 +31,7 @@
         
         <div class="header-actions">
           <button type="button" class="register-btn" @click="$emit('open-register-modal')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-              <line x1="12" y1="8" x2="12" y2="16" stroke="currentColor" stroke-width="2"/>
-              <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhPlusCircle weight="duotone" :size="16" />
             도서 등록
           </button>
         </div>
@@ -54,10 +47,7 @@
             <div class="filter-group search-group">
               <label class="filter-label">검색</label>
               <div class="search-input-wrapper">
-                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
-                  <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2"/>
-                </svg>
+                <PhMagnifyingGlass weight="duotone" :size="16" class="search-icon" />
                 <input 
                   type="text" 
                   v-model="filters.searchQuery"
@@ -70,10 +60,7 @@
                   @click="filters.searchQuery = ''"
                   class="clear-search-btn"
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
-                    <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
-                  </svg>
+                  <PhX weight="duotone" :size="16" />
                 </button>
               </div>
             </div>
@@ -160,10 +147,7 @@
           <div class="filter-row action-controls">
             <div class="control-group">
               <button @click="resetFilters" class="reset-filters-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12Z" stroke="currentColor" stroke-width="2"/>
-                  <path d="M12 3V7M12 17V21M21 12H17M7 12H3" stroke="currentColor" stroke-width="2"/>
-                </svg>
+                <PhArrowCounterClockwise weight="duotone" :size="16" />
                 초기화
               </button>
             </div>
@@ -192,11 +176,7 @@
                 class="batch-print-btn"
                 :disabled="selectedBooks.size === 0"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <polyline points="6,9 6,2 18,2 18,9" stroke="currentColor" stroke-width="2"/>
-                  <path d="M6,18H4C3.46957,18 2.96086,17.7893 2.58579,17.4142C2.21071,17.0391 2,16.5304 2,16V11C2,10.4696 2.21071,9.96086 2.58579,9.58579C2.96086,9.21071 3.46957,9 4,9H20C20.5304,9 21.0391,9.21071 21.4142,9.58579C21.7893,9.96086 22,10.4696 22,11V16C22,16.5304 21.7893,17.0391 21.4142,17.4142C21.0391,17.7893 20.5304,18 20,18H18" stroke="currentColor" stroke-width="2"/>
-                  <rect x="6" y="14" width="12" height="8" stroke="currentColor" stroke-width="2"/>
-                </svg>
+                <PhPrinter weight="duotone" :size="16" />
                 일괄 출력
                 <span class="count-badge">{{ selectedBooks.size }}</span>
               </button>
@@ -210,10 +190,7 @@
     <div class="stats-section">
       <div class="stat-card total-books">
         <div class="stat-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20" stroke="currentColor" stroke-width="2"/>
-            <path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhBook weight="duotone" :size="20" />
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ isPrint ? filteredBooks.length : totalCount }}</div>
@@ -223,12 +200,7 @@
       
       <div class="stat-card total-books">
         <div class="stat-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
-            <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/>
-            <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/>
-            <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhCalendarBlank weight="duotone" :size="20" />
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ allBooks.length }}</div>
@@ -238,12 +210,7 @@
 
       <div class="stat-card borrowed-books">
         <div class="stat-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16 4H18C18.5304 4 19.0391 4.21071 19.4142 4.58579C19.7893 4.96086 20 5.46957 20 6V18C20 18.5304 19.7893 19.0391 19.4142 19.4142C19.0391 19.7893 18.5304 20 18 20H6C5.46957 20 4.96086 19.7893 4.58579 19.4142C4.21071 19.0391 4 18.5304 4 18V6C4 5.46957 4.21071 4.96086 4.58579 4.58579C4.96086 4.21071 5.46957 4 6 4H8" stroke="currentColor" stroke-width="2"/>
-            <rect x="8" y="2" width="8" height="4" rx="1" ry="1" stroke="currentColor" stroke-width="2"/>
-            <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/>
-            <line x1="8" y1="16" x2="12" y2="16" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhClipboard weight="duotone" :size="20" />
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ borrowedCount }}</div>
@@ -253,9 +220,7 @@
 
       <div class="stat-card available-books">
         <div class="stat-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <polyline points="20,6 9,17 4,12" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhCheck weight="duotone" :size="20" />
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ availableCount }}</div>
@@ -265,11 +230,7 @@
 
       <div class="stat-card unavailable-books">
         <div class="stat-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-            <line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" stroke-width="2"/>
-            <line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhXCircle weight="duotone" :size="20" />
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ unavailableCount }}</div>
@@ -279,11 +240,7 @@
 
       <div v-if="isPrint" class="stat-card print-ready">
         <div class="stat-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <polyline points="6,9 6,2 18,2 18,9" stroke="currentColor" stroke-width="2"/>
-            <path d="M6,18H4C3.46957,18 2.96086,17.7893 2.58579,17.4142C2.21071,17.0391 2,16.5304 2,16V11C2,10.4696 2.21071,9.96086 2.58579,9.58579C2.96086,9.21071 3.46957,9 4,9H20C20.5304,9 21.0391,9.21071 21.4142,9.58579C21.7893,9.96086 22,10.4696 22,11V16C22,16.5304 21.7893,17.0391 21.4142,17.4142C21.0391,17.7893 20.5304,18 20,18H18" stroke="currentColor" stroke-width="2"/>
-            <rect x="6" y="14" width="12" height="8" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhPrinter weight="duotone" :size="20" />
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ booksToPrint.length }}</div>
@@ -299,19 +256,11 @@
           <h3>도서 목록</h3>
           <div class="table-actions">
             <button class="export-btn" @click="exportData">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2"/>
-                <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2"/>
-                <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2"/>
-              </svg>
+              <PhDownloadSimple weight="duotone" :size="14" />
               엑셀로 내보내기
             </button>
             <button class="export-btn" @click="triggerImport" :disabled="isImporting">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2"/>
-                <polyline points="17,8 12,3 7,8" stroke="currentColor" stroke-width="2"/>
-                <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" stroke-width="2"/>
-              </svg>
+              <PhUploadSimple weight="duotone" :size="14" />
               {{ isImporting ? '업로드 중...' : '엑셀 업로드' }}
             </button>
             <input
@@ -327,17 +276,7 @@
               :disabled="isRefreshing"
               title="목록 새로고침"
             >
-              <svg 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-                :class="{ 'spinning': isRefreshing }"
-              >
-                <path d="M3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12Z" stroke="currentColor" stroke-width="2"/>
-                <path d="M12 3V7M12 17V21M21 12H17M7 12H3" stroke="currentColor" stroke-width="2"/>
-              </svg>
+              <PhArrowCounterClockwise weight="duotone" :size="16" :class="{ 'spinning': isRefreshing }" />
               {{ isRefreshing ? '새로고침 중...' : '새로고침' }}
             </button>
             <span class="result-count">{{ paginatedBooks.length }}개 표시 (페이지 {{ currentPage }}/{{ totalPages }})</span>
@@ -471,18 +410,10 @@
                 <td class="actions col-actions">
                   <div class="action-buttons">
                     <button @click="barcodeCreate(book)" class="action-btn barcode-btn" title="바코드 생성">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="3" y="4" width="4" height="16" stroke="currentColor" stroke-width="2"/>
-                        <rect x="9" y="4" width="2" height="16" stroke="currentColor" stroke-width="2"/>
-                        <rect x="13" y="4" width="2" height="16" stroke="currentColor" stroke-width="2"/>
-                        <rect x="17" y="4" width="4" height="16" stroke="currentColor" stroke-width="2"/>
-                      </svg>
+                      <PhBarcode weight="duotone" :size="14" />
                     </button>
                     <button @click="deleteBook(book)" class="action-btn delete-btn" title="도서 삭제">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <polyline points="3,6 5,6 21,6" stroke="currentColor" stroke-width="2"/>
-                        <path d="M19,6V20C19,20.5304 18.7893,21.0391 18.4142,21.4142C18.0391,21.7893 17.5304,22 17,22H7C6.46957,22 5.96086,21.7893 5.58579,21.4142C5.21071,21.0391 5,20.5304 5,20V6M8,6V4C8,3.46957 8.21071,2.96086 8.58579,2.58579C8.96086,2.21071 9.46957,2 10,2H14C14.5304,2 15.0391,2.21071 15.4142,2.58579C15.7893,2.96086 16,3.46957 16,4V6" stroke="currentColor" stroke-width="2"/>
-                      </svg>
+                      <PhTrash weight="duotone" :size="14" />
                     </button>
                   </div>
                 </td>
@@ -492,10 +423,7 @@
 
           <!-- 빈 상태 -->
           <div v-if="paginatedBooks.length === 0" class="empty-state">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20" stroke="currentColor" stroke-width="2"/>
-              <path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhBook weight="duotone" :size="64" />
             <h3>도서가 없습니다</h3>
             <p>조건에 맞는 도서가 없습니다. 필터를 초기화하거나 새로운 도서를 등록해보세요.</p>
           </div>
@@ -512,7 +440,7 @@
           :disabled="currentPage === 1"
           @click="goToPage(currentPage - 1)"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <PhCaretLeft weight="duotone" :size="14" />
           이전
         </button>
         <template v-for="item in paginationItems" :key="item + '-bt'">
@@ -530,7 +458,7 @@
           @click="goToPage(currentPage + 1)"
         >
           다음
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <PhCaretRight weight="duotone" :size="14" />
         </button>
       </nav>
     </div>
@@ -538,6 +466,7 @@
 </template>
 
 <script setup>
+import { PhArrowCounterClockwise, PhBarcode, PhBook, PhCalendarBlank, PhCaretLeft, PhCaretRight, PhCheck, PhClipboard, PhDownloadSimple, PhMagnifyingGlass, PhPlusCircle, PhPrinter, PhTrash, PhUploadSimple, PhX, PhXCircle } from '@phosphor-icons/vue'
 import { ref, computed, watch, onMounted, onBeforeUnmount, watchEffect } from 'vue'
 import * as bookApi from '@/api/book'
 import * as sortApi from '@/api/sort'

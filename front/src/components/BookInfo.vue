@@ -20,10 +20,7 @@
                 <!-- 대출중 오버레이 (이미지에만 적용) -->
                 <div v-if="book.bookBorrowed && !book.borrowedByMe" class="borrowed-overlay">
                     <div class="borrowed-badge-large">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="currentColor"/>
-                            <path d="M9 12L11 14L15 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                        <PhCheckCircle weight="duotone" :size="20" />
                         <span class="borrowed-text-large">대출 중</span>
                     </div>
                     <div class="borrowed-dimmer"></div>
@@ -31,9 +28,7 @@
                     <!-- 중앙 대여중 메시지 -->
                     <div class="borrowed-center-message">
                         <div class="borrowed-icon">
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
+                            <PhX weight="duotone" :size="40" />
                         </div>
                         <p class="borrowed-message">현재 대출 중</p>
                     </div>
@@ -42,9 +37,7 @@
                 <!-- 본인이 대출한 경우 오버레이 -->
                 <div v-if="book.borrowedByMe" class="my-borrowed-overlay">
                     <div class="my-borrowed-badge">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                        <PhCheckCircle weight="duotone" :size="20" />
                         <span class="my-borrowed-text">대출 중</span>
                     </div>
                 </div>
@@ -53,17 +46,13 @@
         <div class="right-area">
             <!-- 대출중 알림 배너 -->
             <div v-if="book.bookBorrowed && !book.borrowedByMe" class="borrowed-alert">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <PhWarningCircle weight="duotone" :size="20" />
                 <span>이 도서는 현재 대출 중입니다</span>
             </div>
 
             <!-- 내가 대출중인 경우 알림 배너 -->
             <div v-if="book.borrowedByMe" class="my-borrowed-alert">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <PhCheckCircle weight="duotone" :size="20" />
                 <span>현재 사용자님께서 대출 중인 도서입니다</span>
             </div>
 
@@ -102,15 +91,9 @@
                     :disabled="(book.bookBorrowed && !book.borrowedByMe) || mobile"
                     :title="mobile ? 'PC에서만 이용 가능한 기능입니다' : ''"
                 >
-                    <svg v-if="!book.bookBorrowed" class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253z" />
-                    </svg>
-                    <svg v-else-if="book.borrowedByMe" class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                    <svg v-else class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <PhBookOpen weight="duotone" v-if="!book.bookBorrowed" class="btn-icon" />
+                    <PhCaretRight weight="duotone" v-else-if="book.borrowedByMe" class="btn-icon" />
+                    <PhXCircle weight="duotone" class="btn-icon" />
                     {{ getButtonText() }}
                 </button>
                 
@@ -120,12 +103,8 @@
                     :class="isWishlisted ? 'btn-wishlisted' : 'btn-secondary'"
                     @click="handleWishlist"
                 >
-                    <svg v-if="!isWishlisted" class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                    <svg v-else class="btn-icon" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
+                    <PhHeart weight="duotone" v-if="!isWishlisted" class="btn-icon" />
+                    <PhHeart weight="duotone" class="btn-icon" />
                     {{ isWishlisted ? '찜 해제' : '찜하기' }}
                 </button>
             </div>
@@ -156,6 +135,7 @@
 </template>
 
 <script setup>
+import { PhBookOpen, PhCaretRight, PhCheckCircle, PhHeart, PhWarningCircle, PhX, PhXCircle } from '@phosphor-icons/vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import * as bookApi from '@/api/book'

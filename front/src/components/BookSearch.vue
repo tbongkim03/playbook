@@ -13,12 +13,7 @@
           :aria-expanded="typeMenuOpen"
         >
           <span class="type-label">{{ currentType.label }}</span>
-          <svg class="chevron" :class="{ open: typeMenuOpen }"
-            width="12" height="12" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2.5"
-            stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
+          <PhCaretDown weight="duotone" :size="12" class="chevron" :class="{ open: typeMenuOpen }" />
         </button>
 
         <ul v-if="typeMenuOpen" class="type-menu" role="listbox">
@@ -31,12 +26,7 @@
             :aria-selected="t.value === currentType.value"
             @mousedown.prevent="selectType(t)"
           >
-            <svg v-if="t.value === currentType.value"
-              class="check-icon" width="12" height="12" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" stroke-width="2.5"
-              stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
+            <PhCheck weight="duotone" :size="12" v-if="t.value === currentType.value" class="check-icon" />
             <span v-else class="check-placeholder"></span>
             {{ t.label }}
           </li>
@@ -48,11 +38,7 @@
 
       <!-- 검색 아이콘 -->
       <span class="search-icon-wrap">
-        <svg v-if="!isLoading" width="15" height="15" viewBox="0 0 24 24"
-          fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
+        <PhMagnifyingGlass weight="duotone" :size="15" v-if="!isLoading" />
         <span v-else class="spinner"></span>
       </span>
 
@@ -79,11 +65,7 @@
         @mousedown.prevent="clearQuery"
         aria-label="검색어 지우기"
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2.5"
-          stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
+        <PhX weight="duotone" :size="14" />
       </button>
     </div>
 
@@ -106,19 +88,11 @@
         @mousedown.prevent="selectSuggestion(item)"
         @mouseenter="selectedIndex = idx"
       >
-        <svg class="suggestion-icon" width="13" height="13" viewBox="0 0 24 24"
-          fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
+        <PhMagnifyingGlass weight="duotone" :size="13" class="suggestion-icon" />
         <span class="suggestion-text" v-html="highlight(item)"></span>
       </li>
       <li v-if="query" class="suggestion-search-all" @mousedown.prevent="submitSearch">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
+        <PhMagnifyingGlass weight="duotone" :size="13" />
         <span><strong>{{ query }}</strong> 전체 검색</span>
       </li>
     </ul>
@@ -132,6 +106,7 @@
 </template>
 
 <script>
+import { PhCaretDown, PhCheck, PhMagnifyingGlass, PhX } from '@phosphor-icons/vue'
 import { swAlert } from '@/utils/sweetAlert'
 import * as bookApi from '@/api/book'
 
@@ -143,6 +118,7 @@ const SEARCH_TYPES = [
 ]
 
 export default {
+  components: { PhCaretDown, PhCheck, PhMagnifyingGlass, PhX },
   name: 'BookSearch',
   emits: ['search'],
   data() {

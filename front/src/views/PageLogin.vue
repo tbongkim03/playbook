@@ -17,21 +17,14 @@
                             @click="setLoginMode(false)" 
                             :class="['toggle-btn', { active: !isAdminMode }]"
                         >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
+                            <PhUser weight="duotone" :size="18" />
                             일반 회원
                         </button>
                         <button 
                             @click="setLoginMode(true)" 
                             :class="['toggle-btn', { active: isAdminMode }]"
                         >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
+                            <PhUserGear weight="duotone" :size="18" />
                             관리자
                         </button>
                     </div>
@@ -42,10 +35,7 @@
                     <div class="input-group">
                         <div class="input-container">
                             <div class="input-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
+                                <PhUser weight="duotone" :size="20" />
                             </div>
                             <input 
                                 type="text" 
@@ -65,10 +55,7 @@
                                 title="아이디 지우기"
                                 tabindex="-1"
                             >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                                  <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
-                                </svg>
+                                <PhXCircle weight="duotone" :size="16" />
                             </button>
                         </div>
                     </div>
@@ -77,11 +64,7 @@
                     <div class="input-group">
                         <div class="input-container">
                             <div class="input-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <circle cx="12" cy="16" r="1" fill="currentColor"/>
-                                    <path d="M7 11V7C7 5.67392 7.52678 4.40215 8.46447 3.46447C9.40215 2.52678 10.6739 2 12 2C13.3261 2 14.5979 2.52678 15.5355 3.46447C16.4732 4.40215 17 5.67392 17 7V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
+                                <PhLockKey weight="duotone" :size="20" />
                             </div>
                             <input 
                                 :type="showPassword ? 'text' : 'password'" 
@@ -102,10 +85,7 @@
                                     title="비밀번호 지우기"
                                     tabindex="-1"
                                 >
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                                      <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
-                                    </svg>
+                                    <PhXCircle weight="duotone" :size="16" />
                                 </button>
                                 <!-- 비밀번호 보기/숨기기 버튼 -->
                                 <button 
@@ -116,15 +96,9 @@
                                     tabindex="-1"
                                 >
                                     <!-- 눈 보이기 아이콘 -->
-                                    <svg v-if="!showPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/>
-                                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-                                    </svg>
+                                    <PhEye weight="duotone" :size="16" v-if="!showPassword" />
                                     <!-- 눈 숨기기 아이콘 -->
-                                    <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2"/>
-                                        <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2"/>
-                                    </svg>
+                                    <PhEyeSlash weight="duotone" :size="16" />
                                 </button>
                             </div>
                         </div>
@@ -133,11 +107,7 @@
                     <button type="submit" class="login-button" :disabled="!userId || !password">
                         <span class="button-text">{{ isAdminMode ? '관리자 로그인' : '로그인' }}</span>
                         <div class="button-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M15 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <polyline points="10,17 15,12 10,7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <line x1="15" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
+                            <PhSignIn weight="duotone" :size="20" />
                         </div>
                     </button>
                 </form>
@@ -146,27 +116,17 @@
                 <div v-if="!isAdminMode" class="link-menu">
                     <div class="link-items">
                         <a @click.prevent="goToTerms" class="link-item signup-link">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <line x1="20" y1="8" x2="20" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <line x1="17" y1="11" x2="23" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
+                            <PhUserCheck weight="duotone" :size="16" />
                             회원가입
                         </a>
                         <span class="link-divider">|</span>
                         <a :href="discordServerUrl" target="_blank" rel="noopener noreferrer" class="link-item find-account-link">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
-                                <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
+                            <PhMagnifyingGlass weight="duotone" :size="16" />
                             아이디 · 비밀번호 찾기
                         </a>
                     </div>
                     <div class="find-account-hint">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2"/>
-                        </svg>
+                        <PhChatCircle weight="duotone" :size="13" style="flex-shrink:0" />
                         <span>디스코드 서버에서 <code>/findid</code> · <code>/resetpw</code> 명령어로 임시 비밀번호를 발급받을 수 있습니다</span>
                     </div>
                 </div>
@@ -174,11 +134,7 @@
                 <!-- 관리자 모드 안내 (관리자 모드일 때만 표시) -->
                 <div v-if="isAdminMode" class="admin-notice">
                     <div class="notice-content">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 9V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M12 17H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                        <PhWarningCircle weight="duotone" :size="20" />
                         <span>관리자 계정으로 로그인합니다</span>
                     </div>
                 </div>
@@ -189,6 +145,7 @@
 </template>
 
 <script setup>
+import { PhChatCircle, PhEye, PhEyeSlash, PhLockKey, PhMagnifyingGlass, PhSignIn, PhUser, PhUserCheck, PhUserGear, PhWarningCircle, PhXCircle } from '@phosphor-icons/vue'
 import * as adminApi from '@/api/admin'
 import * as userApi from '@/api/user'
 import { ref } from 'vue'

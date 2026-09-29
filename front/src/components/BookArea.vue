@@ -28,10 +28,7 @@
                 <!-- 다른 사람이 대출중인 경우 오버레이 -->
                 <div v-if="book.bookBorrowed && !book.borrowedByMe" class="borrowed-overlay">
                     <div class="borrowed-badge">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="currentColor"/>
-                            <path d="M9 12L11 14L15 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                        <PhCheckCircle weight="duotone" :size="16" />
                         <span class="borrowed-text">대출 중</span>
                     </div>
                     <div class="borrowed-dimmer"></div>
@@ -40,9 +37,7 @@
                 <!-- 내가 대출중인 경우 오버레이 -->
                 <div v-if="book.borrowedByMe" class="my-borrowed-overlay">
                     <div class="my-borrowed-badge">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                        <PhCheckCircle weight="duotone" :size="16" />
                         <span class="my-borrowed-text">대출 중</span>
                     </div>
                 </div>
@@ -58,6 +53,7 @@
 </template>
 
 <script setup>
+import { PhCheckCircle } from '@phosphor-icons/vue'
 import { ref, computed } from 'vue'
 
 const props = defineProps({

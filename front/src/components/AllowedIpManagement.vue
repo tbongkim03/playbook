@@ -10,11 +10,7 @@
     <!-- 상태 배너 -->
     <section v-if="myIpLoaded" class="aip-banner" :class="`is-${bannerTone}`">
       <span class="aip-banner-icon" aria-hidden="true">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
-          <path d="M12 8V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-          <circle cx="12" cy="16.2" r="1.1" fill="currentColor" />
-        </svg>
+        <PhWarningCircle weight="duotone" :size="18" />
       </span>
       <div class="aip-banner-body">
         <p class="aip-banner-text">{{ bannerText }}</p>
@@ -112,15 +108,12 @@
     </section>
 
     <!-- 등록/수정 모달 -->
-    <div v-if="showModal" class="aip-modal-overlay" @click="closeModal">
+    <div v-if="showModal" class="aip-modal-overlay" v-modal-backdrop="closeModal">
       <div class="aip-modal" @click.stop>
         <div class="aip-modal-head">
           <h3>{{ isEdit ? '허용 IP 수정' : '허용 IP 등록' }}</h3>
           <button class="aip-close" @click="closeModal" aria-label="닫기">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" />
-              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" />
-            </svg>
+            <PhX weight="duotone" :size="20" />
           </button>
         </div>
 
@@ -189,6 +182,8 @@
 </template>
 
 <script setup>
+import { vModalBackdrop } from '@/utils/modalBackdrop'
+import { PhWarningCircle, PhX } from '@phosphor-icons/vue'
 import { ref, reactive, computed, onMounted } from 'vue'
 import * as allowedIpApi from '@/api/allowedIp'
 import * as campusApi from '@/api/campus'

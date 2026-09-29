@@ -28,5 +28,8 @@ const isLoginoutPage = computed(() => {
   padding-top: var(--pb-header-height);
   box-sizing: border-box;
   background: var(--pb-color-canvas);
+  /* 내용이 짧은 페이지에서도 푸터가 화면 맨 아래에 붙게 한다 (Footer 의 margin-top: auto) */
+  display: flex;
+  flex-direction: column;
 }
 </style>

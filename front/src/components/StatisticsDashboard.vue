@@ -3,10 +3,7 @@
     <!-- 헤더 -->
     <div class="dashboard-header">
       <h2 class="section-title">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 3V21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M9 9L12 6L16 10L20 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+        <PhChartLineUp weight="duotone" :size="24" />
         통계 대시보드
       </h2>
       <p class="section-subtitle">도서 대여 및 사용자 통계를 확인하세요</p>
@@ -50,11 +47,7 @@
       </div>
 
       <button @click="refreshData" class="refresh-btn" :disabled="loading">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M1 4V10H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M23 20V14H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14L18.36 18.36A9 9 0 0 1 3.51 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+        <PhArrowsClockwise weight="duotone" :size="16" />
         새로고침
       </button>
     </div>
@@ -184,6 +177,7 @@
 </template>
 
 <script setup>
+import { PhArrowsClockwise, PhChartLineUp } from '@phosphor-icons/vue'
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import * as courseApi from '@/api/course'

@@ -2,9 +2,7 @@
   <div class="return-container">
     <div class="header">
       <button class="back-btn" @click="goBack" title="홈으로 돌아가기">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+        <PhArrowLeft weight="duotone" :size="18" />
       </button>
       <h1 class="title">도서 반납</h1>
     </div>
@@ -12,16 +10,7 @@
     <div class="content">
       <div class="scan-area">
         <div class="scan-icon-wrap">
-          <svg width="120" height="120" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="2" y="4" width="2" height="16" rx="0.5" fill="currentColor"/>
-            <rect x="5" y="4" width="1" height="16" rx="0.5" fill="currentColor"/>
-            <rect x="7" y="4" width="2" height="16" rx="0.5" fill="currentColor"/>
-            <rect x="10" y="4" width="1" height="16" rx="0.5" fill="currentColor"/>
-            <rect x="12" y="4" width="3" height="16" rx="0.5" fill="currentColor"/>
-            <rect x="16" y="4" width="1" height="16" rx="0.5" fill="currentColor"/>
-            <rect x="18" y="4" width="2" height="16" rx="0.5" fill="currentColor"/>
-            <rect x="21" y="4" width="1" height="16" rx="0.5" fill="currentColor"/>
-          </svg>
+          <PhBarcode weight="duotone" :size="120" />
         </div>
 
         <h2 class="scan-title">바코드를 스캔해주세요</h2>
@@ -58,15 +47,8 @@
 
       <div v-if="message" class="message" :class="messageType">
         <div class="message-icon">
-          <svg v-if="messageType === 'success'" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-          </svg>
-          <svg v-else width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-            <line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" stroke-width="2"/>
-            <line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhCheckCircle weight="duotone" :size="24" v-if="messageType === 'success'" />
+          <PhXCircle weight="duotone" :size="24" />
         </div>
         {{ message }}
       </div>
@@ -75,6 +57,7 @@
 </template>
 
 <script setup>
+import { PhArrowLeft, PhBarcode, PhCheckCircle, PhXCircle } from '@phosphor-icons/vue'
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import * as historyApi from '@/api/history'

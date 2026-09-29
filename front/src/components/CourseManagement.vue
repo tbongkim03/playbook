@@ -11,11 +11,7 @@
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2"/>
-              <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2"/>
-              <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhGraduationCap weight="duotone" :size="24" />
           </div>
           <div class="stat-content">
             <div class="stat-number">{{ courseList.length }}</div>
@@ -44,19 +40,11 @@
         <!-- 과정 추가 버튼 -->
         <div class="action-bar">
           <button class="export-btn" @click="exportData">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2"/>
-              <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2"/>
-              <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhDownloadSimple weight="duotone" :size="16" />
             엑셀로 내보내기
           </button>
           <button class="add-btn" @click="showAddCourseModal = true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-              <line x1="12" y1="8" x2="12" y2="16" stroke="currentColor" stroke-width="2"/>
-              <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhPlusCircle weight="duotone" :size="20" />
             과정 추가
           </button>
         </div>
@@ -87,18 +75,10 @@
                 <td class="course-date">{{ formatDate(course.finishDtCourse) }}</td>
                 <td class="course-actions">
                   <button class="edit-btn" @click="openEditCourseModal(course)">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2"/>
-                      <path d="M18.5 2.5C18.8978 2.10217 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.10217 21.5 2.5C21.8978 2.89782 22.1213 3.43739 22.1213 4C22.1213 4.56261 21.8978 5.10217 21.5 5.5L12 15L8 16L9 12L18.5 2.5Z" stroke="currentColor" stroke-width="2"/>
-                    </svg>
+                    <PhNotePencil weight="duotone" :size="16" />
                   </button>
                   <button class="delete-btn" @click="confirmDeleteCourse(course)">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <polyline points="3,6 5,6 21,6" stroke="currentColor" stroke-width="2"/>
-                      <path d="M19,6V20C19,20.5304 18.7893,21.0391 18.4142,21.4142C18.0391,21.7893 17.5304,22 17,22H7C6.46957,22 5.96086,21.7893 5.58579,21.4142C5.21071,21.0391 5,20.5304 5,20V6M8,6V4C8,3.46957 8.21071,2.96086 8.58579,2.58579C8.96086,2.21071 9.46957,2 10,2H14C14.5304,2 15.0391,2.21071 15.4142,2.58579C15.7893,2.96086 16,3.46957 16,4V6" stroke="currentColor" stroke-width="2"/>
-                      <line x1="10" y1="11" x2="10" y2="17" stroke="currentColor" stroke-width="2"/>
-                      <line x1="14" y1="11" x2="14" y2="17" stroke="currentColor" stroke-width="2"/>
-                    </svg>
+                    <PhTrash weight="duotone" :size="16" />
                   </button>
                 </td>
               </tr>
@@ -111,7 +91,7 @@
           <span class="gl-pagination-info">{{ paginationInfo }}</span>
           <nav class="gl-pagination-nav">
             <button class="gl-page-btn prev-btn" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <PhCaretLeft weight="duotone" :size="14" />
               이전
             </button>
             <template v-for="item in paginationItems" :key="String(item) + '-cm'">
@@ -120,7 +100,7 @@
             </template>
             <button class="gl-page-btn next-btn" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">
               다음
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <PhCaretRight weight="duotone" :size="14" />
             </button>
           </nav>
         </div>
@@ -128,15 +108,12 @@
     </div>
 
     <!-- 과정 추가 모달 -->
-    <div v-if="showAddCourseModal" class="modal-overlay" @click="closeAddCourseModal">
+    <div v-if="showAddCourseModal" class="modal-overlay" v-modal-backdrop="closeAddCourseModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>새 과정 추가</h3>
           <button class="modal-close" @click="closeAddCourseModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
-              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <form @submit.prevent="addCourse" class="modal-form">
@@ -192,15 +169,12 @@
     </div>
 
     <!-- 과정 수정 모달 -->
-    <div v-if="showEditCourseModal" class="modal-overlay" @click="closeEditCourseModal">
+    <div v-if="showEditCourseModal" class="modal-overlay" v-modal-backdrop="closeEditCourseModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>과정 수정</h3>
           <button class="modal-close" @click="closeEditCourseModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
-              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <form @submit.prevent="updateCourse" class="modal-form">
@@ -256,22 +230,17 @@
     </div>
 
     <!-- 과정 삭제 확인 모달 -->
-    <div v-if="showDeleteCourseModal" class="modal-overlay" @click="closeDeleteCourseModal">
+    <div v-if="showDeleteCourseModal" class="modal-overlay" v-modal-backdrop="closeDeleteCourseModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>과정 삭제 확인</h3>
           <button class="modal-close" @click="closeDeleteCourseModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
-              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <div class="delete-warning">
           <div class="warning-icon">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 8V12M12 16H12.01M10.29 3.86L1.82 18C1.64466 18.3024 1.55685 18.6453 1.56455 18.9928C1.57225 19.3403 1.67516 19.6792 1.86244 19.9757C2.04973 20.2723 2.31561 20.5157 2.6289 20.6812C2.9422 20.8467 3.29427 20.9286 3.65 20.92H20.35C20.7057 20.9286 21.0578 20.8467 21.3711 20.6812C21.6844 20.5157 21.9503 20.2723 22.1376 19.9757C22.3248 19.6792 22.4278 19.3403 22.4355 18.9928C22.4432 18.6453 22.3553 18.3024 22.18 18L13.71 3.86C13.5317 3.56611 13.2807 3.32312 12.9812 3.15446C12.6817 2.98581 12.3438 2.89725 12 2.89725C11.6562 2.89725 11.3183 2.98581 11.0188 3.15446C10.7193 3.32312 10.4683 3.56611 10.29 3.86Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            <PhWarning weight="duotone" :size="64" />
           </div>
           <div class="warning-content">
             <h4>정말로 과정을 삭제하시겠습니까?</h4>
@@ -299,6 +268,8 @@
 </template>
 
 <script setup>
+import { vModalBackdrop } from '@/utils/modalBackdrop'
+import { PhCaretLeft, PhGraduationCap, PhCaretRight, PhDownloadSimple, PhNotePencil, PhPlusCircle, PhTrash, PhWarning, PhX } from '@phosphor-icons/vue'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import * as courseApi from '@/api/course'
 import * as campusApi from '@/api/campus'

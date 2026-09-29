@@ -18,9 +18,7 @@
                     @change="$emit('update:isInfoAgree', $event.target.checked)"
                 >
                 <div class="checkbox-custom">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <polyline points="20,6 9,17 4,12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    <PhCheck weight="duotone" :size="14" />
                 </div>
                 <span class="checkbox-label">개인정보 수집·이용에 동의합니다.</span>
             </label>
@@ -29,6 +27,7 @@
 </template>
 
 <script setup>
+import { PhCheck } from '@phosphor-icons/vue'
 import { ref, onMounted } from 'vue'
 import * as termsApi from '@/api/terms'
 

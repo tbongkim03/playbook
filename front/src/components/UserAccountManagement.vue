@@ -9,10 +9,7 @@
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2"/>
-            <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhUser weight="duotone" :size="24" />
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ userList.length }}</div>
@@ -22,9 +19,7 @@
       
       <div class="stat-card">
         <div class="stat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M22 12H18L15 21L9 3L6 12H2" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhPulse weight="duotone" :size="24" />
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ getActiveStudents() }}</div>
@@ -34,10 +29,7 @@
 
       <div class="stat-card">
         <div class="stat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-            <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhClock weight="duotone" :size="24" />
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ getOverdueStudents() }}</div>
@@ -49,10 +41,7 @@
     <!-- 필터 및 검색 -->
     <div class="filter-bar">
       <div class="search-box">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
-          <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2"/>
-        </svg>
+        <PhMagnifyingGlass weight="duotone" :size="20" />
         <input 
           type="text" 
           placeholder="학생 이름 또는 ID로 검색..." 
@@ -86,11 +75,7 @@
       </div>
 
       <button class="export-btn" @click="exportData">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2"/>
-          <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2"/>
-          <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2"/>
-        </svg>
+        <PhDownloadSimple weight="duotone" :size="14" />
         엑셀로 내보내기
       </button>
     </div>
@@ -141,24 +126,13 @@
               </td>
               <td class="student-actions">
                 <button class="view-btn" @click="viewUserDetail(user)">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 12S5 4 12 4S23 12 23 12S19 20 12 20S1 12 1 12Z" stroke="currentColor" stroke-width="2"/>
-                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-                  </svg>
+                  <PhEye weight="duotone" :size="16" />
                 </button>
                 <button class="reset-pw-btn" @click="confirmResetPassword(user)" title="비밀번호 초기화">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2"/>
-                  </svg>
+                  <PhLock weight="duotone" :size="16" />
                 </button>
                 <button class="delete-btn" @click="confirmDeleteUser(user)">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <polyline points="3,6 5,6 21,6" stroke="currentColor" stroke-width="2"/>
-                    <path d="M19,6V20C19,20.5304 18.7893,21.0391 18.4142,21.4142C18.0391,21.7893 17.5304,22 17,22H7C6.46957,22 5.96086,21.7893 5.58579,21.4142C5.21071,21.0391 5,20.5304 5,20V6M8,6V4C8,3.46957 8.21071,2.96086 8.58579,2.58579C8.96086,2.21071 9.46957,2 10,2H14C14.5304,2 15.0391,2.21071 15.4142,2.58579C15.7893,2.96086 16,3.46957 16,4V6" stroke="currentColor" stroke-width="2"/>
-                    <line x1="10" y1="11" x2="10" y2="17" stroke="currentColor" stroke-width="2"/>
-                    <line x1="14" y1="11" x2="14" y2="17" stroke="currentColor" stroke-width="2"/>
-                  </svg>
+                  <PhTrash weight="duotone" :size="16" />
                 </button>
               </td>
             </tr>
@@ -171,7 +145,7 @@
         <span class="gl-pagination-info">{{ paginationInfo }}</span>
         <nav class="gl-pagination-nav">
           <button class="gl-page-btn prev-btn" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <PhCaretLeft weight="duotone" :size="14" />
             이전
           </button>
           <template v-for="item in paginationItems" :key="String(item) + '-um'">
@@ -180,22 +154,19 @@
           </template>
           <button class="gl-page-btn next-btn" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">
             다음
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <PhCaretRight weight="duotone" :size="14" />
           </button>
         </nav>
       </div>
     </div>
 
     <!-- 학생 상세 조회 모달 -->
-    <div v-if="showDetailModal" class="modal-overlay" @click="closeDetailModal">
+    <div v-if="showDetailModal" class="modal-overlay" v-modal-backdrop="closeDetailModal">
       <div class="modal-content detail-modal" @click.stop>
         <div class="modal-header">
           <h3>학생 상세 정보</h3>
           <button class="modal-close" @click="closeDetailModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
-              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <div class="detail-content">
@@ -251,22 +222,17 @@
     </div>
 
     <!-- 학생 삭제 확인 모달 (비밀번호 검증 포함) -->
-    <div v-if="showDeleteModal" class="modal-overlay" @click="closeDeleteModal">
+    <div v-if="showDeleteModal" class="modal-overlay" v-modal-backdrop="closeDeleteModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>학생 계정 삭제 확인</h3>
           <button class="modal-close" @click="closeDeleteModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
-              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <div class="delete-warning">
           <div class="warning-icon">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 8V12M12 16H12.01M10.29 3.86L1.82 18C1.64466 18.3024 1.55685 18.6453 1.56455 18.9928C1.57225 19.3403 1.67516 19.6792 1.86244 19.9757C2.04973 20.2723 2.31561 20.5157 2.6289 20.6812C2.9422 20.8467 3.29427 20.9286 3.65 20.92H20.35C20.7057 20.9286 21.0578 20.8467 21.3711 20.6812C21.6844 20.5157 21.9503 20.2723 22.1376 19.9757C22.3248 19.6792 22.4278 19.3403 22.4355 18.9928C22.4432 18.6453 22.3553 18.3024 22.18 18L13.71 3.86C13.5317 3.56611 13.2807 3.32312 12.9812 3.15446C12.6817 2.98581 12.3438 2.89725 12 2.89725C11.6562 2.89725 11.3183 2.98581 11.0188 3.15446C10.7193 3.32312 10.4683 3.56611 10.29 3.86Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            <PhWarning weight="duotone" :size="64" />
           </div>
           <div class="warning-content">
             <h4>정말로 학생 계정을 삭제하시겠습니까?</h4>
@@ -291,15 +257,12 @@
       </div>
     </div>
     <!-- 학생 비밀번호 초기화 모달 -->
-    <div v-if="showResetModal" class="modal-overlay" @click="closeResetModal">
+    <div v-if="showResetModal" class="modal-overlay" v-modal-backdrop="closeResetModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>비밀번호 초기화</h3>
           <button class="modal-close" @click="closeResetModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
-              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <div class="reset-info">
@@ -328,6 +291,8 @@
 </template>
 
 <script setup>
+import { vModalBackdrop } from '@/utils/modalBackdrop'
+import { PhCaretLeft, PhCaretRight, PhClock, PhDownloadSimple, PhEye, PhLock, PhMagnifyingGlass, PhPulse, PhTrash, PhUser, PhWarning, PhX } from '@phosphor-icons/vue'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { exportToXlsx } from '@/utils/exportSheet'
 import * as userApi from '@/api/user'

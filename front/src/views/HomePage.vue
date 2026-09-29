@@ -10,7 +10,7 @@
           @mouseleave="hoveringWrapper = false"
           >
           <!-- 대분류 네비게이션 포함 -->
-          <nav class="nav-bar" style="top: var(--pb-header-height); z-index: 1030;">
+          <nav class="nav-bar">
               <!-- 왼쪽: 카테고리 목록 -->
               <div class="nav-left">
                   <ul class="nav">
@@ -49,9 +49,11 @@
               </div>
           </nav>
 
+          <!-- 대분류를 고르면 흐름 안의 한 줄로 고정되고, 고르기 전 마우스만 올렸을 때는 본문 위에 떠서 본문이 밀리지 않는다 -->
           <ul
               v-if="shouldShowMediumDropdown"
               class="dropdown-menu-custom"
+              :class="{ 'is-overlay': !hasCategorySelection }"
           >
               <li
               class="dropdown-item-custom"
@@ -66,7 +68,7 @@
         </div>
 
         <!-- 본문 -->
-        <div class="main" :style="{ marginTop: mainMarginTop }">
+        <div class="main">
           <!-- 로딩 상태 -->
           <div class="loading-container" v-if="isLoading">
             <div class="loading-content">
@@ -132,13 +134,7 @@
             <div class="no-books-message" v-else>
               <div class="no-books-content">
                 <div class="no-books-icon">
-                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <circle cx="12" cy="12" r="1" fill="currentColor"/>
-                    <circle cx="12" cy="8" r="1" fill="currentColor"/>
-                    <circle cx="12" cy="16" r="1" fill="currentColor"/>
-                  </svg>
+                  <PhBooks weight="duotone" :size="64" />
                 </div>
                 <h3>해당 카테고리에 등록된 도서가 없습니다</h3>
                 <p>다른 카테고리를 선택해 주세요.</p>
@@ -151,7 +147,7 @@
             <span class="gl-pagination-info">{{ paginationInfo }}</span>
             <nav class="gl-pagination-nav">
               <button class="gl-page-btn prev-btn" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <PhCaretLeft weight="duotone" :size="14" />
                 이전
               </button>
               <template v-for="item in paginationItems" :key="String(item) + '-hp'">
@@ -160,7 +156,7 @@
               </template>
               <button class="gl-page-btn next-btn" :disabled="currentPage >= totalPages" @click="goToPage(currentPage + 1)">
                 다음
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <PhCaretRight weight="duotone" :size="14" />
               </button>
             </nav>
           </div>
@@ -171,6 +167,7 @@
 </template>
 
 <script setup>
+import { PhBooks, PhCaretLeft, PhCaretRight } from '@phosphor-icons/vue'
 import * as bookApi from '@/api/book'
 import * as sortApi from '@/api/sort'
 import * as campusApi from '@/api/campus'
@@ -333,12 +330,15 @@ const isLargeCategoryActive = (largeCategoryName) => {
   return false
 }
 
+// 대분류(또는 중분류)를 골라 둔 상태인지 — 이때 중분류 줄은 흐름 안에 고정된다
+const hasCategorySelection = computed(() =>
+  !!(selectedMediumCategory.value || (selectedLargeCategory.value && selectedLargeCategory.value !== '전체'))
+)
+
 // 중분류 노출 여부 조건 (선택된 중분류나 대분류가 있으면 계속 표시)
 const shouldShowMediumDropdown = computed(() => {
-  const hasSelection = selectedMediumCategory.value || (selectedLargeCategory.value && selectedLargeCategory.value !== '전체')
-  
   return (
-    (hoveringWrapper.value || hasSelection) &&
+    (hoveringWrapper.value || hasCategorySelection.value) &&
     currentLargeForMedium.value &&
     getMediumOptions(currentLargeForMedium.value).length > 0
   )
@@ -367,11 +367,6 @@ const filteredBookList = computed(() => {
 });
 
 const displayCount = computed(() => totalCount.value);
-
-const mainMarginTop = computed(() => {
-  const baseMargin = shouldShowMediumDropdown.value ? '180px' : '120px'
-  return baseMargin
-})
 
 // 섹션 제목을 동적으로 생성하는 함수
 const getSectionTitle = () => {
@@ -616,7 +611,8 @@ onBeforeUnmount(() => {
   width: 100%;
   min-height: 100vh;
   background: var(--pb-color-canvas);
-  overflow-x: hidden;
+  /* hidden 은 스크롤 컨테이너를 만들어 안쪽 sticky(카테고리 바)가 화면이 아니라 이 틀에 붙는다 — clip 을 쓴다 */
+  overflow-x: clip;
 }
 
 .mainpage-area {
@@ -632,10 +628,17 @@ onBeforeUnmount(() => {
 /* ────────────────────────────────────────────────
    카테고리 네비바
 ──────────────────────────────────────────────── */
-.nav-bar {
-  position: fixed;
+/* 헤더 바로 아래에 붙는 카테고리 영역. 흐름 안에 있어서 본문을 margin 으로 밀어낼 필요가 없다 */
+.dropdown-wrapper {
+  position: sticky;
   top: var(--pb-header-height);
-  left: 0;
+  z-index: 1030;
+  width: 100%;
+  background: var(--pb-color-canvas);
+}
+
+.nav-bar {
+  position: relative;
   width: 100%;
   height: var(--pb-toolbar-height);
   display: flex;
@@ -644,7 +647,6 @@ onBeforeUnmount(() => {
   padding: 0 max(24px, calc((100vw - var(--pb-content-max)) / 2));
   background: var(--pb-color-canvas);
   border-bottom: 1px solid var(--pb-color-border);
-  z-index: 1030;
 }
 
 .nav-left {
@@ -711,14 +713,30 @@ onBeforeUnmount(() => {
   background: var(--pb-color-canvas);
   border-bottom: 1px solid var(--pb-color-border);
   margin: 0;
-  position: fixed;
-  top: calc(var(--pb-header-height) + var(--pb-toolbar-height));
-  left: 0;
   width: 100%;
-  z-index: 1029;
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  animation: pb-medium-in 0.16s ease-out;
+}
+
+.dropdown-menu-custom::-webkit-scrollbar {
+  display: none;
+}
+
+/* 고르기 전 미리보기 — 본문 위에 떠서 레이아웃을 밀지 않는다 */
+.dropdown-menu-custom.is-overlay {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  box-shadow: var(--pb-shadow-popover);
+}
+
+@keyframes pb-medium-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
 }
 
 .dropdown-item-custom {
@@ -753,7 +771,6 @@ onBeforeUnmount(() => {
   padding: 28px 0 48px;
   margin-left: auto;
   margin-right: auto;
-  transition: margin-top 0.25s ease;
 }
 
 /* ────────────────────────────────────────────────
@@ -1087,33 +1104,30 @@ onBeforeUnmount(() => {
     overflow-x: hidden !important;
   }
 
-  .mainpage-bg-wrapper {
-    overflow-x: hidden !important;
-  }
 
   .mainpage-area {
     max-width: 100%;
   }
 
+  /* 모바일: 검색+분류가 화면의 1/5 을 계속 가리지 않게, 카테고리 영역은 본문과 함께 스크롤된다 */
+  .dropdown-wrapper {
+    position: static;
+  }
+
   .nav-bar {
     height: auto;
-    min-height: 136px;
-    padding: 10px 14px;
-    flex-direction: column;
+    padding: 10px 12px;
+    flex-direction: column-reverse;
     gap: 10px;
     align-items: stretch;
-    max-width: 100vw;
-    box-sizing: border-box;
   }
 
   .nav-left {
     width: 100%;
-    max-width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    -ms-overflow-style: none;
   }
 
   .nav-left::-webkit-scrollbar {
@@ -1121,12 +1135,9 @@ onBeforeUnmount(() => {
   }
 
   .nav {
-    flex-wrap: nowrap !important;
+    flex-wrap: nowrap;
     white-space: nowrap;
-    display: flex !important;
-    flex-direction: row !important;
     width: max-content;
-    min-width: 100%;
   }
 
   .nav-item {
@@ -1134,9 +1145,9 @@ onBeforeUnmount(() => {
   }
 
   .nav-link {
-    padding: 10px 13px;
+    padding: 8px 13px;
     font-size: 0.85rem;
-    min-height: 40px;
+    min-height: 38px;
     display: flex;
     align-items: center;
   }
@@ -1147,35 +1158,15 @@ onBeforeUnmount(() => {
     min-width: 0;
   }
 
-  ul.dropdown-menu-custom {
-    position: fixed !important;
-    top: calc(var(--pb-header-height) + 136px) !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 10px 14px !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    -webkit-overflow-scrolling: touch !important;
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-    border-bottom: 1px solid var(--pb-color-border) !important;
-    background: var(--pb-color-canvas) !important;
-    flex-wrap: nowrap !important;
-    z-index: 1029 !important;
-    display: flex !important;
-    margin: 0 !important;
-    list-style: none !important;
-    gap: 8px !important;
-  }
-
-  .dropdown-menu-custom::-webkit-scrollbar {
-    display: none;
+  .dropdown-menu-custom,
+  .dropdown-menu-custom.is-overlay {
+    position: static;
+    padding: 8px 12px;
+    box-shadow: none;
   }
 
   .dropdown-item-custom {
-    flex-shrink: 0 !important;
+    flex-shrink: 0;
     padding: 6px 12px;
     font-size: 0.8rem;
   }
@@ -1183,7 +1174,6 @@ onBeforeUnmount(() => {
   .main {
     width: min(100% - 24px, var(--pb-content-max));
     padding: 20px 0 36px;
-    margin-top: 188px !important;
   }
 
   .header-top {

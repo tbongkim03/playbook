@@ -9,9 +9,7 @@
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 6H20M4 10H20M4 14H14M4 18H10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
+          <PhTextAlignLeft weight="duotone" :size="24" />
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ firstList.length }}</div>
@@ -20,9 +18,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M9 5H7C5.89543 5 5 5.89543 5 7V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V7C19 5.89543 18.1046 5 17 5H15M9 5C9 5.55228 9.44772 6 10 6H14C14.5523 6 15 5.55228 15 5M9 5C9 4.44772 9.44772 4 10 4H14C14.5523 4 15 4.44772 15 5M12 12H15M12 16H15M9 12H9.01M9 16H9.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
+          <PhClipboardText weight="duotone" :size="24" />
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ secondList.length }}</div>
@@ -41,11 +37,7 @@
     <template v-if="activeSection === 'first'">
       <div class="action-bar">
         <button class="add-btn" @click="showAddFirstModal = true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-            <line x1="12" y1="8" x2="12" y2="16" stroke="currentColor" stroke-width="2"/>
-            <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhPlusCircle weight="duotone" :size="20" />
           대분류 추가
         </button>
       </div>
@@ -68,16 +60,10 @@
                 <td class="item-eng">{{ item.nameSortFirst }}</td>
                 <td class="item-actions">
                   <button class="edit-btn" @click="openEditFirstModal(item)">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2"/>
-                      <path d="M18.5 2.5C18.8978 2.10217 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.10217 21.5 2.5C21.8978 2.89782 22.1213 3.43739 22.1213 4C22.1213 4.56261 21.8978 5.10217 21.5 5.5L12 15L8 16L9 12L18.5 2.5Z" stroke="currentColor" stroke-width="2"/>
-                    </svg>
+                    <PhNotePencil weight="duotone" :size="16" />
                   </button>
                   <button class="delete-btn" @click="confirmDeleteFirst(item)">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <polyline points="3,6 5,6 21,6" stroke="currentColor" stroke-width="2"/>
-                      <path d="M19,6V20C19,20.5304 18.7893,21.0391 18.4142,21.4142C18.0391,21.7893 17.5304,22 17,22H7C6.46957,22 5.96086,21.7893 5.58579,21.4142C5.21071,21.0391 5,20.5304 5,20V6M8,6V4C8,3.46957 8.21071,2.96086 8.58579,2.58579C8.96086,2.21071 9.46957,2 10,2H14C14.5304,2 15.0391,2.21071 15.4142,2.58579C15.7893,2.96086 16,3.46957 16,4V6" stroke="currentColor" stroke-width="2"/>
-                    </svg>
+                    <PhTrash weight="duotone" :size="16" />
                   </button>
                 </td>
               </tr>
@@ -94,11 +80,7 @@
     <template v-if="activeSection === 'second'">
       <div class="action-bar">
         <button class="add-btn" @click="showAddSecondModal = true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-            <line x1="12" y1="8" x2="12" y2="16" stroke="currentColor" stroke-width="2"/>
-            <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhPlusCircle weight="duotone" :size="20" />
           중분류 추가
         </button>
       </div>
@@ -123,16 +105,10 @@
                 <td class="item-eng">{{ item.nameSortSecond }}</td>
                 <td class="item-actions">
                   <button class="edit-btn" @click="openEditSecondModal(item)">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2"/>
-                      <path d="M18.5 2.5C18.8978 2.10217 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.10217 21.5 2.5C21.8978 2.89782 22.1213 3.43739 22.1213 4C22.1213 4.56261 21.8978 5.10217 21.5 5.5L12 15L8 16L9 12L18.5 2.5Z" stroke="currentColor" stroke-width="2"/>
-                    </svg>
+                    <PhNotePencil weight="duotone" :size="16" />
                   </button>
                   <button class="delete-btn" @click="confirmDeleteSecond(item)">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <polyline points="3,6 5,6 21,6" stroke="currentColor" stroke-width="2"/>
-                      <path d="M19,6V20C19,20.5304 18.7893,21.0391 18.4142,21.4142C18.0391,21.7893 17.5304,22 17,22H7C6.46957,22 5.96086,21.7893 5.58579,21.4142C5.21071,21.0391 5,20.5304 5,20V6M8,6V4C8,3.46957 8.21071,2.96086 8.58579,2.58579C8.96086,2.21071 9.46957,2 10,2H14C14.5304,2 15.0391,2.21071 15.4142,2.58579C15.7893,2.96086 16,3.46957 16,4V6" stroke="currentColor" stroke-width="2"/>
-                    </svg>
+                    <PhTrash weight="duotone" :size="16" />
                   </button>
                 </td>
               </tr>
@@ -146,12 +122,12 @@
     </template>
 
     <!-- 대분류 추가 모달 -->
-    <div v-if="showAddFirstModal" class="modal-overlay" @click="closeAddFirstModal">
+    <div v-if="showAddFirstModal" class="modal-overlay" v-modal-backdrop="closeAddFirstModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>대분류 추가</h3>
           <button class="modal-close" @click="closeAddFirstModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/></svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <form @submit.prevent="addFirst" class="modal-form">
@@ -172,12 +148,12 @@
     </div>
 
     <!-- 대분류 수정 모달 -->
-    <div v-if="showEditFirstModal" class="modal-overlay" @click="closeEditFirstModal">
+    <div v-if="showEditFirstModal" class="modal-overlay" v-modal-backdrop="closeEditFirstModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>대분류 수정</h3>
           <button class="modal-close" @click="closeEditFirstModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/></svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <form @submit.prevent="updateFirst" class="modal-form">
@@ -198,12 +174,12 @@
     </div>
 
     <!-- 중분류 추가 모달 -->
-    <div v-if="showAddSecondModal" class="modal-overlay" @click="closeAddSecondModal">
+    <div v-if="showAddSecondModal" class="modal-overlay" v-modal-backdrop="closeAddSecondModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>중분류 추가</h3>
           <button class="modal-close" @click="closeAddSecondModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/></svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <form @submit.prevent="addSecond" class="modal-form">
@@ -231,12 +207,12 @@
     </div>
 
     <!-- 중분류 수정 모달 -->
-    <div v-if="showEditSecondModal" class="modal-overlay" @click="closeEditSecondModal">
+    <div v-if="showEditSecondModal" class="modal-overlay" v-modal-backdrop="closeEditSecondModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>중분류 수정</h3>
           <button class="modal-close" @click="closeEditSecondModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/></svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <form @submit.prevent="updateSecond" class="modal-form">
@@ -263,17 +239,17 @@
     </div>
 
     <!-- 삭제 확인 모달 (공통) -->
-    <div v-if="showDeleteModal" class="modal-overlay" @click="closeDeleteModal">
+    <div v-if="showDeleteModal" class="modal-overlay" v-modal-backdrop="closeDeleteModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>{{ deletingItem.type === 'first' ? '대분류' : '중분류' }} 삭제 확인</h3>
           <button class="modal-close" @click="closeDeleteModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/></svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <div class="delete-warning">
           <div class="warning-icon">
-            <svg width="46" height="46" viewBox="0 0 24 24" fill="none"><path d="M12 8V12M12 16H12.01M10.29 3.86L1.82 18C1.64466 18.3024 1.55685 18.6453 1.56455 18.9928C1.57225 19.3403 1.67516 19.6792 1.86244 19.9757C2.04973 20.2723 2.31561 20.5157 2.6289 20.6812C2.9422 20.8467 3.29427 20.9286 3.65 20.92H20.35C20.7057 20.9286 21.0578 20.8467 21.3711 20.6812C21.6844 20.5157 21.9503 20.2723 22.1376 19.9757C22.3248 19.6792 22.4278 19.3403 22.4355 18.9928C22.4432 18.6453 22.3553 18.3024 22.18 18L13.71 3.86C13.5317 3.56611 13.2807 3.32312 12.9812 3.15446C12.6817 2.98581 12.3438 2.89725 12 2.89725C11.6562 2.89725 11.3183 2.98581 11.0188 3.15446C10.7193 3.32312 10.4683 3.56611 10.29 3.86Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <PhWarning weight="duotone" :size="46" />
           </div>
           <div class="warning-content">
             <h4>정말로 삭제하시겠습니까?</h4>
@@ -295,6 +271,8 @@
 </template>
 
 <script setup>
+import { vModalBackdrop } from '@/utils/modalBackdrop'
+import { PhClipboardText, PhNotePencil, PhPlusCircle, PhTextAlignLeft, PhTrash, PhWarning, PhX } from '@phosphor-icons/vue'
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import * as sortApi from '@/api/sort'
 import { swAlert } from '@/utils/sweetAlert'

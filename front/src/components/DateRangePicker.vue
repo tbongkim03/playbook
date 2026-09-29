@@ -2,16 +2,9 @@
   <div class="drp-root" ref="rootRef">
     <!-- 트리거 버튼 -->
     <button class="drp-trigger" :class="{ active: isOpen }" @click="toggle">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="drp-icon">
-        <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
-        <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/>
-        <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/>
-        <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/>
-      </svg>
+      <PhCalendarBlank weight="duotone" :size="14" class="drp-icon" />
       <span class="drp-label">{{ displayLabel }}</span>
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="drp-chevron" :class="{ rotated: isOpen }">
-        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      </svg>
+      <PhCaretDown weight="duotone" :size="12" class="drp-chevron" :class="{ rotated: isOpen }" />
     </button>
 
     <!-- 모바일 백드롭 -->
@@ -35,11 +28,11 @@
         <!-- 월 헤더 -->
         <div class="drp-cal-header">
           <button class="drp-nav-btn" @click="prevMonth">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <PhCaretLeft weight="duotone" :size="14" />
           </button>
           <span class="drp-month-label">{{ currentMonthLabel }}</span>
           <button class="drp-nav-btn" @click="nextMonth">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <PhCaretRight weight="duotone" :size="14" />
           </button>
         </div>
 
@@ -80,6 +73,7 @@
 </template>
 
 <script setup>
+import { PhCalendarBlank, PhCaretDown, PhCaretLeft, PhCaretRight } from '@phosphor-icons/vue'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 
 const emit = defineEmits(['change'])

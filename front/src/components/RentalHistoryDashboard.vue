@@ -9,10 +9,7 @@
     <div class="stats-grid">
       <div class="stat-card rental-card">
         <div class="stat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20" stroke="currentColor" stroke-width="2"/>
-            <path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhBook weight="duotone" :size="24" />
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ stats.totalRentals }}</div>
@@ -22,10 +19,7 @@
 
       <div class="stat-card active-card">
         <div class="stat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-            <polyline points="12,6 12,12 16,14" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhClock weight="duotone" :size="24" />
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ stats.activeRentals }}</div>
@@ -35,9 +29,7 @@
 
       <div class="stat-card return-card">
         <div class="stat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <polyline points="20,6 9,17 4,12" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhCheck weight="duotone" :size="24" />
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ stats.totalReturns }}</div>
@@ -47,11 +39,7 @@
 
       <div class="stat-card overdue-card">
         <div class="stat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-            <line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" stroke-width="2"/>
-            <line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhXCircle weight="duotone" :size="24" />
         </div>
         <div class="stat-content">
           <div class="stat-number text-coral">{{ stats.overdueRentals }}</div>
@@ -87,10 +75,7 @@
               @input="applyFilters"
               placeholder="도서명, 사용자명 검색..."
             >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
-              <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhMagnifyingGlass weight="duotone" :size="20" />
           </div>
         </div>
         
@@ -117,19 +102,11 @@
         <h3>대출/반납 히스토리</h3>
         <div class="table-actions">
           <button class="export-btn" @click="exportData">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2"/>
-              <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2"/>
-              <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhDownloadSimple weight="duotone" :size="16" />
             내보내기
           </button>
           <button class="refresh-btn" @click="fetchRentalHistory">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <polyline points="23,4 23,10 17,10" stroke="currentColor" stroke-width="2"/>
-              <polyline points="1,20 1,14 7,14" stroke="currentColor" stroke-width="2"/>
-              <path d="M20.49 9C19.9828 7.56678 19.1209 6.28825 17.9845 5.27675C16.8482 4.26525 15.4745 3.55993 13.9917 3.22426C12.5089 2.88859 10.9652 2.93462 9.50481 3.35875C8.04437 3.78288 6.71475 4.57146 5.64 5.64L1 10M23 14L18.36 18.36C17.2853 19.4285 15.9556 20.2171 14.4952 20.6413C13.0348 21.0654 11.4911 21.1114 10.0083 20.7757C8.52547 20.44 7.1518 19.7347 6.01547 18.7233C4.87913 17.7118 4.01717 16.4332 3.51 15" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhArrowsClockwise weight="duotone" :size="16" />
             새로고침
           </button>
         </div>
@@ -186,10 +163,7 @@
 
         <!-- 데이터 없음 -->
         <div v-if="!isLoading && filteredRentals.length === 0" class="empty-state">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20" stroke="currentColor" stroke-width="2"/>
-            <path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhBook weight="duotone" :size="64" />
           <h3>데이터가 없습니다</h3>
           <p>조건에 맞는 대출/반납 기록이 없습니다.</p>
         </div>
@@ -200,7 +174,7 @@
         <span class="gl-pagination-info">{{ paginationInfo }}</span>
         <nav class="gl-pagination-nav">
           <button class="gl-page-btn prev-btn" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <PhCaretLeft weight="duotone" :size="14" />
             이전
           </button>
           <template v-for="item in paginationItems" :key="String(item) + '-rh'">
@@ -209,22 +183,19 @@
           </template>
           <button class="gl-page-btn next-btn" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">
             다음
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <PhCaretRight weight="duotone" :size="14" />
           </button>
         </nav>
       </div>
     </div>
 
     <!-- 상세보기 모달 -->
-    <div v-if="showDetailModal" class="modal-overlay" @click="closeDetailModal">
+    <div v-if="showDetailModal" class="modal-overlay" v-modal-backdrop="closeDetailModal">
       <div class="modal-content detail-modal" @click.stop>
         <div class="modal-header">
           <h3>대출 상세 정보</h3>
           <button class="modal-close" @click="closeDetailModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
-              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <div class="detail-content" v-if="selectedRental">
@@ -298,6 +269,8 @@
 </template>
 
 <script setup>
+import { vModalBackdrop } from '@/utils/modalBackdrop'
+import { PhArrowsClockwise, PhBook, PhCaretLeft, PhCaretRight, PhCheck, PhClock, PhDownloadSimple, PhMagnifyingGlass, PhX, PhXCircle } from '@phosphor-icons/vue'
 import { ref, computed, onMounted } from 'vue'
 import { exportToXlsx } from '@/utils/exportSheet'
 import * as historyApi from '@/api/history'

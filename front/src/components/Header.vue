@@ -13,25 +13,19 @@
             custom 
             v-slot="{ navigate }"
           >
-            <div class="user-info" @click="navigate">
-              <div class="user-avatar">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </div>
-              <span class="username">{{ username }}({{ campusName || '정보 없음' }})</span>
-            </div>
+            <button type="button" class="user-info" :title="`${username} · ${campusName || '정보 없음'} — ${isAdmin ? '관리자 화면' : '마이페이지'}`" @click="navigate">
+              <span class="user-avatar" aria-hidden="true">{{ initial }}</span>
+              <span class="user-text">
+                <span class="username">{{ username }}</span>
+                <span class="user-campus">{{ campusName || '정보 없음' }}{{ isAdmin ? ' · 관리자' : '' }}</span>
+              </span>
+            </button>
           </router-link>
 
           <router-link to="/logout" custom v-slot="{ navigate }">
-            <button type="button" class="logout-btn" @click="navigate">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <polyline points="16,17 21,12 16,7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              로그아웃
+            <button type="button" class="logout-btn" aria-label="로그아웃" @click="navigate">
+              <PhSignOut weight="duotone" :size="18" />
+              <span class="logout-text">로그아웃</span>
             </button>
           </router-link>
         </template>
@@ -39,11 +33,7 @@
         <template v-else>
           <router-link to="/login" custom v-slot="{ navigate }">
             <button type="button" class="login-btn" v-if="showLoginButton" @click="navigate">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M15 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <polyline points="10,17 15,12 10,7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <line x1="15" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
+              <PhSignIn weight="duotone" :size="18" />
               로그인
             </button>
           </router-link>
@@ -54,6 +44,7 @@
 </template>
 
 <script setup>
+import { PhSignIn, PhSignOut } from '@phosphor-icons/vue'
 import * as adminApi from '@/api/admin'
 import * as userApi from '@/api/user'
 import { ref, computed, onMounted } from 'vue'
@@ -63,6 +54,9 @@ const isLogin = ref(false) // 로그인 여부
 const username = ref('')    // 로그인 사용자 이름
 const isAdmin = ref(false)  // 관리자 여부
 const campusName = ref('')  // 캠퍼스 이름
+
+// 아바타에는 이름 첫 글자를 쓴다 (기본 사람 아이콘은 누구로 로그인했는지 알려주지 못한다)
+const initial = computed(() => (username.value || '?').trim().charAt(0).toUpperCase())
 
 const route = useRoute()
 const router = useRouter()
@@ -187,39 +181,52 @@ onMounted(() => {
 .user-info {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 5px 10px 5px 6px;
-  background: var(--pb-color-surface);
-  border: 1px solid var(--pb-color-border);
-  border-radius: var(--pb-radius-md);
+  gap: 10px;
+  padding: 4px 12px 4px 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
   cursor: pointer;
-  text-decoration: none;
   color: inherit;
-  transition: border-color 0.12s ease, background 0.12s ease;
+  text-align: left;
+  transition: background 0.12s ease, border-color 0.12s ease;
 }
 .user-info:hover {
-  background: var(--pb-color-brand-soft);
-  border-color: var(--pb-color-brand-muted);
-  text-decoration: none;
-  color: inherit;
+  background: var(--pb-color-surface);
+  border-color: var(--pb-color-border);
 }
 
 .user-avatar {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   border-radius: 999px;
-  background: var(--pb-color-brand);
-  color: #fff;
+  background: var(--pb-color-brand-soft);
+  color: var(--pb-color-brand-strong);
+  border: 1px solid var(--pb-color-brand-muted);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.user-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
 }
 
 .username {
   font-size: 13px;
-  font-weight: 500;
-  color: var(--pb-color-text);
+  font-weight: 600;
+  color: var(--pb-color-heading);
+}
+
+.user-campus {
+  font-size: 11px;
+  color: var(--pb-color-text-soft);
 }
 
 .login-btn {
@@ -264,11 +271,15 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
-  .header-content { width: calc(100% - 32px); }
+  .header-content { width: calc(100% - 24px); }
   .logo-img { height: 24px; }
-  .username { display: none; }
-  .login-btn,
-  .logout-btn { height: 44px; padding: 0 16px; }
-  .user-info { min-height: 44px; }
+  .user-text,
+  .logout-text { display: none; }
+  .user-section { gap: 4px; }
+  .user-info { padding: 4px; }
+  .user-avatar { width: 36px; height: 36px; font-size: 15px; }
+  /* 아이콘만 남는 버튼도 손가락 크기(44px)는 지킨다 */
+  .logout-btn { width: 44px; height: 44px; padding: 0; justify-content: center; border-color: transparent; }
+  .login-btn { height: 40px; padding: 0 14px; }
 }
 </style>

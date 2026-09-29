@@ -1,21 +1,12 @@
 <template>
-  <div class="modal-overlay" v-if="isOpen === true" @click="close">
+  <div class="modal-overlay" v-if="isOpen === true" v-modal-backdrop="close">
     <div class="modal-container" @click.stop>
       <!-- 모달 헤더 -->
       <div class="modal-header">
         <div class="header-content">
           <div class="header-icon" :class="{ 'error': isD, 'success': !isD && showBarcode }">
-            <svg v-if="isD" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-              <line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" stroke-width="2"/>
-              <line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" stroke-width="2"/>
-            </svg>
-            <svg v-else width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="3" y="4" width="4" height="16" stroke="currentColor" stroke-width="2"/>
-              <rect x="9" y="4" width="2" height="16" stroke="currentColor" stroke-width="2"/>
-              <rect x="13" y="4" width="2" height="16" stroke="currentColor" stroke-width="2"/>
-              <rect x="17" y="4" width="4" height="16" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhXCircle weight="duotone" :size="24" v-if="isD" />
+            <PhBarcode weight="duotone" :size="24" />
           </div>
           <div class="header-text">
             <h2 class="modal-title">바코드 출력</h2>
@@ -23,10 +14,7 @@
           </div>
         </div>
         <button class="close-btn" @click="close">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
-            <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhX weight="duotone" :size="20" />
         </button>
       </div>
 
@@ -34,25 +22,9 @@
       <div class="status-section">
         <div class="status-message" :class="{ 'error': isD, 'success': !isD && showBarcode, 'loading': !msg }">
           <div class="status-icon">
-            <svg v-if="isD" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M10.29 3.86L1.82 18C1.64466 18.3024 1.55298 18.6453 1.55298 18.995C1.55298 19.3447 1.64466 19.6876 1.82 19.99C1.99534 20.2924 2.24708 20.5441 2.55 20.72C2.85292 20.8959 3.19596 20.9896 3.546 20.99H20.454C20.804 20.9896 21.1471 20.8959 21.45 20.72C21.7529 20.5441 22.0047 20.2924 22.18 19.99C22.3553 19.6876 22.447 19.3447 22.447 18.995C22.447 18.6453 22.3553 18.3024 22.18 18L13.71 3.86C13.5347 3.55764 13.2829 3.30596 12.98 3.13C12.6771 2.95404 12.3341 2.86035 11.984 2.86035C11.6339 2.86035 11.2909 2.95404 10.988 3.13C10.6851 3.30596 10.4333 3.55764 10.258 3.86H10.29Z" stroke="currentColor" stroke-width="2"/>
-              <line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="2"/>
-              <dot cx="12" cy="17" r="1" fill="currentColor"/>
-            </svg>
-            <svg v-else-if="showBarcode" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <polyline points="20,6 9,17 4,12" stroke="currentColor" stroke-width="2"/>
-            </svg>
-            <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-              <path d="M12 1V3" stroke="currentColor" stroke-width="2"/>
-              <path d="M12 21V23" stroke="currentColor" stroke-width="2"/>
-              <path d="M4.22 4.22L5.64 5.64" stroke="currentColor" stroke-width="2"/>
-              <path d="M18.36 18.36L19.78 19.78" stroke="currentColor" stroke-width="2"/>
-              <path d="M1 12H3" stroke="currentColor" stroke-width="2"/>
-              <path d="M21 12H23" stroke="currentColor" stroke-width="2"/>
-              <path d="M4.22 19.78L5.64 18.36" stroke="currentColor" stroke-width="2"/>
-              <path d="M18.36 5.64L19.78 4.22" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhWarning weight="duotone" :size="20" v-if="isD" />
+            <PhCheck weight="duotone" :size="20" v-else-if="showBarcode" />
+            <PhCircleNotch weight="duotone" :size="20" />
           </div>
           <span class="status-text">{{ msg || '바코드 검증 중...' }}</span>
         </div>
@@ -62,10 +34,7 @@
       <div class="print-settings" v-if="!isD && showBarcode">
         <div class="setting-group">
           <label for="startPosition" class="setting-label">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M21 10C21 16.0751 16.0751 21 10 21C4.44772 21 0 16.5523 0 11C0 5.44772 4.44772 1 10 1C15.5228 1 20 5.44772 20 11" stroke="currentColor" stroke-width="2"/>
-              <circle cx="10" cy="11" r="3" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhCrosshair weight="duotone" :size="16" />
             라벨 시작 위치
           </label>
           <select id="startPosition" v-model="startPosition" class="setting-select">
@@ -102,11 +71,7 @@
             @click="saveBook"
             :disabled="buttonsDisabled"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16L21 8V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21Z" stroke="currentColor" stroke-width="2"/>
-              <polyline points="17,21 17,13 7,13 7,21" stroke="currentColor" stroke-width="2"/>
-              <polyline points="7,3 7,8 15,8" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhFloppyDisk weight="duotone" :size="16" />
             나중에 출력
           </button>
           <button 
@@ -114,20 +79,13 @@
             @click="printBarcode"
             :disabled="buttonsDisabled"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <polyline points="6,9 6,2 18,2 18,9" stroke="currentColor" stroke-width="2"/>
-              <path d="M6,18H4C3.46957,18 2.96086,17.7893 2.58579,17.4142C2.21071,17.0391 2,16.5304 2,16V11C2,10.4696 2.21071,9.96086 2.58579,9.58579C2.96086,9.21071 3.46957,9 4,9H20C20.5304,9 21.0391,9.21071 21.4142,9.58579C21.7893,9.96086 22,10.4696 22,11V16C22,16.5304 21.7893,17.0391 21.4142,17.4142C21.0391,17.7893 20.5304,18 20,18H18" stroke="currentColor" stroke-width="2"/>
-              <rect x="6" y="14" width="12" height="8" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhPrinter weight="duotone" :size="16" />
             출력 및 저장
           </button>
         </div>
         
         <button class="action-btn close-btn-bottom" @click="close">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
-            <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhX weight="duotone" :size="16" />
           닫기
         </button>
       </div>
@@ -136,6 +94,8 @@
 </template>
 
 <script setup>
+import { vModalBackdrop } from '@/utils/modalBackdrop'
+import { PhBarcode, PhCheck, PhCircleNotch, PhCrosshair, PhFloppyDisk, PhPrinter, PhWarning, PhX, PhXCircle } from '@phosphor-icons/vue'
 import { ref, watch, onMounted, nextTick } from 'vue'
 import JsBarcode from 'jsbarcode'
 import { swAlert } from '@/utils/sweetAlert'

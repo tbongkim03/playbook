@@ -1,5 +1,5 @@
 <template>
-    <div class="modal-overlay" @click="close">
+    <div class="modal-overlay" v-modal-backdrop="close">
         <div class="modal-content" @click.stop>
             <div class="modal-container">
                 <div class="modal-header">
@@ -7,30 +7,20 @@
                         <img src="@/assets/playbook_logo.png" alt="Logo" class="logo-img" @click="navigate" />
                     </div>
                     <button class="close-btn" @click="close">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                        <PhX weight="duotone" :size="24" />
                     </button>
                 </div>
                 <div class="function-area">
                     <div class="function-card borrow-card" @click="navigateTo('/borrow')">
                         <div class="card-icon">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M9 7h6M9 11h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
+                            <PhBarcode weight="duotone" :size="48" />
                         </div>
                         <h2 class="card-title">도서 대출</h2>
                         <p class="card-description">새로운 책을 대출해보세요</p>
                     </div>
                     <div class="function-card return-card" @click="navigateTo('/return')">
                         <div class="card-icon">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M15 7L12 10L9 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
+                            <PhArrowUDownLeft weight="duotone" :size="48" />
                         </div>
                         <h2 class="card-title">도서 반납</h2>
                         <p class="card-description">대출한 책을 반납하세요</p>
@@ -42,6 +32,8 @@
 </template>
 
 <script setup>
+import { vModalBackdrop } from '@/utils/modalBackdrop'
+import { PhArrowUDownLeft, PhBarcode, PhX } from '@phosphor-icons/vue'
 import router from '@/router'
 import { swAlert } from '@/utils/sweetAlert'
 
