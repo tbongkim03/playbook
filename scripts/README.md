@@ -1,6 +1,6 @@
 # 스크립트 모음
 
-배포, 롤백, 데이터베이스 마이그레이션을 위한 스크립트 모음입니다.
+배포, 롤백, DB 백업·복원, OCI 서버 준비를 위한 스크립트 모음입니다.
 
 ## 📋 스크립트 목록
 
@@ -16,7 +16,7 @@ GHCR에서 최신 이미지를 pull하고 컨테이너를 재시작합니다.
 **동작:**
 1. `ghcr.io/tbongkim03/playbook-back:latest` pull
 2. `ghcr.io/tbongkim03/playbook-front:latest` pull
-3. `docker compose -f docker compose.prod.yml up -d --remove-orphans back front`
+3. `docker compose -f docker-compose.prod.yml up -d --remove-orphans back front`
 4. 미사용 이미지 정리
 
 ---
@@ -90,38 +90,45 @@ GHCR에서 최신 이미지를 pull하고 컨테이너를 재시작합니다.
 
 ---
 
-### 5. `migrate-db.sh` - 통합 마이그레이션 (Dev → Prod)
-개발 서버에서 운영 서버로 데이터를 안전하게 마이그레이션합니다.
+### 5. `sync-dev-to-prod.sh` - Dev → Prod 데이터 복사 (구 `migrate-db.sh`)
+
+> ⚠ **스키마 마이그레이션 실행기가 아닙니다.** 선택한 테이블을 Dev DB 내용으로 **Prod DB에 덮어씁니다.**
+> 스키마 변경은 `db/migration/*.sql` 을 순번대로 직접 적용합니다 (설치 마법사 9단계와 같은 방식).
+>
+> ```bash
+> docker exec -i db mysql -u<USER> -p<PASSWORD> <DATABASE> < db/migration/005_add_allowed_ip.sql
+> ```
 
 **사용법:**
 ```bash
-./scripts/migrate-db.sh
+./scripts/sync-dev-to-prod.sh
 ```
 
 **기능:**
-- 전체 프로세스 자동화 (백업 + 복원)
 - Dev/Prod 컨테이너 자동 확인 및 시작
-- 각 테이블의 레코드 수 표시
-- 안전 백업 (복원 전 Prod DB 자동 백업)
-- 마이그레이션 후 결과 확인
+- 각 테이블의 레코드 수 표시, 복사할 테이블 선택
+- 안전 백업 (덮어쓰기 전 Prod DB 자동 백업)
 - 실패 시 롤백 옵션
 
-**프로세스:**
-1. 환경 확인 (컨테이너 상태)
-2. Dev DB 테이블 목록 조회
-3. 마이그레이션할 테이블 선택
-4. 백업 옵션 선택
-5. Dev DB 백업
-6. Prod DB 복원 (안전 백업 포함)
+---
+
+### 6. OCI 서버 스크립트
+
+| 스크립트 | 용도 |
+|---------|------|
+| `oci-discover.sh` | `oci-a1-launch-retry.sh` CONFIG에 넣을 OCID 조회 (OCI CLI 필요) |
+| `oci-a1-launch-retry.sh` | A1.Flex(ARM 무료) 인스턴스를 용량이 풀릴 때까지 자동 재시도 생성 |
+| `oracle-bootstrap.sh` | 새 인스턴스(Ubuntu 22.04 aarch64)에서 root로 1회 실행하는 서버 셋업 |
+| `oci-deploy-notify.sh` | `oci-a1-launch-retry.sh`를 백그라운드로 돌리다 생성 성공 시 메일 알림 (SMTP 자격증명은 `scripts/.oci-notify.env`, 커밋 금지) |
 
 ---
 
 ## 🚀 사용 예시
 
-### 시나리오 1: 전체 데이터 마이그레이션
+### 시나리오 1: Dev 데이터를 Prod로 전체 복사
 ```bash
-# 간단한 방법: 통합 스크립트 사용
-./scripts/migrate-db.sh
+# ⚠ Prod 데이터가 Dev 데이터로 덮어써집니다
+./scripts/sync-dev-to-prod.sh
 
 # 대화형 프롬프트를 따라 진행:
 # 1. 테이블 선택: all
@@ -130,10 +137,10 @@ GHCR에서 최신 이미지를 pull하고 컨테이너를 재시작합니다.
 # 4. 최종 확인: yes
 ```
 
-### 시나리오 2: 특정 테이블만 마이그레이션
+### 시나리오 2: 특정 테이블만 복사
 ```bash
 # 방법 1: 통합 스크립트
-./scripts/migrate-db.sh
+./scripts/sync-dev-to-prod.sh
 # 선택: 1,3,5 (테이블 번호)
 
 # 방법 2: 개별 스크립트
@@ -165,7 +172,8 @@ playbook/
 │   ├── rollback.sh           # 이미지 롤백 (sha 태그 지정)
 │   ├── backup-tables.sh      # DB 테이블 백업
 │   ├── restore-tables.sh     # DB 테이블 복원
-│   ├── migrate-db.sh         # Dev → Prod 마이그레이션
+│   ├── sync-dev-to-prod.sh   # Dev → Prod 데이터 복사 (스키마 마이그레이션 아님)
+│   ├── oci-*.sh / oracle-bootstrap.sh  # OCI 서버 준비·알림
 │   └── README.md             # 이 파일
 ├── backups/                   # 백업 파일 저장 (자동 생성)
 │   ├── dev_full_20240114_120000.sql
@@ -175,8 +183,8 @@ playbook/
 ├── db/
 │   ├── .env.dev              # Dev DB 환경변수
 │   └── .env.prod             # Prod DB 환경변수
-├── docker compose.dev.yml
-└── docker compose.prod.yml
+├── docker-compose.dev.yml
+└── docker-compose.prod.yml
 ```
 
 ---
@@ -217,10 +225,10 @@ playbook/
 ### 컨테이너가 실행되지 않는 경우
 ```bash
 # Dev 컨테이너 시작
-docker compose -f docker compose.dev.yml up -d db-dev
+docker compose -f docker-compose.dev.yml up -d db-dev
 
 # Prod 컨테이너 시작
-docker compose -f docker compose.prod.yml up -d db
+docker compose -f docker-compose.prod.yml up -d db
 ```
 
 ### 권한 오류 발생 시

@@ -16,3 +16,4 @@
 |------|----------|------|------|
 | 2026-07-30 | 초기 구성 — 에이전트 6, 스킬 7 | 전체 | 풀스택 개발·QA·배포·보안 4개 영역 커버 |
 | 2026-07-30 | `db/migration/` gitignore 해제 → 커밋 대상 전환 | `.gitignore`, `db-migration`, `commit-workflow` | 마이그레이션 SQL이 저장소에 남지 않아 환경 간 누락 위험 |
+| 2026-10-02 | 브랜치 `main` 단일화, `migrate-db.sh` → `sync-dev-to-prod.sh` 이름 변경 | `commit-workflow`, `deploy-ops`, `db-migration`, `devops-operator` | 머지 끝난 브랜치 정리, 마이그레이션 실행기로 오인되는 위험 스크립트 이름 교정 |

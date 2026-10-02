@@ -112,19 +112,26 @@ Docker Compose
 - [x] 트랜잭션 롤백 보장 (rollbackFor, readOnly)
 - [x] SweetAlert2 공통 alert/confirm
 - [x] 관리자 약관 수정 페이지
+- [x] 통합 테스트 + GitHub Actions CI (PR·브랜치 push 시 백엔드 테스트·프론트 빌드)
+- [x] GitHub Actions CD (main push·`v*.*.*` 태그 → GHCR 이미지 빌드)
+- [x] 캠퍼스 내부망 설치 마법사 (`installer/`, Windows `.exe`)
 - [ ] OpenAPI 문서 자동화
 - [ ] Spring Security 전환 및 RBAC
-- [ ] 테스트 자동화/CI 구축
 
 ## 🗂️ 폴더 구조
 ```
 playbook/
  ├─ back/                    # Spring Boot 애플리케이션
  ├─ front/                   # Vue.js 프론트엔드
- ├─ db/                      # MySQL 설정 및 초기 스크립트
+ ├─ db/                      # MariaDB 설정 · init.sql · migration/NNN_*.sql
+ ├─ installer/               # 캠퍼스 PC 설치 마법사 (Electron, Windows .exe)
+ ├─ monitoring/alloy/        # 중앙 모니터링 Alloy 사이드카 설정
+ ├─ scripts/                 # 배포 · 롤백 · DB 백업/복원 · OCI 서버 스크립트 (scripts/README.md)
  ├─ document/                # 프로젝트 문서 (ERD, 아키텍처, 기획서)
+ ├─ .github/workflows/       # CI(ci.yml) · CD(cd.yml) · 설치 마법사 빌드
  ├─ docker-compose.dev.yml   # 개발 환경 설정
- ├─ docker-compose.prod.yml  # 운영 환경 설정
+ ├─ docker-compose.prod.yml  # 운영 환경 설정 (GHCR 이미지)
+ ├─ GUIDE.md                 # 사용자 가이드
  └─ README.md
 ```
 
@@ -146,9 +153,10 @@ cd playbook
 docker compose -f docker-compose.dev.yml up -d --build
 
 # 4) 접속
-# Front:  http://localhost:80
-# Back:   http://localhost:8080
-# MySQL:  localhost:6603
+# Front:   http://localhost:80
+# Back:    http://localhost:8080
+# MariaDB: localhost:6603
+# Redis:   localhost:6379
 ```
 
 ### 운영 환경 실행
@@ -156,9 +164,18 @@ docker compose -f docker-compose.dev.yml up -d --build
 # 1) 환경 변수 파일 준비
 # back/.env.prod, db/.env.prod 파일 생성
 
-# 2) 운영 환경 컨테이너 실행
+# 2) 운영 환경 컨테이너 실행 — back/front 는 GHCR 이미지를 pull 한다
 docker compose -f docker-compose.prod.yml up -d --build
+# 이후 업데이트는 scripts/deploy.sh, 롤백은 scripts/rollback.sh <sha-태그>
 ```
+
+- 운영 백엔드는 `ddl-auto=validate` 로 동작하므로 스키마 변경은 `db/migration/*.sql` 을 순번대로 직접 적용해야 한다.
+  `scripts/sync-dev-to-prod.sh` 는 Dev 데이터로 Prod 를 덮어쓰는 도구이므로 마이그레이션에 쓰지 않는다.
+- 캠퍼스 PC 한 대에 설치할 때는 설치 마법사(`installer/README.md`)가 `.env` 생성·DB 마이그레이션·기동까지 처리한다.
+
+### 브랜치 · 릴리즈
+- 기본 브랜치는 `main` 하나. 작업은 `main` 에서 브랜치를 따서 PR 로 합친다.
+- `main` 에 머지되면 CD 가 GHCR `latest` · `sha-xxxxxxx` 이미지를 만들고, `v*.*.*` 태그를 push 하면 버전 태그 이미지가 추가된다.
 
 <br/>
 
@@ -206,8 +223,8 @@ docker compose -f docker-compose.prod.yml up -d --build
 <br/>
 
 ## 🧪 테스트와 품질
-- 수동 테스트 진행
-- 추후 계획: Controller 통합 테스트, JPA 슬라이스 테스트, Testcontainers 도입.
+- 백엔드 통합 테스트 (`back/src/test`) — GitHub Actions CI 에서 PR·브랜치 push 마다 실행
+- 추후 계획: JPA 슬라이스 테스트, Testcontainers 도입.
 
 **품질 기준(로드맵)**
 - OpenAPI 기반 API 문서 자동화, 전역 예외 처리 및 표준 에러 응답
@@ -232,9 +249,8 @@ docker compose -f docker-compose.prod.yml up -d --build
 ## 🗺️ 향후 개선 계획
 - Spring Security 전환 및 표준 RBAC 적용
 - OpenAPI(swagger) 문서 자동화
-- Micrometer/Actuator 기반 헬스/메트릭/로그 표준화
-- GitHub Actions CI, 멀티스테이지 Docker, 취약점 스캔
-- 테스트 자동화 (Controller 통합 테스트, Testcontainers)
+- 컨테이너 취약점 스캔
+- Testcontainers 기반 테스트
 
 ## 📋 프로젝트 문서
 `document/` 폴더에 다음 문서들이 포함되어 있습니다:
