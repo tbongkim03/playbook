@@ -2,7 +2,7 @@
   <div class="integration-management">
     <header class="im-header">
       <h2>연동 관리</h2>
-      <p class="im-sub">디스코드 봇·채널/역할, 외부 API(Work24·네이버) 설정을 관리하고 연동 상태를 테스트합니다.</p>
+      <p class="im-sub">디스코드 봇·채널/역할, 외부 API(Work24·카카오·국립중앙도서관) 설정을 관리하고 연동 상태를 테스트합니다.</p>
     </header>
 
     <!-- 디스코드 봇 상태 -->

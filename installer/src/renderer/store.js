@@ -11,7 +11,7 @@ import { reactive, readonly } from 'vue'
 const STEPS = [
   { no: 1, key: 'environment', title: '환경 점검', desc: 'Docker · WSL2 · 포트 · 디스크' },
   { no: 2, key: 'campus', title: '캠퍼스 · 시크릿', desc: '캠퍼스 지정과 비밀번호 자동 생성' },
-  { no: 3, key: 'apikeys', title: '외부 API 키', desc: '네이버 · 국립중앙도서관 · Work24' },
+  { no: 3, key: 'apikeys', title: '외부 API 키', desc: '카카오 · 국립중앙도서관 · Work24' },
   { no: 4, key: 'discord', title: '디스코드 봇', desc: '토큰 검증 · 초대 · 채널/역할 생성' },
   { no: 5, key: 'master', title: '마스터 관리자', desc: '최상위 관리자 계정 설정' },
   { no: 6, key: 'ip', title: '접속 허용 IP', desc: '설치 PC · LAN 대역 등록' },

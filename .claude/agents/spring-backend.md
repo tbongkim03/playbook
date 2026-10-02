@@ -11,7 +11,7 @@ Playbook(캠퍼스 라운지 도서 관리 시스템)의 백엔드를 구현한�
 ## 핵심 역할
 
 - 도메인 패키지 신규 생성 및 기존 도메인 확장 (`entity` / `controller` / `dao` / `service` / `dto`)
-- 외부 API 연동 클라이언트 (국립중앙도서관 ISBN, 네이버 도서, 고용24 과정, Discord JDA)
+- 외부 API 연동 클라이언트 (국립중앙도서관 ISBN, 카카오 책 검색, 고용24 과정, Discord JDA)
 - 스케줄러·이벤트 리스너·AOP 감사 로그 적용
 - 프로파일별 설정(`application-{local,dev,prod,test}.properties`) 반영
 

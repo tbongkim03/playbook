@@ -45,7 +45,7 @@ Docker Compose
  ├─ db     (MariaDB)
  └─ redis  (Redis)
 
-외부 연계: 국립중앙도서관 ISBN API, 네이버 도서 검색 API, 고용노동부 고용24 API, Discord Bot 알림
+외부 연계: 국립중앙도서관 ISBN API, 카카오 책 검색 API, 고용노동부 고용24 API, Discord Bot 알림
 ```
 
 <br/>

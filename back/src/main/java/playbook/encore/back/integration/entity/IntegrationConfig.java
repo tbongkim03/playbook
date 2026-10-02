@@ -7,7 +7,7 @@ import org.hibernate.annotations.Where;
 
 /**
  * 외부 연동 글로벌 설정 (key-value)
- * 디스코드 봇 토큰·링크 채널, Work24·Naver API 키 등 단일 값.
+ * 디스코드 봇 토큰·링크 채널, Work24·Kakao API 키 등 단일 값.
  * is_secret = true 인 값은 config_value 에 암호화되어 저장된다.
  */
 @Entity
