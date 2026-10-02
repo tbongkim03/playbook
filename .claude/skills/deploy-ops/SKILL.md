@@ -1,6 +1,6 @@
 ---
 name: deploy-ops
-description: "Playbook 배포·운영 인프라를 다룰 때 반드시 사용하는 스킬. docker-compose.{dev,prod}.yml, GitHub Actions CI/CD(GHCR 이미지·태깅 전략·SSH 배포 비활성 상태), scripts/의 deploy·rollback·migrate-db·backup 스크립트, OCI 부트스트랩, Actuator/Prometheus 중앙 모니터링(단계 C Alloy 사이드카 남음)을 다룬다. 배포·롤백·이미지 빌드·컨테이너·CI 실패·워크플로우 수정·환경변수·모니터링·서버 구성 요청 시, 그리고 배포 절차를 다시 정리하거나 보완할 때도 이 스킬을 사용할 것."
+description: "Playbook 배포·운영 인프라를 다룰 때 반드시 사용하는 스킬. docker-compose.{dev,prod}.yml, GitHub Actions CI/CD(GHCR 이미지·태깅 전략·SSH 배포 비활성 상태), scripts/의 deploy·rollback·backup·sync-dev-to-prod 스크립트, OCI 부트스트랩, Actuator/Prometheus 중앙 모니터링(단계 C Alloy 사이드카 남음)을 다룬다. 배포·롤백·이미지 빌드·컨테이너·CI 실패·워크플로우 수정·환경변수·모니터링·서버 구성 요청 시, 그리고 배포 절차를 다시 정리하거나 보완할 때도 이 스킬을 사용할 것."
 ---
 
 # Playbook 배포·운영 규약
@@ -72,7 +72,7 @@ test (./gradlew test)  →  build-and-push (GHCR)  →  deploy (if: false — �
 |---------|------|
 | `deploy.sh` | GHCR `latest` pull → `docker compose -f docker-compose.prod.yml up -d --remove-orphans back front` → 미사용 이미지 정리 |
 | `rollback.sh <sha-태그>` | 특정 sha 태그로 back/front 롤백 |
-| `migrate-db.sh` | DB 마이그레이션 실행 |
+| `sync-dev-to-prod.sh` | ⚠ Dev DB로 Prod DB 덮어쓰기(데이터 복사). 마이그레이션 실행기 아님 — 스키마 적용에 쓰지 않는다 |
 | `backup-tables.sh` / `restore-tables.sh` | 테이블 백업 / 복구 |
 | `oci-discover.sh` | OCI 리소스 조회 |
 | `oci-a1-launch-retry.sh` | OCI A1 인스턴스 생성 재시도 |
@@ -90,7 +90,7 @@ test (./gradlew test)  →  build-and-push (GHCR)  →  deploy (if: false — �
 ```
 1. 사전 확인 — 대상 이미지 태그, 마이그레이션 SQL 목록, 현재 가동 버전(롤백 대상 sha)
 2. 백업 — scripts/backup-tables.sh 로 변경 대상 테이블 백업
-3. 마이그레이션 — scripts/migrate-db.sh (또는 SQL 직접 실행). 각 SQL의 확인 쿼리 결과를 확인
+3. 마이그레이션 — db/migration/*.sql 을 순번대로 `docker exec -i db mysql` 로 직접 실행 (sync-dev-to-prod.sh 사용 금지). 각 SQL의 확인 쿼리 결과를 확인
 4. 배포 — scripts/deploy.sh
 5. 검증 — 헬스체크 + 주요 화면 동작 + 로그 확인
 6. 실패 시 — scripts/rollback.sh <이전-sha> + 마이그레이션 롤백 SQL

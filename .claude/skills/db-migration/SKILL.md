@@ -128,7 +128,7 @@ ALTER TABLE tb_book MODIFY COLUMN campus_scope VARCHAR(20) NOT NULL COMMENT '...
 | `db/init/init.sql` | 컨테이너 최초 기동 시 초기화 |
 | `db/data/sort_label.sql` | 분류 라벨 기준 데이터 |
 | `db/conf/default.cnf` | MariaDB 설정 |
-| `scripts/migrate-db.sh` | 마이그레이션 실행 스크립트 |
+| `scripts/sync-dev-to-prod.sh` | ⚠ Dev DB로 Prod DB를 덮어쓰는 데이터 복사 도구. **마이그레이션 실행기가 아니다 — 스키마 적용에 쓰지 않는다** |
 | `scripts/backup-tables.sh` / `restore-tables.sh` | 적용 전 백업 / 복구 |
 
 ## 8. `db/migration/`은 커밋 대상이다
@@ -147,7 +147,7 @@ ALTER TABLE tb_book MODIFY COLUMN campus_scope VARCHAR(20) NOT NULL COMMENT '...
 ## 9. 실행 정책
 
 - **로컬 검증까지가 기본 범위다.** 로컬 DB는 포트 3307
-- **운영 DB에 직접 실행하지 않는다.** 운영 적용은 사용자 승인 사항이며, `scripts/migrate-db.sh`를 통해 이뤄진다
+- **운영 DB에 직접 실행하지 않는다.** 운영 적용은 사용자 승인 사항이며, `db/migration/*.sql`을 순번대로 `docker exec -i db mysql`에 직접 적용한다(설치 마법사 9단계도 같은 방식)
 - 파괴적 변경 전에는 `backup-tables.sh`로 대상 테이블을 백업하는 단계를 절차에 포함한다
 - 이미 적용됐을 가능성이 있는 마이그레이션 파일은 **수정하지 말고 새 순번을 추가한다.** 기존 파일을 고치면 환경 간 스키마가 갈라진다
 

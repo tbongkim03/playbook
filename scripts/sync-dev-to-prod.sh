@@ -1,7 +1,9 @@
 #!/bin/bash
 
-# 데이터베이스 마이그레이션 통합 스크립트 (Dev → Prod)
-# 사용법: ./scripts/migrate-db.sh
+# Dev → Prod 데이터 복사 스크립트 (구 migrate-db.sh)
+# ⚠ 스키마 마이그레이션 실행기가 아니다. 선택한 테이블을 Dev DB 내용으로 Prod DB에 덮어쓴다.
+#   스키마 변경은 db/migration/*.sql 을 순번대로 직접 적용한다.
+# 사용법: ./scripts/sync-dev-to-prod.sh
 
 set -e
 

@@ -33,9 +33,9 @@ DB 마이그레이션까지 한 번에 끝냅니다.
 DB 컨테이너만 기동  →  마이그레이션 적용  →  백엔드 · 프론트 · Redis (· Alloy) 기동
 ```
 
-### ⚠ `scripts/migrate-db.sh` 는 호출하지 않습니다
+### ⚠ `scripts/sync-dev-to-prod.sh` 는 호출하지 않습니다
 
-저장소의 `scripts/migrate-db.sh` 는 이름과 달리 마이그레이션 실행기가 **아닙니다.**
+저장소의 `scripts/sync-dev-to-prod.sh`(구 `migrate-db.sh`) 는 마이그레이션 실행기가 **아닙니다.**
 Dev DB 를 `mysqldump` 해서 **Prod DB 를 통째로 덮어쓰는** 도구입니다(스크립트 내부에도
 "Prod 데이터가 Dev 데이터로 덮어써집니다" 경고가 있습니다).
 마법사가 이걸 부르면 캠퍼스 운영 DB 가 날아가므로, 대신 `db/migration/*.sql` 을

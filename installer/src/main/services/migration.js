@@ -15,8 +15,8 @@ const { runCapture, runStream } = require('./exec')
  *   → DROP / TRUNCATE / DELETE FROM 이 포함된 문장은 **실행 대상에서 제외**하고
  *     경고로만 표시한다. 사용자가 체크해도 실행되지 않는다 (UI 가 아니라 여기서 걸러진다).
  *
- * ★ scripts/migrate-db.sh 를 절대 호출하지 않는다.
- *   이름과 달리 그 스크립트는 마이그레이션 실행기가 아니라 **Dev DB 를 mysqldump 해
+ * ★ scripts/sync-dev-to-prod.sh(구 migrate-db.sh) 를 절대 호출하지 않는다.
+ *   그 스크립트는 마이그레이션 실행기가 아니라 **Dev DB 를 mysqldump 해
  *   Prod DB 를 통째로 덮어쓰는** 도구다(스크립트 자체에 "Prod 데이터가 Dev 데이터로
  *   덮어써집니다" 경고가 있다). 설치 마법사가 호출하면 캠퍼스 운영 DB 가 날아간다.
  *   대신 db/migration/*.sql 을 파일명 순번대로 mysql 에 직접 먹인다.

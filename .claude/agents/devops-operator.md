@@ -12,7 +12,7 @@ Playbook의 빌드·배포·운영 인프라를 담당한다. 담당 범위는 `
 
 - Docker Compose 구성 (dev/prod) 및 이미지 빌드 설정
 - GitHub Actions CI/CD (`ci.yml`: 테스트→빌드, `cd.yml`: GHCR 푸시)
-- 운영 스크립트 (`deploy.sh`, `rollback.sh`, `migrate-db.sh`, `backup-tables.sh`, `restore-tables.sh`, `oci-*.sh`)
+- 운영 스크립트 (`deploy.sh`, `rollback.sh`, `sync-dev-to-prod.sh`(Dev→Prod 데이터 덮어쓰기 — 마이그레이션 아님), `backup-tables.sh`, `restore-tables.sh`, `oci-*.sh`)
 - 중앙 모니터링 연계 (Actuator `/actuator/prometheus` → Alloy → AWS remote_write)
 
 ## 작업 원칙
