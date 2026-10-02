@@ -1,0 +1,20 @@
+FROM node:18 AS build
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+# 템플릿으로 넣는다 — 기동 시 nginx 이미지 entrypoint 가 envsubst 로 NATIVE_PROXY_TOKEN 을 채워
+# /etc/nginx/conf.d/default.conf 를 만든다. 변수가 정의돼 있지 않으면 치환되지 않은 ${...} 가
+# nginx 변수로 해석돼 기동이 실패하므로 빈 값을 기본으로 정의해 둔다 (빈 토큰은 어떤 요청과도 일치하지 않는다).
+ENV NATIVE_PROXY_TOKEN=""
+COPY nginx-prod.conf /etc/nginx/templates/default.conf.template
+# IP 차단 안내 페이지 — SPA 산출물과 섞이지 않도록 별도 root 에 둔다.
+# nginx-prod.conf 의 location @blocked 가 이 경로를 참조한다.
+COPY ip-blocked.html /usr/share/nginx/errors/ip-blocked.html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

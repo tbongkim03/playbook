@@ -1,24 +1,20 @@
 <template>
   <div class="statistics-dashboard">
     <!-- 헤더 -->
-    <div class="dashboard-header">
-      <h2 class="section-title">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 3V21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M9 9L12 6L16 10L20 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        통계 대시보드
-      </h2>
-      <p class="section-subtitle">도서 대여 및 사용자 통계를 확인하세요</p>
+    <div class="pb-page-head">
+      <div>
+        <h2>통계 대시보드</h2>
+        <p>도서 대여 및 사용자 통계를 확인하세요</p>
+      </div>
     </div>
 
     <!-- 필터 컨트롤 -->
     <div class="filter-controls">
       <div class="filter-group">
-        <label for="courseSelect">과정 선택:</label>
+        <label for="courseSelect">과정</label>
         <select id="courseSelect" v-model="selectedCourse" @change="fetchData" class="filter-select">
           <option value="">전체 과정</option>
-          <option 
+          <option
             v-for="(course, index) in courses"
             :key="index"
             :value="course.seqCourse"
@@ -27,13 +23,30 @@
           </option>
         </select>
       </div>
-      <button @click="refreshData" class="refresh-btn" :disabled="loading">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M1 4V10H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M23 20V14H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14L18.36 18.36A9 9 0 0 1 3.51 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        새로고침
+
+      <!-- 캠퍼스 필터 (전체 관리자만 표시) -->
+      <div v-if="showCampusFilter" class="filter-group">
+        <label for="campusSelect">캠퍼스</label>
+        <select id="campusSelect" v-model="selectedCampus" @change="fetchData" class="filter-select">
+          <option value="">전체 캠퍼스</option>
+          <option
+            v-for="campus in campuses"
+            :key="campus.seqCampus"
+            :value="campus.seqCampus"
+          >
+            {{ campus.nameCampus }}
+          </option>
+        </select>
+      </div>
+
+      <!-- 기간 필터 -->
+      <div class="filter-group">
+        <label>기간</label>
+        <DateRangePicker ref="datePickerRef" @change="onDateRangeChange" />
+      </div>
+
+      <button type="button" class="pb-icon-btn stats-refresh" :disabled="loading" aria-label="통계 새로고침" title="통계 새로고침" @click="refreshData">
+        <PhArrowsClockwise weight="duotone" :size="18" :class="{ 'is-spinning': loading }" />
       </button>
     </div>
 
@@ -56,7 +69,12 @@
           </div>
         </div>
         <div class="card-content">
-          <div v-if="!showFirstSortTable" class="chart-container">
+          <div v-if="!popularFirstSort.length" class="chart-empty">
+            <PhChartBar weight="duotone" :size="32" />
+            <b>이 조건의 대출 기록이 아직 없어요</b>
+            <span>기간이나 과정을 바꿔 보세요</span>
+          </div>
+          <div v-else-if="!showFirstSortTable" class="chart-container">
             <canvas ref="firstSortChart"></canvas>
           </div>
           <div v-else class="table-container">
@@ -91,7 +109,12 @@
           </div>
         </div>
         <div class="card-content">
-          <div v-if="!showSecondSortTable" class="chart-container">
+          <div v-if="!popularSecondSort.length" class="chart-empty">
+            <PhChartBar weight="duotone" :size="32" />
+            <b>이 조건의 대출 기록이 아직 없어요</b>
+            <span>기간이나 과정을 바꿔 보세요</span>
+          </div>
+          <div v-else-if="!showSecondSortTable" class="chart-container">
             <canvas ref="secondSortChart"></canvas>
           </div>
           <div v-else class="table-container">
@@ -126,7 +149,12 @@
           </div>
         </div>
         <div class="card-content">
-          <div v-if="!showRankTable" class="chart-container">
+          <div v-if="!userReadingRank.length" class="chart-empty">
+            <PhChartBar weight="duotone" :size="32" />
+            <b>이 조건의 대출 기록이 아직 없어요</b>
+            <span>기간이나 과정을 바꿔 보세요</span>
+          </div>
+          <div v-else-if="!showRankTable" class="chart-container">
             <canvas ref="userRankChart"></canvas>
           </div>
           <div v-else class="table-container">
@@ -162,10 +190,13 @@
 </template>
 
 <script setup>
+import { PhArrowsClockwise, PhChartBar } from '@phosphor-icons/vue'
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
-
-const title_url = "http://localhost:8080"
+import * as courseApi from '@/api/course'
+import * as historyApi from '@/api/history'
+import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
+import DateRangePicker from './DateRangePicker.vue'
 
 // Chart.js 등록
 Chart.register(...registerables)
@@ -175,6 +206,26 @@ const loading = ref(false)
 const error = ref(null)
 const selectedCourse = ref('')
 
+// 기간 필터
+const datePickerRef = ref(null)
+const activeDateRange = ref({ startDate: null, endDate: null })
+
+const onDateRangeChange = (range) => {
+  activeDateRange.value = range
+  fetchData()
+}
+
+// 캠퍼스 필터 관련 (캠퍼스 관리자는 자기 캠퍼스 고정, 필터 숨김)
+const {
+  showCampusFilter,
+  currentUserCampusId,
+  selectedCampus,
+  campuses,
+  fetchAdminInfo,
+  fetchCampuses,
+  getCampusParam,
+} = useAdminCampusFilter({ showFilterForCampusAdmin: false })
+
 // 통계 데이터
 const popularFirstSort = ref([])
 const popularSecondSort = ref([])
@@ -183,105 +234,14 @@ const userReadingRank = ref([])
 // 과정 목록
 const courses = ref([])
 
+// 과정 목록은 읽기만 한다.
+// 예전에는 화면을 열 때마다 여기서 Work24 목록으로 과정을 만들고 지웠다 — 서버 CourseSyncScheduler 와 역할이 겹치고,
+// 캠퍼스 구분 없이 "API 에 없는 과정"을 지워 다른 캠퍼스 과정까지 지울 수 있는 구조였다.
 async function getCourseList() {
-  // const apiKey = import.meta.env.VITE_WORK24_API_KEY
-  // const today = new Date()
-  // const sixMonthsAgo = new Date()
-  // sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
-
-  // function formatDateToYYYYMMDD(date) {
-  //   const yyyy = date.getFullYear()
-  //   const mm = String(date.getMonth() + 1).padStart(2, '0')
-  //   const dd = String(date.getDate()).padStart(2, '0')
-  //   return `${yyyy}${mm}${dd}`
-  // }
-
-  // const srchTraStDt = formatDateToYYYYMMDD(sixMonthsAgo)
-  // const srchTraEndDt = formatDateToYYYYMMDD(today)
-
-  // const url =
-  //   `https://www.work24.go.kr/cm/openApi/call/hr/callOpenApiSvcInfo310L01.do?authKey=${apiKey}` +
-  //   `&returnType=JSON&outType=1&pageNum=1&pageSize=100` +
-  //   `&srchTraStDt=${srchTraStDt}&srchTraEndDt=${srchTraEndDt}` +
-  //   `&srchTraArea1=11&srchNcs1=20&crseTracseSe=C0104&srchTraGbn=M1001&srchTraOrganNm=플레이데이터평생교육원` +
-  //   `&sort=ASC&sortCol=2`
-
   try {
-    const token = localStorage.getItem("jwtToken")
-
-    const res = await fetch('http://localhost:8080/api/work24/course', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    const data = await res.json()
-    const apiCoursesRaw = data?.srchList || []
-
-    if (apiCoursesRaw.length === 0) return
-
-    const apiCourses = apiCoursesRaw.map(item => {
-      const title = item.title.includes(' - ') ? item.title.split(' - ')[0] : item.title
-      const fullName = `${title} ${item.trprDegr}기`
-      return {
-        nameCourse: fullName,
-        startDtCourse: item.traStartDate,
-        finishDtCourse: item.traEndDate,
-        trprDegr: item.trprDegr,
-        seqCourse: item.trprId
-      }
-    })
-
-    const dbRes = await fetch(`${title_url}/courses`)
-    const dbCourses = await dbRes.json()
-
-    for (const apiItem of apiCourses) {
-      const exists = dbCourses.find(dbItem => dbItem.nameCourse === apiItem.nameCourse)
-      if (!exists) {
-        await fetch(`${title_url}/courses`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nameCourse: apiItem.nameCourse,
-            startDtCourse: apiItem.startDtCourse,
-            finishDtCourse: apiItem.finishDtCourse
-          })
-        })
-      }
-    }
-
-    for (const dbItem of dbCourses) {
-      const exists = apiCourses.find(apiItem => apiItem.nameCourse === dbItem.nameCourse)
-      if (!exists) {
-        await fetch(`${title_url}/courses/${dbItem.seqCourse}`, {
-          method: 'DELETE'
-        })
-      }
-    }
-
-    for (const apiItem of apiCourses) {
-      const dbItem = dbCourses.find(db => db.nameCourse === apiItem.nameCourse)
-      if (dbItem) {
-        const isDifferent =
-          dbItem.startDtCourse !== apiItem.startDtCourse ||
-          dbItem.finishDtCourse !== apiItem.finishDtCourse
-
-        if (isDifferent) {
-          await fetch(`${title_url}/courses/${dbItem.seqCourse}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              nameCourse: apiItem.nameCourse,
-              startDtCourse: apiItem.startDtCourse,
-              finishDtCourse: apiItem.finishDtCourse
-            })
-          })
-        }
-      }
-    }
-
-    const finalDbRes = await fetch(`${title_url}/courses`)
-    const finalDbCourses = await finalDbRes.json()
+    const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : undefined
+    const finalDbRes = await courseApi.getAll(campusId)
+    const finalDbCourses = finalDbRes.data.data
 
     courses.value = finalDbCourses
       .map(item => {
@@ -328,24 +288,10 @@ let userRankChartInstance = null
 // API 호출 함수들
 const fetchPopularFirstSort = async () => {
   try {
-    const token = localStorage.getItem('jwtToken')
-    const url = selectedCourse.value 
-      ? `${title_url}/history/popular/first/${selectedCourse.value}`
-      : `${title_url}/history/popular/first`
-    
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error('인기 대분류 데이터를 불러올 수 없습니다')
-    }
-
-    const data = await response.json()
-    popularFirstSort.value = data
+    const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : null
+    const { startDate, endDate } = activeDateRange.value
+    const response = await historyApi.getPopularFirst(selectedCourse.value || null, campusId, startDate, endDate)
+    popularFirstSort.value = response.data.data
   } catch (err) {
     console.error('Popular first sort fetch error:', err)
     throw err
@@ -354,24 +300,10 @@ const fetchPopularFirstSort = async () => {
 
 const fetchPopularSecondSort = async () => {
   try {
-    const token = localStorage.getItem('jwtToken')
-    const url = selectedCourse.value 
-      ? `${title_url}/history/popular/second/${selectedCourse.value}`
-      : `${title_url}/history/popular/second`
-    
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error('인기 중분류 데이터를 불러올 수 없습니다')
-    }
-
-    const data = await response.json()
-    popularSecondSort.value = data
+    const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : null
+    const { startDate, endDate } = activeDateRange.value
+    const response = await historyApi.getPopularSecond(selectedCourse.value || null, campusId, startDate, endDate)
+    popularSecondSort.value = response.data.data
   } catch (err) {
     console.error('Popular second sort fetch error:', err)
     throw err
@@ -380,24 +312,10 @@ const fetchPopularSecondSort = async () => {
 
 const fetchUserReadingRank = async () => {
   try {
-    const token = localStorage.getItem('jwtToken')
-    const url = selectedCourse.value 
-      ? `${title_url}/history/rank/${selectedCourse.value}`
-      : `${title_url}/history/rank`
-    
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error('사용자 랭킹 데이터를 불러올 수 없습니다')
-    }
-
-    const data = await response.json()
-    userReadingRank.value = data
+    const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : null
+    const { startDate, endDate } = activeDateRange.value
+    const response = await historyApi.getUserRank(selectedCourse.value || null, campusId, startDate, endDate)
+    userReadingRank.value = response.data.data
   } catch (err) {
     console.error('User reading rank fetch error:', err)
     throw err
@@ -606,9 +524,12 @@ const refreshData = () => {
   fetchData()
 }
 
+
 // 라이프사이클
-onMounted(() => {
-  fetchData()
+onMounted(async () => {
+  await fetchCampuses()
+  await fetchAdminInfo()
+  await fetchData()
 })
 
 onBeforeUnmount(() => {
@@ -619,189 +540,175 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+/* ── 루트 ── */
 .statistics-dashboard {
-  padding: 24px;
+  max-width: 100%;
+  font-size: 13px;
+  color: var(--pb-color-text);
 }
 
+/* ── 헤더 ── */
 .dashboard-header {
-  margin-bottom: 32px;
-  text-align: center;
+  margin-bottom: 20px;
 }
 
 .section-title {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  font-size: 2rem;
+  gap: 8px;
+  font-size: 15px;
   font-weight: 700;
-  color: #2d3748;
-  margin-bottom: 8px;
+  color: var(--pb-color-heading);
+  margin: 0 0 3px;
 }
 
 .section-subtitle {
-  color: #718096;
-  font-size: 1.1rem;
+  font-size: 13px;
+  color: var(--pb-color-text-muted);
   margin: 0;
 }
 
+/* ── 필터 컨트롤 ── */
 .filter-controls {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 32px;
-  padding: 20px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.03);
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-lg);
+  box-shadow: var(--pb-shadow-xs);
 }
 
 .filter-group {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .filter-group label {
+  font-size: 11px;
   font-weight: 500;
-  color: #4a5568;
+  color: var(--pb-color-text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   white-space: nowrap;
 }
 
 .filter-select {
-  padding: 8px 12px;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  background: white;
-  transition: border-color 0.3s ease;
-  min-width: 200px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
+  font-size: 13px;
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text);
+  min-width: 190px;
+  cursor: pointer;
+  transition: border-color 0.15s;
 }
 
 .filter-select:focus {
   outline: none;
-  border-color: #a8dadc;
+  border-color: var(--pb-color-brand);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-muted);
 }
 
-.refresh-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: linear-gradient(135deg, #a8dadc 0%, #b8e6c1 100%);
-  color: #2d3748;
-  border: none;
-  border-radius: 10px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(168, 218, 220, 0.3);
-}
 
-.refresh-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(168, 218, 220, 0.4);
-}
 
-.refresh-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
+/* ── 로딩 상태 ── */
 .loading-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  padding: 56px 20px;
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-lg);
+  box-shadow: var(--pb-shadow-xs);
+  color: var(--pb-color-text-soft);
 }
 
 .loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f1f5f9;
-  border-top: 4px solid #a8dadc;
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--pb-color-border);
+  border-left-color: var(--pb-color-brand);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 16px;
+  animation: spin 0.9s linear infinite;
+  margin-bottom: 14px;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
+@keyframes spin { to { rotate: 360deg; } }
 
+/* ── 통계 그리드 ── */
 .statistics-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  gap: 16px;
 }
 
+/* ── 카드 ── */
 .stat-card {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.03);
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-lg);
+  box-shadow: var(--pb-shadow-sm);
   overflow: hidden;
 }
 
-.stat-card.full-width {
-  grid-column: 1 / -1;
-}
+.stat-card.full-width { grid-column: 1 / -1; }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border-bottom: 1px solid #e2e8f0;
+  padding: 13px 18px;
+  background: var(--pb-color-surface-muted);
+  border-bottom: 1px solid var(--pb-color-border);
 }
 
 .card-title {
-  font-size: 1.25rem;
+  font-size: 13px;
   font-weight: 600;
-  color: #2d3748;
+  color: var(--pb-color-heading);
   margin: 0;
 }
 
-.card-actions {
-  display: flex;
-  gap: 8px;
-}
+.card-actions { display: flex; gap: 6px; }
 
 .toggle-btn {
-  padding: 6px 12px;
-  background: linear-gradient(135deg, #a8dadc 0%, #b8e6c1 100%);
-  color: #2d3748;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.875rem;
+  height: 28px;
+  padding: 0 10px;
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text-muted);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.12s, color 0.12s;
 }
 
 .toggle-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(168, 218, 220, 0.3);
+  background: var(--pb-color-surface-muted);
+  color: var(--pb-color-text);
+  border-color: var(--pb-color-border-strong);
 }
 
-.card-content {
-  padding: 24px;
-}
+.card-content { padding: 20px; }
 
+/* ── 차트/테이블 ── */
 .chart-container {
   position: relative;
-  height: 300px;
+  height: 280px;
 }
 
 .table-container {
-  max-height: 300px;
+  max-height: 280px;
   overflow-y: auto;
 }
 
@@ -810,94 +717,109 @@ onBeforeUnmount(() => {
   border-collapse: collapse;
 }
 
-.data-table th,
-.data-table td {
-  padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid #e2e8f0;
-}
-
 .data-table th {
-  background: #f8fafc;
+  text-align: left;
+  padding: 8px 12px;
+  background: var(--pb-color-surface-subtle);
+  color: var(--pb-color-text-soft);
+  font-size: 11px;
   font-weight: 600;
-  color: #2d3748;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--pb-color-border);
   position: sticky;
   top: 0;
 }
 
-.data-table tr:hover {
-  background: #f8fafc;
+.data-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--pb-color-border);
+  font-size: 13px;
+  color: var(--pb-color-text);
 }
 
+.data-table tr:hover td { background: var(--pb-color-surface-muted); }
+
+/* ── 에러 상태 ── */
 .error-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  padding: 56px 20px;
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-lg);
+  box-shadow: var(--pb-shadow-xs);
   text-align: center;
 }
 
 .error-icon {
-  font-size: 3rem;
-  margin-bottom: 16px;
+  font-size: 36px;
+  margin-bottom: 14px;
 }
 
 .error-state h3 {
-  color: #e53e3e;
-  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--pb-color-danger);
+  margin: 0 0 6px;
 }
 
 .error-state p {
-  color: #718096;
-  margin-bottom: 24px;
+  font-size: 13px;
+  color: var(--pb-color-text-muted);
+  margin: 0 0 20px;
 }
 
 .retry-btn {
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
-  color: #c53030;
-  border: none;
-  border-radius: 10px;
-  font-weight: 500;
+  height: 32px;
+  padding: 0 18px;
+  background: var(--pb-color-danger-soft);
+  border: 1px solid var(--pb-color-danger);
+  border-radius: var(--pb-radius-sm);
+  color: var(--pb-color-danger);
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.12s;
 }
 
-.retry-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(254, 178, 178, 0.4);
-}
+.retry-btn:hover { background: var(--pb-color-danger); color: var(--pb-color-surface); }
 
-/* 반응형 디자인 */
+/* ── 반응형 ── */
 @media (max-width: 768px) {
-  .statistics-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .filter-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .filter-group {
-    justify-content: space-between;
-  }
-  
-  .filter-select {
-    min-width: unset;
-    flex: 1;
-  }
-  
-  .chart-container {
-    height: 250px;
-  }
-  
-  .section-title {
-    font-size: 1.5rem;
-  }
+  .statistics-grid { grid-template-columns: 1fr; }
+  .filter-controls { flex-direction: column; align-items: stretch; }
+  .stats-refresh { align-self: flex-end; }
+  .filter-select { min-width: unset; }
+  .chart-container { height: 240px; }
+}
+
+/* 데이터가 없을 때 빈 캔버스 대신 안내 */
+.chart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 220px;
+  color: var(--pb-color-text-soft);
+  text-align: center;
+}
+
+.chart-empty b {
+  color: var(--pb-color-heading);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.chart-empty span {
+  font-size: 12px;
+}
+
+/* 필터 줄 맨 끝의 새로고침 아이콘 */
+.stats-refresh {
+  margin-left: auto;
 }
 </style>

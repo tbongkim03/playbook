@@ -1,0 +1,81 @@
+name: 설치 마법사 EXE 빌드
+
+# 캠퍼스 담당자에게 배포할 NSIS 단일 설치본(.exe)을 만든다.
+#
+# 왜 windows-latest 인가: electron-builder 의 NSIS·winCodeSign 단계가 Windows 네이티브
+# 도구를 쓴다. 리눅스에서는 wine 이 있어야 하고, 없으면 앱 트리까지만 만들어지고
+# 단일 exe 산출에서 멈춘다. windows 러너는 진짜 Windows 라 그 제약이 없다.
+# 이 저장소는 공개라 GitHub-hosted 러너 사용료가 없다.
+
+on:
+  workflow_dispatch:          # 수동 트리거 — 평소엔 이 경로로 만든다
+  push:
+    paths:
+      - 'installer/**'
+      - '.github/workflows/installer-build.yml'
+      # 마법사가 번들하는 배포 페이로드가 바뀌어도 다시 만들어야 한다
+      - 'docker-compose.prod.yml'
+      - 'db/migration/**'
+      - 'db/init/**'
+      - 'monitoring/**'
+
+jobs:
+  build-installer:
+    name: Windows NSIS 빌드
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node 설치
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: installer/package-lock.json
+
+      - name: 의존성 설치
+        working-directory: installer
+        run: npm ci
+
+      # 84개 자체 점검이 게이트다. 여기서 막히면 exe 를 만들지 않는다 —
+      # check.mjs 는 application*.properties 의 ${VAR} 참조를 스캔해 마법사가 생성하는
+      # .env 와 대조하므로, 백엔드에 env 가 추가되면 이 단계가 먼저 실패한다.
+      - name: 자체 점검
+        working-directory: installer
+        run: npm run check
+
+      - name: NSIS 빌드
+        working-directory: installer
+        env:
+          # 코드서명 인증서가 없다. 자동 탐색을 꺼두지 않으면 러너의 임의 인증서를
+          # 집어 들거나 서명 단계에서 실패할 수 있다.
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          # electron-builder 가 GitHub 릴리스에 자동 업로드하려 드는 것을 막는다.
+          GH_TOKEN: ''
+          # 설치 시 받을 이미지 태그. v* 태그 빌드면 그 버전(cd.yml 이 같은 태그로 이미지를 올린다).
+          # 브랜치 빌드는 비워 두어 prepare-payload 가 경고와 함께 :latest 로 둔다.
+          PLAYBOOK_IMAGE_TAG: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
+        run: npm run build:win
+
+      - name: 산출물 확인
+        working-directory: installer
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path release -Filter *.exe -Recurse |
+                 Where-Object { $_.FullName -notmatch 'win-unpacked' }
+          if (-not $exe) { throw "NSIS .exe 가 생성되지 않았습니다." }
+          $exe | ForEach-Object {
+            "{0}  ({1:N1} MB)" -f $_.Name, ($_.Length / 1MB)
+          }
+
+      - name: 아티팩트 업로드
+        uses: actions/upload-artifact@v4
+        with:
+          # 어느 코드로 만든 설치본인지 추적 가능해야 한다
+          name: playbook-installer-${{ github.sha }}
+          path: installer/release/*.exe
+          if-no-files-found: error
+          retention-days: 90

@@ -1,0 +1,43 @@
+appId: com.playbook.installer
+productName: Playbook Installer
+copyright: Playbook
+
+directories:
+  output: release
+  buildResources: build
+
+# 메인 프로세스 소스는 번들하지 않고 그대로 넣는다 (Node 내장 모듈만 사용).
+# 렌더러는 vite 가 만든 dist/renderer 만 넣는다.
+files:
+  - src/main/**/*
+  - dist/renderer/**/*
+  - package.json
+  - '!**/*.map'
+
+# 저장소 루트에서 복사해 온 배포 페이로드(docker-compose.prod.yml, db/, monitoring/).
+# 설치 시 resources/payload 에 놓이고, 마법사가 설치 경로로 복사한 뒤 docker compose 를 돌린다.
+extraResources:
+  - from: payload
+    to: payload
+    filter:
+      - '**/*'
+
+asar: true
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: Playbook-Installer-${version}-x64.${ext}
+  # icon: build/icon.ico   # 512x512 이상 .ico 를 넣으면 활성화
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Playbook 설치 마법사
+  deleteAppDataOnUninstall: false
+  language: '1042' # 한국어

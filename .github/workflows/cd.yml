@@ -1,0 +1,199 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*.*.*']        # v1.x.x 릴리즈 태그 push 시에도 이미지 빌드
+  workflow_dispatch:          # 수동 트리거
+
+env:
+  REGISTRY: ghcr.io
+  BACK_IMAGE: ghcr.io/tbongkim03/playbook-back
+  FRONT_IMAGE: ghcr.io/tbongkim03/playbook-front
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # Job 0: 단위 테스트 — 실패 시 이미지 빌드 차단
+  # ─────────────────────────────────────────────────────────────────────────
+  test:
+    name: 단위 테스트
+    runs-on: ubuntu-latest
+
+    # ci.yml 의 backend-test 와 같은 환경이어야 한다 — 통합 테스트가 실DB(3307)와 .env.test 를 요구한다.
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ci_root_pw
+          MYSQL_DATABASE: playbookdb_local
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pci_root_pw --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Gradle 캐시
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('back/build.gradle', 'back/settings.gradle') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # 값·이유는 ci.yml 의 같은 스텝 참조 (CI 전용 더미 값, 실제 시크릿 없음)
+      - name: 테스트 환경 파일 생성 (.env.test)
+        working-directory: back
+        run: |
+          cat > .env.test <<'EOF'
+          SPRING_PROFILES_ACTIVE=test
+          DB_USERNAME=root
+          DB_PASSWORD=ci_root_pw
+          INTEGRATION_SECRET_KEY=ci-dummy-integration-secret-key
+          MASTER_ID=ci_master
+          MASTER_PW=ci_master_pw_1234
+          MASTER_NAME=CI관리자
+          MASTER_DISCORD=ci_master_discord
+          KAKAO_REST_API_KEY=ci-dummy-kakao-key
+          NL_API_KEY=ci-dummy-nl-key
+          WORK24_API_KEY=ci-dummy-work24-key
+          DISCORD_CHANNEL_SEOCHO=
+          DISCORD_CHANNEL_GVALLEY=
+          DISCORD_CHANNEL_DONGJAK=
+          DISCORD_LINK_CHANNEL_ID=
+          EOF
+          echo 'DISCORD_BOT_TOKEN=discord-bot-token' >> .env.test
+
+      - name: DB 준비 확인
+        run: |
+          for i in $(seq 1 30); do
+            if (echo > /dev/tcp/127.0.0.1/3307) 2>/dev/null; then
+              echo "MySQL 포트 3307 응답 확인"; exit 0
+            fi
+            echo "MySQL 대기 중... ($i/30)"; sleep 2
+          done
+          echo "MySQL 이 준비되지 않았습니다 (127.0.0.1:3307)"; exit 1
+
+      - name: 단위 테스트 실행
+        working-directory: back
+        run: ./gradlew test --no-daemon
+
+      - name: 테스트 결과 업로드
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: back/build/reports/tests/test/
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Job 1: GHCR 이미지 빌드 및 푸시
+  # ─────────────────────────────────────────────────────────────────────────
+  build-and-push:
+    needs: test
+    name: 이미지 빌드 및 GHCR 푸시
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write    # GHCR 푸시 권한
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: GHCR 로그인
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 태그 전략 ──────────────────────────────────────────────────────
+      # main push   → sha-{7자리}, latest
+      # v*.*.* push → sha-{7자리}, v1.x.x  (latest 제외)
+      # ──────────────────────────────────────────────────────────────────
+
+      - name: Backend 이미지 메타데이터
+        id: meta-back
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.BACK_IMAGE }}
+          tags: |
+            type=sha,prefix=sha-,format=short
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=semver,pattern={{version}}
+
+      - name: Frontend 이미지 메타데이터
+        id: meta-front
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.FRONT_IMAGE }}
+          tags: |
+            type=sha,prefix=sha-,format=short
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=semver,pattern={{version}}
+
+      - name: Backend 이미지 빌드 및 푸시
+        uses: docker/build-push-action@v5
+        with:
+          context: ./back
+          file: ./back/Dockerfile
+          push: true
+          tags: ${{ steps.meta-back.outputs.tags }}
+          labels: ${{ steps.meta-back.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Frontend 이미지 빌드 및 푸시
+        uses: docker/build-push-action@v5
+        with:
+          context: ./front
+          file: ./front/ProdDockerfile
+          push: true
+          tags: ${{ steps.meta-front.outputs.tags }}
+          labels: ${{ steps.meta-front.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Job 2: SSH 배포 (실제 서버 준비 후 활성화)
+  #
+  # 활성화 방법:
+  #   1. if: false  →  if: needs.build-and-push.result == 'success'  로 변경
+  #   2. GitHub Secrets에 아래 값 등록:
+  #      SSH_PRIVATE_KEY     서버 SSH 개인키
+  #      SERVER_HOST         배포 서버 IP 또는 도메인
+  #      SERVER_USER         SSH 접속 사용자명
+  #      SERVER_DEPLOY_PATH  서버 내 프로젝트 경로 (예: /home/ubuntu/playbook)
+  # ─────────────────────────────────────────────────────────────────────────
+  deploy:
+    name: 서버 배포 (비활성)
+    if: false
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH로 서버 배포
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ${{ secrets.SERVER_DEPLOY_PATH }}
+            docker compose -f docker-compose.prod.yml pull back front
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans back front
+            docker image prune -f
+

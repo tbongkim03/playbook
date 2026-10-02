@@ -1,19 +1,23 @@
 <template>
   <div class="admin-account-management">
-    <div class="section-header">
-      <h2 class="section-title">관리자 계정 관리</h2>
-      <p class="section-description">관리자 계정을 추가, 수정, 삭제할 수 있습니다.</p>
+    <div class="pb-page-head">
+      <div>
+        <h2>관리자 계정 관리</h2>
+        <p>관리자 계정을 추가, 수정, 삭제할 수 있습니다.</p>
+      </div>
+      <div class="pb-head-actions">
+        <button type="button" class="pb-btn pb-btn-primary" @click="showAddModal = true">
+          <PhPlusCircle weight="duotone" :size="18" />
+          관리자 추가
+        </button>
+      </div>
     </div>
 
     <!-- 통계 카드 -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2"/>
-            <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-            <polyline points="17,11 19,13 23,9" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <PhUserCheck weight="duotone" :size="24" />
         </div>
         <div class="stat-content">
           <div class="stat-number">{{ adminList.length }}</div>
@@ -22,22 +26,31 @@
       </div>
     </div>
 
-    <!-- 관리자 추가 버튼 -->
-    <div class="action-bar">
-      <button class="add-admin-btn" @click="showAddModal = true">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-          <line x1="12" y1="8" x2="12" y2="16" stroke="currentColor" stroke-width="2"/>
-          <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/>
-        </svg>
-        관리자 추가
-      </button>
+
+    <!-- 필터 영역 -->
+    <div class="pb-filter-bar" v-if="showCampusFilter">
+      <select v-model="selectedCampus" @change="onCampusChange" class="filter-select">
+          <option value="">전체 캠퍼스</option>
+          <option
+            v-for="campus in campusList"
+            :key="campus.seqCampus"
+            :value="campus.seqCampus"
+          >
+            {{ campus.nameCampus }}
+          </option>
+        </select>
     </div>
 
     <!-- 관리자 목록 테이블 -->
     <div class="admin-table-container">
-      <div class="table-header">
+      <div class="table-header pb-list-head">
         <h3>관리자 목록</h3>
+        <div class="pb-list-actions">
+          <button type="button" class="pb-btn pb-btn-outline" @click="exportData">
+            <PhDownloadSimple weight="duotone" :size="16" />
+            엑셀 내보내기
+          </button>
+        </div>
       </div>
       
       <div class="table-wrapper">
@@ -46,49 +59,49 @@
             <tr>
               <th>ID</th>
               <th>이름</th>
+              <th>캠퍼스</th>
               <th>디스코드 ID</th>
               <th>생성일</th>
               <th>작업</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="admin in adminList" :key="admin.idAdmin" class="admin-row">
+            <tr v-if="!pagedAdminList.length">
+              <td colspan="6" class="pb-empty-row">등록된 관리자가 없습니다.</td>
+            </tr>
+            <tr v-for="admin in pagedAdminList" :key="admin.idAdmin" class="admin-row">
               <td class="admin-id">{{ admin.idAdmin }}</td>
               <td class="admin-name">{{ admin.nameAdmin }}</td>
+              <td class="admin-campus">{{ admin.campusName || '전체' }}</td>
               <td class="admin-discord">{{ admin.dcAdmin || '-' }}</td>
               <td class="admin-date">{{ formatDate(admin.createdAt) }}</td>
               <td class="admin-actions">
-                <button class="edit-btn" @click="openEditModal(admin)">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2"/>
-                    <path d="M18.5 2.5C18.8978 2.10217 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.10217 21.5 2.5C21.8978 2.89782 22.1213 3.43739 22.1213 4C22.1213 4.56261 21.8978 5.10217 21.5 5.5L12 15L8 16L9 12L18.5 2.5Z" stroke="currentColor" stroke-width="2"/>
-                  </svg>
+                <button
+                  v-if="canEditAdmin(admin)"
+                  class="edit-btn"
+                  @click="openEditModal(admin)"
+                >
+                  <PhNotePencil weight="duotone" :size="16" />
                 </button>
                 <button class="delete-btn" @click="confirmDeleteAdmin(admin)">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <polyline points="3,6 5,6 21,6" stroke="currentColor" stroke-width="2"/>
-                    <path d="M19,6V20C19,20.5304 18.7893,21.0391 18.4142,21.4142C18.0391,21.7893 17.5304,22 17,22H7C6.46957,22 5.96086,21.7893 5.58579,21.4142C5.21071,21.0391 5,20.5304 5,20V6M8,6V4C8,3.46957 8.21071,2.96086 8.58579,2.58579C8.96086,2.21071 9.46957,2 10,2H14C14.5304,2 15.0391,2.21071 15.4142,2.58579C15.7893,2.96086 16,3.46957 16,4V6" stroke="currentColor" stroke-width="2"/>
-                    <line x1="10" y1="11" x2="10" y2="17" stroke="currentColor" stroke-width="2"/>
-                    <line x1="14" y1="11" x2="14" y2="17" stroke="currentColor" stroke-width="2"/>
-                  </svg>
+                  <PhTrash weight="duotone" :size="16" />
                 </button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
+
+      <PbPagination :page="currentPage" :total-pages="totalPages" :info="paginationInfo" @change="changePage" />
     </div>
 
     <!-- 관리자 추가 모달 -->
-    <div v-if="showAddModal" class="modal-overlay" @click="closeAddModal">
+    <div v-if="showAddModal" class="modal-overlay" v-modal-backdrop="closeAddModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>새 관리자 추가</h3>
           <button class="modal-close" @click="closeAddModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
-              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <form @submit.prevent="addAdmin" class="modal-form">
@@ -118,13 +131,26 @@
           </div>
           <div class="form-group">
             <label for="newAdminName">관리자 이름</label>
-            <input 
-              type="text" 
-              id="newAdminName" 
-              v-model="newAdmin.nameAdmin" 
-              required 
+            <input
+              type="text"
+              id="newAdminName"
+              v-model="newAdmin.nameAdmin"
+              required
               placeholder="관리자 이름을 입력하세요"
             />
+          </div>
+          <div class="form-group">
+            <label for="newAdminCampus">캠퍼스</label>
+            <select
+              id="newAdminCampus"
+              v-model="newAdmin.seqCampus"
+              class="form-select"
+            >
+              <option :value="null">전체 관리자</option>
+              <option v-for="campus in campusList" :key="campus.seqCampus" :value="campus.seqCampus">
+                {{ campus.nameCampus }}
+              </option>
+            </select>
           </div>
           <div class="form-group">
             <label for="newAdminPassword">비밀번호</label>
@@ -160,15 +186,12 @@
     </div>
 
     <!-- 관리자 수정 모달 (비밀번호 검증 포함) -->
-    <div v-if="showEditModal" class="modal-overlay" @click="closeEditModal">
+    <div v-if="showEditModal" class="modal-overlay" v-modal-backdrop="closeEditModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
-          <h3>디스코드 ID 수정</h3>
+          <h3>관리자 계정 수정</h3>
           <button class="modal-close" @click="closeEditModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
-              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <form @submit.prevent="updateAdmin" class="modal-form">
@@ -191,7 +214,7 @@
             />
           </div>
           <div class="form-group">
-            <label for="editPassword">현재 비밀번호 확인</label>
+            <label for="editPassword">현재 비밀번호 확인 <span class="required-mark">*</span></label>
             <input 
               type="password" 
               id="editPassword" 
@@ -206,8 +229,18 @@
               type="text" 
               id="editAdminDiscord" 
               v-model="editingAdmin.dcAdmin" 
-              placeholder="디스코드 ID를 입력하세요"
+              placeholder="디스코드 ID를 입력하세요 (변경하지 않으려면 비워두세요)"
             />
+          </div>
+          <div class="form-group">
+            <label for="editNewPassword">새 비밀번호</label>
+            <input 
+              type="password" 
+              id="editNewPassword" 
+              v-model="editNewPassword" 
+              placeholder="새 비밀번호를 입력하세요 (변경하지 않으려면 비워두세요)"
+            />
+            <div class="form-hint">비밀번호를 변경하지 않으려면 비워두세요.</div>
           </div>
           <div class="modal-actions">
             <button type="button" class="cancel-btn" @click="closeEditModal">취소</button>
@@ -220,24 +253,17 @@
     </div>
 
     <!-- 관리자 삭제 확인 모달 (비밀번호 검증 포함) -->
-    <div v-if="showDeleteModal" class="modal-overlay" @click="closeDeleteModal">
+    <div v-if="showDeleteModal" class="modal-overlay" v-modal-backdrop="closeDeleteModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>관리자 삭제 확인</h3>
           <button class="modal-close" @click="closeDeleteModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
-              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <div class="delete-warning">
           <div class="warning-icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 9V13" stroke="currentColor" stroke-width="2"/>
-              <path d="M12 17.02L12.01 16.991" stroke="currentColor" stroke-width="2"/>
-              <path d="M10.29 3.86L1.82 18C1.64466 18.3024 1.55685 18.6453 1.56455 18.9928C1.57225 19.3403 1.67516 19.6792 1.86244 19.9757C2.04973 20.2723 2.31561 20.5157 2.6289 20.6812C2.9422 20.8467 3.29427 20.9286 3.65 20.92H20.35C20.7057 20.9286 21.0578 20.8467 21.3711 20.6812C21.6844 20.5157 21.9503 20.2723 22.1376 19.9757C22.3248 19.6792 22.4278 19.3403 22.4355 18.9928C22.4432 18.6453 22.3553 18.3024 22.18 18L13.71 3.86C13.5317 3.56611 13.2807 3.32312 12.9812 3.15446C12.6817 2.98581 12.3438 2.89725 12 2.89725C11.6562 2.89725 11.3183 2.98581 11.0188 3.15446C10.7193 3.32312 10.4683 3.56611 10.29 3.86Z" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhWarning weight="duotone" :size="64" />
           </div>
           <div class="warning-content">
             <h4>정말로 관리자를 삭제하시겠습니까?</h4>
@@ -275,12 +301,38 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import axios from 'axios'
+import PbPagination from '@/components/PbPagination.vue'
+import { vModalBackdrop } from '@/utils/modalBackdrop'
+import { PhDownloadSimple, PhNotePencil, PhPlusCircle, PhTrash, PhUserCheck, PhWarning, PhX } from '@phosphor-icons/vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import * as adminApi from '@/api/admin'
+import { swAlert } from '@/utils/sweetAlert'
+import { handleApiError } from '@/utils/apiErrorHandler'
+import { formatDate } from '@/utils/dateFormatter'
+import { useAdminCampusFilter } from '@/composables/useAdminCampusFilter'
+import { usePagination } from '@/composables/usePagination'
+import { exportToXlsx } from '@/utils/exportSheet'
 
 // 반응형 데이터
 const adminList = ref([])
 const isLoading = ref(false)
+
+// 페이지네이션
+const { currentPage, totalPages, pagedList: pagedAdminList,
+        paginationInfo, changePage } = usePagination(adminList, 10)
+
+watch(adminList, () => { currentPage.value = 1 })
+
+// 캠퍼스 필터 관련
+const {
+  showCampusFilter,
+  currentUserCampusId,
+  selectedCampus,
+  campuses: campusList,
+  fetchAdminInfo,
+  fetchCampuses: fetchCampusList,
+  getCampusParam,
+} = useAdminCampusFilter()
 
 // 모달 상태
 const showAddModal = ref(false)
@@ -289,13 +341,15 @@ const showDeleteModal = ref(false)
 
 // 비밀번호 입력 필드
 const editPassword = ref('')
+const editNewPassword = ref('')
 const deletePassword = ref('')
 
 // 현재 사용자 정보
 const currentUser = ref({
   idAdmin: '',
   nameAdmin: '',
-  dcAdmin: ''
+  dcAdmin: '',
+  seqCampus: null
 })
 
 // ID 검증 상태
@@ -324,10 +378,17 @@ const newAdmin = ref({
   idAdmin: '',
   pwAdmin: '',
   nameAdmin: '',
-  dcAdmin: ''
+  dcAdmin: '',
+  seqCampus: null
 })
 
 const editingAdmin = ref({
+  idAdmin: '',
+  nameAdmin: '',
+  dcAdmin: ''
+})
+
+const originalAdmin = ref({
   idAdmin: '',
   nameAdmin: '',
   dcAdmin: ''
@@ -339,42 +400,43 @@ const deletingAdmin = ref({
   dcAdmin: ''
 })
 
-// API 헤더 설정
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('jwtToken')
-  return {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  }
-}
 
 // 비밀번호 검증
 const validatePassword = async (idAdmin, password) => {
   try {
-    const response = await axios.post(
-      `http://localhost:8080/admin/validate?id=${idAdmin}`,
-      password,
-      {
-        headers: getAuthHeaders()
-      }
-    )
-    return response.data
+    const response = await adminApi.validatePassword(idAdmin, password)
+    return response.data.data
   } catch (error) {
-    console.error('비밀번호 검증 실패:', error)
     throw error
   }
 }
 
 // 현재 사용자 정보 조회
 const fetchCurrentUser = async () => {
-  try {
-    const response = await axios.get('http://localhost:8080/admin/me', {
-      headers: getAuthHeaders()
-    })
-    currentUser.value = response.data
-  } catch (error) {
-    console.error('현재 사용자 정보 조회 실패:', error)
+  const data = await fetchAdminInfo()
+  if (data) {
+    currentUser.value = {
+      idAdmin: data.idAdmin,
+      nameAdmin: data.nameAdmin,
+      dcAdmin: data.dcAdmin || '',
+      seqCampus: data.seqCampus
+    }
   }
+}
+
+// 캠퍼스 변경 핸들러
+const onCampusChange = () => {
+  fetchAdminList()
+}
+
+// 관리자 수정 권한 체크
+const canEditAdmin = (admin) => {
+  // 전체 관리자 (seqCampus가 null)는 모든 계정 수정 가능
+  if (currentUser.value.seqCampus === null) {
+    return true
+  }
+  // 일반 관리자는 본인 계정만 수정 가능
+  return currentUser.value.idAdmin === admin.idAdmin
 }
 
 // ID 중복 확인
@@ -389,12 +451,9 @@ const validateId = async () => {
   }
 
   try {
-    const response = await axios.get(`http://localhost:8080/admin/register/validate`, {
-      params: { id: newAdmin.value.idAdmin },
-      headers: getAuthHeaders()
-    })
+    const response = await adminApi.validateId(newAdmin.value.idAdmin)
 
-    const data = await response.data;
+    const data = response.data.data;
 
     idValidation.value = {
       isValid: !data.flag,
@@ -403,7 +462,6 @@ const validateId = async () => {
     }
 
   } catch (error) {
-    console.error('ID 검증 실패:', error)
     idValidation.value = {
       isValid: false,
       message: 'ID 검증에 실패했습니다.',
@@ -416,20 +474,11 @@ const validateId = async () => {
 const fetchAdminList = async () => {
   try {
     isLoading.value = true
-    const response = await axios.get('http://localhost:8080/admin/list', {
-      headers: getAuthHeaders()
-    })
-    // 백엔드의 AdminListResponseDto 구조에 맞게 수정
-    adminList.value = response.data.content || response.data.adminList || response.data
+    const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : null
+    const response = await adminApi.getList(campusId)
+    adminList.value = response.data.data.content || response.data.data
   } catch (error) {
-    console.error('관리자 목록 조회 실패:', error)
-    if (error.response?.status === 403) {
-      alert('관리자 권한이 필요합니다.')
-    } else if (error.response?.status === 401) {
-      alert('로그인이 필요합니다.')
-    } else {
-      alert('관리자 목록을 불러오는데 실패했습니다.')
-    }
+    await handleApiError(error, '관리자 목록을 불러오는데 실패했습니다.')
   } finally {
     isLoading.value = false
   }
@@ -438,69 +487,70 @@ const fetchAdminList = async () => {
 // 관리자 추가
 const addAdmin = async () => {
   if (!newAdmin.value.idAdmin || !newAdmin.value.nameAdmin || !newAdmin.value.pwAdmin) {
-    alert('필수 정보를 모두 입력해주세요.')
+    await swAlert('필수 정보를 모두 입력해주세요.', 'warning')
     return
   }
 
   if (!idValidation.value.isValid) {
-    alert('ID 중복확인을 완료해주세요.')
+    await swAlert('ID 중복확인을 완료해주세요.', 'warning')
     return
   }
 
   try {
     isLoading.value = true
-    const response = await axios.post('http://localhost:8080/admin/register', newAdmin.value, {
-      headers: getAuthHeaders()
-    })
-    
-    alert('관리자가 성공적으로 추가되었습니다.')
+    const response = await adminApi.register(newAdmin.value)
+
+    await swAlert('관리자가 성공적으로 추가되었습니다.', 'success')
     closeAddModal()
     await fetchAdminList()
   } catch (error) {
-    console.error('관리자 추가 실패:', error)
-    if (error.response?.status === 403) {
-      alert('관리자만 접근 가능합니다.')
-    } else if (error.response?.status === 401) {
-      alert('인증에 실패했습니다.')
-    } else {
-      alert(error.response?.data || '관리자 추가에 실패했습니다.')
-    }
+    await handleApiError(error, '관리자 추가에 실패했습니다.')
   } finally {
     isLoading.value = false
   }
 }
 
-// 관리자 디스코드 ID 수정 (비밀번호 검증 포함)
+// 관리자 계정 수정 (디스코드 ID 및 비밀번호 수정, 비밀번호 검증 포함)
 const updateAdmin = async () => {
   if (!editPassword.value) {
-    alert('현재 비밀번호를 입력해주세요.')
+    await swAlert('현재 비밀번호를 입력해주세요.', 'warning')
+    return
+  }
+
+  // 변경된 값 확인
+  const newDiscordValue = editingAdmin.value.dcAdmin ? editingAdmin.value.dcAdmin.trim() : ''
+  const originalDiscordValue = originalAdmin.value.dcAdmin || ''
+  const discordChanged = newDiscordValue !== originalDiscordValue
+  const passwordChanged = editNewPassword.value && editNewPassword.value.trim() !== ''
+
+  // 디스코드 ID와 비밀번호 둘 다 변경하지 않는 경우
+  if (!discordChanged && !passwordChanged) {
+    await swAlert('디스코드 ID 또는 비밀번호 중 하나는 변경해야 합니다.', 'warning')
     return
   }
 
   try {
     isLoading.value = true
     
-    // 먼저 비밀번호 검증
-    await validatePassword(editingAdmin.value.idAdmin, editPassword.value)
+    // 통합 수정 API 호출
+    const updateData = {
+      idAdmin: editingAdmin.value.idAdmin,
+      currentPassword: editPassword.value,
+      newPassword: passwordChanged ? editNewPassword.value.trim() : null,
+      newDiscord: discordChanged ? newDiscordValue : null
+    }
     
-    // 비밀번호가 맞으면 디스코드 ID 업데이트
-    const response = await axios.put('http://localhost:8080/admin/discord', 
-      editingAdmin.value.dcAdmin, {
-      headers: getAuthHeaders()
-    })
+    const response = await adminApi.update(updateData)
     
-    alert('디스코드 ID가 성공적으로 수정되었습니다.')
+    const updatedFields = []
+    if (updateData.newDiscord !== null) updatedFields.push('디스코드 ID')
+    if (updateData.newPassword !== null) updatedFields.push('비밀번호')
+    
+    await swAlert(`${updatedFields.join(' 및 ')}가 성공적으로 수정되었습니다.`, 'success')
     closeEditModal()
     await fetchAdminList()
   } catch (error) {
-    console.error('관리자 수정 실패:', error)
-    if (error.response?.status === 403) {
-      alert('관리자만 접근 가능합니다.')
-    } else if (error.response?.status === 401) {
-      alert('비밀번호가 일치하지 않습니다.')
-    } else {
-      alert(error.response?.data || '관리자 수정에 실패했습니다.')
-    }
+    await handleApiError(error, '관리자 수정에 실패했습니다.')
   } finally {
     isLoading.value = false
   }
@@ -519,35 +569,23 @@ const confirmDeleteAdmin = (admin) => {
 // 관리자 삭제 (비밀번호 검증 포함)
 const deleteAdmin = async (idAdmin) => {
   if (!deletePassword.value) {
-    alert('현재 비밀번호를 입력해주세요.')
+    await swAlert('현재 비밀번호를 입력해주세요.', 'warning')
     return
   }
 
   try {
     isLoading.value = true
-    
-    // 먼저 비밀번호 검증
+
     await validatePassword(idAdmin, deletePassword.value)
-    
-    // 비밀번호가 맞으면 관리자 삭제
-    const response = await axios.delete('http://localhost:8080/admin', {
-      headers: getAuthHeaders(),
-      data: deletingAdmin.value.idAdmin
-    })
-    
-    alert('관리자가 성공적으로 삭제되었습니다.')
+
+    const response = await adminApi.remove(deletingAdmin.value.idAdmin)
+
+    await swAlert('관리자가 성공적으로 삭제되었습니다.', 'success')
     closeDeleteModal()
     await fetchAdminList()
-    
+
   } catch (error) {
-    console.error('관리자 삭제 실패:', error)
-    if (error.response?.status === 403) {
-      alert('관리자 권한이 필요합니다.')
-    } else if (error.response?.status === 401) {
-      alert('비밀번호가 일치하지 않습니다.')
-    } else {
-      alert(error.response?.data || '관리자 삭제에 실패했습니다.')
-    }
+    await handleApiError(error, '관리자 삭제에 실패했습니다.')
   } finally {
     isLoading.value = false
   }
@@ -560,7 +598,8 @@ const closeAddModal = () => {
     idAdmin: '',
     pwAdmin: '',
     nameAdmin: '',
-    dcAdmin: ''
+    dcAdmin: '',
+    seqCampus: null
   }
   idValidation.value = {
     isValid: false,
@@ -575,13 +614,25 @@ const openEditModal = (admin) => {
     nameAdmin: admin.nameAdmin,
     dcAdmin: admin.dcAdmin || ''
   }
+  // 원본 값 저장 (변경 여부 확인용)
+  originalAdmin.value = {
+    idAdmin: admin.idAdmin,
+    nameAdmin: admin.nameAdmin,
+    dcAdmin: admin.dcAdmin || ''
+  }
   showEditModal.value = true
 }
 
 const closeEditModal = () => {
   showEditModal.value = false
   editPassword.value = ''
+  editNewPassword.value = ''
   editingAdmin.value = {
+    idAdmin: '',
+    nameAdmin: '',
+    dcAdmin: ''
+  }
+  originalAdmin.value = {
     idAdmin: '',
     nameAdmin: '',
     dcAdmin: ''
@@ -599,15 +650,26 @@ const closeDeleteModal = () => {
 }
 
 // 날짜 포맷팅
-const formatDate = (dateString) => {
-  if (!dateString) return '-'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('ko-KR')
+
+const exportData = async () => {
+  try {
+    const campusId = showCampusFilter.value && selectedCampus.value ? selectedCampus.value : null
+    const res = await adminApi.exportExcel(campusId)
+    const url = URL.createObjectURL(res.data)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = '관리자계정.xlsx'
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    console.error('엑셀 내보내기 실패:', e)
+  }
 }
 
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(async () => {
   await fetchCurrentUser()
+  await fetchCampusList()
   await fetchAdminList()
   window.addEventListener('keydown', handleKeydown)
 })
@@ -618,117 +680,183 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+/* ─── 기본 ─── */
 .admin-account-management {
   max-width: 100%;
+  font-size: 13px;
+  color: var(--pb-color-text);
 }
 
-.section-header {
-  margin-bottom: 32px;
-}
+/* ─── 섹션 헤더 ─── */
+.section-header { margin-bottom: 18px; }
 
 .section-title {
-  font-size: 1.8rem;
+  font-size: 18px;
   font-weight: 700;
-  color: #2d3748;
-  margin-bottom: 8px;
+  color: var(--pb-color-heading);
+  margin: 0 0 3px;
 }
 
 .section-description {
-  font-size: 1rem;
-  color: #718096;
+  font-size: 13px;
+  color: var(--pb-color-text-muted);
   margin: 0;
 }
 
+/* ─── 통계 카드 ─── */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 32px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .stat-card {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 24px;
-  background: linear-gradient(135deg, #ddbff0 0%, #e6ccf7 100%);
-  border-radius: 20px;
-  color: #2d3748;
-  box-shadow: 0 8px 32px rgba(221, 191, 240, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-md);
+  box-shadow: var(--pb-shadow-xs);
 }
 
 .stat-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 16px;
+  width: 40px;
+  height: 40px;
+  background: var(--pb-color-brand-soft);
+  border-radius: var(--pb-radius-md);
+  color: var(--pb-color-brand);
+  flex-shrink: 0;
 }
 
 .stat-number {
-  font-size: 2rem;
+  font-size: 22px;
   font-weight: 700;
   line-height: 1;
+  color: var(--pb-color-heading);
 }
 
 .stat-label {
-  font-size: 0.9rem;
-  opacity: 0.9;
+  font-size: 12px;
+  color: var(--pb-color-text-muted);
+  margin-top: 2px;
 }
 
+/* ─── 액션 바 ─── */
 .action-bar {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 24px;
+  gap: 8px;
+  margin-bottom: 14px;
 }
+
+.export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  background: #fff;
+  color: var(--pb-color-text-primary);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.export-btn:hover { background: var(--pb-color-bg-subtle); }
 
 .add-admin-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #b8e6c1 0%, #d4f1d4 100%);
-  color: #2d3748;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  background: var(--pb-color-brand);
+  color: #fff;
   border: none;
-  border-radius: 16px;
+  border-radius: var(--pb-radius-sm);
+  font-size: 13px;
   font-weight: 600;
-  transition: all 0.3s ease;
-  box-shadow: 0 6px 20px rgba(184, 230, 193, 0.3);
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.add-admin-btn:hover { background: var(--pb-color-brand-strong); }
+
+/* ─── 필터 섹션 ─── */
+.filter-section {
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-md);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  box-shadow: var(--pb-shadow-xs);
 }
 
-.add-admin-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(184, 230, 193, 0.4);
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
+.filter-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--pb-color-text-soft);
+}
+
+.filter-select {
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
+  font-size: 13px;
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text);
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.filter-select:focus {
+  outline: none;
+  border-color: var(--pb-color-brand);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-soft);
+}
+
+/* ─── 테이블 컨테이너 ─── */
 .admin-table-container {
-  background: white;
-  border-radius: 20px;
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-lg);
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.03);
+  box-shadow: var(--pb-shadow-xs);
 }
 
 .table-header {
-  padding: 24px;
-  border-bottom: 1px solid #f1f5f9;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--pb-color-border);
+  background: var(--pb-color-surface-subtle);
 }
 
 .table-header h3 {
-  font-size: 1.2rem;
+  font-size: 13px;
   font-weight: 600;
-  color: #2d3748;
+  color: var(--pb-color-heading);
   margin: 0;
 }
 
-.table-wrapper {
-  overflow-x: auto;
-}
+.table-wrapper { overflow-x: auto; }
 
+/* ─── 테이블 ─── */
 .admin-table {
   width: 100%;
   border-collapse: collapse;
@@ -736,383 +864,320 @@ onBeforeUnmount(() => {
 
 .admin-table th {
   text-align: left;
-  padding: 18px 24px;
-  background: #fafafa;
-  color: #2d3748;
+  padding: 9px 16px;
+  background: var(--pb-color-surface-muted);
+  border-bottom: 1px solid var(--pb-color-border);
+  color: var(--pb-color-text-soft);
+  font-size: 11px;
   font-weight: 600;
-  font-size: 0.9rem;
-  border-bottom: 1px solid #e2e8f0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 
 .admin-table td {
-  padding: 18px 24px;
-  border-bottom: 1px solid #f7fafc;
-  color: #4a5568;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--pb-color-border);
+  color: var(--pb-color-text);
+  font-size: 13px;
+  vertical-align: middle;
 }
 
-.admin-row:hover {
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-}
+.admin-row:hover { background: var(--pb-color-brand-soft); }
 
 .admin-name {
   font-weight: 500;
-  color: #2d3748;
+  color: var(--pb-color-heading);
 }
 
-.admin-actions {
-  display: flex;
-  gap: 8px;
+/* ─── 테이블 액션 ─── */
+.admin-actions { display: flex; gap: 5px; }
+
+.edit-btn,
+.delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--pb-radius-sm);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
 .edit-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background: linear-gradient(135deg, #a8dadc 0%, #b8e6c1 100%);
-  color: #2d3748;
-  box-shadow: 0 2px 8px rgba(168, 218, 220, 0.3);
+  border: 1px solid var(--pb-color-border);
+  background: var(--pb-color-brand-soft);
+  color: var(--pb-color-brand);
 }
-
 .edit-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(168, 218, 220, 0.4);
+  background: var(--pb-color-brand);
+  border-color: var(--pb-color-brand);
+  color: #fff;
 }
 
 .delete-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background: linear-gradient(135deg, #feb2b2 0%, #fbb6ce 100%);
-  color: #2d3748;
-  box-shadow: 0 2px 8px rgba(254, 178, 178, 0.3);
+  border: 1px solid rgba(217, 48, 37, 0.2);
+  background: var(--pb-color-danger-soft);
+  color: var(--pb-color-danger);
 }
-
 .delete-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(254, 178, 178, 0.4);
+  background: var(--pb-color-danger);
+  border-color: var(--pb-color-danger);
+  color: #fff;
 }
 
-/* 모달 스타일 */
+/* ─── 모달 오버레이 ─── */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.4);
+  inset: 0;
+  background: rgba(30, 31, 29, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(8px);
 }
 
+/* ─── 모달 패널 ─── */
 .modal-content {
-  background: white;
-  border-radius: 20px;
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-lg);
   width: 90%;
-  max-width: 500px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  max-width: 480px;
+  box-shadow: 0 8px 32px rgba(30, 31, 29, 0.14);
+  overflow: hidden;
 }
 
+/* ─── 모달 헤더 ─── */
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 24px 0 24px;
-  margin-bottom: 24px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--pb-color-border);
+  background: var(--pb-color-surface-subtle);
 }
 
 .modal-header h3 {
-  font-size: 1.5rem;
+  font-size: 14px;
   font-weight: 600;
-  color: #2d3748;
+  color: var(--pb-color-heading);
   margin: 0;
 }
 
 .modal-close {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 100%);
-  border-radius: 12px;
-  color: #4a5568;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--pb-color-border);
+  background: var(--pb-color-surface);
+  border-radius: var(--pb-radius-sm);
+  color: var(--pb-color-text-soft);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.15s, color 0.15s;
 }
-
 .modal-close:hover {
-  background: linear-gradient(135deg, #cbd5e0 0%, #e2e8f0 100%);
-  transform: translateY(-1px);
+  background: var(--pb-color-surface-muted);
+  color: var(--pb-color-text);
 }
 
-.modal-form {
-  padding: 0 24px 24px 24px;
-}
+/* ─── 모달 폼 ─── */
+.modal-form { padding: 16px 20px 20px; }
 
-.form-group {
-  margin-bottom: 20px;
-}
+.form-group { margin-bottom: 14px; }
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #2d3748;
+  margin-bottom: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pb-color-text-muted);
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   width: 100%;
-  padding: 14px 18px;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
+  font-size: 13px;
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text);
   box-sizing: border-box;
-  background: #fafafa;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--pb-color-brand);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-soft);
 }
 
-.form-group input:focus {
-  outline: none;
-  border-color: #a8dadc;
-  box-shadow: 0 0 0 3px rgba(168, 218, 220, 0.15);
-  background: white;
-}
+.form-select { cursor: pointer; }
 
 .disabled-input {
-  background: #f1f5f9 !important;
-  color: #718096 !important;
+  background: var(--pb-color-surface-muted) !important;
+  color: var(--pb-color-text-soft) !important;
   cursor: not-allowed !important;
 }
 
+/* ID 입력 그룹 */
 .id-input-group {
   display: flex;
-  gap: 8px;
+  gap: 7px;
   align-items: stretch;
 }
-
-.id-input-group input {
-  flex: 1;
-}
+.id-input-group input { flex: 1; }
 
 .validate-btn {
-  padding: 14px 16px;
-  background: linear-gradient(135deg, #a8dadc 0%, #b8e6c1 100%);
-  color: #2d3748;
+  height: 34px;
+  padding: 0 12px;
+  background: var(--pb-color-brand);
+  color: #fff;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--pb-radius-sm);
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.15s;
   white-space: nowrap;
 }
+.validate-btn:hover:not(:disabled) { background: var(--pb-color-brand-strong); }
+.validate-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
-.validate-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(168, 218, 220, 0.3);
-}
-
-.validate-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
+/* 검증 메시지 */
 .validation-message {
-  margin-top: 8px;
-  font-size: 0.9rem;
+  margin-top: 5px;
+  font-size: 12px;
   font-weight: 500;
 }
+.validation-message.valid  { color: var(--pb-color-success); }
+.validation-message.invalid{ color: var(--pb-color-danger); }
 
-.validation-message.valid {
-  color: #28a745;
+.required-mark { color: var(--pb-color-danger); font-weight: 600; }
+
+.form-hint {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--pb-color-text-soft);
 }
 
-.validation-message.invalid {
-  color: #dc3545;
-}
-
+/* ─── 모달 액션 ─── */
 .modal-actions {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   justify-content: flex-end;
-  margin-top: 24px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--pb-color-border);
 }
 
 .cancel-btn,
-.submit-btn {
-  padding: 12px 20px;
-  border: none;
-  border-radius: 12px;
+.submit-btn,
+.delete-confirm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 16px;
+  border-radius: var(--pb-radius-sm);
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
 }
 
 .cancel-btn {
-  background: linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 100%);
-  color: #4a5568;
-  box-shadow: 0 4px 16px rgba(226, 232, 240, 0.3);
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
+  color: var(--pb-color-text);
 }
-
-.cancel-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(226, 232, 240, 0.4);
-}
+.cancel-btn:hover { background: var(--pb-color-surface-muted); }
 
 .submit-btn {
-  background: linear-gradient(135deg, #ddbff0 0%, #e6ccf7 100%);
-  color: #2d3748;
-  box-shadow: 0 4px 16px rgba(221, 191, 240, 0.3);
+  background: var(--pb-color-brand);
+  border: 1px solid var(--pb-color-brand);
+  color: #fff;
 }
+.submit-btn:hover:not(:disabled) { background: var(--pb-color-brand-strong); border-color: var(--pb-color-brand-strong); }
+.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.submit-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(221, 191, 240, 0.4);
+.delete-confirm-btn {
+  background: var(--pb-color-danger);
+  border: 1px solid var(--pb-color-danger);
+  color: #fff;
 }
+.delete-confirm-btn:hover:not(:disabled) { filter: brightness(0.9); }
+.delete-confirm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.submit-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
+/* ─── 삭제 경고 ─── */
 .delete-warning {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 24px 24px 24px;
+  padding: 20px 20px 24px;
   text-align: center;
 }
 
 .warning-icon {
-  color: #f56565;
-  margin-bottom: 16px;
+  color: var(--pb-color-danger);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+.warning-icon svg { width: 48px; height: 48px; flex-shrink: 0; }
 
 .warning-content h4 {
-  font-size: 1.2rem;
+  font-size: 15px;
   font-weight: 600;
-  color: #2d3748;
-  margin: 0 0 8px 0;
+  color: var(--pb-color-heading);
+  margin: 0 0 6px;
 }
 
 .warning-content p {
-  color: #718096;
-  margin: 0 0 16px 0;
-  line-height: 1.5;
+  font-size: 13px;
+  color: var(--pb-color-text-muted);
+  margin: 0 0 14px;
+  line-height: 1.55;
 }
 
 .admin-info {
-  padding: 12px 16px;
-  background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
-  border-radius: 12px;
-  color: #2d3748;
-  font-size: 0.9rem;
+  padding: 8px 14px;
+  background: var(--pb-color-danger-soft);
+  border: 1px solid rgba(217, 48, 37, 0.3);
+  border-radius: var(--pb-radius-sm);
+  color: var(--pb-color-danger);
+  font-size: 13px;
+  font-weight: 500;
 }
 
-.delete-confirm-btn {
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #feb2b2 0%, #fbb6ce 100%);
-  color: #2d3748;
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 16px rgba(254, 178, 178, 0.3);
-}
 
-.delete-confirm-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(254, 178, 178, 0.4);
-}
-
-.delete-confirm-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* 반응형 디자인 */
+/* ─── 반응형 ─── */
 @media (max-width: 768px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .action-bar {
-    justify-content: center;
-  }
-  
+  .stats-grid { grid-template-columns: 1fr; }
+  .action-bar { justify-content: center; flex-wrap: wrap; }
+
   .admin-table th,
-  .admin-table td {
-    padding: 14px 16px;
-    font-size: 0.9rem;
-  }
-  
-  .modal-content {
-    width: 95%;
-    margin: 20px;
-  }
-  
-  .modal-header,
-  .modal-form {
-    padding: 16px;
-  }
-  
-  .modal-actions {
-    flex-direction: column;
-  }
-  
-  .cancel-btn,
-  .submit-btn {
-    width: 100%;
-  }
+  .admin-table td { padding: 10px 12px; }
 
-  .id-input-group {
-    flex-direction: column;
-  }
-
-  .validate-btn {
-    align-self: stretch;
-  }
+  .modal-content { width: 95%; margin: 16px; }
+  .modal-form { padding: 14px 16px 18px; }
+  .modal-actions { flex-direction: column; padding-top: 12px; }
+  .cancel-btn, .submit-btn, .delete-confirm-btn { width: 100%; justify-content: center; }
+  .id-input-group { flex-direction: column; }
+  .validate-btn { width: 100%; }
+  .export-btn, .add-admin-btn { width: 100%; justify-content: center; }
 }
 
 @media (max-width: 480px) {
-  .admin-table {
-    font-size: 0.8rem;
-  }
-  
-  .admin-actions {
-    flex-direction: column;
-    gap: 6px;
-  }
-  
-  .edit-btn,
-  .delete-btn {
-    width: 32px;
-    height: 32px;
-  }
-  
-  .modal-content {
-    border-radius: 16px;
-  }
-  
-  .form-group input {
-    padding: 12px 16px;
-  }
+  .admin-table { font-size: 12px; }
+  .admin-actions { flex-direction: column; gap: 3px; }
+  .edit-btn, .delete-btn { width: 26px; height: 26px; }
 }
 </style>

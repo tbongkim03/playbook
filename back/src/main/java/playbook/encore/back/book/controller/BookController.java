@@ -1,0 +1,330 @@
+package playbook.encore.back.book.controller;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import playbook.encore.back.book.dto.BookBarcodeUniqueRequestDto;
+import playbook.encore.back.book.dto.BookBarcodeUniqueResponseDto;
+import playbook.encore.back.book.dto.BookCountResponseDto;
+import playbook.encore.back.book.dto.BookListResponseDto;
+import playbook.encore.back.book.dto.BookRequestDto;
+import playbook.encore.back.book.dto.BookResponseDto;
+import playbook.encore.back.book.dto.BookSearchResponseDto;
+import playbook.encore.back.book.dto.BookSortAndBarcodeRequestDto;
+import playbook.encore.back.book.dto.BookUnprintedResponseDto;
+import playbook.encore.back.admin.dao.AdminRepository;
+import playbook.encore.back.bookUser.dao.BookUserRepository;
+import playbook.encore.back.common.response.Response;
+import playbook.encore.back.common.response.ResponseHandler;
+import playbook.encore.back.book.service.BookService;
+
+import playbook.encore.back.common.excel.ExcelUtil;
+import playbook.encore.back.common.util.AuthUtil;
+import playbook.encore.back.book.dto.BookImportResultDto;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/books")
+public class BookController {
+
+    private final BookService bookService;
+    private final BookUserRepository bookUserRepository;
+    private final AdminRepository adminRepository;
+
+    @Autowired
+    public BookController(BookService bookService, BookUserRepository bookUserRepository, AdminRepository adminRepository) {
+        this.bookService = bookService;
+        this.bookUserRepository = bookUserRepository;
+        this.adminRepository = adminRepository;
+    }
+
+    private Integer resolveCampusId(HttpServletRequest request) {
+        // 인터셉터가 이미 설정한 campusId 우선 사용
+        Integer campusId = (Integer) request.getAttribute("campusId");
+        if (campusId != null) {
+            return campusId;
+        }
+        // 세션에서 userId/role로 직접 계산
+        HttpSession session = request.getSession(false);
+        if (session == null) return null;
+        String userId = (String) session.getAttribute("userId");
+        String role = (String) session.getAttribute("role");
+        if (userId == null) return null;
+        if ("admin".equalsIgnoreCase(role)) {
+            Optional<playbook.encore.back.admin.entity.Admin> adminOpt = adminRepository.findByIdAdminWithCampus(userId);
+            if (adminOpt.isPresent() && adminOpt.get().getSeqCampus() != null) {
+                return adminOpt.get().getSeqCampus().getSeqCampus();
+            }
+        } else if ("user".equalsIgnoreCase(role)) {
+            Optional<playbook.encore.back.bookUser.entity.BookUser> userOpt = bookUserRepository.findByIdUserWithCourseAndCampus(userId);
+            if (userOpt.isPresent() && userOpt.get().getSeqCourse() != null && userOpt.get().getSeqCourse().getSeqCampus() != null) {
+                return userOpt.get().getSeqCourse().getSeqCampus().getSeqCampus();
+            }
+        }
+        return null;
+    }
+
+    @GetMapping
+    public ResponseEntity<Response> getBooks(
+            HttpServletRequest request,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size,
+            @RequestParam(value = "sortBy", defaultValue = "seqBook") String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "desc") String sortDir,
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId
+    ) throws Exception {
+        String idUser = null;
+        Integer campusId = null;
+
+        if (requestCampusId != null) {
+            campusId = requestCampusId;
+        } else {
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                idUser = (String) session.getAttribute("userId");
+                campusId = resolveCampusId(request);
+            }
+        }
+
+        String mappedSortBy = mapSortField(sortBy);
+        BookListResponseDto bookListResponseDto = bookService.getBookListWithPagination(idUser, campusId, page, size, mappedSortBy, sortDir);
+        return ResponseEntity.ok(ResponseHandler.success(bookListResponseDto));
+    }
+
+    private String mapSortField(String sortBy) {
+        switch (sortBy) {
+            case "latest":
+                return "seqBook";
+            case "title":
+                return "titleBook";
+            case "author":
+                return "authorBook";
+            case "popular":
+                return "borrowCount";
+            default:
+                return "seqBook";
+        }
+    }
+
+    @GetMapping("/admin/list")
+    public ResponseEntity<Response> getAdminBookList(
+            HttpServletRequest request,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "15") int size,
+            @RequestParam(value = "sortBy", defaultValue = "seqBook") String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "desc") String sortDir,
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId,
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "seqSortFirst", required = false) Integer seqSortFirst,
+            @RequestParam(value = "seqSortSecond", required = false) Integer seqSortSecond,
+            @RequestParam(value = "borrowStatus", required = false) String borrowStatus,
+            @RequestParam(value = "registerYear", required = false) Integer registerYear,
+            @RequestParam(value = "registerMonth", required = false) Integer registerMonth,
+            @RequestParam(value = "registerStartDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate registerStartDate,
+            @RequestParam(value = "registerEndDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate registerEndDate
+    ) {
+        AuthUtil.requireAdmin(request);
+        Integer campusId = AuthUtil.getCampusId(request, requestCampusId);
+        BookListResponseDto result = bookService.getAdminBookList(
+                campusId, search, seqSortFirst, seqSortSecond, borrowStatus,
+                registerYear, registerMonth, registerStartDate, registerEndDate,
+                page, size, sortBy, sortDir);
+        return ResponseEntity.ok(ResponseHandler.success(result));
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<Response> getAllBooks(HttpServletRequest request) throws Exception {
+        AuthUtil.requireAdmin(request);
+        Integer campusId = AuthUtil.getCampusId(request, null);
+        List<BookResponseDto> booklist = bookService.getAllBooks(campusId);
+        return ResponseEntity.ok(ResponseHandler.success(booklist));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Response> getBookById(
+            HttpServletRequest request,
+            @PathVariable("id") int bookId
+    ) throws Exception {
+        String idUser = null;
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            idUser = (String) session.getAttribute("userId");
+        }
+        BookResponseDto bookResponseDto = bookService.getBookById(bookId, idUser);
+        return ResponseEntity.ok(ResponseHandler.success(bookResponseDto));
+    }
+
+    @GetMapping("/sortFirst")
+    public ResponseEntity<Response> getBooksBySortFirstId(
+            HttpServletRequest request,
+            @RequestParam("id") int sortFirstId,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size,
+            @RequestParam(value = "sortBy", defaultValue = "seqBook") String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "desc") String sortDir,
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId
+    ) throws Exception {
+        Integer campusId = requestCampusId != null ? requestCampusId : resolveCampusId(request);
+        String mappedSortBy = mapSortField(sortBy);
+        BookListResponseDto bookListResponseDto = bookService.getBookListBySortFirstWithPagination(sortFirstId, campusId, page, size, mappedSortBy, sortDir);
+        return ResponseEntity.ok(ResponseHandler.success(bookListResponseDto));
+    }
+
+    @GetMapping("/sortSecond")
+    public ResponseEntity<Response> getBooksBySortSecondId(
+            HttpServletRequest request,
+            @RequestParam("id") int sortSecondId,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size,
+            @RequestParam(value = "sortBy", defaultValue = "seqBook") String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "desc") String sortDir,
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId
+    ) throws Exception {
+        Integer campusId = requestCampusId != null ? requestCampusId : resolveCampusId(request);
+        String mappedSortBy = mapSortField(sortBy);
+        BookListResponseDto result = bookService.getBookListBySortSecondWithPagination(sortSecondId, campusId, page, size, mappedSortBy, sortDir);
+        return ResponseEntity.ok(ResponseHandler.success(result));
+    }
+
+    @PostMapping
+    public ResponseEntity<Response> insertBook(
+            HttpServletRequest request,
+            @RequestBody @Valid BookRequestDto bookRequestDto
+    ) throws Exception {
+        AuthUtil.requireAdmin(request);
+        BookResponseDto bookResponseDto = bookService.insertBook(bookRequestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ResponseHandler.success(bookResponseDto));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Response> updateBookById(
+            HttpServletRequest request,
+            @PathVariable("id") int bookId,
+            @RequestBody @Valid BookSortAndBarcodeRequestDto bookSortAndBarcodeRequestDto
+    ) throws Exception {
+        AuthUtil.requireAdmin(request);
+        BookResponseDto bookResponseDto = bookService.changeBook(bookId, bookSortAndBarcodeRequestDto);
+        return ResponseEntity.ok(ResponseHandler.success(bookResponseDto));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Response> deleteBookById(
+            HttpServletRequest request,
+            @PathVariable("id") int bookId
+    ) throws Exception {
+        AuthUtil.requireAdmin(request);
+        bookService.deleteBookById(bookId);
+        return ResponseEntity.ok(ResponseHandler.success());
+    }
+
+    @GetMapping("/count")
+    public ResponseEntity<Response> getBookCountByIsbn(
+            HttpServletRequest request,
+            @RequestParam("isbn") String isbn
+    ) throws Exception {
+        AuthUtil.requireAdmin(request);
+        BookCountResponseDto bookCountResponseDto = bookService.getBookCount(isbn);
+        return ResponseEntity.ok(ResponseHandler.success(bookCountResponseDto));
+    }
+
+    @GetMapping("/related")
+    public ResponseEntity<Response> getBookTitleSimiler(
+            HttpServletRequest request,
+            @RequestParam("q") String query) throws Exception {
+        Integer campusId = resolveCampusId(request);
+        List<BookSearchResponseDto> bookSearchList = bookService.searchBookTitles(query, campusId);
+        return ResponseEntity.ok(ResponseHandler.success(bookSearchList));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Response> getSearchResults(
+            HttpServletRequest request,
+            @RequestParam("q") String query,
+            @RequestParam(value = "exact", defaultValue = "false") boolean exact) throws Exception {
+        Integer campusId = resolveCampusId(request);
+        BookListResponseDto result = exact
+                ? bookService.searchBooksByExactTitle(query, campusId)
+                : bookService.searchBooksByTitleContaining(query, campusId);
+        return ResponseEntity.ok(ResponseHandler.success(result));
+    }
+
+    @PutMapping("/batch/print")
+    public ResponseEntity<Response> batchPrint(
+            HttpServletRequest request,
+            @RequestBody List<Integer> bookIds
+    ) throws Exception {
+        AuthUtil.requireAdmin(request);
+        bookService.markBooksAsPrinted(bookIds);
+        return ResponseEntity.ok(ResponseHandler.success());
+    }
+
+    @GetMapping("/unprinted")
+    public ResponseEntity<Response> getUnprintedBooks(HttpServletRequest request) throws Exception {
+        AuthUtil.requireAdmin(request);
+        List<BookUnprintedResponseDto> books = bookService.findUnprintedBooks();
+        return ResponseEntity.ok(ResponseHandler.success(books));
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportExcel(
+            HttpServletRequest request,
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId
+    ) throws Exception {
+        AuthUtil.requireAdmin(request);
+        Integer campusId = AuthUtil.getCampusId(request, requestCampusId);
+        byte[] data = bookService.exportExcel(campusId);
+        return ExcelUtil.toResponse(data, "도서목록");
+    }
+
+    /**
+     * 엑셀 업로드 — 도서번호(seq_book) 기준으로 기존 tb_book 값을 갱신한다. 삭제는 없다.
+     *
+     * <p>{@code allowInsert=true} 일 때만 도서번호가 비었거나 이 DB 에 없는 행을 신규 등록한다
+     * (다른 서버에서 내보낸 파일을 그대로 이관할 수 있게).
+     * <b>기본값은 false</b> 이고 관리자 화면은 이 값을 보내지 않는다 — 실제 신규 도서는
+     * 바코드 스캔으로 등록하므로 웹에서 이 경로가 필요 없고, 빈 행이 조용히 등록되면
+     * 중복 도서만 쌓인다. 설치 마법사의 초기 장서 주입만 이 옵션을 켠다.
+     */
+    @PostMapping("/import")
+    public ResponseEntity<Response> importExcel(
+            HttpServletRequest request,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "allowInsert", required = false, defaultValue = "false") boolean allowInsert
+    ) {
+        AuthUtil.requireAdmin(request);
+        if (file == null || file.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseHandler.invalidParam("file"));
+        }
+        // 캠퍼스 관리자는 본인 캠퍼스 도서만 갱신(전체관리자는 null → 전체 허용)
+        Integer adminCampusId = AuthUtil.getCampusId(request, null);
+        try {
+            BookImportResultDto result = bookService.importExcel(file, adminCampusId, allowInsert);
+            return ResponseEntity.ok(ResponseHandler.success(result));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ResponseHandler.error(playbook.encore.back.common.response.ResponseCode.INVALID_PARAM, e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
+        }
+    }
+
+    @PostMapping("/check/barcode")
+    public ResponseEntity<Response> isBarcodeDuplicated(
+            HttpServletRequest request,
+            @RequestBody @Valid BookBarcodeUniqueRequestDto bookBarcodeUniqueRequestDto
+    ) throws Exception {
+        AuthUtil.requireAdmin(request);
+        BookBarcodeUniqueResponseDto bookBarcodeUniqueResponseDto = bookService.checkDuplicated(bookBarcodeUniqueRequestDto);
+        return ResponseEntity.ok(ResponseHandler.success(bookBarcodeUniqueResponseDto));
+    }
+}

@@ -1,0 +1,237 @@
+package playbook.encore.back.history.controller;
+
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import playbook.encore.back.common.response.Response;
+import playbook.encore.back.common.response.ResponseCode;
+import playbook.encore.back.common.response.ResponseHandler;
+import playbook.encore.back.history.dto.BookReturnResultDto;
+import playbook.encore.back.history.dto.HistoryBookResponseDto;
+import playbook.encore.back.history.dto.PopularLabelDto;
+import playbook.encore.back.history.dto.UserReadingRankDto;
+import playbook.encore.back.bookUser.entity.BookUser;
+import playbook.encore.back.common.util.MobileDetectUtil;
+import playbook.encore.back.interceptor.LoginCheckInterceptor;
+import playbook.encore.back.history.service.HistoryService;
+
+import playbook.encore.back.common.excel.ExcelUtil;
+import playbook.encore.back.common.util.AuthUtil;
+
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDate;
+import java.util.List;
+
+@RestController
+@RequestMapping("/history")
+public class HistoryController {
+
+    private final HistoryService historyService;
+
+    @Autowired
+    public HistoryController(HistoryService historyService) {
+        this.historyService = historyService;
+    }
+
+    @GetMapping("/book")
+    public ResponseEntity<Response> getHistoryBook(
+            HttpServletRequest request,
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+    ) throws Exception {
+        AuthUtil.requireAdmin(request);
+        Integer campusId = AuthUtil.getCampusId(request, requestCampusId);
+        HistoryBookResponseDto result = (startDate != null && endDate != null)
+                ? historyService.getHistoryBooks(campusId, startDate, endDate)
+                : historyService.getHistoryBooks(campusId);
+        return ResponseEntity.ok(ResponseHandler.success(result));
+    }
+
+    @DeleteMapping("/book/{historyId}")
+    public ResponseEntity<Response> deleteHistoryBook(
+            HttpServletRequest request,
+            @PathVariable int historyId
+    ) throws Exception {
+        AuthUtil.requireAdmin(request);
+        historyService.deleteHistoryBook(historyId);
+        return ResponseEntity.ok(ResponseHandler.success());
+    }
+
+    @PostMapping("/borrow")
+    public ResponseEntity<Response> borrowBook(
+            HttpServletRequest request,
+            @RequestBody String barcodeBook
+    ) throws Exception {
+        if (MobileDetectUtil.isMobile(request)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ResponseHandler.error(ResponseCode.NOT_AUTHORIZED, "PC에서만 이용 가능한 기능입니다"));
+        }
+        Object roleAttr = request.getAttribute("ROLE");
+        if (roleAttr == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        }
+
+        LoginCheckInterceptor.RoleType role = (LoginCheckInterceptor.RoleType) roleAttr;
+        Object user;
+        switch (role) {
+            case USER -> user = request.getAttribute("user");
+            case ADMIN -> user = request.getAttribute("admin");
+            default -> {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+            }
+        }
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ResponseHandler.notAuthenticated());
+        }
+
+        Integer campusId = (Integer) request.getAttribute("campusId");
+
+        historyService.handleBookBorrow(user, barcodeBook, campusId);
+        return ResponseEntity.ok(ResponseHandler.success());
+    }
+
+    @PutMapping("/return")
+    public ResponseEntity<Response> returnBook(
+            HttpServletRequest request,
+            @RequestBody String barcodeBook
+    ) throws Exception {
+        if (MobileDetectUtil.isMobile(request)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ResponseHandler.error(ResponseCode.NOT_AUTHORIZED, "PC에서만 이용 가능한 기능입니다"));
+        }
+        Object roleAttr = request.getAttribute("ROLE");
+        if (roleAttr == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+        }
+
+        LoginCheckInterceptor.RoleType role = (LoginCheckInterceptor.RoleType) roleAttr;
+        Object user;
+        switch (role) {
+            case USER -> user = request.getAttribute("user");
+            case ADMIN -> user = request.getAttribute("admin");
+            default -> {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseHandler.notAuthorized());
+            }
+        }
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ResponseHandler.notAuthenticated());
+        }
+
+        Integer campusId = (Integer) request.getAttribute("campusId");
+
+        try {
+            BookReturnResultDto result = historyService.handleBookReturn(user, barcodeBook, campusId);
+            if (result.isOverdue()) {
+                // 연체 반납은 처리 자체는 성공(커밋)했고, 안내 메시지만 다르다.
+                // 프론트(BookReturn.vue)가 code !== '0000'을 경고 표시로 쓰므로 FAIL_PROCESS를 유지한다.
+                return ResponseEntity.ok(ResponseHandler.error(ResponseCode.FAIL_PROCESS,
+                        "연체 반납되었습니다. 연체일수: " + result.getOverdueDays() + "일"));
+            }
+            return ResponseEntity.ok(ResponseHandler.success());
+        } catch (IllegalArgumentException e) {
+            // 반납 불가 상황(대여 기록 없음, 바코드/캠퍼스 불일치 등) — 서비스에서 롤백된 뒤 여기로 온다.
+            // 상태는 OK, 메시지만 실패 사유
+            return ResponseEntity.ok(ResponseHandler.error(ResponseCode.FAIL_PROCESS, e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseHandler.unknownError());
+        }
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<Response> getMyHistory(HttpServletRequest request) throws Exception {
+        BookUser user = AuthUtil.getUser(request);
+        HistoryBookResponseDto result = historyService.getMyHistory(user);
+        return ResponseEntity.ok(ResponseHandler.success(result));
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportExcel(
+            HttpServletRequest request,
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId
+    ) throws Exception {
+        AuthUtil.requireAdmin(request);
+        Integer campusId = AuthUtil.getCampusId(request, requestCampusId);
+        byte[] data = historyService.exportExcel(campusId);
+        return ExcelUtil.toResponse(data, "대출이력");
+    }
+
+    @GetMapping("/popular/first/{courseId}")
+    public ResponseEntity<Response> getPopularFirstSortByCourse(
+            HttpServletRequest request,
+            @PathVariable int courseId,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+    ) throws Exception {
+        AuthUtil.requireAdmin(request);
+        List<PopularLabelDto> result = historyService.findPopularFirstSortByCourse(courseId, startDate, endDate);
+        return ResponseEntity.ok(ResponseHandler.success(result));
+    }
+
+    @GetMapping("/popular/first")
+    public ResponseEntity<Response> getPopularFirstSortAll(
+            HttpServletRequest request,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+    ) throws Exception {
+        AuthUtil.requireAdmin(request);
+        Integer campusId = AuthUtil.getCampusId(request, null);
+        List<PopularLabelDto> result = historyService.findPopularFirstSortAll(campusId, startDate, endDate);
+        return ResponseEntity.ok(ResponseHandler.success(result));
+    }
+
+    @GetMapping("/popular/second/{courseId}")
+    public ResponseEntity<Response> getPopularSecondSortByCourse(
+            HttpServletRequest request,
+            @PathVariable int courseId,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+    ) throws Exception {
+        AuthUtil.requireAdmin(request);
+        List<PopularLabelDto> result = historyService.findPopularSecondSortByCourse(courseId, startDate, endDate);
+        return ResponseEntity.ok(ResponseHandler.success(result));
+    }
+
+    @GetMapping("/popular/second")
+    public ResponseEntity<Response> getPopularSecondSortAll(
+            HttpServletRequest request,
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+    ) throws Exception {
+        AuthUtil.requireAdmin(request);
+        Integer campusId = AuthUtil.getCampusId(request, requestCampusId);
+        List<PopularLabelDto> result = historyService.findPopularSecondSortAll(campusId, startDate, endDate);
+        return ResponseEntity.ok(ResponseHandler.success(result));
+    }
+
+    @GetMapping("/rank/{courseId}")
+    public ResponseEntity<Response> getUserReadingRankByCourse(
+            HttpServletRequest request,
+            @PathVariable int courseId,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+    ) throws Exception {
+        AuthUtil.requireAdmin(request);
+        List<UserReadingRankDto> result = historyService.findUserReadingRankByCourse(courseId, startDate, endDate);
+        return ResponseEntity.ok(ResponseHandler.success(result));
+    }
+
+    @GetMapping("/rank")
+    public ResponseEntity<Response> getUserReadingRankAll(
+            HttpServletRequest request,
+            @RequestParam(value = "campusId", required = false) Integer requestCampusId,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+    ) throws Exception {
+        AuthUtil.requireAdmin(request);
+        Integer campusId = AuthUtil.getCampusId(request, requestCampusId);
+        List<UserReadingRankDto> result = historyService.findUserReadingRankAll(campusId, startDate, endDate);
+        return ResponseEntity.ok(ResponseHandler.success(result));
+    }
+}

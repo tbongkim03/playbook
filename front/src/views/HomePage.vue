@@ -1,135 +1,153 @@
 <template>
-  <BorrowReturn v-if="isModalOpen" @close="isModalOpen = false" />
-  
-  <div class="mainpage-bg-wrapper">
-    <div class="mainpage-area">
-      <div
-        class="dropdown-wrapper"
-        @mouseenter="hoveringWrapper = true"
-        @mouseleave="hoveringWrapper = false"
-        >
-        <!-- 대분류 네비게이션 포함 -->
-        <nav class="nav-bar" style="top: 72px; z-index: 1030;">
-            <!-- 왼쪽: 카테고리 목록 -->
-            <div class="nav-left">
-                <ul class="nav">
-                <li class="nav-item">
-                    <a
-                    class="nav-link"
-                    :class="{ active: selectedLargeCategory === '전체' }"
-                    href="#"
-                    @click.prevent="selectLargeCategory('전체')"
-                    @mouseenter="hoveredLargeCategory = '전체'"
-                    >
-                    전체
-                    </a>
-                </li>
-                <li
-                    class="nav-item"
-                    v-for="(large, index) in largeCategories.filter(l => l.seqSortFirst !== 0)"
-                    :key="index"
-                    @mouseenter="hoveredLargeCategory = large.nameSortFirst"
-                >
-                    <a
-                    class="nav-link"
-                    :class="{ active: isLargeCategoryActive(large.nameSortFirst) }"
-                    href="#"
-                    @click.prevent="selectLargeCategory(large.nameSortFirst, large.seqSortFirst)"
-                    >
-                    {{ large.korSortFirst }}
-                    </a>
-                </li>
-                </ul>
-            </div>
+  <div class="homepage-wrapper">
+    <BorrowReturn v-if="isModalOpen" @close="isModalOpen = false" />
+    
+    <div class="mainpage-bg-wrapper">
+      <div class="mainpage-area">
+        <div
+          class="dropdown-wrapper"
+          @mouseenter="hoveringWrapper = true"
+          @mouseleave="hoveringWrapper = false"
+          >
+          <!-- 대분류 네비게이션 포함 -->
+          <nav class="nav-bar">
+              <!-- 왼쪽: 카테고리 목록 -->
+              <div
+                ref="navLeftRef"
+                class="nav-left"
+                :class="{ 'is-overflowing': navOverflow.overflowing, 'at-end': navOverflow.atEnd }"
+                @scroll.passive="updateNavOverflow"
+              >
+                  <ul class="nav">
+                  <li class="nav-item">
+                      <a
+                      class="nav-link"
+                      :class="{ active: selectedLargeCategory === '전체' }"
+                      href="#"
+                      @click.prevent="selectLargeCategory('전체')"
+                      @mouseenter="hoveredLargeCategory = '전체'"
+                      >
+                      전체
+                      </a>
+                  </li>
+                  <li
+                      class="nav-item"
+                      v-for="(large, index) in largeCategories.filter(l => l.seqSortFirst !== 0)"
+                      :key="index"
+                      @mouseenter="hoveredLargeCategory = large.nameSortFirst"
+                  >
+                      <a
+                      class="nav-link"
+                      :class="{ active: isLargeCategoryActive(large.nameSortFirst) }"
+                      href="#"
+                      @click.prevent="selectLargeCategory(large.nameSortFirst, large.seqSortFirst)"
+                      >
+                      {{ large.korSortFirst }}
+                      </a>
+                  </li>
+                  </ul>
+              </div>
 
-            <!-- 오른쪽: 검색창 -->
-            <div class="nav-right">
-                <BookSearch class="search-component" @search="onSearch" />
-            </div>
-        </nav>
+              <!-- 오른쪽: 검색창 -->
+              <div class="nav-right">
+                  <BookSearch class="search-component" @search="onSearch" />
+              </div>
+          </nav>
 
-        <ul
-            v-if="shouldShowMediumDropdown"
-            class="dropdown-menu-custom"
-        >
-            <li
-            class="dropdown-item-custom"
-            :class="{ active: selectedMediumCategory === medium.seqSortSecond }"
-            v-for="(medium, idx) in getMediumOptions(currentLargeForMedium)"
-            :key="idx"
-            @click="selectMediumCategory(medium.seqSortSecond, medium.seqSortFirst)"
-            >
-            {{ medium.korSortSecond }}
-            </li>
-        </ul>
-      </div>
-
-      <!-- 본문 -->
-      <div class="main" :style="{ marginTop: mainMarginTop }">
-        <div class="content-header" v-if="filteredBookList.length > 0">
-          <h2 class="section-title">
-            {{ getSectionTitle() }}
-            <span class="book-count">({{ displayCount }}권)</span>
-          </h2>
+          <!-- 대분류를 고르면 흐름 안의 한 줄로 고정되고, 고르기 전 마우스만 올렸을 때는 본문 위에 떠서 본문이 밀리지 않는다 -->
+          <ul
+              v-if="shouldShowMediumDropdown"
+              class="dropdown-menu-custom"
+              :class="{ 'is-overlay': !hasCategorySelection }"
+          >
+              <li
+              class="dropdown-item-custom"
+              :class="{ active: selectedMediumCategory === medium.seqSortSecond }"
+              v-for="(medium, idx) in getMediumOptions(currentLargeForMedium)"
+              :key="idx"
+              @click="selectMediumCategory(medium.seqSortSecond, medium.seqSortFirst)"
+              >
+              {{ medium.korSortSecond }}
+              </li>
+          </ul>
         </div>
 
-        <div class="article-area" v-if="filteredBookList.length > 0">
-          <BookArea 
-            v-for="book in filteredBookList" 
-            :key="book.seqBook"
-            :book="book"
-            class="book-item"
-          />
-        </div>
-
-        <!-- 책이 없을 때 표시할 메시지 -->
-        <div class="no-books-message" v-else>
-          <div class="no-books-content">
-            <div class="no-books-icon">
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="12" cy="12" r="1" fill="currentColor"/>
-                <circle cx="12" cy="8" r="1" fill="currentColor"/>
-                <circle cx="12" cy="16" r="1" fill="currentColor"/>
-              </svg>
+        <!-- 본문 -->
+        <div class="main">
+          <!-- 로딩 상태 -->
+          <div class="loading-container" v-if="isLoading">
+            <div class="loading-content">
+              <div class="loading-spinner">
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+              </div>
+              <p class="loading-text">도서를 불러오는 중...</p>
             </div>
-            <h3>해당 카테고리에 등록된 책이 없습니다</h3>
-            <p>다른 카테고리를 선택해 주세요.</p>
           </div>
-        </div>
 
-        <!-- 페이지네이션 -->
-        <div class="pagination-area" v-if="totalCount > 0">
-          <div class="pagination-wrapper">
-            <button 
-              class="pagination-btn prev-btn" 
-              :disabled="currentPage === 1"
-              @click="loadBooks(currentPage - 1)"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              이전
-            </button>
-            
-            <div class="page-info">
-              <span class="current-page">{{ currentPage }}</span>
-              <span class="page-divider">/</span>
-              <span class="total-pages">{{ Math.ceil(totalCount / 10) }}</span>
+          <!-- 로딩이 아닐 때만 컨텐츠 표시 -->
+          <template v-else>
+            <div class="content-header" v-if="filteredBookList.length > 0 || showCampusFilter">
+              <div class="header-top">
+                <h2 class="section-title">
+                  {{ getSectionTitle() }}
+                  <span class="book-count">({{ displayCount }}권)</span>
+                </h2>
+
+                <!-- 필터 영역 -->
+                <div class="filter-area">
+                  <!-- 캠퍼스 필터 (전체 관리자/비회원만 표시) -->
+                  <div v-if="showCampusFilter" class="campus-filter">
+                    <label class="filter-label">캠퍼스</label>
+                    <select v-model="selectedCampus" @change="onCampusChange" class="campus-select">
+                      <option value="">전체 캠퍼스</option>
+                      <option
+                        v-for="campus in campuses"
+                        :key="campus.seqCampus"
+                        :value="campus.seqCampus"
+                      >
+                        {{ campus.nameCampus }}
+                      </option>
+                    </select>
+                  </div>
+                  
+                  <!-- 정렬 드롭다운 -->
+                  <div class="sort-dropdown">
+                    <select v-model="selectedSort" @change="onSortChange" class="sort-select">
+                      <option value="latest">최신 등록순</option>
+                      <option value="title">제목순 (가나다)</option>
+                      <option value="author">저자순 (가나다)</option>
+                      <option value="popular">인기순</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
             </div>
-            
-            <button 
-              class="pagination-btn next-btn"
-              :disabled="currentPage >= Math.ceil(totalCount / 10)"
-              @click="loadBooks(currentPage + 1)"
-            >
-              다음
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
-          </div>
+
+            <div class="article-area" v-if="filteredBookList.length > 0">
+              <BookArea 
+                v-for="book in filteredBookList" 
+                :key="book.seqBook"
+                :book="book"
+                class="book-item"
+              />
+            </div>
+
+            <!-- 책이 없을 때 표시할 메시지 -->
+            <div class="no-books-message" v-else>
+              <div class="no-books-content">
+                <div class="no-books-icon">
+                  <PhBooks weight="duotone" :size="64" />
+                </div>
+                <h3>해당 카테고리에 등록된 도서가 없습니다</h3>
+                <p>다른 카테고리를 선택해 주세요.</p>
+              </div>
+            </div>
+          </template>
+
+          <PbPagination v-if="!isLoading" :page="currentPage" :total-pages="totalPages" :info="paginationInfo" @change="goToPage" />
         </div>
       </div>
     </div>
@@ -137,12 +155,20 @@
 </template>
 
 <script setup>
+import PbPagination from '@/components/PbPagination.vue'
+import { PhBooks } from '@phosphor-icons/vue'
+import * as bookApi from '@/api/book'
+import * as sortApi from '@/api/sort'
+import * as campusApi from '@/api/campus'
+import * as adminApi from '@/api/admin'
 import BookArea from '@/components/BookArea.vue'
 import BookSearch from '@/components/BookSearch.vue'
 import BorrowReturn from '@/components/BorrowReturn.vue'
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { swAlert } from '@/utils/sweetAlert'
+import { isMobile } from '@/utils/mobileDetect'
 
-const isModalOpen = ref(true)
+const isModalOpen = ref(!isMobile())
 
 const largeCategories = ref([])
 const mediumCategoriesAll = ref([])
@@ -155,9 +181,29 @@ const selectedMediumCategoryLargeSeq = ref(null) // 중분류가 속한 대분�
 const hoveringWrapper = ref(false)
 const hoveredLargeCategory = ref(null)
 
+
+const ITEMS_PER_PAGE = 20
 const bookList = ref([])
 const totalCount = ref(0)
 const currentPage = ref(1)
+
+const totalPages = computed(() => Math.ceil(totalCount.value / ITEMS_PER_PAGE))
+
+
+const paginationInfo = computed(() => {
+  const total = totalCount.value
+  if (!total) return ''
+  const start = (currentPage.value - 1) * ITEMS_PER_PAGE + 1
+  const end = Math.min(currentPage.value * ITEMS_PER_PAGE, total)
+  return `${start}–${end} / ${total}권`
+})
+
+// 캠퍼스 필터 관련
+const campuses = ref([])
+const selectedCampus = ref('')
+const showCampusFilter = ref(false)
+const isFullAdmin = ref(false)
+const isGuest = ref(false)
 
 const handleKeydown = (event) => {
   if (event.key === 'Escape' && isModalOpen.value) {
@@ -167,58 +213,74 @@ const handleKeydown = (event) => {
 
 // 검색 상태 추가
 const isSearchMode = ref(false)
+const lastSearchQuery = ref('')
+const lastSearchExact = ref(false)
+
+// 로딩 상태 추가
+const isLoading = ref(false)
+
+// 정렬 상태 추가
+const selectedSort = ref('latest')
 
 const fetchLargeCategories = async () => {
   try {
-    const res = await fetch('http://localhost:8080/subjects')
-    largeCategories.value = await res.json()
+    const res = await sortApi.getFirstCategories()
+    largeCategories.value = res.data.data
   } catch (error) {
-    console.error('대분류 카테고리 조회 실패:', error)
+    console.warn('대분류 카테고리 조회 실패:', error.message)
   }
 }
 
 const fetchMediumCategories = async () => {
   try {
-    const res = await fetch('http://localhost:8080/subtitles')
-    mediumCategoriesAll.value = await res.json()
+    const res = await sortApi.getSecondCategories()
+    mediumCategoriesAll.value = res.data.data
   } catch (error) {
-    console.error('중분류 카테고리 조회 실패:', error)
+    console.warn('중분류 카테고리 조회 실패:', error.message)
   }
 }
 
 const loadBooks = async (page = 1) => {
   try {
-    let url = ''
-    if (selectedLargeCategory.value === '전체') {
-      url = `http://localhost:8080/books?page=${page}`
-    } else {
-      url = `http://localhost:8080/books/sortFirst?id=${selectedLargeCategorySeq.value}&page=${page}`
+    isLoading.value = true
+    
+    // 정렬 필드 매핑
+    const sortFieldMap = {
+      'latest': 'seqBook',
+      'title': 'titleBook',
+      'author': 'authorBook',
+      'popular': 'borrowCount'
     }
-
-    const token = localStorage.getItem('jwtToken')
-
-    const res = await fetch(url, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` })
-        }
-    })
-    const data = await res.json()
-
-    // printCheckBook이 1인 책만 필터링
-    const filteredBooks = (data.content || []).filter(book => book.printCheckBook === true)
     
-    bookList.value = filteredBooks
-    totalCount.value = filteredBooks.length // 필터링된 책의 개수로 업데이트
+    const sortBy = sortFieldMap[selectedSort.value] || 'seqBook'
+    const sortDir = selectedSort.value === 'popular' ? 'desc' : (selectedSort.value === 'latest' ? 'desc' : 'asc')
+    
+    const campusId = (selectedCampus.value && showCampusFilter.value) ? selectedCampus.value : undefined
+    const params = { page, size: ITEMS_PER_PAGE, sortBy, sortDir, campusId }
+
+    const res = selectedMediumCategory.value
+      ? await bookApi.getBySortSecond(selectedMediumCategory.value, params)
+      : selectedLargeCategory.value === '전체'
+        ? await bookApi.getAll(params)
+        : await bookApi.getByCategory(selectedLargeCategorySeq.value, params)
+    const data = res.data.data
+
+    // 서버에서 이미 필터링된 데이터를 받음
+    bookList.value = data.content || []
+    totalCount.value = data.totalCount || 0
     currentPage.value = page
-    
+
     // 검색 모드 해제
     isSearchMode.value = false
+    
+    // 페이지 상단으로 스크롤 이동
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   } catch (error) {
-    console.error('책 목록 조회 실패:', error)
+    console.warn('책 목록 조회 실패:', error.message)
     bookList.value = []
     totalCount.value = 0
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -244,12 +306,26 @@ const isLargeCategoryActive = (largeCategoryName) => {
   return false
 }
 
+// 분류 목록이 가로로 넘치는지 — 넘칠 때만 오른쪽 끝을 흐리게 한다
+const navLeftRef = ref(null)
+const navOverflow = ref({ overflowing: false, atEnd: true })
+const updateNavOverflow = () => {
+  const el = navLeftRef.value
+  if (!el) return
+  const overflowing = el.scrollWidth > el.clientWidth + 1
+  navOverflow.value = { overflowing, atEnd: !overflowing || el.scrollLeft + el.clientWidth >= el.scrollWidth - 1 }
+}
+let navResizeObserver = null
+
+// 대분류(또는 중분류)를 골라 둔 상태인지 — 이때 중분류 줄은 흐름 안에 고정된다
+const hasCategorySelection = computed(() =>
+  !!(selectedMediumCategory.value || (selectedLargeCategory.value && selectedLargeCategory.value !== '전체'))
+)
+
 // 중분류 노출 여부 조건 (선택된 중분류나 대분류가 있으면 계속 표시)
 const shouldShowMediumDropdown = computed(() => {
-  const hasSelection = selectedMediumCategory.value || (selectedLargeCategory.value && selectedLargeCategory.value !== '전체')
-  
   return (
-    (hoveringWrapper.value || hasSelection) &&
+    (hoveringWrapper.value || hasCategorySelection.value) &&
     currentLargeForMedium.value &&
     getMediumOptions(currentLargeForMedium.value).length > 0
   )
@@ -269,27 +345,15 @@ const currentLargeForMedium = computed(() => {
 })
 
 const filteredBookList = computed(() => {
-  let filtered = bookList.value.filter(book => 
-    book.seqSortFirst !== 0 && 
-    book.seqSortSecond !== 0 &&
-    book.printCheckBook === true  // printCheckBook이 1인 책만 표시
-  );
-  
-  if (selectedMediumCategory.value) {
-    filtered = filtered.filter(book => book.seqSortSecond === selectedMediumCategory.value);
+  // 검색 모드는 전체 결과가 bookList에 있으므로 클라이언트 페이지네이션 적용
+  if (isSearchMode.value) {
+    const start = (currentPage.value - 1) * ITEMS_PER_PAGE;
+    return bookList.value.slice(start, start + ITEMS_PER_PAGE);
   }
-  
-  return filtered;
+  return bookList.value;
 });
 
-const displayCount = computed(() => {
-  return filteredBookList.value.length;
-});
-
-const mainMarginTop = computed(() => {
-  const baseMargin = shouldShowMediumDropdown.value ? '180px' : '120px'
-  return baseMargin
-})
+const displayCount = computed(() => totalCount.value);
 
 // 섹션 제목을 동적으로 생성하는 함수
 const getSectionTitle = () => {
@@ -329,129 +393,291 @@ function selectLargeCategory(categoryName, categorySeq = null) {
 function selectMediumCategory(mediumSeq, largeSeq) {
   selectedMediumCategory.value = mediumSeq
   selectedMediumCategoryLargeSeq.value = largeSeq
-  
-  // 해당하는 대분류로 선택 상태 변경
+
   const large = largeCategories.value.find(l => l.seqSortFirst === largeSeq)
   if (large) {
     selectedLargeCategory.value = large.nameSortFirst
     selectedLargeCategorySeq.value = large.seqSortFirst
   }
+
+  currentPage.value = 1
+  loadBooks(1)
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-function onSearch({ query, exact }) {
-  console.log('검색 요청:', query, exact);
-  fetchBooks(1, query, exact);
-}
+const goToPage = async (page) => {
+  if (page < 1 || page > totalPages.value) return;
 
-const fetchBooks = async (page = 1, query = '', exact = false) => {
-  let url;
-  if (query && query.trim()) {
-    url = new URL(`http://localhost:8080/books/search`);
-    url.searchParams.set('q', query.trim());
-    url.searchParams.set('exact', exact);
-    
-    // 검색 모드 활성화
-    isSearchMode.value = true
-  } else {
-    url = new URL(`http://localhost:8080/books`);
-    url.searchParams.set('page', page);
-    
-    // 검색 모드 비활성화
-    isSearchMode.value = false
-  }
-
-  const res = await fetch(url.toString());
-  if (!res.ok) {
-    const errorMessage = await res.text();
-    throw new Error(errorMessage || `서버 오류: ${res.status}`)
-  }
-
-  const data = await res.json();
-
-  console.log(data)
-
-  if (!data.content) {
-    alert('서버 응답 데이터 오류: ', data);
-    bookList.value = [];
-    totalCount.value = 0;
+  // 검색 모드는 bookList에 전체 결과가 있으므로 페이지만 변경
+  if (isSearchMode.value) {
+    currentPage.value = page;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
   }
 
-  // 검색 결과에서 printCheckBook이 1인 책만 필터링
-  const filteredBooks = data.content.filter(book => book.printCheckBook === true);
+  await loadBooks(page);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
-  totalCount.value = filteredBooks.length;
-  bookList.value = filteredBooks.map(book => {
-    return {
-      ...book
-    };
-  });
+function onSearch({ query, exact }) {
+  // console.log('검색 요청:', query, exact);
+  fetchBooks(query, exact);
+}
 
-  // console.log('✅ books.value 업데이트 완료:', books.value);
+// 정렬 함수
+const sortBooks = (books) => {
+  if (!books || books.length === 0) return books;
+
+  const sortedBooks = [...books];
+
+  switch (selectedSort.value) {
+    case 'latest':
+      // 최신 등록순 (seqBook 내림차순)
+      return sortedBooks.sort((a, b) => b.seqBook - a.seqBook);
+
+    case 'title':
+      // 제목순 (가나다순)
+      return sortedBooks.sort((a, b) => {
+        const titleA = a.titleBook || '';
+        const titleB = b.titleBook || '';
+        return titleA.localeCompare(titleB, 'ko-KR');
+      });
+
+    case 'author':
+      // 저자순 (가나다순)
+      return sortedBooks.sort((a, b) => {
+        const authorA = a.authorBook || '';
+        const authorB = b.authorBook || '';
+        return authorA.localeCompare(authorB, 'ko-KR');
+      });
+
+    case 'popular':
+      // 인기순 (대출 횟수 내림차순)
+      return sortedBooks.sort((a, b) => {
+        const countA = a.borrowCount || 0;
+        const countB = b.borrowCount || 0;
+        return countB - countA;
+      });
+
+    default:
+      return sortedBooks;
+  }
 };
+
+// 정렬 변경 핸들러
+const onSortChange = async () => {
+  currentPage.value = 1;
+  if (isSearchMode.value) {
+    await fetchBooks(lastSearchQuery.value, lastSearchExact.value);
+  } else {
+    await loadBooks(1);
+  }
+};
+
+const fetchBooks = async (query = '', exact = false) => {
+  try {
+    isLoading.value = true
+    
+    if (query && query.trim()) {
+      // 검색 모드 활성화 및 쿼리 저장
+      isSearchMode.value = true
+      lastSearchQuery.value = query.trim()
+      lastSearchExact.value = exact
+    } else {
+      // 검색어가 없으면 일반 목록으로 이동
+      isSearchMode.value = false
+      await loadBooks(1);
+      return;
+    }
+
+    const res = await bookApi.search({ q: query.trim(), exact });
+    const data = res.data.data;
+
+    if (!data.content) {
+      console.warn('서버 응답 데이터 오류:', data);
+      bookList.value = [];
+      totalCount.value = 0;
+      return;
+    }
+
+    // 검색 결과는 서버에서 이미 필터링된 데이터
+    // 검색 결과는 페이지네이션 없이 전체 표시 (기존 동작 유지)
+    const filteredBooks = data.content.filter(book => book.printCheckBook === true);
+    const sortedBooks = sortBooks(filteredBooks);
+
+    bookList.value = sortedBooks;
+    totalCount.value = sortedBooks.length;
+    currentPage.value = 1
+
+    // 페이지 상단으로 스크롤 이동
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  } catch (error) {
+    await swAlert('도서 검색 중 오류가 발생했습니다.', 'error')
+    bookList.value = []
+    totalCount.value = 0
+  } finally {
+    isLoading.value = false
+  }
+};
+
+// 캠퍼스 목록 가져오기
+const fetchCampuses = async () => {
+  try {
+    const res = await campusApi.getAll()
+    campuses.value = res.data.data || []
+  } catch (error) {
+    console.error('캠퍼스 목록 조회 실패:', error)
+  }
+}
+
+// 전체 관리자/비회원 확인
+const checkUserType = async () => {
+  const userType = sessionStorage.getItem('userType')
+
+  if (!userType) {
+    // 비회원
+    isGuest.value = true
+    isFullAdmin.value = false
+    showCampusFilter.value = true
+    return
+  }
+
+  if (userType === 'admin') {
+    try {
+      const response = await adminApi.checkMe()
+      
+      if (response.status === 200) {
+        // seqCampus가 null이면 전체 관리자
+        if (!response.data.data.seqCampus) {
+          isFullAdmin.value = true
+          showCampusFilter.value = true
+        } else {
+          isFullAdmin.value = false
+          showCampusFilter.value = false
+        }
+      }
+    } catch (error) {
+      isFullAdmin.value = false
+      showCampusFilter.value = false
+    }
+  } else {
+    // 일반 사용자
+    isFullAdmin.value = false
+    showCampusFilter.value = false
+  }
+}
+
+// 캠퍼스 변경 핸들러
+const onCampusChange = () => {
+  currentPage.value = 1
+  loadBooks(1)
+}
 
 onMounted(async () => {
   await fetchLargeCategories()
   await fetchMediumCategories()
+  await fetchCampuses()
+  await checkUserType()
   selectedLargeCategory.value = '전체'
   await loadBooks(1)
   window.addEventListener('keydown', handleKeydown)
+  // 분류가 불러와진 뒤·창 크기가 바뀔 때 넘침 여부를 다시 잰다
+  updateNavOverflow()
+  if (navLeftRef.value && 'ResizeObserver' in window) {
+    navResizeObserver = new ResizeObserver(updateNavOverflow)
+    navResizeObserver.observe(navLeftRef.value)
+  }
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeydown)
+  navResizeObserver && navResizeObserver.disconnect()
 })
 
 </script>
 
 <style scoped>
+/* ────────────────────────────────────────────────
+   레이아웃 기반
+──────────────────────────────────────────────── */
 .mainpage-bg-wrapper {
   position: relative;
   width: 100%;
   min-height: 100vh;
-  /* background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); */
-  background: linear-gradient(135deg, #f5f7fa 0%, #EDEFEF 100%);
+  background: var(--pb-color-canvas);
+  /* hidden 은 스크롤 컨테이너를 만들어 안쪽 sticky(카테고리 바)가 화면이 아니라 이 틀에 붙는다 — clip 을 쓴다 */
+  overflow-x: clip;
 }
 
 .mainpage-area {
-  min-width: 1450px;
+  width: 100%;
   min-height: 98%;
-  overflow-x: inherit;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
   align-items: center;
+}
+
+/* ────────────────────────────────────────────────
+   카테고리 네비바
+──────────────────────────────────────────────── */
+/* 헤더 바로 아래에 붙는 카테고리 영역. 흐름 안에 있어서 본문을 margin 으로 밀어낼 필요가 없다 */
+.dropdown-wrapper {
+  position: sticky;
+  top: var(--pb-header-height);
+  z-index: 1030;
+  width: 100%;
+  background: var(--pb-color-canvas);
 }
 
 .nav-bar {
-  position: fixed;
-  top: 72px;
-  left: 0;
+  position: relative;
   width: 100%;
+  height: var(--pb-toolbar-height);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 32px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-  z-index: 1030;
+  padding: 0 max(24px, calc((100vw - var(--pb-content-max)) / 2));
+  background: var(--pb-color-canvas);
+  border-bottom: 1px solid var(--pb-color-border);
 }
 
+/* 분류가 한 줄에 다 안 들어가는 폭(태블릿 등)에서도 줄을 늘리지 않고 가로로 넘긴다.
+   Bootstrap .nav 의 기본값 flex-wrap: wrap 때문에 820px 에서 세 줄로 꺾여 고정 높이 바 밖으로 넘쳤다 */
 .nav-left {
   display: flex;
   flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.nav-left::-webkit-scrollbar {
+  display: none;
+}
+
+/* 넘칠 때만 오른쪽 끝을 흐려 "분류가 더 있다"는 걸 알린다 (스크롤바를 숨겨서 단서가 없다) */
+.nav-left.is-overflowing:not(.at-end) {
+  mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
 }
 
 .nav {
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
+  gap: 4px;
   margin: 0;
   padding: 0;
   list-style: none;
+  white-space: nowrap;
+}
+
+.nav-item {
+  flex-shrink: 0;
 }
 
 .nav-item {
@@ -462,313 +688,529 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  min-width: 280px;
+  min-width: 320px;
+  flex-shrink: 0;
+  margin-left: 16px;
 }
 
 .search-component {
-  width: 280px;
+  width: 320px;
 }
 
+/* ────────────────────────────────────────────────
+   nav 링크
+──────────────────────────────────────────────── */
 .nav-link {
   display: inline-block;
-  padding: 12px 20px;
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: #64748b;
+  padding: 7px 14px;
+  font-weight: 500;
+  font-size: 0.92rem;
+  color: var(--pb-color-text-muted);
   text-decoration: none;
   cursor: pointer;
-  margin: 0 4px;
-  border-radius: 12px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.nav-link::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
-}
-
-.nav-link:hover::before {
-  left: 100%;
+  border-radius: 999px;
+  transition: background 0.12s ease, color 0.12s ease;
 }
 
 .nav-link:hover {
-  color: #475569;
-  background: rgba(100, 116, 139, 0.1);
-  transform: translateY(-2px);
+  color: var(--pb-color-text);
+  background: var(--pb-color-surface-muted);
 }
 
 .nav-link.active {
-  color: #ffffff;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-  transform: translateY(-2px);
+  color: var(--pb-color-surface);
+  background: var(--pb-color-brand);
 }
 
+/* ────────────────────────────────────────────────
+   중분류 드롭다운
+──────────────────────────────────────────────── */
 .dropdown-menu-custom {
   list-style: none;
-  padding: 20px 32px;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 12px max(24px, calc((100vw - var(--pb-content-max)) / 2));
+  background: var(--pb-color-canvas);
+  border-bottom: 1px solid var(--pb-color-border);
   margin: 0;
-  position: fixed;
-  top: 168px;
-  left: 0;
   width: 100%;
-  z-index: 1029;
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  animation: pb-medium-in 0.16s ease-out;
+}
+
+.dropdown-menu-custom::-webkit-scrollbar {
+  display: none;
+}
+
+/* 고르기 전 미리보기 — 본문 위에 떠서 레이아웃을 밀지 않는다 */
+.dropdown-menu-custom.is-overlay {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  box-shadow: var(--pb-shadow-popover);
+}
+
+@keyframes pb-medium-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
 }
 
 .dropdown-item-custom {
-  padding: 10px 16px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 7px 13px;
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
+  border-radius: 999px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background 0.12s ease, border-color 0.12s ease;
   font-weight: 500;
-  color: #475569;
-  font-size: 0.9rem;
+  color: var(--pb-color-text-muted);
+  font-size: 0.88rem;
+  white-space: nowrap;
 }
 
 .dropdown-item-custom:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: var(--pb-color-surface-muted);
+  border-color: var(--pb-color-border-strong);
 }
 
 .dropdown-item-custom.active {
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-  color: white;
+  background: var(--pb-color-brand);
+  color: var(--pb-color-surface);
   border-color: transparent;
-  box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
 }
 
+/* ────────────────────────────────────────────────
+   본문 영역
+──────────────────────────────────────────────── */
 .main {
-  width: 100%;
-  padding: 32px;
-  transition: margin-top 0.3s ease;
+  width: min(100% - 48px, var(--pb-content-max));
+  padding: 28px 0 48px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
+/* ────────────────────────────────────────────────
+   콘텐츠 헤더
+──────────────────────────────────────────────── */
 .content-header {
-  margin-bottom: 32px;
-  text-align: center;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
 }
 
 .section-title {
-  font-size: 2rem;
+  font-size: 1.6rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--pb-color-heading);
   margin: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
+  gap: 10px;
+  flex: 0 0 auto;
+  letter-spacing: 0;
 }
 
 .book-count {
-  font-size: 1.2rem;
+  font-size: 0.9rem;
   font-weight: 500;
-  color: #64748b;
-  background: rgba(100, 116, 139, 0.1);
-  padding: 4px 12px;
-  border-radius: 20px;
+  color: var(--pb-color-text-muted);
+  background: var(--pb-color-surface-muted);
+  padding: 2px 10px;
+  border-radius: 999px;
 }
 
+/* ────────────────────────────────────────────────
+   필터 영역
+──────────────────────────────────────────────── */
+.filter-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.campus-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-label {
+  font-weight: 500;
+  color: var(--pb-color-text-muted);
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
+.campus-select,
+.sort-select {
+  padding: 8px 12px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.12s ease;
+  min-width: 140px;
+}
+
+.campus-select:hover,
+.sort-select:hover {
+  border-color: var(--pb-color-border-strong);
+}
+
+.campus-select:focus,
+.sort-select:focus {
+  border-color: var(--pb-color-brand);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-muted);
+}
+
+.sort-dropdown {
+  display: flex;
+  align-items: center;
+}
+
+/* ────────────────────────────────────────────────
+   도서 그리드
+──────────────────────────────────────────────── */
 .article-area {
   display: grid;
-  place-items: center;
+  align-items: start;
   width: 100%;
   grid-template-columns: repeat(5, 1fr);
-  gap: 32px;
+  gap: 20px 16px;
   padding: 0;
   min-height: 400px;
 }
 
 .book-item {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: none;
 }
 
-.book-item:hover {
-  transform: translateY(-8px);
-}
-
+/* ────────────────────────────────────────────────
+   도서 없음 메시지
+──────────────────────────────────────────────── */
 .no-books-message {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 500px;
+  min-height: 400px;
   width: 100%;
   padding: 2rem;
 }
 
 .no-books-content {
   text-align: center;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  padding: 4rem 3rem;
-  border-radius: 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  max-width: 500px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--pb-color-surface);
+  padding: 3.5rem 3rem;
+  border-radius: var(--pb-radius-lg);
+  border: 1px solid var(--pb-color-border);
+  max-width: 480px;
 }
 
 .no-books-icon {
-  color: #94a3b8;
-  margin-bottom: 24px;
+  color: var(--pb-color-text-soft);
+  margin-bottom: 20px;
   display: flex;
   justify-content: center;
 }
 
 .no-books-content h3 {
-  color: #475569;
-  margin-bottom: 16px;
-  font-size: 1.5rem;
+  color: var(--pb-color-text-muted);
+  margin-bottom: 12px;
+  font-size: 1.25rem;
   font-weight: 600;
 }
 
 .no-books-content p {
-  color: #64748b;
-  font-size: 1.1rem;
-  margin: 0;
-  font-weight: 400;
-}
-
-.pagination-area {
-  display: flex;
-  justify-content: center;
-  padding: 3rem 0;
-  margin-top: 2rem;
-}
-
-.pagination-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  padding: 16px 32px;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.pagination-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
-  color: #475569;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: 500;
+  color: var(--pb-color-text-soft);
   font-size: 0.95rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  min-width: 80px;
-  justify-content: center;
+  margin: 0;
 }
 
-.pagination-btn:hover:not(:disabled) {
-  background: #f8fafc;
-  border-color: #cbd5e1;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
+/* ────────────────────────────────────────────────
+   페이지네이션 (GitLab Offset style)
+──────────────────────────────────────────────── */
 
-.pagination-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.page-info {
+/* ────────────────────────────────────────────────
+   로딩
+──────────────────────────────────────────────── */
+.loading-container {
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 8px;
-  font-weight: 600;
-  color: #1e293b;
+  min-height: 400px;
+  width: 100%;
+  padding: 3rem 2rem;
 }
 
-.current-page {
-  font-size: 1.1rem;
-  color: #667eea;
+.loading-content {
+  text-align: center;
+  background: var(--pb-color-surface);
+  padding: 3.5rem 3rem;
+  border-radius: var(--pb-radius-lg);
+  border: 1px solid var(--pb-color-border);
 }
 
-.page-divider {
-  color: #cbd5e1;
+.loading-spinner {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 20px;
 }
 
-.total-pages {
-  font-size: 1rem;
-  color: #64748b;
+.spinner-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid transparent;
+  border-top-color: var(--pb-color-brand);
+  border-radius: 50%;
+  animation: spin 1.1s linear infinite;
 }
 
-/* 반응형 디자인 */
-@media (max-width: 1200px) {
-  .article-area {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 24px;
+.spinner-ring:nth-child(1) {
+  animation-delay: -0.4s;
+  border-top-color: var(--pb-color-brand);
+}
+
+.spinner-ring:nth-child(2) {
+  animation-delay: -0.27s;
+  border-top-color: var(--pb-color-brand-muted);
+  width: 70%;
+  height: 70%;
+  top: 15%;
+  left: 15%;
+}
+
+.spinner-ring:nth-child(3) {
+  animation-delay: -0.13s;
+  border-top-color: var(--pb-color-accent);
+  width: 50%;
+  height: 50%;
+  top: 25%;
+  left: 25%;
+}
+
+.spinner-ring:nth-child(4) {
+  border-top-color: var(--pb-color-border-strong);
+  width: 30%;
+  height: 30%;
+  top: 35%;
+  left: 35%;
+}
+
+@keyframes spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--pb-color-text-muted);
+  margin: 0;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
+/* ────────────────────────────────────────────────
+   반응형: 1024px 이하
+──────────────────────────────────────────────── */
+/* 1280px 이하: 검색창을 줄여 분류를 더 보이게 */
+@media (max-width: 1280px) {
+  .nav-right {
+    min-width: 240px;
+  }
+
+  .search-component {
+    width: 240px;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .nav-bar {
-    padding: 12px 16px;
-    flex-direction: column;
-    gap: 16px;
+    padding-inline: 18px;
   }
-  
+
+  .nav-right,
+  .search-component {
+    min-width: 220px;
+    width: 220px;
+  }
+
+  .header-top {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .filter-area {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .article-area {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ────────────────────────────────────────────────
+   반응형: 768px 이하
+──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden !important;
+  }
+
+
+  .mainpage-area {
+    max-width: 100%;
+  }
+
+  /* 모바일: 검색+분류가 화면의 1/5 을 계속 가리지 않게, 카테고리 영역은 본문과 함께 스크롤된다 */
+  .dropdown-wrapper {
+    position: static;
+  }
+
+  .nav-bar {
+    height: auto;
+    padding: 10px 12px;
+    flex-direction: column-reverse;
+    gap: 10px;
+    align-items: stretch;
+  }
+
   .nav-left {
     width: 100%;
     overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
-  
+
+  .nav-left::-webkit-scrollbar {
+    display: none;
+  }
+
   .nav {
     flex-wrap: nowrap;
     white-space: nowrap;
+    width: max-content;
   }
-  
-  .nav-right {
-    width: 100%;
-    min-width: auto;
+
+  .nav-item {
+    flex-shrink: 0;
   }
-  
+
+  .nav-link {
+    padding: 8px 13px;
+    font-size: 0.85rem;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+  }
+
+  .nav-right,
   .search-component {
     width: 100%;
+    min-width: 0;
   }
-  
-  .article-area {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+
+  .dropdown-menu-custom,
+  .dropdown-menu-custom.is-overlay {
+    position: static;
+    padding: 8px 12px;
+    box-shadow: none;
   }
-  
+
+  .dropdown-item-custom {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+
   .main {
-    padding: 16px;
+    width: min(100% - 24px, var(--pb-content-max));
+    padding: 20px 0 36px;
   }
-  
+
+  .header-top {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .section-title {
+    font-size: 1.2rem;
+    justify-content: flex-start;
+  }
+
+  .book-count {
+    font-size: 0.85rem;
+  }
+
+  .filter-area {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .sort-dropdown {
+    width: 100%;
+  }
+
+  .campus-filter {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .campus-select {
+    flex: 1;
+    min-width: auto;
+  }
+
+  .sort-select {
+    width: 100%;
+    min-width: auto;
+    font-size: 0.88rem;
+  }
+
+  .article-area {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px 10px;
+  }
+
   .pagination-wrapper {
-    padding: 12px 20px;
-    gap: 16px;
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 12px;
   }
-  
+
   .pagination-btn {
-    padding: 10px 16px;
-    min-width: 70px;
+    padding: 10px 12px;
+    min-width: 60px;
+    min-height: 44px;
+    font-size: 0.85rem;
+  }
+
+  .page-info {
+    font-size: 0.88rem;
   }
 }
 </style>

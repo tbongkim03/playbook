@@ -10,9 +10,26 @@
         </router-link>
         <div class="header-text">
           <h1>회원가입</h1>
-          <p>계정 정보를 입력하여 회원가입을 완료하세요</p>
         </div>
       </header>
+
+      <!-- 진행 단계 — 폼 위에 둬야 지금 몇 단계인지 먼저 보인다 -->
+      <div class="progress-indicator">
+        <div class="progress-step completed">
+          <div class="step-number">1</div>
+          <span>약관 동의</span>
+        </div>
+        <div class="progress-line completed"></div>
+        <div class="progress-step active">
+          <div class="step-number">2</div>
+          <span>회원 정보 입력</span>
+        </div>
+        <div class="progress-line"></div>
+        <div class="progress-step">
+          <div class="step-number">3</div>
+          <span>가입 완료</span>
+        </div>
+      </div>
 
       <!-- 회원가입 카드 -->
       <div class="register-card">
@@ -21,10 +38,7 @@
           <div class="form-section">
             <div class="section-header">
               <div class="section-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <PhUser weight="duotone" :size="20" />
               </div>
               <h3>개인 정보</h3>
             </div>
@@ -32,10 +46,7 @@
             <div class="input-group">
               <div class="input-container">
                 <div class="input-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
+                  <PhUser weight="duotone" :size="18" />
                 </div>
                 <input
                   type="text"
@@ -57,10 +68,7 @@
                   title="이름 지우기"
                   tabindex="-1"
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                    <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
-                  </svg>
+                  <PhXCircle weight="duotone" :size="16" />
                 </button>
               </div>
             </div>
@@ -68,10 +76,7 @@
             <div class="input-group">
               <div class="input-container">
                 <div class="input-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
+                  <PhEnvelope weight="duotone" :size="18" />
                 </div>
                 <input
                   type="text"
@@ -94,10 +99,7 @@
                   title="아이디 지우기"
                   tabindex="-1"
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                    <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
-                  </svg>
+                  <PhXCircle weight="duotone" :size="16" />
                 </button>
               </div>
               
@@ -106,11 +108,7 @@
             <div class="input-group">
               <div class="input-container">
                 <div class="input-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <circle cx="12" cy="16" r="1" fill="currentColor"/>
-                    <path d="M7 11V7C7 5.67392 7.52678 4.40215 8.46447 3.46447C9.40215 2.52678 10.6739 2 12 2C13.3261 2 14.5979 2.52678 15.5355 3.46447C16.4732 4.40215 17 5.67392 17 7V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
+                  <PhLockKey weight="duotone" :size="18" />
                 </div>
                 <input
                   :type="showPassword ? 'text' : 'password'"
@@ -134,10 +132,7 @@
                     title="비밀번호 지우기"
                     tabindex="-1"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                      <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
-                    </svg>
+                    <PhXCircle weight="duotone" :size="16" />
                   </button>
                   <!-- 비밀번호 보기/숨기기 버튼 -->
                   <button 
@@ -148,15 +143,9 @@
                       tabindex="-1"
                   >
                       <!-- 눈 보이기 아이콘 -->
-                      <svg v-if="!showPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/>
-                          <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-                      </svg>
+                      <PhEye weight="duotone" :size="16" v-if="!showPassword" />
                       <!-- 눈 숨기기 아이콘 -->
-                      <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2"/>
-                          <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2"/>
-                      </svg>
+                      <PhEyeSlash weight="duotone" :size="16" v-else />
                   </button>
                 </div>
               </div>
@@ -170,9 +159,7 @@
           <div class="form-section">
             <div class="section-header">
               <div class="section-icon discord">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419-.0189 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9554 2.4189-2.1568 2.4189Z" fill="currentColor"/>
-                </svg>
+                <PhDiscordLogo weight="duotone" :size="20" />
               </div>
               <h3>알림 설정</h3>
               <div class="section-badge">
@@ -183,9 +170,7 @@
             <div class="input-group">
               <div class="input-container">
                 <div class="input-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419-.0189 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9554 2.4189-2.1568 2.4189Z" fill="currentColor"/>
-                  </svg>
+                  <PhDiscordLogo weight="duotone" :size="18" />
                 </div>
                 <input
                   type="text"
@@ -206,10 +191,7 @@
                   title="디스코드 아이디 지우기"
                   tabindex="-1"
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                    <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
-                  </svg>
+                  <PhXCircle weight="duotone" :size="16" />
                 </button>
               </div>
               <div class="input-description">
@@ -223,11 +205,7 @@
           <div class="form-section">
             <div class="section-header">
               <div class="section-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M22 10V6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V10C3.1 10 4 10.9 4 12S3.1 14 2 14V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V14C20.9 14 20 13.1 20 12S20.9 10 22 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M13 16L15.5 12L13 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M11 8L8.5 12L11 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <PhTicket weight="duotone" :size="20" />
               </div>
               <h3>훈련과정 선택</h3>
             </div>
@@ -236,17 +214,13 @@
               <div class="select-container" @click="toggleCourseBox" ref="dropdownWrapper">
                 <div class="select-input" :class="{ 'error': errors.course, 'open': courseBoxOpen }">
                   <div class="select-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M22 10V6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V10C3.1 10 4 10.9 4 12S3.1 14 2 14V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V14C20.9 14 20 13.1 20 12S20.9 10 22 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    <PhTicket weight="duotone" :size="18" />
                   </div>
                   <span class="select-text" :class="{ placeholder: !selectedCourse }">
                     {{ selectedCourse ? `${selectedCourse.title} ${selectedCourse.trprDegr}기` : '수강중인 훈련과정을 선택해주세요' }}
                   </span>
                   <div class="select-arrow">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" :class="{ rotated: courseBoxOpen }">
-                      <polyline points="6,9 12,15 18,9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    <PhCaretDown weight="duotone" :size="16" :class="{ rotated: courseBoxOpen }" />
                   </div>
                 </div>
                 <div class="select-dropdown" :class="{ 'position-up': dropdownPositionUp, 'show': courseBoxOpen }">
@@ -287,47 +261,25 @@
             <button type="submit" class="submit-button" :disabled="!isFormValid">
               <span class="button-text">회원가입 완료</span>
               <div class="button-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.7088 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4905 2.02168 11.3363C2.16356 9.18218 2.99721 7.13677 4.39828 5.49707C5.79935 3.85736 7.69279 2.71548 9.79619 2.24015C11.8996 1.76482 14.1003 1.98506 16.07 2.86" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <polyline points="22,4 12,14.01 9,11.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <PhCheckCircle weight="duotone" :size="20" />
               </div>
             </button>
           </div>
         </form>
       </div>
 
-      <!-- 진행 상태 표시 -->
-      <div class="progress-indicator">
-        <div class="progress-step completed">
-          <div class="step-number">1</div>
-          <span>약관 동의</span>
-        </div>
-        <div class="progress-line completed"></div>
-        <div class="progress-step active">
-          <div class="step-number">2</div>
-          <span>회원 정보 입력</span>
-        </div>
-        <div class="progress-line"></div>
-        <div class="progress-step">
-          <div class="step-number">3</div>
-          <span>가입 완료</span>
-        </div>
-      </div>
 
-      <!-- 장식 요소 -->
-      <div class="decoration-elements">
-        <div class="floating-shape shape-1"></div>
-        <div class="floating-shape shape-2"></div>
-        <div class="floating-shape shape-3"></div>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { PhCaretDown, PhCheckCircle, PhDiscordLogo, PhEnvelope, PhEye, PhEyeSlash, PhLockKey, PhTicket, PhUser, PhXCircle } from '@phosphor-icons/vue'
 import { ref, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import * as userApi from '@/api/user'
+import * as courseApi from '@/api/course'
+import { swAlert } from '@/utils/sweetAlert'
 
 const route = useRoute()
 const router = useRouter()
@@ -354,14 +306,6 @@ const errors = ref({
 const courseList = ref([])
 const selectedCourse = ref(null)
 
-const fromTerm = window.history.state?.fromTerm
-
-const token = localStorage.getItem("jwtToken")
-
-if (!fromTerm) {
-  alert('잘못된 접근입니다.')
-  router.replace('/')
-}
 
 // 폼 유효성 검사
 const isFormValid = computed(() => {
@@ -418,7 +362,13 @@ function togglePasswordVisibility() {
 // const srchTraStDt = formatDateToYYYYMMDD(sixMonthsAgo)
 // const srchTraEndDt = formatDateToYYYYMMDD(today)
 
-onMounted(() => {
+onMounted(async () => {
+  const fromTerm = window.history.state?.fromTerm
+  if (!fromTerm) {
+    await swAlert('잘못된 접근입니다.', 'warning')
+    router.replace('/')
+    return
+  }
   getCourseList()
   document.addEventListener('click', handleClickOutside)
 })
@@ -428,101 +378,18 @@ onBeforeUnmount(() => {
 })
 
 async function getCourseList() {
-  // const apiKey = import.meta.env.VITE_WORK24_API_KEY
-  // const url =
-  //   `https://www.work24.go.kr/cm/openApi/call/hr/callOpenApiSvcInfo310L01.do?authKey=${apiKey}` +
-  //   `&returnType=JSON&outType=1&pageNum=1&pageSize=100` +
-  //   `&srchTraStDt=${srchTraStDt}&srchTraEndDt=${srchTraEndDt}` +
-  //   `&srchTraArea1=11&srchNcs1=20&crseTracseSe=C0104&srchTraGbn=M1001&srchTraOrganNm=플레이데이터평생교육원` +
-  //   `&sort=ASC&sortCol=2`
-
+  // Work24 외부 API 동기화는 백엔드 스케줄러(매일 09:00)가 담당한다.
+  // 회원가입 페이지는 DB에 저장된 과정만 조회해 드롭다운을 채운다.
   try {
-    // 1. 외부 API에서 데이터 가져오기
-    // const res = await fetch(url)
-    const res = await fetch('http://localhost:8080/api/work24/course', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    const data = await res.json()
-    const apiCoursesRaw = data?.srchList || []
+    const dbRes = await courseApi.getAll()
+    const finalDbCourses = dbRes.data.data || []
 
-    if (apiCoursesRaw.length === 0) {
-      alert('훈련 과정을 찾을 수 없습니다.')
+    if (finalDbCourses.length === 0) {
+      await swAlert('훈련 과정을 찾을 수 없습니다.', 'error')
       return
     }
 
-    // 2. 외부 API 데이터 가공
-    const apiCourses = apiCoursesRaw.map(item => {
-      const title = item.title.includes(' - ') ? item.title.split(' - ')[0] : item.title
-      const fullName = `${title} ${item.trprDegr}기`
-      return {
-        nameCourse: fullName,
-        startDtCourse: item.traStartDate,
-        finishDtCourse: item.traEndDate,
-        trprDegr: item.trprDegr,
-        seqCourse: item.trprId
-      }
-    })
-
-    // 3. DB 데이터 가져오기
-    const dbRes = await fetch('http://localhost:8080/courses')
-    const dbCourses = await dbRes.json()
-
-    // 4. 추가: API에는 있는데 DB에는 없는 과정 → INSERT
-    for (const apiItem of apiCourses) {
-      const exists = dbCourses.find(dbItem => dbItem.nameCourse === apiItem.nameCourse)
-      if (!exists) {
-        await fetch('http://localhost:8080/courses', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nameCourse: apiItem.nameCourse,
-            startDtCourse: apiItem.startDtCourse,
-            finishDtCourse: apiItem.finishDtCourse
-          })
-        })
-      }
-    }
-
-    // 5. 삭제: DB에는 있는데 API에는 없는 과정 → DELETE
-    for (const dbItem of dbCourses) {
-      const exists = apiCourses.find(apiItem => apiItem.nameCourse === dbItem.nameCourse)
-      if (!exists) {
-        await fetch(`http://localhost:8080/courses/${dbItem.seqCourse}`, {
-          method: 'DELETE'
-        })
-      }
-    }
-
-    // 6. 수정: 둘 다 있지만 데이터 변경되었으면 → UPDATE
-    for (const apiItem of apiCourses) {
-      const dbItem = dbCourses.find(db => db.nameCourse === apiItem.nameCourse)
-      if (dbItem) {
-        const isDifferent =
-          dbItem.startDtCourse !== apiItem.startDtCourse ||
-          dbItem.finishDtCourse !== apiItem.finishDtCourse
-
-        if (isDifferent) {
-          await fetch(`http://localhost:8080/courses/${dbItem.seqCourse}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              nameCourse: apiItem.nameCourse,
-              startDtCourse: apiItem.startDtCourse,
-              finishDtCourse: apiItem.finishDtCourse
-            })
-          })
-        }
-      }
-    }
-
-    // 7. 모든 동기화 작업 완료 후 최신 DB 데이터를 다시 가져오기
-    const finalDbRes = await fetch('http://localhost:8080/courses')
-    const finalDbCourses = await finalDbRes.json()
-
-    // 8. 드롭다운 표시용 courseList 값 세팅
+    // 드롭다운 표시용 courseList 값 세팅
     courseList.value = finalDbCourses
       .map(item => {
         const parts = item.nameCourse.split(' ')
@@ -546,8 +413,8 @@ async function getCourseList() {
       .sort((a, b) => a.title.localeCompare(b.title, 'ko'))
 
   } catch (err) {
-    console.error('API 조회 실패:', err)
-    alert('훈련과정 정보를 조회하는 중 오류가 발생했습니다.')
+    // console.error('API 조회 실패:', err)
+    await swAlert('훈련과정 정보를 조회하는 중 오류가 발생했습니다.', 'error')
   }
 }
 
@@ -604,12 +471,8 @@ async function validateUsername() {
   }
 
   try {
-    const response = await fetch(
-      `http://localhost:8080/users/register/validate?id=${encodeURIComponent(trimmedId)}`
-    )
-    if (!response.ok) throw new Error('네트워크 오류')
-
-    const data = await response.json()
+    const response = await userApi.validateId(trimmedId)
+    const data = response.data.data
 
     if (data.flag === true) {
       errors.value.username = '이미 사용중인 아이디입니다.'
@@ -617,7 +480,6 @@ async function validateUsername() {
       errors.value.username = ''
     }
   } catch (error) {
-    console.error('아이디 검사 실패:', error)
     errors.value.username = '아이디 확인 중 오류가 발생했습니다.'
   }
 }
@@ -640,8 +502,31 @@ function validateCourse() {
   errors.value.course = selectedCourse.value ? '' : '훈련과정을 선택해주세요.'
 }
 
-function blockJavascriptInput(event) {
-  // JavaScript 입력 방지 로직이 있다면 여기에
+async function blockJavascriptInput(event) {
+  const input = event.target.value;
+
+  // JavaScript 관련 키워드 패턴
+  const jsPatterns = [
+    /<script[^>]*>.*?<\/script>/gi,
+    /javascript:/gi,
+    /on\w+\s*=/gi, // onclick, onload 등
+    /eval\s*\(/gi,
+    /Function\s*\(/gi,
+    /setTimeout\s*\(/gi,
+    /setInterval\s*\(/gi
+  ];
+
+  // 패턴 검사
+  for (let pattern of jsPatterns) {
+    if (pattern.test(input)) {
+      event.preventDefault();
+      await swAlert('JavaScript 코드는 입력할 수 없습니다.', 'warning');
+      
+      // 해당 부분 제거
+      event.target.value = input.replace(pattern, '');
+      return false;
+    }
+  }
 }
 
 async function handleSubmit() {
@@ -668,46 +553,34 @@ async function handleSubmit() {
   }
 
   try {
-    const response = await fetch('http://localhost:8080/users/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
+    const response = await userApi.register(payload)
 
-    const result = await response.json()
-
-    if (result.code === 200) {
-      alert('회원가입이 완료되었습니다!')
+    if (response.data.code === '0000') {
+      await swAlert('회원가입이 완료되었습니다!', 'success')
       router.push('/login')
     } else {
-      alert(`회원가입 실패: ${result.message || '알 수 없는 오류'}`)
+      await swAlert(`회원가입 실패: ${response.data.msg || '알 수 없는 오류'}`, 'error')
     }
   } catch (error) {
-    console.error('회원가입 중 오류 발생:', error)
-    alert('회원가입 요청 중 오류가 발생했습니다.')
+    await swAlert(`회원가입 요청 중 오류가 발생했습니다: ${error.response?.data?.msg || error.message}`, 'error')
   }
 }
 </script>
 
 <style scoped>
 .register-wrapper {
-  min-height: 100vh;
+  min-height: calc(100vh - var(--pb-header-height));
   width: 100%;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  background: var(--pb-color-canvas);
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 2rem;
-  margin-top: -6rem;
-  position: relative;
-  overflow: hidden;
+  align-items: flex-start;
+  padding: 48px 2rem;
 }
 
 .register-container {
   width: 100%;
-  max-width: 600px;
-  position: relative;
-  z-index: 10;
+  max-width: 650px;
 }
 
 .register-header {
@@ -718,80 +591,66 @@ async function handleSubmit() {
 .logo-container {
   display: inline-block;
   cursor: pointer;
-  transition: all 0.3s ease;
-  margin-bottom: 1.5rem;
-}
-
-.logo-container:hover {
-  transform: scale(1.05);
+  margin-bottom: 1.25rem;
 }
 
 .logo-img {
-  max-width: 180px;
+  max-width: 160px;
   height: auto;
-  transition: all 0.3s ease;
 }
 
 .header-text h1 {
-  font-size: 2.2rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0 0 0.5rem 0;
+  color: var(--pb-color-heading);
+  margin: 0 0 0.375rem 0;
 }
 
 .header-text p {
-  font-size: 1.1rem;
-  color: #64748b;
+  font-size: 0.95rem;
+  color: var(--pb-color-text-muted);
   margin: 0;
-  font-weight: 400;
 }
 
 .register-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 24px;
-  padding: 2.5rem;
-  box-shadow: 
-    0 25px 50px -12px rgba(0, 0, 0, 0.1),
-    0 4px 25px rgba(102, 126, 234, 0.1),
-    0 0 0 1px rgba(102, 126, 234, 0.05);
-  border: 1px solid rgba(102, 126, 234, 0.1);
-  margin-bottom: 2rem;
+  background: var(--pb-color-surface);
+  border-radius: var(--pb-radius-lg);
+  padding: 2rem;
+  box-shadow: var(--pb-shadow-md);
+  border: 1px solid var(--pb-color-border);
+  margin-bottom: 1.5rem;
 }
 
 .register-form {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 .form-section {
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 1.5rem;
-  background: #fafbfc;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-md);
+  padding: 1.25rem;
+  background: var(--pb-color-surface-subtle);
 }
 
 .section-header {
   display: flex;
   align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e2e8f0;
-  gap: 12px;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.875rem;
+  border-bottom: 1px solid var(--pb-color-border);
+  gap: 10px;
 }
 
 .section-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 10px;
+  width: 34px;
+  height: 34px;
+  background: var(--pb-color-brand);
+  border-radius: var(--pb-radius-sm);
   color: white;
   flex-shrink: 0;
 }
@@ -801,24 +660,25 @@ async function handleSubmit() {
 }
 
 .section-header h3 {
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--pb-color-heading);
   margin: 0;
   flex: 1;
 }
 
 .section-badge {
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.85rem;
+  background: var(--pb-color-brand-soft);
+  color: var(--pb-color-brand);
+  padding: 3px 10px;
+  border-radius: var(--pb-radius-sm);
+  font-size: 0.8rem;
   font-weight: 500;
+  border: 1px solid var(--pb-color-brand-muted);
 }
 
 .input-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .input-group:last-child {
@@ -832,56 +692,43 @@ async function handleSubmit() {
 
 .input-icon {
   position: absolute;
-  left: 16px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: #64748b;
+  color: var(--pb-color-text-muted);
   z-index: 2;
-  transition: all 0.3s ease;
 }
 
 .form-input {
   width: 100%;
-  padding: 16px 16px 16px 48px;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 1rem;
-  background: #ffffff;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 10px 12px 10px 42px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-md);
+  font-size: 0.95rem;
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text);
+  transition: border-color 0.15s, box-shadow 0.15s;
   box-sizing: border-box;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  transform: translateY(-2px);
-}
-
-.form-input:focus + .form-label,
-.form-input:not(:placeholder-shown) + .form-label {
-  transform: translateY(-12px) translateX(-8px) scale(0.85);
-  color: #667eea;
-  background: white;
-  padding: 0 8px;
-}
-
-.form-input:focus ~ .input-icon {
-  color: #667eea;
+  border-color: var(--pb-color-brand);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-soft);
 }
 
 .form-input.error {
-  border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  border-color: var(--pb-color-danger);
+  box-shadow: 0 0 0 3px var(--pb-color-danger-soft);
 }
 
 .form-input.success {
-  border-color: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+  border-color: var(--pb-color-success);
+  box-shadow: 0 0 0 3px var(--pb-color-success-soft);
 }
 
 .password-input {
-  padding-right: 80px;
+  padding-right: 76px;
 }
 
 .input-action-btn {
@@ -890,51 +737,34 @@ async function handleSubmit() {
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #94a3b8;
+  color: var(--pb-color-text-soft);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: color 0.15s;
   padding: 4px;
-  border-radius: 6px;
+  border-radius: var(--pb-radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 3;
 }
 
-.form-label {
-  position: absolute;
-  left: 48px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #64748b;
-  font-size: 1rem;
-  font-weight: 500;
-  pointer-events: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1;
+.input-action-btn:hover {
+  color: var(--pb-color-text-muted);
 }
 
 .input-description {
-  font-size: 0.875rem;
-  color: #64748b;
-  margin-top: 0.5rem;
-  padding-left: 4px;
+  font-size: 0.85rem;
+  color: var(--pb-color-text-muted);
+  margin-top: 0.375rem;
 }
 
-.input-action-btn:hover {
-  color: #64748b;
-  background: rgba(100, 116, 139, 0.1);
-}
-
-/* 단일 지우기 버튼 (이름, 아이디, 디스코드) */
 .clear-btn {
-  right: 16px;
+  right: 14px;
 }
 
-/* 비밀번호 필드의 액션 버튼들 컨테이너 */
 .password-actions {
   position: absolute;
-  right: 16px;
+  right: 14px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
@@ -943,7 +773,6 @@ async function handleSubmit() {
   z-index: 3;
 }
 
-/* 비밀번호 액션 버튼들 위치 재설정 */
 .password-actions .clear-btn {
   position: relative;
   right: 0;
@@ -959,15 +788,13 @@ async function handleSubmit() {
 }
 
 .toggle-password-btn:hover {
-  color: #667eea;
-  background: rgba(102, 126, 234, 0.1);
+  color: var(--pb-color-brand);
 }
 
 .error-message {
-  color: #ef4444;
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
-  padding-left: 4px;
+  color: var(--pb-color-danger);
+  font-size: 0.85rem;
+  margin-top: 0.375rem;
   font-weight: 500;
 }
 
@@ -980,56 +807,49 @@ async function handleSubmit() {
   display: flex;
   align-items: center;
   width: 100%;
-  padding: 16px 16px 16px 48px;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  background: #ffffff;
+  padding: 10px 12px 10px 42px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-md);
+  background: var(--pb-color-surface);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: border-color 0.15s;
   box-sizing: border-box;
 }
 
 .select-input:hover {
-  border-color: #cbd5e1;
+  border-color: var(--pb-color-border-strong);
 }
 
-.select-input.open,
-.select-input:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+.select-input.open {
+  border-color: var(--pb-color-brand);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-soft);
 }
 
 .select-input.error {
-  border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  border-color: var(--pb-color-danger);
+  box-shadow: 0 0 0 3px var(--pb-color-danger-soft);
 }
 
 .select-icon {
   position: absolute;
-  left: 16px;
-  color: #64748b;
-  transition: all 0.3s ease;
-}
-
-.select-input.open .select-icon {
-  color: #667eea;
+  left: 14px;
+  color: var(--pb-color-text-muted);
 }
 
 .select-text {
   flex: 1;
-  font-size: 1rem;
-  color: #1e293b;
+  font-size: 0.95rem;
+  color: var(--pb-color-text);
 }
 
 .select-text.placeholder {
-  color: #9ca3af;
-  background-color: #fff !important;
+  color: var(--pb-color-text-soft);
+  background-color: transparent !important;
 }
 
 .select-arrow {
-  margin-left: 12px;
-  color: #64748b;
-  transition: all 0.3s ease;
+  margin-left: 10px;
+  color: var(--pb-color-text-muted);
 }
 
 .select-arrow svg.rotated {
@@ -1041,16 +861,16 @@ async function handleSubmit() {
   top: 100%;
   left: 0;
   right: 0;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  margin-top: 8px;
+  background: var(--pb-color-surface);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-md);
+  box-shadow: var(--pb-shadow-popover);
+  margin-top: 4px;
   z-index: 1000;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-10px);
-  transition: all 0.3s ease;
+  transform: translateY(-6px);
+  transition: opacity 0.15s, transform 0.15s;
 }
 
 .select-dropdown.show {
@@ -1063,63 +883,56 @@ async function handleSubmit() {
   top: auto;
   bottom: 100%;
   margin-top: 0;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .dropdown-search {
-  padding: 12px;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 10px;
+  border-bottom: 1px solid var(--pb-color-border);
 }
 
 .search-input {
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  padding: 7px 10px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
+  font-size: 0.875rem;
   box-sizing: border-box;
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text);
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--pb-color-brand);
 }
 
 .dropdown-list {
   max-height: 200px;
   overflow-y: auto;
-  padding: 8px;
+  padding: 6px;
   margin: 0;
   list-style: none;
 }
 
-.dropdown-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.dropdown-list::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1;
-  border-radius: 3px;
-}
-
-.dropdown-list::-webkit-scrollbar-track {
-  background-color: #f1f5f9;
-}
+.dropdown-list::-webkit-scrollbar { width: 6px; }
+.dropdown-list::-webkit-scrollbar-thumb { background-color: var(--pb-color-border); border-radius: 3px; }
+.dropdown-list::-webkit-scrollbar-track { background-color: var(--pb-color-surface-subtle); }
 
 .dropdown-item {
-  padding: 12px;
-  border-radius: 8px;
+  padding: 10px 12px;
+  border-radius: var(--pb-radius-sm);
   cursor: pointer;
-  transition: all 0.3s ease;
-  margin-bottom: 4px;
+  transition: background 0.12s;
+  margin-bottom: 2px;
 }
 
 .dropdown-item:hover {
-  background: #f1f5f9;
+  background: var(--pb-color-surface-muted);
 }
 
 .dropdown-item.selected {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--pb-color-brand);
   color: white;
 }
 
@@ -1131,94 +944,58 @@ async function handleSubmit() {
 
 .course-title {
   font-weight: 500;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .course-detail {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   opacity: 0.8;
 }
 
 .no-results {
-  padding: 20px;
+  padding: 18px;
   text-align: center;
-  color: #64748b;
-  font-size: 0.9rem;
+  color: var(--pb-color-text-muted);
+  font-size: 0.875rem;
 }
 
 .submit-section {
   text-align: center;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 }
 
 .submit-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 16px 32px;
+  gap: 10px;
+  padding: 11px 28px;
   border: none;
-  border-radius: 12px;
-  font-size: 1.1rem;
+  border-radius: var(--pb-radius-md);
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-  min-width: 220px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  transition: background 0.15s;
+  min-width: 200px;
+  background: var(--pb-color-brand);
   color: white;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-}
-
-.submit-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.6s;
-}
-
-.submit-button:hover::before {
-  left: 100%;
 }
 
 .submit-button:hover:not(:disabled) {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+  background: var(--pb-color-brand-strong);
 }
 
 .submit-button:disabled {
-  background: #e2e8f0;
-  color: #94a3b8;
+  background: var(--pb-color-surface-muted);
+  color: var(--pb-color-text-soft);
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.button-text {
-  position: relative;
-  z-index: 1;
-}
-
-.button-icon {
-  position: relative;
-  z-index: 1;
-  transition: transform 0.3s ease;
-}
-
-.submit-button:hover:not(:disabled) .button-icon {
-  transform: translateX(4px);
 }
 
 .progress-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .progress-step {
@@ -1229,183 +1006,74 @@ async function handleSubmit() {
 }
 
 .step-number {
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  margin-bottom: 0.5rem;
-  transition: all 0.3s ease;
-  background: #e2e8f0;
-  color: #94a3b8;
+  font-size: 0.875rem;
+  margin-bottom: 0.375rem;
+  background: var(--pb-color-surface-muted);
+  color: var(--pb-color-text-soft);
+  border: 1px solid var(--pb-color-border);
 }
 
 .progress-step.completed .step-number {
-  background: #10b981;
+  background: var(--pb-color-success);
   color: white;
+  border-color: var(--pb-color-success);
 }
 
 .progress-step.active .step-number {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--pb-color-brand);
   color: white;
-  transform: scale(1.1);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  border-color: var(--pb-color-brand);
 }
 
 .progress-step span {
-  font-size: 0.9rem;
-  color: #64748b;
+  font-size: 0.8rem;
+  color: var(--pb-color-text-muted);
   font-weight: 500;
 }
 
 .progress-step.active span,
 .progress-step.completed span {
-  color: #1e293b;
+  color: var(--pb-color-heading);
   font-weight: 600;
 }
 
 .progress-line {
   width: 60px;
   height: 2px;
-  background: #e2e8f0;
+  background: var(--pb-color-border);
   margin: 0 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .progress-line.completed {
-  background: #10b981;
+  background: var(--pb-color-success);
 }
 
-.decoration-elements {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.floating-shape {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(102, 126, 234, 0.08);
-  animation: float 6s ease-in-out infinite;
-}
-
-.shape-1 {
-  width: 80px;
-  height: 80px;
-  top: 15%;
-  left: 10%;
-  animation-delay: 0s;
-}
-
-.shape-2 {
-  width: 60px;
-  height: 60px;
-  top: 65%;
-  right: 15%;
-  animation-delay: 2s;
-}
-
-.shape-3 {
-  width: 100px;
-  height: 100px;
-  bottom: 25%;
-  left: 5%;
-  animation-delay: 4s;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px) rotate(0deg);
-    opacity: 0.3;
-  }
-  50% {
-    transform: translateY(-20px) rotate(180deg);
-    opacity: 0.6;
-  }
-}
-
-/* 반응형 디자인 */
 @media (max-width: 768px) {
-  .register-wrapper {
-    padding: 1rem;
-  }
-  
-  .register-card {
-    padding: 2rem;
-  }
-  
-  .header-text h1 {
-    font-size: 1.8rem;
-  }
-  
-  .progress-indicator {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .progress-line {
-    width: 2px;
-    height: 40px;
-    margin: 0;
-  }
-  
-  .form-section {
-    padding: 1.25rem;
-  }
-
-  .password-input {
-    padding-right: 76px;
-  }
-  
-  .password-actions {
-    gap: 2px;
-  }
-  
-  .section-header {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
+  .register-wrapper { padding: 1.5rem 1rem; }
+  .register-card { padding: 1.5rem; }
+  /* 모바일에서도 가로 한 줄 — 세로로 세우면 단계 표시가 화면 하나를 다 먹는다 */
+  .progress-indicator { flex-direction: row; gap: 0; align-items: flex-start; }
+  /* 이름이 두 줄로 꺾여도 동그라미 높이가 맞도록 위쪽 기준, 선은 동그라미 가운데 높이에 */
+  .progress-line { width: 20px; height: 2px; margin: 16px 2px 0; flex-shrink: 0; }
+  .progress-step { min-width: 64px; text-align: center; }
+  .progress-step span { font-size: 12px; line-height: 1.3; white-space: nowrap; }
+  .form-section { padding: 1rem; }
+  .password-input { padding-right: 72px; }
+  .section-header { flex-wrap: wrap; gap: 8px; }
+  .section-header h3 { white-space: nowrap; }
 }
 
 @media (max-width: 480px) {
-  .register-card {
-    padding: 1.5rem;
-  }
-  
-  .header-text h1 {
-    font-size: 1.6rem;
-  }
-  
-  .submit-button {
-    width: 100%;
-    padding: 14px 20px;
-    font-size: 1rem;
-  }
-  
-  .form-input {
-    padding: 14px 14px 14px 44px;
-  }
-
-  .form-input {
-    padding: 14px 14px 14px 44px;
-  }
-  
-  .password-input {
-    padding-right: 70px;
-  }
-  
-  .input-action-btn {
-    padding: 3px;
-  }
-  
-  .input-action-btn svg {
-    width: 14px;
-    height: 14px;
-  }
+  .register-card { padding: 1.25rem; }
+  .header-text h1 { font-size: 1.3rem; }
+  .submit-button { width: 100%; }
 }
 </style>

@@ -1,0 +1,65 @@
+services:
+  back-dev:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+    container_name: back-dev
+    env_file:
+      - ./back/.env.dev
+    ports:
+      - "8080:8080"
+    depends_on:
+      db-dev:
+        condition: service_healthy
+      redis-dev:
+        condition: service_started
+    networks:
+      - dev-network
+
+  db-dev:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    container_name: db-dev
+    env_file:
+      - ./db/.env.dev
+    ports:
+      - "6603:3306"
+    volumes:
+      - db-dev-data:/var/lib/mysql
+    networks:
+      - dev-network
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  redis-dev:
+    image: redis:7-alpine
+    container_name: redis-dev
+    ports:
+      - "6379:6379"
+    networks:
+      - dev-network
+
+  front-dev:
+    build:
+      context: ./front
+      dockerfile: DevDockerfile
+    container_name: front-dev
+    ports:
+      - "80:80"
+    depends_on:
+      - back-dev
+    networks:
+      - dev-network
+
+volumes:
+  db-dev-data:
+
+networks:
+  dev-network:
+    driver: bridge
+

@@ -11,10 +11,7 @@
       <section class="user-info-section">
         <div class="section-header">
           <div class="section-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="8" r="5" stroke="currentColor" stroke-width="2"/>
-              <path d="M20 21a8 8 0 1 0-16 0" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhUser weight="duotone" :size="20" />
           </div>
           <h2 class="section-title">계정 정보</h2>
         </div>
@@ -24,6 +21,10 @@
             <label class="info-label">이름</label>
             <div class="info-value">
               <span class="value-text">{{ userInfo.nameUser }}</span>
+              <button @click="openNameModal" class="edit-button">
+                <PhNotePencil weight="duotone" :size="16" />
+                변경
+              </button>
             </div>
           </div>
 
@@ -35,16 +36,31 @@
           </div>
 
           <div class="info-item">
+            <label class="info-label">디스코드 ID</label>
+            <div class="info-value">
+              <span class="value-text">{{ userInfo.dcUser || '-' }}</span>
+              <button @click="openDiscordModal" class="edit-button">
+                <PhNotePencil weight="duotone" :size="16" />
+                변경
+              </button>
+            </div>
+          </div>
+
+          <div class="info-item">
             <label class="info-label">비밀번호</label>
             <div class="info-value">
               <span class="value-text">••••••••</span>
               <button @click="openPasswordModal" class="edit-button">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2"/>
-                  <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2"/>
-                </svg>
+                <PhNotePencil weight="duotone" :size="16" />
                 변경
               </button>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <label class="info-label">캠퍼스</label>
+            <div class="info-value">
+              <span class="value-text">{{ userInfo.campusName || '-' }}</span>
             </div>
           </div>
 
@@ -54,15 +70,54 @@
               <span class="value-text">{{ currentCourse }}</span>
             </div>
           </div>
+
+          <div class="info-item">
+            <label class="info-label">계정 상태</label>
+            <div class="info-value">
+              <span class="value-text" :class="getUserStatusClass()">{{ getUserStatusText() }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 과정 종료 안내 -->
+        <div v-if="!userInfo.seqCourse && userInfo.statusUser === 'stop'" class="course-ended-notice">
+          <div class="notice-icon">⚠️</div>
+          <div class="notice-content">
+            <h4>과정이 종료되었습니다</h4>
+            <p>수강하신 과정이 종료되어 도서 대출 및 반납 서비스를 이용하실 수 없습니다. 회원 탈퇴를 진행해주세요.</p>
+          </div>
+        </div>
+
+        <!-- 정지 상태 안내 -->
+        <div v-else-if="userInfo.statusUser === 'stop'" class="status-stop-notice">
+          <div class="notice-icon">🚫</div>
+          <div class="notice-content">
+            <h4>계정이 정지 상태입니다</h4>
+            <p>현재 계정이 정지 상태로 도서 대출 및 반납 서비스를 이용하실 수 없습니다.</p>
+          </div>
+        </div>
+
+        <!-- 연체 상태 안내 -->
+        <div v-else-if="userInfo.statusUser === 'overdue'" class="status-overdue-notice">
+          <div class="notice-icon">🚨</div>
+          <div class="notice-content">
+            <h4>연체 중인 도서가 있습니다</h4>
+            <p>연체된 도서를 반납하시면 다시 대출 서비스를 이용하실 수 있습니다.</p>
+          </div>
+        </div>
+
+        <div class="account-actions">
+          <button @click="openWithdrawModal" class="withdraw-button">
+            <PhTrash weight="duotone" :size="16" />
+            회원 탈퇴
+          </button>
         </div>
       </section>
 
       <section class="favorites-section">
         <div class="section-header">
           <div class="section-icon favorites">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="currentColor"/>
-            </svg>
+            <PhHeart weight="duotone" :size="20" />
           </div>
           <h2 class="section-title">나의 찜 목록</h2>
           <span class="count-badge">{{ favoriteBooks.length }}</span>
@@ -70,9 +125,7 @@
 
         <div v-if="favoriteBooks.length === 0" class="empty-state">
           <div class="empty-icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhHeart weight="duotone" :size="48" />
           </div>
           <p class="empty-text">아직 찜한 도서가 없습니다</p>
           <p class="empty-subtext">마음에 드는 도서를 찜해보세요</p>
@@ -94,9 +147,7 @@
               class="favorite-button active"
               title="찜 해제"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="currentColor"/>
-              </svg>
+              <PhHeart weight="duotone" :size="20" />
             </button>
           </div>
         </div>
@@ -105,10 +156,7 @@
       <section class="rental-history-section">
         <div class="section-header">
           <div class="section-icon rental">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2"/>
-              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhBook weight="duotone" :size="20" />
           </div>
           <h2 class="section-title">나의 서비스 이용 기록</h2>
           <span class="count-badge">{{ rentalSummary.totalBorrowed }}</span>
@@ -135,10 +183,7 @@
 
         <div v-if="rentalHistory.length === 0" class="empty-state">
           <div class="empty-icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2"/>
-              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhBook weight="duotone" :size="48" />
           </div>
           <p class="empty-text">이용 내역이 없습니다</p>
           <p class="empty-subtext">도서를 대출해보세요</p>
@@ -152,7 +197,7 @@
               <div class="history-details">
                 <p class="history-date">대여일: {{ formatDate(record.borrowDate) }}</p>
                 <p v-if="record.returnDate" class="history-date">반납일: {{ formatDate(record.returnDate) }}</p>
-                <p class="history-status" :class="record.status">{{ getStatusText(record.status) }}</p>
+                <p class="history-status" :class="record.status">{{ getRentalStatusText(record.status) }}</p>
               </div>
             </div>
           </div>
@@ -160,14 +205,12 @@
       </section>
     </div>
 
-    <div v-if="passwordModal" class="modal-overlay" @click="closePasswordModal">
+    <div v-if="passwordModal" class="modal-overlay" v-modal-backdrop="closePasswordModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>비밀번호 변경</h3>
           <button @click="closePasswordModal" class="close-button">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <PhX weight="duotone" :size="24" />
           </button>
         </div>
         <form @submit.prevent="changePassword" class="modal-form">
@@ -193,10 +236,7 @@
                 class="clear-button"
                 title="입력 내용 지우기"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                  <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
-                </svg>
+                <PhXCircle weight="duotone" :size="16" />
               </button>
                 <button 
                   type="button"
@@ -204,14 +244,8 @@
                   class="toggle-password-button"
                   :title="showCurrentPassword ? '비밀번호 숨기기' : '비밀번호 보기'"
                 >
-                  <svg v-if="showCurrentPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2"/>
-                    <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2"/>
-                  </svg>
-                  <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/>
-                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-                  </svg>
+                  <PhEyeSlash weight="duotone" :size="16" v-if="showCurrentPassword" />
+                  <PhEye weight="duotone" :size="16" v-else />
                 </button>
               </div>
             </div>
@@ -242,10 +276,7 @@
                 class="clear-button"
                 title="입력 내용 지우기"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                  <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
-                </svg>
+                <PhXCircle weight="duotone" :size="16" />
               </button>
                 <button 
                   type="button"
@@ -253,14 +284,8 @@
                   class="toggle-password-button"
                   :title="showNewPassword ? '비밀번호 숨기기' : '비밀번호 보기'"
                 >
-                  <svg v-if="showNewPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2"/>
-                    <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2"/>
-                  </svg>
-                  <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/>
-                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-                  </svg>
+                  <PhEyeSlash weight="duotone" :size="16" v-if="showNewPassword" />
+                  <PhEye weight="duotone" :size="16" v-else />
                 </button>
               </div>
             </div>
@@ -291,10 +316,7 @@
                 class="clear-button"
                 title="입력 내용 지우기"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                  <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2"/>
-                </svg>
+                <PhXCircle weight="duotone" :size="16" />
               </button>
                 <button 
                   type="button"
@@ -302,14 +324,8 @@
                   class="toggle-password-button"
                   :title="showConfirmPassword ? '비밀번호 숨기기' : '비밀번호 보기'"
                 >
-                  <svg v-if="showConfirmPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" stroke-width="2"/>
-                    <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2"/>
-                  </svg>
-                  <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2"/>
-                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-                  </svg>
+                  <PhEyeSlash weight="duotone" :size="16" v-if="showConfirmPassword" />
+                  <PhEye weight="duotone" :size="16" v-else />
                 </button>
               </div>
             </div>
@@ -327,27 +343,138 @@
         </form>
       </div>
     </div>
+
+    <!-- 이름 변경 모달 -->
+    <div v-if="nameModal" class="modal-overlay" v-modal-backdrop="closeNameModal">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>이름 변경</h3>
+          <button @click="closeNameModal" class="close-button">
+            <PhX weight="duotone" :size="24" />
+          </button>
+        </div>
+        <form @submit.prevent="changeName" class="modal-form">
+          <div class="input-group">
+            <label class="input-label">새 이름</label>
+            <div class="input-container">
+              <input
+                type="text"
+                v-model="nameForm.newName"
+                class="form-input"
+                :class="{ error: nameForm.errors.newName }"
+                placeholder="변경할 이름을 입력하세요"
+              >
+            </div>
+            <div v-if="nameForm.errors.newName" class="error-message">
+              {{ nameForm.errors.newName }}
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button type="button" @click="closeNameModal" class="cancel-button">취소</button>
+            <button type="submit" class="submit-button" :disabled="nameForm.loading">
+              {{ nameForm.loading ? '변경 중...' : '변경하기' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 디스코드 ID 변경 모달 -->
+    <div v-if="discordModal" class="modal-overlay" v-modal-backdrop="closeDiscordModal">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>디스코드 ID 변경</h3>
+          <button @click="closeDiscordModal" class="close-button">
+            <PhX weight="duotone" :size="24" />
+          </button>
+        </div>
+        <form @submit.prevent="changeDiscord" class="modal-form">
+          <div class="input-group">
+            <label class="input-label">새 디스코드 ID</label>
+            <div class="input-container">
+              <input
+                type="text"
+                v-model="discordForm.newDiscord"
+                class="form-input"
+                :class="{ error: discordForm.errors.newDiscord }"
+                placeholder="변경할 디스코드 ID를 입력하세요"
+              >
+            </div>
+            <div v-if="discordForm.errors.newDiscord" class="error-message">
+              {{ discordForm.errors.newDiscord }}
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button type="button" @click="closeDiscordModal" class="cancel-button">취소</button>
+            <button type="submit" class="submit-button" :disabled="discordForm.loading">
+              {{ discordForm.loading ? '변경 중...' : '변경하기' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 회원 탈퇴 모달 -->
+    <div v-if="withdrawModal" class="modal-overlay" v-modal-backdrop="closeWithdrawModal">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3 class="modal-title">회원 탈퇴</h3>
+          <button @click="closeWithdrawModal" class="close-button">
+            <PhXCircle weight="duotone" :size="20" />
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="withdraw-warning">
+            <PhWarningCircle weight="duotone" :size="48" />
+            <h4>정말 탈퇴하시겠습니까?</h4>
+            <p>회원 탈퇴 시 다음 사항을 확인해주세요:</p>
+            <ul class="withdraw-notice-list">
+              <li>대출 중인 도서가 있으면 탈퇴할 수 없습니다.</li>
+              <li>연체 중인 도서가 있으면 탈퇴할 수 없습니다.</li>
+              <li>탈퇴 후 모든 개인정보가 삭제되며 복구할 수 없습니다.</li>
+              <li>탈퇴 후 찜 목록, 대출 기록 등 모든 데이터가 삭제됩니다.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" @click="closeWithdrawModal" class="cancel-button">취소</button>
+          <button type="button" @click="handleWithdraw" class="withdraw-confirm-button" :disabled="withdrawLoading">
+            {{ withdrawLoading ? '탈퇴 중...' : '탈퇴하기' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
+import { vModalBackdrop } from '@/utils/modalBackdrop'
+import { PhBook, PhEye, PhEyeSlash, PhHeart, PhNotePencil, PhTrash, PhUser, PhWarningCircle, PhX, PhXCircle } from '@phosphor-icons/vue'
 import { ref, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
-import axios from 'axios'
+import * as userApi from '@/api/user'
+import { updateProfile } from '@/api/user'
+import * as favorApi from '@/api/favor'
+import * as historyApi from '@/api/history'
+import * as courseApi from '@/api/course'
 import { useRouter } from 'vue-router'
+import { swAlert, swConfirm } from '@/utils/sweetAlert'
+import { handleApiError } from '@/utils/apiErrorHandler'
+import { formatDate } from '@/utils/dateFormatter'
+import { getRentalStatusText } from '@/utils/statusMapper'
 
 const router = useRouter()
-
-const jwtToken = ref(localStorage.getItem('jwtToken'))
-
-// API 기본 URL
-const API_BASE_URL = 'http://localhost:8080'
 
 // 유저 정보
 const userInfo = ref({
   seqCourse: null,
+  seqCampus: null,
+  campusName: '',
   idUser: '',
   nameUser: '',
-  dcUser: ''
+  dcUser: '',
+  statusUser: ''
 })
 
 // 현재 과정명
@@ -368,7 +495,9 @@ const rentalSummary = ref({
 // 모달 상태
 const passwordModal = ref(false)
 const discordModal = ref(false)
+const nameModal = ref(false)
 const courseModal = ref(false)
+const withdrawModal = ref(false)
 
 // 과정 드롭다운
 const courseDropdownOpen = ref(false)
@@ -395,12 +524,18 @@ const passwordForm = ref({
 })
 
 const discordForm = ref({
-  password: '',
   newDiscord: '',
   loading: false,
   errors: {
-    password: '',
     newDiscord: ''
+  }
+})
+
+const nameForm = ref({
+  newName: '',
+  loading: false,
+  errors: {
+    newName: ''
   }
 })
 
@@ -414,10 +549,11 @@ const courseForm = ref({
   }
 })
 
+const withdrawLoading = ref(false)
+
 // API 헤더 설정
 const getHeaders = () => ({
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${jwtToken.value}`
+  'Content-Type': 'application/json'
 })
 
 // 과정 검색 필터링
@@ -429,7 +565,23 @@ const filteredCourseList = computed(() => {
   )
 })
 
-onMounted(() => {
+// 사용자 인증 확인
+const checkUserAuth = async () => {
+  const userType = sessionStorage.getItem('userType')
+
+  if (userType !== 'user') {
+    await swAlert('로그인이 필요합니다.', 'info')
+    router.push('/login')
+    return false
+  }
+  return true
+}
+
+onMounted(async () => {
+  if (!(await checkUserAuth())) {
+    return
+  }
+
   loadUserData()
   loadFavoriteBooks()
   loadRentalHistory()
@@ -446,76 +598,64 @@ onBeforeUnmount(() => {
 // 유저 정보 로드
 async function loadUserData() {
   try {
-    const response = await fetch(`${API_BASE_URL}/users/me`, {
-      headers: getHeaders()
-    })
-    
-    if (response.ok) {
-      const data = await response.json()
-      userInfo.value = data
-      
-      // 현재 과정명 설정 (과정 목록에서 찾아서 설정)
+    const response = await userApi.getMe()
+    const data = response.data.data
+    userInfo.value = data
+
+    // 현재 과정명 설정 (과정 목록에서 찾아서 설정)
+    if (data.seqCourse) {
       await getCourseList()
       const course = courseList.value.find(c => c.seqCourse === data.seqCourse)
       if (course) {
         currentCourse.value = `${course.title} ${course.trprDegr}기`
+      } else {
+        currentCourse.value = '과정 정보 없음'
       }
+    } else {
+      currentCourse.value = '과정 정보 없음 (과정 종료)'
     }
   } catch (error) {
-    console.error('유저 정보 로드 실패:', error)
+    if (error.response?.status === 401) {
+      await swAlert('로그인이 필요하거나 세션이 만료되었습니다.', 'warning')
+      sessionStorage.removeItem('userType')
+      sessionStorage.removeItem('campusId')
+      router.push('/login')
+    }
   }
 }
 
 // 찜한 도서 목록 로드
 async function loadFavoriteBooks() {
   try {
-    const response = await fetch(`${API_BASE_URL}/favor`, {
-      headers: getHeaders()
-    })
-    
-    if (response.ok) {
-      const data = await response.json()
-      favoriteBooks.value = data
-    }
+    const response = await favorApi.getAll()
+    favoriteBooks.value = response.data.data || []
   } catch (error) {
-    console.error('찜 목록 로드 실패:', error)
+    console.error('찜 목록 로드 실패:', error.response?.data?.msg)
   }
 }
 
 // 대여 기록 로드
 async function loadRentalHistory() {
   try {
-    const response = await fetch(`${API_BASE_URL}/history/me`, {
-      headers: getHeaders()
-    })
-    
-    if (response.ok) {
-      const data = await response.json()
-      rentalHistory.value = data.history || []
-      rentalSummary.value = data.summary || {
-        totalBorrowed: 0,
-        totalReturned: 0,
-        currentlyBorrowed: 0,
-        overdueCount: 0
-      }
+    const response = await historyApi.getMe()
+    const data = response.data.data
+    rentalHistory.value = data?.history || []
+    rentalSummary.value = data?.summary || {
+      totalBorrowed: 0,
+      totalReturned: 0,
+      currentlyBorrowed: 0,
+      overdueCount: 0
     }
   } catch (error) {
-    console.error('대여 기록 로드 실패:', error)
+    console.error('대여 기록 로드 실패:', error.response?.data?.msg)
   }
 }
 
 // 과정 목록 가져오기
 async function getCourseList() {
   try {
-    const token = localStorage.getItem('jwtToken')
-    const res = await fetch('http://localhost:8080/api/work24/course', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      }
-    })
-    const data = await res.json()
+    const res = await courseApi.getWork24()
+    const data = res.data.data
     const apiCoursesRaw = data?.srchList || []
 
     if (apiCoursesRaw.length === 0) return
@@ -532,20 +672,16 @@ async function getCourseList() {
       }
     })
 
-    const dbRes = await fetch(`${API_BASE_URL}/courses`)
-    const dbCourses = await dbRes.json()
+    const dbRes = await courseApi.getAll()
+    const dbCourses = dbRes.data.data
 
     for (const apiItem of apiCourses) {
       const exists = dbCourses.find(dbItem => dbItem.nameCourse === apiItem.nameCourse)
       if (!exists) {
-        await fetch(`${API_BASE_URL}/courses`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nameCourse: apiItem.nameCourse,
-            startDtCourse: apiItem.startDtCourse,
-            finishDtCourse: apiItem.finishDtCourse
-          })
+        await courseApi.create({
+          nameCourse: apiItem.nameCourse,
+          startDtCourse: apiItem.startDtCourse,
+          finishDtCourse: apiItem.finishDtCourse
         })
       }
     }
@@ -553,9 +689,7 @@ async function getCourseList() {
     for (const dbItem of dbCourses) {
       const exists = apiCourses.find(apiItem => apiItem.nameCourse === dbItem.nameCourse)
       if (!exists) {
-        await fetch(`${API_BASE_URL}/courses/${dbItem.seqCourse}`, {
-          method: 'DELETE'
-        })
+        await courseApi.remove(dbItem.seqCourse)
       }
     }
 
@@ -567,21 +701,17 @@ async function getCourseList() {
           dbItem.finishDtCourse !== apiItem.finishDtCourse
 
         if (isDifferent) {
-          await fetch(`${API_BASE_URL}/courses/${dbItem.seqCourse}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              nameCourse: apiItem.nameCourse,
-              startDtCourse: apiItem.startDtCourse,
-              finishDtCourse: apiItem.finishDtCourse
-            })
+          await courseApi.update(dbItem.seqCourse, {
+            nameCourse: apiItem.nameCourse,
+            startDtCourse: apiItem.startDtCourse,
+            finishDtCourse: apiItem.finishDtCourse
           })
         }
       }
     }
 
-    const finalDbRes = await fetch(`${API_BASE_URL}/courses`)
-    const finalDbCourses = await finalDbRes.json()
+    const finalDbRes = await courseApi.getAll()
+    const finalDbCourses = finalDbRes.data.data
 
     courseList.value = finalDbCourses
       .map(item => {
@@ -606,7 +736,7 @@ async function getCourseList() {
       .sort((a, b) => a.title.localeCompare(b.title, 'ko'))
 
   } catch (err) {
-    console.error('API 조회 실패:', err)
+    console.warn('과정 조회 실패:', err.response?.data)
   }
 }
 
@@ -618,65 +748,43 @@ function goToBookDetail(seqBook) {
 // 찜 해제
 async function removeFavorite(seqBook) {
   try {
-    if (!jwtToken.value) {
-      alert('로그인이 필요합니다.')
+    if (!sessionStorage.getItem('userType')) {
+      await swAlert('로그인이 필요합니다.', 'info')
       router.push('/login')
       return
     }
-    
-    console.log('삭제할 seqBook:', seqBook)
 
-    const response = await axios.delete('http://localhost:8080/favor', {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${jwtToken.value}`
-      },
-      data: seqBook
-    })
+    const response = await favorApi.remove(seqBook)
 
     if (response.status === 200) {
       favoriteBooks.value = favoriteBooks.value.filter(book => book.seqBook !== seqBook)
     }
   } catch (error) {
-    console.error('찜 해제 실패:', error)
+    // console.error('찜 해제 실패:', error)
     
     if (error.response) {
       const status = error.response.status
-      const message = error.response.data || '오류가 발생했습니다.'
+      const message = error.response.data?.msg || '오류가 발생했습니다.'
       
       if (status === 403) {
-        alert(message)
+        await swAlert(message, 'warning')
       } else if (status === 401) {
-        alert('로그인이 필요하거나 토큰이 만료되었습니다.')
-        localStorage.removeItem('jwtToken')
+        await swAlert('로그인이 필요하거나 세션이 만료되었습니다.', 'warning')
+        sessionStorage.removeItem('userType')
+        sessionStorage.removeItem('campusId')
         router.push('/login')
       } else {
-        alert(`오류: ${message}`)
+        await swAlert(`오류: ${message}`, 'error')
       }
     } else if (error.request) {
-      alert('서버와의 연결에 실패했습니다. 잠시 후 다시 시도해주세요.')
+      await swAlert('서버와의 연결에 실패했습니다. 잠시 후 다시 시도해주세요.', 'error')
     } else {
-      alert('찜 해제 중 오류가 발생했습니다.')
+      await swAlert('찜 해제 중 오류가 발생했습니다.', 'error')
     }
   }
 }
 
 // 날짜 포맷팅
-function formatDate(dateString) {
-  if (!dateString) return '-'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('ko-KR')
-}
-
-// 상태 텍스트 변환
-function getStatusText(status) {
-  const statusMap = {
-    'booked': '대여중',
-    'returned': '반납완료',
-    'overdue': '연체'
-  }
-  return statusMap[status] || status
-}
 
 // 모달 열기/닫기 함수들
 function openPasswordModal() {
@@ -689,6 +797,59 @@ function closePasswordModal() {
   resetPasswordForm()
 }
 
+function openWithdrawModal() {
+  withdrawModal.value = true
+}
+
+function closeWithdrawModal() {
+  withdrawModal.value = false
+}
+
+function getUserStatusText() {
+  const statusMap = {
+    'available': '정상',
+    'overdue': '연체',
+    'stop': '정지'
+  }
+  return statusMap[userInfo.value.statusUser] || userInfo.value.statusUser || '알 수 없음'
+}
+
+function getUserStatusClass() {
+  const statusClassMap = {
+    'available': 'status-available',
+    'overdue': 'status-overdue',
+    'stop': 'status-stop'
+  }
+  return statusClassMap[userInfo.value.statusUser] || ''
+}
+
+async function handleWithdraw() {
+  if (!(await swConfirm('정말로 탈퇴하시겠습니까?', '이 작업은 되돌릴 수 없습니다.', { isDangerous: true }))) {
+    return
+  }
+
+  withdrawLoading.value = true
+
+  try {
+    await userApi.deleteAccount()
+
+    sessionStorage.removeItem('userType')
+    sessionStorage.removeItem('campusId')
+
+    await swAlert('회원 탈퇴가 완료되었습니다.', 'success')
+
+    // 강제 새로고침으로 메인 페이지 이동 (히스토리 없이)
+    if (window.location.pathname === '/') {
+      window.location.reload()
+    } else {
+      window.location.replace('/')
+    }
+  } catch (error) {
+    await handleApiError(error, '회원 탈퇴 중 오류가 발생했습니다.')
+    withdrawLoading.value = false
+  }
+}
+
 function openDiscordModal() {
   discordModal.value = true
   resetDiscordForm()
@@ -697,6 +858,16 @@ function openDiscordModal() {
 function closeDiscordModal() {
   discordModal.value = false
   resetDiscordForm()
+}
+
+function openNameModal() {
+  nameModal.value = true
+  nameForm.value = { newName: userInfo.value.nameUser, loading: false, errors: { newName: '' } }
+}
+
+function closeNameModal() {
+  nameModal.value = false
+  nameForm.value = { newName: '', loading: false, errors: { newName: '' } }
 }
 
 function openCourseModal() {
@@ -731,11 +902,9 @@ function resetPasswordForm() {
 
 function resetDiscordForm() {
   discordForm.value = {
-    password: '',
-    newDiscord: userInfo.value.dcUser,
+    newDiscord: userInfo.value.dcUser || '',
     loading: false,
     errors: {
-      password: '',
       newDiscord: ''
     }
   }
@@ -819,26 +988,75 @@ function handleKeydown(event) {
     // 모달이 열려있으면 모달 닫기
     if (passwordModal.value) {
       closePasswordModal()
+    } else if (nameModal.value) {
+      closeNameModal()
     } else if (discordModal.value) {
       closeDiscordModal()
     } else if (courseModal.value) {
       closeCourseModal()
+    } else if (withdrawModal.value) {
+      closeWithdrawModal()
     }
+  }
+}
+
+// 이름 변경
+async function changeName() {
+  nameForm.value.errors.newName = ''
+  const trimmed = nameForm.value.newName?.trim()
+  if (!trimmed) {
+    nameForm.value.errors.newName = '이름을 입력해주세요.'
+    return
+  }
+  if (trimmed === userInfo.value.nameUser) {
+    nameForm.value.errors.newName = '현재 이름과 동일합니다.'
+    return
+  }
+  nameForm.value.loading = true
+  try {
+    await updateProfile({ nameUser: trimmed })
+    userInfo.value.nameUser = trimmed
+    await swAlert('이름이 성공적으로 변경되었습니다.', 'success')
+    closeNameModal()
+  } catch (error) {
+    await handleApiError(error, '이름 변경 중 오류가 발생했습니다.')
+  } finally {
+    nameForm.value.loading = false
+  }
+}
+
+// 디스코드 ID 변경
+async function changeDiscord() {
+  discordForm.value.errors.newDiscord = ''
+  const trimmed = discordForm.value.newDiscord?.trim()
+  if (!trimmed) {
+    discordForm.value.errors.newDiscord = '디스코드 ID를 입력해주세요.'
+    return
+  }
+  if (trimmed === userInfo.value.dcUser) {
+    discordForm.value.errors.newDiscord = '현재 디스코드 ID와 동일합니다.'
+    return
+  }
+  discordForm.value.loading = true
+  try {
+    await updateProfile({ dcUser: trimmed })
+    userInfo.value.dcUser = trimmed
+    await swAlert('디스코드 ID가 성공적으로 변경되었습니다.', 'success')
+    closeDiscordModal()
+  } catch (error) {
+    await handleApiError(error, '디스코드 ID 변경 중 오류가 발생했습니다.')
+  } finally {
+    discordForm.value.loading = false
   }
 }
 
 // 비밀번호 검증
 async function validatePassword(password) {
   try {
-    const response = await fetch(`${API_BASE_URL}/users/validate`, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({ password })
-    })
-
-    return response.ok
+    const response = await userApi.validatePassword(password)
+    return response.data.data === true
   } catch (error) {
-    console.error('비밀번호 검증 실패:', error)
+    console.error('비밀번호 검증 중 오류:', error)
     return false
   }
 }
@@ -885,21 +1103,11 @@ async function changePassword() {
     }
 
     // 비밀번호 변경
-    const response = await fetch(`${API_BASE_URL}/users/password`, {
-      method: 'PUT',
-      headers: getHeaders(),
-      body: JSON.stringify({ newPassword: passwordForm.value.newPassword })
-    })
-
-    if (response.ok) {
-      alert('비밀번호가 성공적으로 변경되었습니다.')
-      closePasswordModal()
-    } else {
-      alert('비밀번호 변경에 실패했습니다.')
-    }
+    await userApi.updatePassword(passwordForm.value.newPassword)
+    await swAlert('비밀번호가 성공적으로 변경되었습니다.', 'success')
+    closePasswordModal()
   } catch (error) {
-    console.error('비밀번호 변경 실패:', error)
-    alert('비밀번호 변경 중 오류가 발생했습니다.')
+    await handleApiError(error, '비밀번호 변경 중 오류가 발생했습니다.')
   } finally {
     passwordForm.value.loading = false
   }
@@ -909,8 +1117,8 @@ async function changePassword() {
 <style scoped>
 .mypage-wrapper {
   min-height: 100vh;
-  background: #fafafa;
-  padding: 2rem 0;
+  background: var(--pb-color-canvas);
+  padding: 20px 0 40px;
 }
 
 .mypage-container {
@@ -927,13 +1135,13 @@ async function changePassword() {
 .header-content h1 {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--pb-color-heading);
   margin: 0 0 0.5rem 0;
 }
 
 .page-subtitle {
   font-size: 1.1rem;
-  color: #6b7280;
+  color: var(--pb-color-text-muted);
   margin: 0;
 }
 
@@ -943,7 +1151,7 @@ async function changePassword() {
   gap: 12px;
   margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--pb-color-border);
 }
 
 .section-icon {
@@ -952,34 +1160,34 @@ async function changePassword() {
   justify-content: center;
   width: 40px;
   height: 40px;
-  background: #f3f4f6;
-  border-radius: 8px;
-  color: #374151;
+  background: var(--pb-color-surface-subtle);
+  border-radius: var(--pb-radius-sm);
+  color: var(--pb-color-text);
 }
 
 .section-icon.favorites {
-  background: #fef2f2;
-  color: #dc2626;
+  background: var(--pb-color-danger-soft);
+  color: var(--pb-color-danger);
 }
 
 .section-icon.rental {
-  background: #f0f9ff;
-  color: #0284c7;
+  background: var(--pb-color-brand-soft);
+  color: var(--pb-color-brand);
 }
 
 .section-title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--pb-color-heading);
   margin: 0;
   flex: 1;
 }
 
 .count-badge {
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--pb-color-surface-muted);
+  color: var(--pb-color-text);
   padding: 4px 8px;
-  border-radius: 12px;
+  border-radius: var(--pb-radius-sm);
   font-size: 0.875rem;
   font-weight: 500;
   min-width: 24px;
@@ -989,11 +1197,11 @@ async function changePassword() {
 .user-info-section,
 .favorites-section,
 .rental-history-section {
-  background: white;
-  border-radius: 12px;
+  background: var(--pb-color-surface);
+  border-radius: var(--pb-radius-md);
   padding: 2rem;
   margin-bottom: 2rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--pb-color-border);
 }
 
 .user-info-grid {
@@ -1007,7 +1215,7 @@ async function changePassword() {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 0;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--pb-color-surface-subtle);
 }
 
 .info-item:last-child {
@@ -1016,7 +1224,7 @@ async function changePassword() {
 
 .info-label {
   font-weight: 500;
-  color: #374151;
+  color: var(--pb-color-text);
   min-width: 120px;
 }
 
@@ -1028,7 +1236,7 @@ async function changePassword() {
 }
 
 .value-text {
-  color: #1a1a1a;
+  color: var(--pb-color-heading);
   flex: 1;
   text-align: right;
 }
@@ -1037,29 +1245,29 @@ async function changePassword() {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: #f3f4f6;
+  background: var(--pb-color-surface-subtle);
   border: none;
   padding: 8px 12px;
-  border-radius: 6px;
+  border-radius: var(--pb-radius-xs);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.15s;
   font-size: 0.875rem;
-  color: #374151;
+  color: var(--pb-color-text);
 }
 
 .edit-button:hover {
-  background: #e5e7eb;
+  background: var(--pb-color-surface-muted);
 }
 
 .empty-state {
   text-align: center;
   padding: 3rem 2rem;
-  color: #6b7280;
+  color: var(--pb-color-text-muted);
 }
 
 .empty-icon {
   margin-bottom: 1rem;
-  color: #d1d5db;
+  color: var(--pb-color-border-strong);
 }
 
 .empty-text {
@@ -1083,15 +1291,15 @@ async function changePassword() {
   align-items: center;
   justify-content: space-between;
   padding: 1rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .book-card:hover {
-  border-color: #d1d5db;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-color: var(--pb-color-border-strong);
+  box-shadow: var(--pb-shadow-xs);
 }
 
 .book-info {
@@ -1101,14 +1309,14 @@ async function changePassword() {
 .book-title {
   font-size: 1rem;
   font-weight: 500;
-  color: #1a1a1a;
+  color: var(--pb-color-heading);
   margin: 0 0 0.25rem 0;
   line-height: 1.4;
 }
 
 .book-author {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--pb-color-text-muted);
   margin: 0;
 }
 
@@ -1117,17 +1325,17 @@ async function changePassword() {
   border: none;
   cursor: pointer;
   padding: 8px;
-  border-radius: 4px;
-  transition: all 0.2s;
-  color: #d1d5db;
+  border-radius: var(--pb-radius-xs);
+  transition: background 0.15s;
+  color: var(--pb-color-border-strong);
 }
 
 .favorite-button.active {
-  color: #dc2626;
+  color: var(--pb-color-danger);
 }
 
 .favorite-button:hover {
-  background: #f3f4f6;
+  background: var(--pb-color-surface-subtle);
 }
 
 .rental-stats {
@@ -1138,38 +1346,37 @@ async function changePassword() {
 }
 
 .stat-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  background: var(--pb-color-surface-subtle);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
   padding: 1.5rem;
   text-align: center;
-  transition: all 0.2s;
+  transition: border-color 0.15s;
 }
 
 .stat-card:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-color: var(--pb-color-border-strong);
 }
 
 .stat-card.warning {
-  background: #fef2f2;
-  border-color: #fecaca;
+  background: var(--pb-color-danger-soft);
+  border-color: var(--pb-color-danger-muted);
 }
 
 .stat-card.warning .stat-value {
-  color: #dc2626;
+  color: var(--pb-color-danger);
 }
 
 .stat-value {
   font-size: 2rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--pb-color-heading);
   margin-bottom: 0.5rem;
 }
 
 .stat-label {
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--pb-color-text-muted);
   font-weight: 500;
 }
 
@@ -1181,21 +1388,21 @@ async function changePassword() {
 
 .history-item {
   padding: 1.5rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
 }
 
 .history-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--pb-color-heading);
   margin: 0 0 0.5rem 0;
   line-height: 1.4;
 }
 
 .history-author {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--pb-color-text-muted);
   margin: 0 0 1rem 0;
 }
 
@@ -1208,7 +1415,7 @@ async function changePassword() {
 
 .history-date {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--pb-color-text-muted);
   margin: 0;
 }
 
@@ -1218,22 +1425,22 @@ async function changePassword() {
   margin: 0;
   display: inline-block;
   padding: 4px 12px;
-  border-radius: 12px;
+  border-radius: var(--pb-radius-sm);
 }
 
 .history-status.booked {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: var(--pb-color-brand-soft);
+  color: var(--pb-color-brand-strong);
 }
 
 .history-status.returned {
-  background: #dcfce7;
-  color: #16a34a;
+  background: var(--pb-color-success-soft);
+  color: var(--pb-color-success);
 }
 
 .history-status.overdue {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--pb-color-danger-soft);
+  color: var(--pb-color-danger);
 }
 
 .modal-overlay {
@@ -1251,8 +1458,8 @@ async function changePassword() {
 }
 
 .modal-content {
-  background: white;
-  border-radius: 12px;
+  background: var(--pb-color-surface);
+  border-radius: var(--pb-radius-md);
   padding: 2rem;
   width: 100%;
   max-width: 500px;
@@ -1266,13 +1473,13 @@ async function changePassword() {
   justify-content: space-between;
   margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--pb-color-border);
 }
 
 .modal-header h3 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--pb-color-heading);
   margin: 0;
 }
 
@@ -1281,14 +1488,14 @@ async function changePassword() {
   border: none;
   cursor: pointer;
   padding: 4px;
-  border-radius: 4px;
-  color: #6b7280;
-  transition: all 0.2s;
+  border-radius: var(--pb-radius-xs);
+  color: var(--pb-color-text-muted);
+  transition: background 0.15s, color 0.15s;
 }
 
 .close-button:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--pb-color-surface-subtle);
+  color: var(--pb-color-text);
 }
 
 .modal-form {
@@ -1305,11 +1512,10 @@ async function changePassword() {
 
 .input-label {
   font-weight: 500;
-  color: #374151;
+  color: var(--pb-color-text);
   font-size: 0.875rem;
 }
 
-/* 개선된 입력 필드 스타일 */
 .input-container {
   position: relative;
   display: flex;
@@ -1319,21 +1525,23 @@ async function changePassword() {
 .form-input {
   width: 100%;
   padding: 12px 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
   font-size: 1rem;
-  transition: all 0.2s;
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text);
+  transition: border-color 0.15s, box-shadow 0.15s;
   outline: none;
 }
 
 .form-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--pb-color-brand);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-soft);
 }
 
 .form-input.error {
-  border-color: #dc2626;
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+  border-color: var(--pb-color-danger);
+  box-shadow: 0 0 0 3px var(--pb-color-danger-soft);
 }
 
 .form-input.has-buttons {
@@ -1353,17 +1561,17 @@ async function changePassword() {
   border: none;
   cursor: pointer;
   padding: 4px;
-  border-radius: 4px;
-  color: #9ca3af;
-  transition: all 0.2s;
+  border-radius: var(--pb-radius-xs);
+  color: var(--pb-color-text-soft);
+  transition: color 0.15s, background 0.15s;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .clear-button:hover {
-  color: #6b7280;
-  background: #f3f4f6;
+  color: var(--pb-color-text-muted);
+  background: var(--pb-color-surface-subtle);
 }
 
 .toggle-password-button {
@@ -1371,22 +1579,22 @@ async function changePassword() {
   border: none;
   cursor: pointer;
   padding: 4px;
-  border-radius: 4px;
-  color: #9ca3af;
-  transition: all 0.2s;
+  border-radius: var(--pb-radius-xs);
+  color: var(--pb-color-text-soft);
+  transition: color 0.15s, background 0.15s;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .toggle-password-button:hover {
-  color: #6b7280;
-  background: #f3f4f6;
+  color: var(--pb-color-text-muted);
+  background: var(--pb-color-surface-subtle);
 }
 
 .error-message {
   font-size: 0.875rem;
-  color: #dc2626;
+  color: var(--pb-color-danger);
 }
 
 .modal-actions {
@@ -1399,84 +1607,208 @@ async function changePassword() {
 .cancel-button,
 .submit-button {
   padding: 12px 24px;
-  border-radius: 8px;
+  border-radius: var(--pb-radius-sm);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.15s;
 }
 
 .cancel-button {
-  background: #f3f4f6;
-  border: 1px solid #d1d5db;
-  color: #374151;
+  background: var(--pb-color-surface-subtle);
+  border: 1px solid var(--pb-color-border);
+  color: var(--pb-color-text);
 }
 
 .cancel-button:hover {
-  background: #e5e7eb;
+  background: var(--pb-color-surface-muted);
 }
 
 .submit-button {
-  background: #3b82f6;
-  border: 1px solid #3b82f6;
+  background: var(--pb-color-brand);
+  border: 1px solid var(--pb-color-brand);
   color: white;
 }
 
 .submit-button:hover:not(:disabled) {
-  background: #2563eb;
+  background: var(--pb-color-brand-strong);
 }
 
 .submit-button:disabled {
-  background: #d1d5db;
-  border-color: #d1d5db;
+  background: var(--pb-color-border);
+  border-color: var(--pb-color-border);
   cursor: not-allowed;
 }
 
+.account-actions {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--pb-color-border);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.withdraw-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--pb-color-danger-soft);
+  border: 1px solid var(--pb-color-danger-muted);
+  border-radius: var(--pb-radius-sm);
+  color: var(--pb-color-danger);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.withdraw-button:hover {
+  background: var(--pb-color-danger-soft);
+  border-color: var(--pb-color-danger);
+}
+
+.withdraw-warning {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.withdraw-warning svg {
+  margin-bottom: 1rem;
+}
+
+.withdraw-warning h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--pb-color-heading);
+  margin: 0 0 0.5rem 0;
+}
+
+.withdraw-warning > p {
+  color: var(--pb-color-text-muted);
+  margin: 0 0 1.5rem 0;
+}
+
+.withdraw-notice-list {
+  text-align: left;
+  list-style: none;
+  padding: 1rem;
+  margin: 1.5rem 0 0 0;
+  background: var(--pb-color-danger-soft);
+  border: 1px solid var(--pb-color-danger-muted);
+  border-radius: var(--pb-radius-sm);
+}
+
+.withdraw-notice-list li {
+  padding: 0.5rem 0;
+  color: var(--pb-color-danger);
+  font-size: 0.875rem;
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.withdraw-notice-list li::before {
+  content: '⚠️';
+  position: absolute;
+  left: 0;
+}
+
+.withdraw-confirm-button {
+  padding: 12px 24px;
+  border-radius: var(--pb-radius-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  background: var(--pb-color-danger);
+  border: 1px solid var(--pb-color-danger);
+  color: white;
+}
+
+.withdraw-confirm-button:hover:not(:disabled) {
+  background: var(--pb-color-danger-strong);
+  border-color: var(--pb-color-danger-strong);
+}
+
+.withdraw-confirm-button:disabled {
+  background: var(--pb-color-border);
+  border-color: var(--pb-color-border);
+  cursor: not-allowed;
+}
+
+.status-available {
+  color: var(--pb-color-success);
+  font-weight: 600;
+}
+
+.status-overdue {
+  color: var(--pb-color-danger);
+  font-weight: 600;
+}
+
+.status-stop {
+  color: var(--pb-color-warning);
+  font-weight: 600;
+}
+
+.course-ended-notice,
+.status-stop-notice,
+.status-overdue-notice {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border-radius: var(--pb-radius-md);
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.course-ended-notice {
+  background: var(--pb-color-warning-soft);
+  border: 1px solid var(--pb-color-warning-muted);
+}
+
+.status-stop-notice {
+  background: var(--pb-color-danger-soft);
+  border: 1px solid var(--pb-color-danger-muted);
+}
+
+.status-overdue-notice {
+  background: var(--pb-color-danger-soft);
+  border: 1px solid var(--pb-color-danger-muted);
+}
+
+.notice-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.notice-content h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--pb-color-heading);
+  margin: 0 0 0.5rem 0;
+}
+
+.notice-content p {
+  font-size: 0.9rem;
+  color: var(--pb-color-text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
 @media (max-width: 768px) {
-  .mypage-container {
-    padding: 0 1rem;
-  }
-
-  .user-info-section,
-  .favorites-section,
-  .rental-history-section {
-    padding: 1.5rem;
-  }
-
-  .info-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .info-value {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .books-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .modal-overlay {
-    padding: 1rem;
-  }
-
-  .modal-content {
-    padding: 1.5rem;
-  }
-
-  .modal-actions {
-    flex-direction: column;
-  }
-
-  .rental-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .history-details {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
+  .mypage-container { padding: 0 1rem; }
+  .header-content h1 { font-size: 1.75rem; }
+  .user-info-section, .favorites-section, .rental-history-section { padding: 1.5rem; }
+  .info-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .info-value { width: 100%; justify-content: space-between; }
+  .edit-button { min-height: 44px; padding: 10px 14px; }
+  .withdraw-button { min-height: 44px; }
+  .books-grid { grid-template-columns: 1fr; }
+  .modal-overlay { padding: 1rem; }
+  .modal-content { padding: 1.5rem; max-height: 90vh; }
+  .close-button { min-width: 44px; min-height: 44px; }
+  .modal-actions { flex-direction: column; }
+  .cancel-button, .submit-button, .withdraw-confirm-button { width: 100%; justify-content: center; }
+  .rental-stats { grid-template-columns: repeat(2, 1fr); }
+  .history-details { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
 }
 </style>

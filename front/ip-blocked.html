@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>접속이 제한되었습니다 · Playbook</title>
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --card: #ffffff;
+    --text: #1f2328;
+    --muted: #5b6672;
+    --line: #e3e6ea;
+    --accent: #b3261e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16181c;
+      --card: #1f2227;
+      --text: #e8eaed;
+      --muted: #9aa4b0;
+      --line: #2e3238;
+      --accent: #f2b8b5;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic",
+                 system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+  }
+  .card {
+    width: 100%;
+    max-width: 480px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 40px 32px;
+    text-align: center;
+  }
+  .icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    font-weight: 700;
+  }
+  @media (prefers-color-scheme: dark) {
+    .icon { color: #601410; }
+  }
+  h1 { margin: 0 0 12px; font-size: 20px; font-weight: 700; }
+  p  { margin: 0 0 8px; color: var(--muted); font-size: 15px; }
+  .divider { margin: 24px 0 16px; border: 0; border-top: 1px solid var(--line); }
+  .guide {
+    text-align: left;
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .guide strong { color: var(--text); display: block; margin-bottom: 8px; font-size: 14px; }
+  .guide ul { margin: 0; padding-left: 18px; }
+  .guide li { margin-bottom: 6px; }
+  .guide li:last-child { margin-bottom: 0; }
+  .code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+  <main class="card">
+    <div class="icon" aria-hidden="true">!</div>
+
+    <h1>허용되지 않은 접속 위치입니다</h1>
+    <p>이 서비스는 등록된 네트워크에서만 이용할 수 있습니다.</p>
+    <p>현재 접속하신 위치는 허용 목록에 없습니다.</p>
+
+    <hr class="divider">
+
+    <div class="guide">
+      <strong>이렇게 해보세요</strong>
+      <ul>
+        <li>캠퍼스 내부 네트워크(유선 또는 캠퍼스 Wi-Fi)에 연결되어 있는지 확인해 주세요.</li>
+        <li>외부 VPN을 사용 중이라면 연결을 해제한 뒤 다시 시도해 주세요.</li>
+        <li>그래도 접속되지 않으면 <strong style="display:inline">라운지 관리자</strong>에게
+            문의해 접속 위치 등록을 요청해 주세요.</li>
+      </ul>
+    </div>
+
+    <p class="code">오류 코드: 403 · IP_NOT_ALLOWED</p>
+  </main>
+</body>
+</html>

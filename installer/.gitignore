@@ -1,0 +1,17 @@
+# 설치 마법사 빌드 산출물 · 의존성
+node_modules/
+dist/
+release/
+out/
+
+# 저장소 루트에서 복사해 오는 배포 페이로드 (prepare-payload.mjs 가 생성)
+payload/
+# prepare-payload 가 받아 둔 Caddy zip (체크섬 고정)
+.cache/
+
+# 마법사가 로컬에서 만들어 내는 설정 산출물 (시크릿 포함 — 절대 커밋 금지)
+*.env.prod
+.env.prod
+playbook-설치정보-*.txt
+playbook-install-backup-*.json
+wizard-state.json

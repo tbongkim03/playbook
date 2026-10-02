@@ -24,10 +24,7 @@
                   @keydown.enter="handleIsbnEnter"
                 />
                 <button class="search-btn" type="button" @click="searchISBN" :disabled="isSearching">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
-                    <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2"/>
-                  </svg>
+                  <PhMagnifyingGlass weight="duotone" :size="16" />
                   {{ isSearching ? '조회중...' : '조회' }}
                 </button>
               </div>
@@ -102,11 +99,7 @@
                 @click="submitBook" 
                 :disabled="isLoading || !isFormValid"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2"/>
-                  <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2"/>
-                  <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2"/>
-                </svg>
+                <PhStack weight="duotone" :size="16" />
                 {{ isLoading ? '등록 중...' : '등록' }}
               </button>
             </div>
@@ -133,10 +126,7 @@
                   <img :src="book.title_url" alt="도서 표지" class="cover-image" />
                 </div>
                 <div class="no-image-placeholder" v-else>
-                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20" stroke="currentColor" stroke-width="2"/>
-                    <path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" stroke="currentColor" stroke-width="2"/>
-                  </svg>
+                  <PhBook weight="duotone" :size="64" />
                   <p>도서 표지</p>
                   <span>ISBN을 조회하면 표지가 표시됩니다</span>
                 </div>
@@ -170,7 +160,12 @@
 </template>
 
 <script setup>
+import { PhBook, PhMagnifyingGlass, PhStack } from '@phosphor-icons/vue'
 import { reactive, ref, computed } from 'vue'
+import * as bookApi from '@/api/book'
+import * as externalApi from '@/api/external'
+import { swAlert } from '@/utils/sweetAlert'
+import { handleApiError } from '@/utils/apiErrorHandler'
 
 // Props와 Emits
 const emit = defineEmits(['book-registered', 'cancel'])
@@ -232,36 +227,24 @@ function handleFormEnter(e) {
 }
 
 async function searchISBN() {
-  const apiKey = import.meta.env.VITE_NL_API_KEY
-
-  const token = localStorage.getItem('jwtToken')
   const isbn = String(book.isbn || '').trim()
 
   if (!isbn) {
-    alert('ISBN을 입력해주세요.')
+    await swAlert('ISBN을 입력해주세요.', 'warning')
     return
   }
 
   isSearching.value = true
 
   try {
-    // const url = `https://www.nl.go.kr/seoji/SearchApi.do?cert_key=${apiKey}&result_style=json&page_no=1&page_size=1&isbn=${isbn}`
-    // const res = await fetch(url)
-    const res = await fetch('http://localhost:8080/api/national-library/isbn', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify(isbn)
-    })
-    const data = await res.json()
+    const res = await externalApi.searchByIsbn(isbn)
+    const data = res.data.data
 
     const doc = data?.docs?.[0] || null
-    console.log('조회된 도서 정보:', doc)
+    // console.log('조회된 도서 정보:', doc)
 
     if (!doc) {
-      alert('도서 정보를 찾을 수 없습니다.')
+      await swAlert('도서 정보를 찾을 수 없습니다.', 'error')
       return
     }
 
@@ -271,29 +254,18 @@ async function searchISBN() {
     book.publishDate = formatDate(doc['PUBLISH_PREDATE'] || '')
     book.title_url = doc['TITLE_URL'] || ''
     
-    console.log('국립중앙도서관 API에서 가져온 TITLE_URL:', book.title_url)
+    // console.log('국립중앙도서관 API에서 가져온 TITLE_URL:', book.title_url)
     
-    // TITLE_URL이 없는 경우 네이버 검색 API로 이미지 검색
+    // TITLE_URL이 없는 경우 카카오 책 검색으로 표지 보완 (네이버 책 검색은 2026-07-31 종료)
     if (!book.title_url || book.title_url.trim() === '') {
-      console.log('TITLE_URL이 비어있어 네이버 API로 이미지를 검색합니다...')
-      try {
-        const naverImageUrl = await searchBookImageFromNaver()
-        book.title_url = naverImageUrl
-        console.log('네이버 API에서 가져온 이미지로 설정:', book.title_url)
-      } catch (error) {
-        console.warn('네이버 API 이미지 검색 실패:', error)
-        // 실패해도 계속 진행 (이미지 없이)
-        book.title_url = ''
-      }
-    } else {
-      console.log('국립중앙도서관 API에서 이미지를 가져왔습니다:', book.title_url)
+      // 실패해도 계속 진행 (이미지 없이)
+      book.title_url = (await searchBookImageFromKakao()) || ''
     }
     
     hasSearched.value = true // 조회 완료 상태 설정
 
   } catch (err) {
-    console.error('API 조회 실패:', err)
-    alert('도서 정보를 조회하는 중 오류가 발생했습니다.')
+    await handleApiError(err, '도서 정보를 조회하는 중 오류가 발생했습니다.')
   } finally {
     isSearching.value = false
   }
@@ -324,7 +296,7 @@ function formatDisplayDate(dateStr) {
 
 async function submitBook() {
   if (!isFormValid.value) {
-    alert('필수 정보를 모두 입력해주세요.')
+    await swAlert('필수 정보를 모두 입력해주세요.', 'warning')
     return
   }
   
@@ -340,87 +312,30 @@ async function submitBook() {
 
   try {
     isLoading.value = true
-    const token = localStorage.getItem('jwtToken')
-    console.log(token || '0')
 
-    const response = await fetch('http://localhost:8080/books', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify(payload)
-    })
+    const response = await bookApi.create(payload)
+    const data = response.data.data
 
-    const contentType = response.headers.get('content-type')
-    
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(errorText || `서버 오류: ${response.status}`)
-    }
-
-    let data
-    if (contentType && contentType.includes('application/json')) {
-      data = await response.json()
-    } else {
-      const text = await response.text()
-      if (!text) throw new Error('알 수 없는 응답입니다.')
-      data = { titleBook: book.title }
-    }
-
-    alert(`도서 "${data.titleBook || book.title}"가 성공적으로 등록되었습니다!`)
+    await swAlert(`도서 "${data?.titleBook || book.title}"가 성공적으로 등록되었습니다!`, 'success')
     
     // 폼 초기화
     resetForm()
     
   } catch (err) {
-    console.error('도서 등록 실패:', err)
-    alert(`등록 실패: ${err.message}`)
+    await handleApiError(err, '도서 등록에 실패했습니다.')
   } finally {
     isLoading.value = false
   }
 }
 
-async function searchBookImageFromNaver() {
-  console.log('백엔드 프록시를 통해 네이버 책 상세 검색 API 호출 (ISBN 기반)')
-
-  const token = localStorage.getItem('jwtToken')
-  
-  // ISBN이 있으면 ISBN으로 우선 검색
+async function searchBookImageFromKakao() {
   if (book.isbn && String(book.isbn).trim()) {
     try {
-      console.log('ISBN으로 상세 검색 시도:', book.isbn)
-      
-      const response = await fetch('http://localhost:8080/api/naver/book-search', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          isbn: String(book.isbn).trim(),
-          display: 10
-        })
-      })
-
-      console.log("백엔드 API 응답 상태:", response.status)
-
-      if (response.ok) {
-        const data = await response.json()
-        console.log("ISBN 검색 응답 데이터:", data)
-        
-        if (data.items && data.items.length > 0) {
-          const imageUrl = data.items[0].image
-          if (imageUrl) {
-            console.log('ISBN 검색으로 이미지 발견:', imageUrl)
-            return imageUrl
-          }
-        }
-      } else {
-        console.warn('ISBN 검색 실패:', response.status)
-      }
+      const response = await externalApi.searchKakao({ isbn: String(book.isbn).trim() })
+      // 결과 없음(1001)·키 미설정(4xxx)이면 data 가 null 이다
+      return response.data.data?.thumbnail || ''
     } catch (error) {
-      console.error('ISBN 검색 중 오류:', error)
+      console.warn('ISBN 검색 중 오류:', error.response?.data)
     }
   }
 }
@@ -473,9 +388,9 @@ function resetTransform() {
 }
 
 .section-card {
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
+  background: var(--pb-color-surface-subtle);
+  border-radius: var(--pb-radius-sm);
+  border: 1px solid var(--pb-color-border);
   overflow: hidden;
   height: 100%;
 }
@@ -485,14 +400,14 @@ function resetTransform() {
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  border-bottom: 1px solid #e9ecef;
-  background: #e9ecef;
+  border-bottom: 1px solid var(--pb-color-border);
+  background: var(--pb-color-surface-muted);
 }
 
 .card-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #212529;
+  color: var(--pb-color-heading);
   margin: 0;
 }
 
@@ -510,27 +425,29 @@ function resetTransform() {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: #495057;
+  color: var(--pb-color-text-muted);
 }
 
 .required {
-  color: #dc3545;
+  color: var(--pb-color-danger);
 }
 
 .form-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid #ced4da;
-  border-radius: 6px;
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-xs);
   font-size: 1rem;
-  transition: all 0.3s ease;
+  background: var(--pb-color-surface);
+  color: var(--pb-color-text);
+  transition: border-color 0.15s, box-shadow 0.15s;
   box-sizing: border-box;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  border-color: var(--pb-color-brand);
+  box-shadow: 0 0 0 3px var(--pb-color-brand-soft);
 }
 
 .isbn-group {
@@ -553,20 +470,20 @@ function resetTransform() {
   align-items: center;
   gap: 6px;
   padding: 0.75rem 1rem;
-  background: #6c757d;
+  background: var(--pb-color-text-muted);
   color: white;
-  border: 1px solid #6c757d;
-  border-top-right-radius: 6px;
-  border-bottom-right-radius: 6px;
+  border: 1px solid var(--pb-color-text-muted);
+  border-top-right-radius: var(--pb-radius-xs);
+  border-bottom-right-radius: var(--pb-radius-xs);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.15s;
   white-space: nowrap;
 }
 
 .search-btn:hover:not(:disabled) {
-  background: #5a6268;
-  border-color: #5a6268;
+  background: var(--pb-color-text);
+  border-color: var(--pb-color-text);
 }
 
 .search-btn:disabled {
@@ -587,18 +504,18 @@ function resetTransform() {
   gap: 8px;
   padding: 0.75rem 2rem;
   background: transparent;
-  color: #6c757d;
-  border: 1px solid #6c757d;
-  border-radius: 6px;
+  color: var(--pb-color-text-muted);
+  border: 1px solid var(--pb-color-border);
+  border-radius: var(--pb-radius-xs);
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.15s, color 0.15s;
 }
 
 .cancel-btn:hover:not(:disabled) {
-  background: #6c757d;
-  color: white;
+  background: var(--pb-color-surface-muted);
+  color: var(--pb-color-text);
 }
 
 .register-btn {
@@ -606,28 +523,25 @@ function resetTransform() {
   align-items: center;
   gap: 8px;
   padding: 0.75rem 2rem;
-  background: #007bff;
+  background: var(--pb-color-brand);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--pb-radius-xs);
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.15s;
 }
 
 .register-btn:hover:not(:disabled) {
-  background: #0056b3;
-  transform: translateY(-1px);
+  background: var(--pb-color-brand-strong);
 }
 
 .register-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
 }
 
-/* 미리보기 섹션 */
 .preview-content {
   padding: 1.5rem;
   height: calc(100% - 80px);
@@ -651,17 +565,16 @@ function resetTransform() {
   position: relative;
   max-width: 250px;
   width: 100%;
-  border-radius: 8px;
+  border-radius: var(--pb-radius-sm);
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  box-shadow: var(--pb-shadow-md);
 }
 
 .cover-image {
   width: 100%;
   height: auto;
   display: block;
-  border-radius: 8px;
+  border-radius: var(--pb-radius-sm);
 }
 
 .no-image-placeholder {
@@ -670,10 +583,10 @@ function resetTransform() {
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  color: #6c757d;
+  color: var(--pb-color-text-muted);
   text-align: center;
-  border: 2px dashed #dee2e6;
-  border-radius: 8px;
+  border: 2px dashed var(--pb-color-border);
+  border-radius: var(--pb-radius-sm);
   min-height: 300px;
 }
 
@@ -686,7 +599,7 @@ function resetTransform() {
   font-size: 1.1rem;
   font-weight: 500;
   margin-bottom: 0.5rem;
-  color: #495057;
+  color: var(--pb-color-text);
 }
 
 .no-image-placeholder span {
@@ -695,10 +608,10 @@ function resetTransform() {
 }
 
 .book-info-summary {
-  background: white;
-  border-radius: 8px;
+  background: var(--pb-color-surface);
+  border-radius: var(--pb-radius-sm);
   padding: 1.5rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--pb-color-border);
 }
 
 .info-item {
@@ -706,7 +619,7 @@ function resetTransform() {
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 0;
-  border-bottom: 1px solid #f1f3f4;
+  border-bottom: 1px solid var(--pb-color-surface-subtle);
 }
 
 .info-item:last-child {
@@ -715,98 +628,40 @@ function resetTransform() {
 
 .info-item label {
   font-weight: 500;
-  color: #6c757d;
+  color: var(--pb-color-text-muted);
   min-width: 80px;
 }
 
 .info-item span {
-  color: #495057;
+  color: var(--pb-color-text);
   text-align: right;
   word-break: break-word;
   flex: 1;
   margin-left: 1rem;
 }
 
-/* 반응형 디자인 */
 @media (max-width: 1024px) {
-  .register-content {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-  
-  .form-section {
-    order: 1;
-  }
-  
-  .preview-section {
-    order: 2;
-  }
-
-  .section-card {
-    height: auto;
-  }
-
-  .form-content,
-  .preview-content {
-    height: auto;
-  }
+  .register-content { grid-template-columns: 1fr; gap: 1.5rem; }
+  .form-section { order: 1; }
+  .preview-section { order: 2; }
+  .section-card { height: auto; }
+  .form-content, .preview-content { height: auto; }
 }
 
 @media (max-width: 768px) {
-  .card-header {
-    padding: 1rem;
-  }
-  
-  .form-content,
-  .preview-content {
-    padding: 1rem;
-  }
-  
-  .book-cover-wrapper {
-    min-height: 250px;
-  }
-  
-  .no-image-placeholder {
-    min-height: 250px;
-    padding: 1.5rem;
-  }
-
-  .form-actions {
-    flex-direction: column;
-  }
-
-  .cancel-btn,
-  .register-btn {
-    width: 100%;
-    justify-content: center;
-  }
+  .card-header { padding: 1rem; }
+  .form-content, .preview-content { padding: 1rem; }
+  .book-cover-wrapper { min-height: 250px; }
+  .no-image-placeholder { min-height: 250px; padding: 1.5rem; }
+  .form-actions { flex-direction: column; }
+  .cancel-btn, .register-btn { width: 100%; justify-content: center; }
 }
 
 @media (max-width: 480px) {
-  .isbn-input-wrapper {
-    flex-direction: column;
-  }
-  
-  .isbn-input-wrapper .form-input {
-    border-radius: 6px;
-    border-right: 1px solid #ced4da;
-    margin-bottom: 0.5rem;
-  }
-  
-  .search-btn {
-    border-radius: 6px;
-    justify-content: center;
-  }
-  
-  .info-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
-  }
-  
-  .info-item span {
-    text-align: left;
-    margin-left: 0;
-  }
+  .isbn-input-wrapper { flex-direction: column; }
+  .isbn-input-wrapper .form-input { border-radius: var(--pb-radius-xs); border-right: 1px solid var(--pb-color-border); margin-bottom: 0.5rem; }
+  .search-btn { border-radius: var(--pb-radius-xs); justify-content: center; }
+  .info-item { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+  .info-item span { text-align: left; margin-left: 0; }
 }
 </style>

@@ -1,0 +1,37 @@
+package playbook.encore.back.course.entity;
+
+import jakarta.persistence.*;
+import playbook.encore.back.campus.entity.Campus;
+import playbook.encore.back.common.audit.BaseAuditEntity;
+import lombok.*;
+import org.hibernate.annotations.Where;
+
+import java.time.LocalDate;
+
+@Entity
+@Data
+@EqualsAndHashCode(callSuper = false)
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Where(clause = "use_yn = 'Y'")
+@Table(name = "tb_course")
+public class Course extends BaseAuditEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "seq_course", nullable = false)
+    private Integer seqCourse;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seq_campus", nullable = true)
+    private Campus seqCampus;
+
+    @Column(name = "name_course", nullable = false, length = 30)
+    private String nameCourse;
+
+    @Column(name = "start_dt_course", nullable = false)
+    private LocalDate startDtCourse;
+
+    @Column(name = "finish_dt_course", nullable = false)
+    private LocalDate finishDtCourse;
+}

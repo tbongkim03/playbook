@@ -37,6 +37,7 @@ back/.nb-gradle/
 back/.vscode/
 
 # Logs
+back/logs/
 front/logs
 *.log
 front/npm-debug.log*
@@ -67,6 +68,47 @@ front/*.sw?
 front/*.tsbuildinfo
 front/.vite/*
 #### ENV ###
-back/.env
-db/.env
+# 로컬 실행 설정 — 실제 API 키·DB 비밀번호가 들어가므로 커밋 금지.
+# 새 환경은 application-local.properties.example 을 복사해 값을 채운다.
+back/src/main/resources/application-local.properties
+back/.env.dev
+back/.env.prod
+back/.env.test
+db/.env.dev
+db/.env.prod
 front/.env
+# 중앙 모니터링 토큰·부트스트랩 시크릿 (back·alloy 공용, 마법사가 생성)
+back/.env.monitoring
+# compose 프로파일 토글 (COMPOSE_PROFILES=monitoring). 루트 한정 — front/.env 등과 무관
+/.env
+
+# 설치 마법사 (installer/) — 의존성·빌드 산출물·동봉 페이로드
+# 소스(src/, scripts/, *.yml, README.md)는 커밋 대상이다.
+installer/node_modules/
+installer/dist/
+installer/release/
+# 빌드 시 저장소 루트에서 복사해 오는 배포 페이로드 (원본이 이미 저장소에 있으므로 중복 커밋 금지)
+installer/payload/
+# 마법사가 실행 중 만들어 내는 산출물 — 비밀번호·API 키·봇 토큰 평문 포함
+installer/**/.env.prod
+installer/wizard-state.json
+playbook-설치정보-*.txt
+
+# 목업 디렉토리
+front_mok/
+
+# 로컬 작업 문서 (계획서·테스트계획·아카이브) — 커밋 대상은 README.md / GUIDE.md / document/ 뿐
+docs/
+
+# 백업 파일 (스크립트가 생성하는 결과물)
+backups/
+
+# OCI 배포 메일 알림 SMTP 자격증명 (앱 비밀번호 포함)
+scripts/.oci-notify.env
+
+# 하네스 에이전트 중간 산출물
+_workspace/
+_workspace_*/
+
+# Claude Code 개인 로컬 설정 (권한 허용목록 등 — 사용자별로 다름)
+.claude/settings.local.json
